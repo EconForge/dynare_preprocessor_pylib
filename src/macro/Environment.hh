@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2022 Dynare Team
+ * Copyright © 2019-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -42,12 +42,15 @@ public:
   }
   void define(VariablePtr var, ExpressionPtr value);
   void define(FunctionPtr func, ExpressionPtr value);
-  ExpressionPtr getVariable(const string& name) const;
-  tuple<FunctionPtr, ExpressionPtr> getFunction(const string& name) const;
-  codes::BaseType getType(const string& name) const;
-  bool isVariableDefined(const string& name) const noexcept;
-  bool isFunctionDefined(const string& name) const noexcept;
-  bool
+  /* The following two functions are not marked [[nodiscard]], because they are used without output
+     to check whether they return an exception or not. */
+  ExpressionPtr getVariable(const string& name) const; // NOLINT(modernize-use-nodiscard)
+  tuple<FunctionPtr, ExpressionPtr>                    // NOLINT(modernize-use-nodiscard)
+  getFunction(const string& name) const;
+  [[nodiscard]] codes::BaseType getType(const string& name) const;
+  [[nodiscard]] bool isVariableDefined(const string& name) const noexcept;
+  [[nodiscard]] bool isFunctionDefined(const string& name) const noexcept;
+  [[nodiscard]] bool
   isSymbolDefined(const string& name) const noexcept
   {
     return isVariableDefined(name) || isFunctionDefined(name);
@@ -58,12 +61,12 @@ public:
                      bool save) const;
   void printFunction(ostream& output, const tuple<FunctionPtr, ExpressionPtr>& function,
                      const optional<int>& line, bool save) const;
-  size_t
+  [[nodiscard]] size_t
   size() const noexcept
   {
     return variables.size() + functions.size();
   }
-  const Environment*
+  [[nodiscard]] const Environment*
   getGlobalEnv() const noexcept
   {
     return parent == nullptr ? this : parent->getGlobalEnv();

@@ -39,7 +39,7 @@ private:
   map<string, string> hooks;
 
 public:
-  map<string, string>
+  [[nodiscard]] map<string, string>
   get_hooks() const
   {
     return hooks;
@@ -55,7 +55,7 @@ private:
   map<string, vector<string>> paths;
 
 public:
-  map<string, vector<string>>
+  [[nodiscard]] map<string, vector<string>>
   get_paths() const
   {
     return paths;
@@ -136,7 +136,7 @@ public:
   //! Check Pass
   void transformPass();
   //! Get Path Info
-  vector<filesystem::path> getIncludePaths() const;
+  [[nodiscard]] vector<filesystem::path> getIncludePaths() const;
   //! Write any hooks
   void writeHooks(ostream& output) const;
   //! Create options_.parallel structure, write options

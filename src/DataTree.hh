@@ -111,7 +111,7 @@ protected:
   vector<int> local_variables_vector;
 
   //! Internal implementation of ParamUsedWithLeadLag()
-  bool ParamUsedWithLeadLagInternal() const;
+  [[nodiscard]] bool ParamUsedWithLeadLagInternal() const;
 
   /* Writes the contents of “new_contents” to the file “filename”. However, if
      the file already exists and would not be modified by this operation, then do
@@ -166,7 +166,7 @@ public:
   //! Gets a variable
   /*! Same as AddVariable, except that it fails if the variable node has not
     already been created */
-  VariableNode* getVariable(int symb_id, int lag = 0) const;
+  [[nodiscard]] VariableNode* getVariable(int symb_id, int lag = 0) const;
   //! Adds "arg1+arg2" to model tree
   expr_t AddPlus(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1-arg2" to model tree
@@ -274,19 +274,19 @@ public:
   expr_t AddSecondDerivExternalFunction(int top_level_symb_id, const vector<expr_t>& arguments,
                                         int input_index1, int input_index2);
   //! Checks if a given symbol is used somewhere in the data tree
-  bool isSymbolUsed(int symb_id) const;
+  [[nodiscard]] bool isSymbolUsed(int symb_id) const;
   //! Checks if a given unary op is used somewhere in the data tree
-  bool isUnaryOpUsed(UnaryOpcode opcode) const;
+  [[nodiscard]] bool isUnaryOpUsed(UnaryOpcode opcode) const;
   //! Checks if a given unary op is used somewhere in the data tree on an endogenous variable
-  bool isUnaryOpUsedOnType(SymbolType type, UnaryOpcode opcode) const;
+  [[nodiscard]] bool isUnaryOpUsedOnType(SymbolType type, UnaryOpcode opcode) const;
   //! Checks if a given binary op is used somewhere in the data tree
-  bool isBinaryOpUsed(BinaryOpcode opcode) const;
+  [[nodiscard]] bool isBinaryOpUsed(BinaryOpcode opcode) const;
   //! Checks if a given binary op is used somewhere in the data tree on an endogenous variable
-  bool isBinaryOpUsedOnType(SymbolType type, BinaryOpcode opcode) const;
+  [[nodiscard]] bool isBinaryOpUsedOnType(SymbolType type, BinaryOpcode opcode) const;
   //! Returns the minimum lag (as a negative number) of the given symbol in the whole data tree (and
   //! not only in the equations !!)
   /*! Returns 0 if the symbol is not used */
-  int minLagForSymbol(int symb_id) const;
+  [[nodiscard]] int minLagForSymbol(int symb_id) const;
   /* Writes definitions of C function helpers (getPowerDeriv(), sign()) as
      inline functions */
   void writeCHelpersDefinition(ostream& output) const;
@@ -308,17 +308,17 @@ public:
   };
 
   // Returns the derivation ID, or throws an exception if the derivation ID does not exist
-  virtual int getDerivID(int symb_id, int lag) const noexcept(false);
+  [[nodiscard]] virtual int getDerivID(int symb_id, int lag) const noexcept(false);
   // Get the type corresponding to a derivation ID
-  virtual SymbolType getTypeByDerivID(int deriv_id) const noexcept(false);
+  [[nodiscard]] virtual SymbolType getTypeByDerivID(int deriv_id) const noexcept(false);
   // Get the lag corresponding to a derivation ID
-  virtual int getLagByDerivID(int deriv_id) const noexcept(false);
+  [[nodiscard]] virtual int getLagByDerivID(int deriv_id) const noexcept(false);
   // Get the symbol ID corresponding to a derivation ID
-  virtual int getSymbIDByDerivID(int deriv_id) const noexcept(false);
+  [[nodiscard]] virtual int getSymbIDByDerivID(int deriv_id) const noexcept(false);
   // Get the type-specific ID corresponding to a derivation ID
-  virtual int getTypeSpecificIDByDerivID(int deriv_id) const;
+  [[nodiscard]] virtual int getTypeSpecificIDByDerivID(int deriv_id) const;
   // Get the symbol name corresponding to a derivation ID
-  string
+  [[nodiscard]] string
   getNameByDerivID(int deriv_id) const
   {
     return symbol_table.getName(getSymbIDByDerivID(deriv_id));
@@ -327,7 +327,7 @@ public:
   /* Returns the column of the Jacobian associated to a derivation ID.
      The “sparse” argument selects between the legacy representation and the
      sparse representation. */
-  virtual int
+  [[nodiscard]] virtual int
   getJacobianCol([[maybe_unused]] int deriv_id, [[maybe_unused]] bool sparse) const
   {
     throw UnknownDerivIDException();
@@ -336,7 +336,7 @@ public:
   /* Returns the number of columns of the Jacobian
      The “sparse” argument selects between the legacy representation and the
      sparse representation. */
-  virtual int
+  [[nodiscard]] virtual int
   getJacobianColsNbr([[maybe_unused]] bool sparse) const
   {
     throw UnknownDerivIDException();
@@ -347,7 +347,7 @@ public:
 
   //! Returns bool indicating whether DataTree represents a Dynamic Model (returns true in
   //! DynamicModel.hh)
-  virtual bool
+  [[nodiscard]] virtual bool
   isDynamic() const
   {
     return false;
@@ -359,7 +359,7 @@ public:
     int id;
   };
 
-  expr_t
+  [[nodiscard]] expr_t
   getLocalVariable(int symb_id) const
   {
     auto it = local_variables_table.find(symb_id);

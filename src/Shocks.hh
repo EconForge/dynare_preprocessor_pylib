@@ -72,7 +72,7 @@ private:
   void writeCovarOrCorrShock(ostream& output, const pair<pair<int, int>, expr_t>& it,
                              bool corr) const;
   void writeCovarAndCorrShocks(ostream& output) const;
-  bool has_calibrated_measurement_errors() const;
+  [[nodiscard]] bool has_calibrated_measurement_errors() const;
 
 public:
   ShocksStatement(bool overwrite_arg, det_shocks_t det_shocks_arg,

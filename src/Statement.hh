@@ -254,10 +254,10 @@ public:
   {
   };
 
-  bool empty() const;
+  [[nodiscard]] bool empty() const;
   void clear();
   // Whether there is an option with that name that has been given a value
-  bool contains(const string& name) const;
+  [[nodiscard]] bool contains(const string& name) const;
   // Erase the option with that name
   void erase(const string& name);
 

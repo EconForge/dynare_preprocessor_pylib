@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009-2020 Dynare Team
+ * Copyright © 2009-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -59,18 +59,18 @@ public:
     The property vertex_index1 of the subgraph contains indices of the original
     graph.
   */
-  VariableDependencyGraph extractSubgraph(const vector<int>& select_index) const;
+  [[nodiscard]] VariableDependencyGraph extractSubgraph(const vector<int>& select_index) const;
   //! Return the feedback set
-  set<int> minimalSetOfFeedbackVertices() const;
+  [[nodiscard]] set<int> minimalSetOfFeedbackVertices() const;
   //! Reorder the recursive variables
   /*! They appear first in a quasi triangular form and they are followed by the feedback variables
    */
-  vector<int> reorderRecursiveVariables(const set<int>& feedback_vertices) const;
+  [[nodiscard]] vector<int> reorderRecursiveVariables(const set<int>& feedback_vertices) const;
   /* Computes the strongly connected components (SCCs) of the graph, and sort them
      topologically.
      Returns the number of SCCs, and a mapping of vertex indices to sorted SCC
      indices. */
-  pair<int, vector<int>> sortedStronglyConnectedComponents() const;
+  [[nodiscard]] pair<int, vector<int>> sortedStronglyConnectedComponents() const;
   // Print on stdout a description of the graph
   void print() const;
 
@@ -86,7 +86,7 @@ private:
   // Internal helper for hasCycle()
   bool hasCycleDFS(vertex_descriptor u, color_t& color, vector<int>& circuit_stack) const;
   // Determine whether the graph has a cycle
-  bool hasCycle() const;
+  [[nodiscard]] bool hasCycle() const;
   bool vertexBelongsToAClique(vertex_descriptor vertex) const;
   bool eliminationOfVerticesWithOneOrLessIndegreeOrOutdegree();
   bool eliminationOfVerticesBelongingToAClique();

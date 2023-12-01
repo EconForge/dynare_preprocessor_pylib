@@ -528,7 +528,7 @@ protected:
   const SymbolTable& symbol_table;
   AbstractEstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
                                    const SymbolTable& symbol_table_arg);
-  virtual string blockName() const = 0;
+  [[nodiscard]] virtual string blockName() const = 0;
   // Part of the check pass that is common to the three estimated_params{,_init,bounds} blocks
   void commonCheckPass() const;
 };
@@ -541,7 +541,7 @@ private:
 public:
   EstimatedParamsStatement(vector<EstimationParams> estim_params_list_arg,
                            const SymbolTable& symbol_table_arg, bool overwrite_arg);
-  string
+  [[nodiscard]] string
   blockName() const override
   {
     return "estimated_params";
@@ -559,7 +559,7 @@ private:
 public:
   EstimatedParamsInitStatement(vector<EstimationParams> estim_params_list_arg,
                                const SymbolTable& symbol_table_arg, const bool use_calibration_arg);
-  string
+  [[nodiscard]] string
   blockName() const override
   {
     return "estimated_params_init";
@@ -574,7 +574,7 @@ class EstimatedParamsBoundsStatement : public AbstractEstimatedParamsStatement
 public:
   EstimatedParamsBoundsStatement(vector<EstimationParams> estim_params_list_arg,
                                  const SymbolTable& symbol_table_arg);
-  string
+  [[nodiscard]] string
   blockName() const override
   {
     return "estimated_params_bounds";
@@ -981,7 +981,7 @@ private:
   const svar_identification_restrictions_t restrictions;
   const bool upper_cholesky_present, lower_cholesky_present, constants_exclusion_present;
   const SymbolTable& symbol_table;
-  int getMaxLag() const;
+  [[nodiscard]] int getMaxLag() const;
 
 public:
   SvarIdentificationStatement(svar_identification_restrictions_t restrictions_arg,
@@ -1111,7 +1111,7 @@ protected:
   void writeCommonOutput(ostream& output, const string& lhs_field) const;
   void writeCommonOutputHelper(ostream& output, const string& field, const string& lhs_field) const;
   void writePriorOutput(ostream& output, string& lhs_field, const string& name2) const;
-  bool is_structural_innovation(const SymbolType symb_type) const;
+  [[nodiscard]] bool is_structural_innovation(const SymbolType symb_type) const;
   void writePriorIndex(ostream& output, const string& lhs_field) const;
   void writeVarianceOption(ostream& output, const string& lhs_field) const;
   void writeOutputHelper(ostream& output, const string& field, const string& lhs_field) const;
@@ -1185,7 +1185,7 @@ protected:
   void writeOptionsOutput(ostream& output, string& lhs_field, const string& name2) const;
   void writeCommonOutput(ostream& output, const string& lhs_field) const;
   void writeCommonOutputHelper(ostream& output, const string& field, const string& lhs_field) const;
-  bool is_structural_innovation(const SymbolType symb_type) const;
+  [[nodiscard]] bool is_structural_innovation(const SymbolType symb_type) const;
   void writeOptionsIndex(ostream& output, const string& lhs_field) const;
   void writeOutputHelper(ostream& output, const string& field, const string& lhs_field) const;
   void writeJsonOptionsOutput(ostream& output) const;

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -59,13 +59,13 @@ public:
   //! Write JSON output
   void writeJsonOutput(ostream& output) const;
   //! Is Empty
-  bool
+  [[nodiscard]] bool
   empty() const
   {
     return symbols.empty();
   };
   //! Return the list of symbols
-  vector<string> getSymbols() const;
+  [[nodiscard]] vector<string> getSymbols() const;
 };
 
 #endif

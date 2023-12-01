@@ -63,7 +63,7 @@ public:
 
   //! Various functions to get info from equation tags
   //! Get equation tags for a given equation
-  map<string, string>
+  [[nodiscard]] map<string, string>
   getTagsByEqn(int eqn) const
   {
     if (auto it = eqn_tags.find(eqn); it != eqn_tags.end())
@@ -72,19 +72,19 @@ public:
   }
 
   //! Get equations that have the given key
-  set<int> getEqnsByKey(const string& key) const;
+  [[nodiscard]] set<int> getEqnsByKey(const string& key) const;
 
   //! Get equations that have the given key and value
-  set<int> getEqnsByTag(const string& key, const string& value) const;
+  [[nodiscard]] set<int> getEqnsByTag(const string& key, const string& value) const;
 
   //! Get the first equation that has the given key and value
-  optional<int> getEqnByTag(const string& key, const string& value) const;
+  [[nodiscard]] optional<int> getEqnByTag(const string& key, const string& value) const;
 
   // Get equations that have all the given keys and values (seen as a conjunction)
-  set<int> getEqnsByTags(const map<string, string>& tags_selected) const;
+  [[nodiscard]] set<int> getEqnsByTags(const map<string, string>& tags_selected) const;
 
   //! Get the tag value given the equation number and key
-  optional<string>
+  [[nodiscard]] optional<string>
   getTagValueByEqnAndKey(int eqn, const string& key) const
   {
     if (auto it = eqn_tags.find(eqn); it != eqn_tags.end())
@@ -94,21 +94,21 @@ public:
   }
 
   //! Get the equations marked dynamic
-  set<int>
+  [[nodiscard]] set<int>
   getDynamicEqns() const
   {
     return getEqnsByTag("dynamic", "");
   }
 
   //! Returns true if equation tag with key and value exists
-  bool
+  [[nodiscard]] bool
   exists(const string& key, const string& value) const
   {
     return getEqnByTag(key, value).has_value();
   }
 
   //! Returns true if equation tag with key exists for a given equation
-  bool
+  [[nodiscard]] bool
   exists(int eqn, const string& key) const
   {
     auto it = eqn_tags.find(eqn);

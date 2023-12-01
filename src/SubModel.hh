@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018-2022 Dynare Team
+ * Copyright © 2018-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -64,25 +64,25 @@ public:
   void addTrendComponentModel(string name_arg, vector<string> eqtags_arg,
                               vector<string> target_eqtags_arg);
 
-  inline bool isExistingTrendComponentModelName(const string& name_arg) const;
-  inline bool empty() const;
+  [[nodiscard]] inline bool isExistingTrendComponentModelName(const string& name_arg) const;
+  [[nodiscard]] inline bool empty() const;
 
-  const map<string, vector<string>>& getEqTags() const;
-  const vector<string>& getEqTags(const string& name_arg) const;
-  const map<string, vector<string>>& getTargetEqTags() const;
-  const map<string, vector<int>>& getEqNums() const;
-  const map<string, vector<int>>& getTargetEqNums() const;
-  const vector<int>& getTargetEqNums(const string& name_arg) const;
-  const vector<int>& getEqNums(const string& name_arg) const;
-  const vector<int>& getMaxLags(const string& name_arg) const;
-  int getMaxLag(const string& name_arg) const;
-  const vector<int>& getLhs(const string& name_arg) const;
-  const vector<expr_t>& getLhsExprT(const string& name_arg) const;
-  const vector<bool>& getDiff(const string& name_arg) const;
-  const map<string, vector<int>>& getNonTargetEqNums() const;
-  const vector<int>& getNonTargetEqNums(const string& name_arg) const;
-  const vector<int>& getNonTargetLhs(const string& name_arg) const;
-  const vector<int>& getTargetLhs(const string& name_arg) const;
+  [[nodiscard]] const map<string, vector<string>>& getEqTags() const;
+  [[nodiscard]] const vector<string>& getEqTags(const string& name_arg) const;
+  [[nodiscard]] const map<string, vector<string>>& getTargetEqTags() const;
+  [[nodiscard]] const map<string, vector<int>>& getEqNums() const;
+  [[nodiscard]] const map<string, vector<int>>& getTargetEqNums() const;
+  [[nodiscard]] const vector<int>& getTargetEqNums(const string& name_arg) const;
+  [[nodiscard]] const vector<int>& getEqNums(const string& name_arg) const;
+  [[nodiscard]] const vector<int>& getMaxLags(const string& name_arg) const;
+  [[nodiscard]] int getMaxLag(const string& name_arg) const;
+  [[nodiscard]] const vector<int>& getLhs(const string& name_arg) const;
+  [[nodiscard]] const vector<expr_t>& getLhsExprT(const string& name_arg) const;
+  [[nodiscard]] const vector<bool>& getDiff(const string& name_arg) const;
+  [[nodiscard]] const map<string, vector<int>>& getNonTargetEqNums() const;
+  [[nodiscard]] const vector<int>& getNonTargetEqNums(const string& name_arg) const;
+  [[nodiscard]] const vector<int>& getNonTargetLhs(const string& name_arg) const;
+  [[nodiscard]] const vector<int>& getTargetLhs(const string& name_arg) const;
 
   void setVals(map<string, vector<int>> eqnums_arg, map<string, vector<int>> target_eqnums_arg,
                map<string, vector<int>> lhs_arg, map<string, vector<expr_t>> lhs_expr_t_arg);
@@ -145,21 +145,21 @@ public:
   //! Add a VAR model
   void addVarModel(string name, bool structural_arg, vector<string> eqtags);
 
-  inline bool isExistingVarModelName(const string& name_arg) const;
-  inline bool empty() const;
+  [[nodiscard]] inline bool isExistingVarModelName(const string& name_arg) const;
+  [[nodiscard]] inline bool empty() const;
 
-  const map<string, bool>& getStructural() const;
-  const map<string, vector<string>>& getEqTags() const;
-  const vector<string>& getEqTags(const string& name_arg) const;
-  const map<string, vector<int>>& getEqNums() const;
-  const vector<bool>& getDiff(const string& name_arg) const;
-  const vector<int>& getEqNums(const string& name_arg) const;
-  const vector<int>& getMaxLags(const string& name_arg) const;
-  int getMaxLag(const string& name_arg) const;
-  const vector<int>& getLhs(const string& name_arg) const;
-  const vector<int>& getLhsOrigIds(const string& name_arg) const;
-  const vector<set<pair<int, int>>>& getRhs(const string& name_arg) const;
-  const vector<expr_t>& getLhsExprT(const string& name_arg) const;
+  [[nodiscard]] const map<string, bool>& getStructural() const;
+  [[nodiscard]] const map<string, vector<string>>& getEqTags() const;
+  [[nodiscard]] const vector<string>& getEqTags(const string& name_arg) const;
+  [[nodiscard]] const map<string, vector<int>>& getEqNums() const;
+  [[nodiscard]] const vector<bool>& getDiff(const string& name_arg) const;
+  [[nodiscard]] const vector<int>& getEqNums(const string& name_arg) const;
+  [[nodiscard]] const vector<int>& getMaxLags(const string& name_arg) const;
+  [[nodiscard]] int getMaxLag(const string& name_arg) const;
+  [[nodiscard]] const vector<int>& getLhs(const string& name_arg) const;
+  [[nodiscard]] const vector<int>& getLhsOrigIds(const string& name_arg) const;
+  [[nodiscard]] const vector<set<pair<int, int>>>& getRhs(const string& name_arg) const;
+  [[nodiscard]] const vector<expr_t>& getLhsExprT(const string& name_arg) const;
 
   void setEqNums(map<string, vector<int>> eqnums_arg);
   void setLhs(map<string, vector<int>> lhs_arg);
@@ -213,8 +213,8 @@ public:
   explicit VarExpectationModelTable(SymbolTable& symbol_table_arg);
   void addVarExpectationModel(string name_arg, expr_t expression_arg, string aux_model_name_arg,
                               string horizon_arg, expr_t discount_arg, int time_shift_arg);
-  bool isExistingVarExpectationModelName(const string& name_arg) const;
-  bool empty() const;
+  [[nodiscard]] bool isExistingVarExpectationModelName(const string& name_arg) const;
+  [[nodiscard]] bool empty() const;
   void substituteUnaryOpsInExpression(const lag_equivalence_table_t& nodes,
                                       ExprNode::subst_table_t& subst_table,
                                       vector<BinaryOpNode*>& neweqs);
@@ -313,7 +313,7 @@ private:
   // pac_model_name → (target variable/expr, auxname_target_nonstationary, target components)
   map<string, tuple<expr_t, string, vector<target_component_t>>> target_info;
 
-  int pacEquationMaxLag(const string& name_arg) const;
+  [[nodiscard]] int pacEquationMaxLag(const string& name_arg) const;
 
   // Return a text representation of a kind (but fails on “unspecified” kind value)
   static string kindToString(PacTargetKind kind);
@@ -322,8 +322,8 @@ public:
   explicit PacModelTable(SymbolTable& symbol_table_arg);
   void addPacModel(string name_arg, string aux_model_name_arg, string discount_arg,
                    expr_t growth_arg, string auxname_arg, PacTargetKind kind_arg);
-  bool isExistingPacModelName(const string& name_arg) const;
-  bool empty() const;
+  [[nodiscard]] bool isExistingPacModelName(const string& name_arg) const;
+  [[nodiscard]] bool empty() const;
   void checkPass(ModFileStructure& mod_file_struct);
   // Called by DynamicModel::substituteUnaryOps()
   void substituteUnaryOpsInGrowth(const lag_equivalence_table_t& nodes,

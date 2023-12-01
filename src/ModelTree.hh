@@ -204,7 +204,7 @@ protected:
         max_endo_lead {
             0}; // Maximum lag/lead on endos that appear in and *that belong to* the block
 
-    int
+    [[nodiscard]] int
     getRecursiveSize() const
     {
       return size - mfs_size;

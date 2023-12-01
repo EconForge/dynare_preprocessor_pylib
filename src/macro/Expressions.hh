@@ -72,7 +72,7 @@ public:
       ss << "-" << end_col;
     message.emplace_back(ss.str());
   }
-  string
+  [[nodiscard]] string
   trace() const
   {
     stringstream ss;
@@ -94,7 +94,7 @@ public:
   virtual ~Node() = default;
 
 public:
-  Tokenizer::location
+  [[nodiscard]] Tokenizer::location
   getLocation() const noexcept
   {
     return location;
@@ -131,7 +131,7 @@ public:
   explicit Expression(Tokenizer::location location_arg) : Node(move(location_arg))
   {
   }
-  virtual string to_string() const noexcept = 0;
+  [[nodiscard]] virtual string to_string() const noexcept = 0;
   virtual void print(ostream& output, bool matlab_output = false) const noexcept = 0;
   virtual BaseTypePtr eval(Environment& env) const = 0;
 };
@@ -1063,7 +1063,7 @@ public:
       Expression(move(location_arg)), name {move(name_arg)}, indices {move(indices_arg)}
   {
   }
-  string
+  [[nodiscard]] string
   to_string() const noexcept override
   {
     return name;
@@ -1076,12 +1076,12 @@ public:
   BaseTypePtr eval(Environment& env) const override;
 
 public:
-  const string&
+  [[nodiscard]] const string&
   getName() const noexcept
   {
     return name;
   }
-  codes::BaseType
+  [[nodiscard]] codes::BaseType
   getType(const Environment& env) const
   {
     return env.getType(name);
@@ -1099,7 +1099,7 @@ public:
       Expression(move(location_arg)), name {move(name_arg)}, args {move(args_arg)}
   {
   }
-  string to_string() const noexcept override;
+  [[nodiscard]] string to_string() const noexcept override;
   void
   print(ostream& output, [[maybe_unused]] bool matlab_output = false) const noexcept override
   {
@@ -1115,12 +1115,12 @@ public:
     output << name;
   }
   void printArgs(ostream& output) const noexcept;
-  const string&
+  [[nodiscard]] const string&
   getName() const
   {
     return name;
   }
-  const vector<ExpressionPtr>&
+  [[nodiscard]] const vector<ExpressionPtr>&
   getArgs() const
   {
     return args;
@@ -1138,7 +1138,7 @@ public:
       Expression(move(location_arg)), op_code {move(op_code_arg)}, arg {move(arg_arg)}
   {
   }
-  string to_string() const noexcept override;
+  [[nodiscard]] string to_string() const noexcept override;
   void print(ostream& output, bool matlab_output = false) const noexcept override;
   BaseTypePtr eval(Environment& env) const override;
 };
@@ -1160,7 +1160,7 @@ public:
   }
 
 public:
-  string to_string() const noexcept override;
+  [[nodiscard]] string to_string() const noexcept override;
   void print(ostream& output, bool matlab_output = false) const noexcept override;
   BaseTypePtr eval(Environment& env) const override;
 };
@@ -1181,7 +1181,7 @@ public:
       arg3 {move(arg3_arg)}
   {
   }
-  string to_string() const noexcept override;
+  [[nodiscard]] string to_string() const noexcept override;
   void print(ostream& output, bool matlab_output = false) const noexcept override;
   BaseTypePtr eval(Environment& env) const override;
 };
@@ -1223,7 +1223,7 @@ public:
       c_when {move(c_when_arg)}
   {
   }
-  string to_string() const noexcept override;
+  [[nodiscard]] string to_string() const noexcept override;
   void print(ostream& output, bool matlab_output = false) const noexcept override;
   BaseTypePtr eval(Environment& env) const override;
 };

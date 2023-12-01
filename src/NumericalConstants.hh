@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -41,9 +41,9 @@ public:
   //! Adds a non-negative constant (possibly Inf or NaN) and returns its ID
   int AddNonNegativeConstant(const string& iConst);
   //! Get a constant in string form
-  string get(int ID) const;
+  [[nodiscard]] string get(int ID) const;
   //! Get a constant in double form
-  double getDouble(int ID) const;
+  [[nodiscard]] double getDouble(int ID) const;
 };
 
 #endif

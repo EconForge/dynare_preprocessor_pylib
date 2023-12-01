@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2022 Dynare Team
+ * Copyright © 2010-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -66,13 +66,13 @@ public:
                            const external_function_options& external_function_options_arg,
                            bool track_nargs);
   //! See if the function exists in the External Functions Table
-  inline bool exists(int symb_id) const;
+  [[nodiscard]] inline bool exists(int symb_id) const;
   //! Get the number of arguments for a given external function
-  inline int getNargs(int symb_id) const noexcept(false);
+  [[nodiscard]] inline int getNargs(int symb_id) const noexcept(false);
   //! Get the symbol_id of the first derivative function
-  inline int getFirstDerivSymbID(int symb_id) const noexcept(false);
+  [[nodiscard]] inline int getFirstDerivSymbID(int symb_id) const noexcept(false);
   //! Get the symbol_id of the second derivative function
-  inline int getSecondDerivSymbID(int symb_id) const noexcept(false);
+  [[nodiscard]] inline int getSecondDerivSymbID(int symb_id) const noexcept(false);
 };
 
 inline bool

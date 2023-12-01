@@ -856,7 +856,7 @@ public:
   //! Adds an external function argument
   void add_external_function_arg(expr_t arg);
   //! Test to see if model/external function has exactly one integer argument
-  optional<int> is_there_one_integer_argument() const;
+  [[nodiscard]] optional<int> is_there_one_integer_argument() const;
   //! Adds an external function call node
   expr_t add_model_var_or_external_function(const string& function_name, bool in_model_block);
   //! Adds a native statement

@@ -92,7 +92,7 @@ public:
   //! Error handler
   void error(const Tokenizer::parser::location_type& location, const string& message) const;
 
-  bool
+  [[nodiscard]] bool
   inContext() const
   {
     return !directive_stack.empty();
