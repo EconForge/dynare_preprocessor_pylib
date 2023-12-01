@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _BYTECODE_HH
-#define _BYTECODE_HH
+#ifndef BYTECODE_HH
+#define BYTECODE_HH
 
 #include <filesystem>
 #include <fstream>
@@ -1151,4 +1151,4 @@ BytecodeWriter& operator<<(BytecodeWriter& code_file, const FCALL_& instr);
 template<>
 BytecodeWriter& operator<<(BytecodeWriter& code_file, const FBEGINBLOCK_& instr);
 
-#endif // _BYTECODE_HH
+#endif

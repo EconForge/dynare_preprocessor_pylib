@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _EXPRESSIONS_HH
-#define _EXPRESSIONS_HH
+#ifndef EXPRESSIONS_HH
+#define EXPRESSIONS_HH
 
 #include "Environment.hh"
 #include "ForwardDeclarationsAndEnums.hh"

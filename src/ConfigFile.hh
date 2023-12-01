@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _CONFIG_FILE_HH
-#define _CONFIG_FILE_HH
+#ifndef CONFIG_FILE_HH
+#define CONFIG_FILE_HH
 
 #include <filesystem>
 #include <map>
@@ -145,4 +145,4 @@ public:
   void writeEndParallel(ostream& output) const;
 };
 
-#endif // ! CONFIG_FILE_HH
+#endif

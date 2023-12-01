@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _EXPR_NODE_HH
-#define _EXPR_NODE_HH
+#ifndef EXPR_NODE_HH
+#define EXPR_NODE_HH
 
 #include <functional>
 #include <map>

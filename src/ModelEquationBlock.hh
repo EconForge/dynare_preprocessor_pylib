@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2022 Dynare Team
+ * Copyright © 2010-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _MODEL_EQUATION_BLOCK_HH
-#define _MODEL_EQUATION_BLOCK_HH
+#ifndef MODEL_EQUATION_BLOCK_HH
+#define MODEL_EQUATION_BLOCK_HH
 
 #include "DataTree.hh"
 #include "DynamicModel.hh"

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2020 Dynare Team
+ * Copyright © 2019-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _DIRECTIVES_HH
-#define _DIRECTIVES_HH
+#ifndef DIRECTIVES_HH
+#define DIRECTIVES_HH
 
 #include "Expressions.hh"
 

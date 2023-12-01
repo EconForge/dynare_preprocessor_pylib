@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _COMPUTINGTASKS_HH
-#define _COMPUTINGTASKS_HH
+#ifndef COMPUTING_TASKS_HH
+#define COMPUTING_TASKS_HH
 
 #include <memory>
 #include <optional>

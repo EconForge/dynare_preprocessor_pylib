@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _SUBMODEL_HH
-#define _SUBMODEL_HH
+#ifndef SUB_MODEL_HH
+#define SUB_MODEL_HH
 
 #include <iostream>
 #include <map>

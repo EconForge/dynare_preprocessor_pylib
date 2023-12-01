@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _NUMERICALINITIALIZATION_HH
-#define _NUMERICALINITIALIZATION_HH
+#ifndef NUMERICAL_INITIALIZATION_HH
+#define NUMERICAL_INITIALIZATION_HH
 
 #include <filesystem>
 #include <map>

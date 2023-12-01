@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _MODELTREE_HH
-#define _MODELTREE_HH
+#ifndef MODEL_TREE_HH
+#define MODEL_TREE_HH
 
 #include <array>
 #include <cassert>

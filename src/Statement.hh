@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _STATEMENT_HH
-#define _STATEMENT_HH
+#ifndef STATEMENT_HH
+#define STATEMENT_HH
 
 #include <map>
 #include <optional>
@@ -335,4 +335,4 @@ private:
   static constexpr bool always_false_v {false};
 };
 
-#endif // ! _STATEMENT_HH
+#endif

@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _EXTERNALFUNCTIONSTABLE_HH
-#define _EXTERNALFUNCTIONSTABLE_HH
+#ifndef EXTERNAL_FUNCTIONS_TABLE_HH
+#define EXTERNAL_FUNCTIONS_TABLE_HH
 
 #include <algorithm>
 #include <iostream>

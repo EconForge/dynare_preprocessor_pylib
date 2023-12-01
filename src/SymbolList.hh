@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _SYMBOL_LIST_HH
-#define _SYMBOL_LIST_HH
+#ifndef SYMBOL_LIST_HH
+#define SYMBOL_LIST_HH
 
 #include <algorithm>
 #include <ostream>

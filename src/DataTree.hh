@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _DATATREE_HH
-#define _DATATREE_HH
+#ifndef DATA_TREE_HH
+#define DATA_TREE_HH
 
 #include <cmath>
 #include <filesystem>

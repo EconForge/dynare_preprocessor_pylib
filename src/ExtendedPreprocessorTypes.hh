@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014-2021 Dynare Team
+ * Copyright © 2014-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _EXTENDED_PREPROCESSOR_TYPES_HH
-#define _EXTENDED_PREPROCESSOR_TYPES_HH
+#ifndef EXTENDED_PREPROCESSOR_TYPES_HH
+#define EXTENDED_PREPROCESSOR_TYPES_HH
 
 // Values for the “output” option
 enum class OutputType

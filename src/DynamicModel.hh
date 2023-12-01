@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _DYNAMICMODEL_HH
-#define _DYNAMICMODEL_HH
+#ifndef DYNAMIC_MODEL_HH
+#define DYNAMIC_MODEL_HH
 
 #include <filesystem>
 #include <fstream>

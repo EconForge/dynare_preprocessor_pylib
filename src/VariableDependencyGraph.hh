@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _VARIABLEDEPENDENCYGRAPH_HH
-#define _VARIABLEDEPENDENCYGRAPH_HH
+#ifndef VARIABLE_DEPENDENCY_GRAPH_HH
+#define VARIABLE_DEPENDENCY_GRAPH_HH
 
 #include <map>
 #include <vector>
@@ -94,4 +94,4 @@ private:
   bool suppressionOfVerticesWithLoop(set<int>& feed_back_vertices);
 };
 
-#endif // _VARIABLEDEPENDENCYGRAPH_HH
+#endif

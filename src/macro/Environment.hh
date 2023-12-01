@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _ENVIRONMENT_HH
-#define _ENVIRONMENT_HH
+#ifndef ENVIRONMENT_HH
+#define ENVIRONMENT_HH
 
 #include "ForwardDeclarationsAndEnums.hh"
 

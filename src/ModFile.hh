@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _MOD_FILE_HH
-#define _MOD_FILE_HH
+#ifndef MOD_FILE_HH
+#define MOD_FILE_HH
 
 #include <ctime>
 #include <filesystem>
@@ -194,4 +194,4 @@ public:
                        bool jsonderivsimple = false);
 };
 
-#endif // ! MOD_FILE_HH
+#endif

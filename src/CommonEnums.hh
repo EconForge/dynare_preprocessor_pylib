@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2022 Dynare Team
+ * Copyright © 2007-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _COMMON_ENUMS_HH
-#define _COMMON_ENUMS_HH
+#ifndef COMMON_ENUMS_HH
+#define COMMON_ENUMS_HH
 
 //! Enumeration of possible symbol types
 /*! Warning: do not to change existing values for 0 to 4: the values matter for homotopy_setup
@@ -151,4 +151,4 @@ enum class PacTargetKind
   dd
 };
 
-#endif // _COMMON_ENUMS_HH
+#endif

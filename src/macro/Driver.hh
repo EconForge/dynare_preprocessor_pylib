@@ -17,10 +17,10 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _MACRO_DRIVER_HH
-#define _MACRO_DRIVER_HH
+#ifndef MACRO_DRIVER_HH
+#define MACRO_DRIVER_HH
 
-#ifdef _PARSING_DRIVER_HH
+#ifdef PARSING_DRIVER_HH
 # error Impossible to include both ../ParsingDriver.hh and Driver.hh
 #endif
 

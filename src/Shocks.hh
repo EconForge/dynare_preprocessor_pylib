@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _SHOCKS_HH
-#define _SHOCKS_HH
+#ifndef SHOCKS_HH
+#define SHOCKS_HH
 
 #include <map>
 #include <string>

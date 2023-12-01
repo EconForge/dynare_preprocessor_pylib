@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _EQUATION_TAGS_HH
-#define _EQUATION_TAGS_HH
+#ifndef EQUATION_TAGS_HH
+#define EQUATION_TAGS_HH
 
 #include <map>
 #include <optional>

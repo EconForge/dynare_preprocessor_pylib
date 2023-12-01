@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _SYMBOLTABLE_HH
-#define _SYMBOLTABLE_HH
+#ifndef SYMBOL_TABLE_HH
+#define SYMBOL_TABLE_HH
 
 #include <map>
 #include <optional>

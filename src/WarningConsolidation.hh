@@ -1,5 +1,5 @@
 /*
- * Copyright © 2012-2017 Dynare Team
+ * Copyright © 2012-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _WARNINGCONSOLIDATION_HH
-#define _WARNINGCONSOLIDATION_HH
+#ifndef WARNING_CONSOLIDATION_HH
+#define WARNING_CONSOLIDATION_HH
 
 #include "DynareBisonLocation.hh"
 #include <sstream>

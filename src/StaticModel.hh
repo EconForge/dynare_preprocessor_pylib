@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _STATIC_MODEL_HH
-#define _STATIC_MODEL_HH
+#ifndef STATIC_MODEL_HH
+#define STATIC_MODEL_HH
 
 #include <filesystem>
 #include <fstream>

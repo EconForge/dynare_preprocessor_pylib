@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _NUMERICALCONSTANTS_HH
-#define _NUMERICALCONSTANTS_HH
+#ifndef NUMERICAL_CONSTANTS_HH
+#define NUMERICAL_CONSTANTS_HH
 
 #include <map>
 #include <string>

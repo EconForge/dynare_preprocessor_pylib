@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Dynare Team
+ * Copyright © 2019-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _FORWARDDECLARATIONSANDENUMS_HH
-#define _FORWARDDECLARATIONSANDENUMS_HH
+#ifndef FORWARD_DECLARATIONS_AND_ENUMS_HH
+#define FORWARD_DECLARATIONS_AND_ENUMS_HH
 
 #include <memory>
 
