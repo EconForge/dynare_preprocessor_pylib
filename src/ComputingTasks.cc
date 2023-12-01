@@ -2400,8 +2400,8 @@ ModelComparisonStatement::writeJsonOutput(ostream& output) const
   output << "}";
 }
 
-PlannerObjectiveStatement::PlannerObjectiveStatement(const PlannerObjective& model_tree_arg) :
-    model_tree {model_tree_arg}
+PlannerObjectiveStatement::PlannerObjectiveStatement(unique_ptr<PlannerObjective> model_tree_arg) :
+    model_tree {move(model_tree_arg)}
 {
 }
 
@@ -2409,8 +2409,8 @@ void
 PlannerObjectiveStatement::checkPass(ModFileStructure& mod_file_struct,
                                      [[maybe_unused]] WarningConsolidation& warnings)
 {
-  assert(model_tree.equation_number() == 1);
-  if (model_tree.exoPresentInEqs())
+  assert(model_tree->equation_number() == 1);
+  if (model_tree->exoPresentInEqs())
     {
       cerr << "ERROR: You cannot include exogenous variables (or variables of undeclared type) in "
               "the planner objective. Please "
@@ -2424,13 +2424,13 @@ PlannerObjectiveStatement::checkPass(ModFileStructure& mod_file_struct,
 const PlannerObjective&
 PlannerObjectiveStatement::getPlannerObjective() const
 {
-  return model_tree;
+  return *model_tree;
 }
 
 void
 PlannerObjectiveStatement::computingPass(const ModFileStructure& mod_file_struct)
 {
-  model_tree.computingPass(max(3, mod_file_struct.order_option), 0, {}, false, false, false);
+  model_tree->computingPass(max(3, mod_file_struct.order_option), 0, {}, false, false, false);
   computing_pass_called = true;
 }
 
@@ -2439,14 +2439,14 @@ PlannerObjectiveStatement::writeOutput(ostream& output, const string& basename,
                                        [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.NNZDerivatives_objective = [";
-  for (int i = 1; i < static_cast<int>(model_tree.getNNZDerivatives().size()); i++)
-    output << (i > model_tree.getComputedDerivsOrder() ? -1 : model_tree.getNNZDerivatives()[i])
+  for (int i = 1; i < static_cast<int>(model_tree->getNNZDerivatives().size()); i++)
+    output << (i > model_tree->getComputedDerivsOrder() ? -1 : model_tree->getNNZDerivatives()[i])
            << ";";
   output << "];" << endl << "M_.objective_tmp_nbr = [";
-  for (const auto& temporary_terms_derivative : model_tree.getTemporaryTermsDerivatives())
+  for (const auto& temporary_terms_derivative : model_tree->getTemporaryTermsDerivatives())
     output << temporary_terms_derivative.size() << "; ";
   output << "];" << endl;
-  model_tree.writeStaticFile(basename + ".objective", false, "", {}, false);
+  model_tree->writeStaticFile(basename + ".objective", false, "", {}, false);
 }
 
 void
@@ -2455,9 +2455,9 @@ PlannerObjectiveStatement::writeJsonOutput(ostream& output) const
   output << R"({"statementName": "planner_objective")"
          << ", ";
   if (computing_pass_called)
-    model_tree.writeJsonComputingPassOutput(output, false);
+    model_tree->writeJsonComputingPassOutput(output, false);
   else
-    model_tree.writeJsonOutput(output);
+    model_tree->writeJsonOutput(output);
 
   output << "}";
 }

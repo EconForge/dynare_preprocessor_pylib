@@ -20,6 +20,7 @@
 #ifndef _COMPUTINGTASKS_HH
 #define _COMPUTINGTASKS_HH
 
+#include <memory>
 #include <optional>
 #include <ostream>
 
@@ -618,11 +619,11 @@ public:
 class PlannerObjectiveStatement : public Statement
 {
 private:
-  PlannerObjective model_tree;
+  unique_ptr<PlannerObjective> model_tree;
   bool computing_pass_called {false};
 
 public:
-  explicit PlannerObjectiveStatement(const PlannerObjective& model_tree_arg);
+  explicit PlannerObjectiveStatement(unique_ptr<PlannerObjective> model_tree_arg);
   /*! \todo check there are only endogenous variables at the current period in the objective
     (no exogenous, no lead/lag) */
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
@@ -631,7 +632,7 @@ public:
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
   //! Return a reference the Planner Objective model tree
-  const PlannerObjective& getPlannerObjective() const;
+  [[nodiscard]] const PlannerObjective& getPlannerObjective() const;
 };
 
 class BVARDensityStatement : public Statement

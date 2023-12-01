@@ -2235,7 +2235,7 @@ ParsingDriver::end_planner_objective(expr_t expr)
   expr_t eq = model_tree->AddEqual(expr, model_tree->Zero);
   model_tree->addEquation(eq, location.begin.line);
 
-  mod_file->addStatement(make_unique<PlannerObjectiveStatement>(*planner_objective));
+  mod_file->addStatement(make_unique<PlannerObjectiveStatement>(move(planner_objective)));
 
   // Handle undeclared variables (see #81)
   bool exit_after_write = false;
