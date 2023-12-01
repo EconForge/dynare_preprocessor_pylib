@@ -363,7 +363,7 @@ public:
   //! Get number of parameters
   [[nodiscard]] inline int param_nbr() const noexcept(false);
   //! Returns the greatest symbol ID (the smallest is zero)
-  inline int maxID();
+  [[nodiscard]] inline int maxID() const;
   //! Get number of user-declared endogenous variables (without the auxiliary variables)
   [[nodiscard]] inline int orig_endo_nbr() const noexcept(false);
   //! Write output of this class
@@ -540,7 +540,7 @@ SymbolTable::param_nbr() const noexcept(false)
 }
 
 inline int
-SymbolTable::maxID()
+SymbolTable::maxID() const
 {
   return symbol_table.size() - 1;
 }
