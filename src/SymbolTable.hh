@@ -197,12 +197,9 @@ public:
   class SearchFailedException
   {
   public:
-    int orig_symb_id, orig_lead_lag, symb_id;
+    int orig_symb_id, orig_lead_lag;
     SearchFailedException(int orig_symb_id_arg, int orig_lead_lag_arg) :
         orig_symb_id {orig_symb_id_arg}, orig_lead_lag {orig_lead_lag_arg}
-    {
-    }
-    explicit SearchFailedException(int symb_id_arg) : symb_id {symb_id_arg}
     {
     }
   };
