@@ -18,25 +18,25 @@
  */
 
 #ifndef _MODELTREE_HH
-# define _MODELTREE_HH
+#define _MODELTREE_HH
 
-# include <array>
-# include <cassert>
-# include <condition_variable>
-# include <deque>
-# include <filesystem>
-# include <map>
-# include <mutex>
-# include <optional>
-# include <ostream>
-# include <string>
-# include <thread>
-# include <vector>
+#include <array>
+#include <cassert>
+#include <condition_variable>
+#include <deque>
+#include <filesystem>
+#include <map>
+#include <mutex>
+#include <optional>
+#include <ostream>
+#include <string>
+#include <thread>
+#include <vector>
 
-# include "Bytecode.hh"
-# include "DataTree.hh"
-# include "EquationTags.hh"
-# include "ExtendedPreprocessorTypes.hh"
+#include "Bytecode.hh"
+#include "DataTree.hh"
+#include "EquationTags.hh"
+#include "ExtendedPreprocessorTypes.hh"
 
 using namespace std;
 
@@ -623,11 +623,11 @@ private:
   void copyHelper(const ModelTree& m);
   //! Returns the name of the MATLAB architecture given the extension used for MEX files
   static string matlab_arch(const string& mexext);
-# ifdef __APPLE__
+#ifdef __APPLE__
   /* Finds a suitable compiler on macOS.
      The boolean is false if this is GCC and true if this is Clang */
   static pair<filesystem::path, bool> findCompilerOnMacos(const string& mexext);
-# endif
+#endif
   /* Compiles a MEX file (if link=true) or an object file to be linked later
      into a MEX file (if link=false). The compilation is done in separate
      worker threads working in parallel, so the call to this function is not
@@ -2500,7 +2500,6 @@ ModelTree::writeSparseModelJuliaFiles(const string& basename) const
       writeToFileIfModified(output, julia_dir / (prefix + "G" + to_string(i) + "!.jl"));
     }
 }
-#endif
 
 template<bool dynamic>
 void
@@ -3139,3 +3138,5 @@ ModelTree::writeSetAuxiliaryVariablesFile(const string& basename, bool julia) co
       output_file.close();
     }
 }
+
+#endif
