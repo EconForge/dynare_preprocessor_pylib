@@ -3181,7 +3181,7 @@ ParsingDriver::external_function()
 void
 ParsingDriver::push_external_function_arg_vector_onto_stack()
 {
-  stack_external_function_args.push({});
+  stack_external_function_args.emplace();
 }
 
 void

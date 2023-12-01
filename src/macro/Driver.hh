@@ -101,7 +101,7 @@ public:
   void
   pushContext()
   {
-    directive_stack.emplace(vector<DirectivePtr>());
+    directive_stack.emplace();
   }
 
   void

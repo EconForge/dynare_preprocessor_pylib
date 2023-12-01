@@ -1355,10 +1355,10 @@ DynamicModel::fillVarModelTableFromOrigModel() const
                        << eqn << endl;
                   exit(EXIT_FAILURE);
                 }
-              orig_diff_var_vec.push_back(diff_set.begin()->first);
+              orig_diff_var_vec.emplace_back(diff_set.begin()->first);
             }
           else
-            orig_diff_var_vec.push_back(nullopt);
+            orig_diff_var_vec.emplace_back(nullopt);
         }
 
       if (eqns.size() != lhs.size())
@@ -1702,10 +1702,10 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
                        << eqn << endl;
                   exit(EXIT_FAILURE);
                 }
-              orig_diff_var_vec.push_back(diff_set.begin()->first);
+              orig_diff_var_vec.emplace_back(diff_set.begin()->first);
             }
           else
-            orig_diff_var_vec.push_back(nullopt);
+            orig_diff_var_vec.emplace_back(nullopt);
         }
 
       if (eqns.size() != lhs.size())
@@ -2730,7 +2730,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel& static_model)
           else
             {
               orig_endo_nbr++;
-              neweqs_lineno.push_back(nullopt);
+              neweqs_lineno.emplace_back(nullopt);
             }
         }
     }
