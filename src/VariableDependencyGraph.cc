@@ -29,6 +29,7 @@
 #include <boost/graph/strong_components.hpp>
 #include <boost/graph/topological_sort.hpp>
 #pragma GCC diagnostic pop
+#include <ranges>
 
 using namespace boost;
 
@@ -325,8 +326,8 @@ VariableDependencyGraph::reorderRecursiveVariables(const set<int>& feedback_vert
   auto v_index = get(vertex_index, G);
 
   // Suppress feedback vertices, in decreasing order
-  for (auto it = feedback_vertices.rbegin(); it != feedback_vertices.rend(); ++it)
-    G.suppress(*it);
+  for (int feedback_vertex : ranges::reverse_view(feedback_vertices))
+    G.suppress(feedback_vertex);
 
   bool something_has_been_done = true;
   while (something_has_been_done)
