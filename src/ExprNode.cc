@@ -3727,7 +3727,7 @@ UnaryOpNode::substituteDiff(const lag_equivalence_table_t& nodes, subst_table_t&
           if (vn)
             symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, rit->second,
                                                                 vn->symb_id, vn->lag);
-          else
+          else // NOLINTNEXTLINE(clang-analyzer-core.NullDereference)
             symb_id = datatree.symbol_table.addDiffAuxiliaryVar(argsubst->idx, rit->second);
 
           // make originating aux var & equation
@@ -3745,8 +3745,10 @@ UnaryOpNode::substituteDiff(const lag_equivalence_table_t& nodes, subst_table_t&
           for (int i = last_index; i > rit->first; i--)
             {
               if (i == last_index)
+                // NOLINTBEGIN(clang-analyzer-core.NullDereference)
                 symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(argsubst->idx, rit->second,
                                                                        last_aux_var->symb_id, -1);
+              // NOLINTEND(clang-analyzer-core.NullDereference)
               else
                 symb_id = datatree.symbol_table.addDiffLagAuxiliaryVar(
                     new_aux_var->idx, rit->second, last_aux_var->symb_id, -1);
@@ -3884,6 +3886,7 @@ UnaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t& nodes,
       }
     else
       subst_table[rit->second]
+          // NOLINTNEXTLINE(clang-analyzer-core.CallAndMessage)
           = dynamic_cast<VariableNode*>(aux_var->decreaseLeadsLags(base_index - rit->first));
 
   assert(subst_table.contains(this));
@@ -5692,6 +5695,7 @@ BinaryOpNode::getPacAREC(
       vector<tuple<int, int, optional<int>, double>> linear_combination;
       try
         {
+          // NOLINTNEXTLINE(clang-analyzer-core.CallAndMessage)
           auto [vid, lag, pid, constant] = term->matchVariableTimesConstantTimesParam(true);
           linear_combination.emplace_back(vid.value(), lag, move(pid), constant);
         }
@@ -5773,6 +5777,7 @@ BinaryOpNode::isParamTimesEndogExpr() const
         }
       else
         {
+          // NOLINTNEXTLINE(clang-analyzer-core.CallAndMessage)
           arg1->collectDynamicVariables(SymbolType::endogenous, endogs);
           arg1->collectDynamicVariables(SymbolType::exogenous, exogs);
           arg1->collectVariables(SymbolType::parameter, params);
@@ -9311,6 +9316,7 @@ BinaryOpNode::matchEndogenousTimesConstant() const
           varg1 && varg1->get_type() == SymbolType::endogenous && arg2->isConstant())
         return {varg1->symb_id, arg2};
       if (auto varg2 = dynamic_cast<VariableNode*>(arg2);
+          // NOLINTNEXTLINE(clang-analyzer-core.CallAndMessage)
           varg2 && varg2->get_type() == SymbolType::endogenous && arg1->isConstant())
         return {varg2->symb_id, arg1};
     }

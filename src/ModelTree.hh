@@ -751,6 +751,7 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t& tt, temporary_terms_t& t
       if (dynamic_cast<AbstractExternalFunctionNode*>(it))
         it->writeExternalFunctionOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
 
+      // NOLINTNEXTLINE(clang-analyzer-core.CallAndMessage)
       it->writeOutput(output, output_type, tt, tt_idxs, tef_terms);
       output << " = ";
       it->writeOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);

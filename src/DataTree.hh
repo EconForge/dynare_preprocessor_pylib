@@ -431,7 +431,7 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int 
     {
       try
         {
-          double argval = arg->eval({});
+          double argval = arg->eval({}); // NOLINT(clang-analyzer-core.CallAndMessage)
           double val = UnaryOpNode::eval_opcode(op_code, argval);
           return AddPossiblyNegativeConstant(val);
         }
@@ -460,8 +460,8 @@ DataTree::AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2, int powerD
   // Try to reduce to a constant
   try
     {
-      double argval1 = arg1->eval({});
-      double argval2 = arg2->eval({});
+      double argval1 = arg1->eval({}); // NOLINT(clang-analyzer-core.CallAndMessage)
+      double argval2 = arg2->eval({}); // NOLINT(clang-analyzer-core.CallAndMessage)
       double val = BinaryOpNode::eval_opcode(argval1, op_code, argval2, powerDerivOrder);
       return AddPossiblyNegativeConstant(val);
     }

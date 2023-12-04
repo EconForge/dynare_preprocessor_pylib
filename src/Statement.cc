@@ -184,6 +184,7 @@ OptionsList::writeOutput(ostream& output, const string& option_group) const
 void
 OptionsList::writeOutputCommon(ostream& output, const string& option_group) const
 {
+  // NOLINTBEGIN(clang-analyzer-core.CallAndMessage)
   for (const auto& [name, val] : options)
     std::visit(
         [&]<class T>(const T& v) {
@@ -261,6 +262,7 @@ OptionsList::writeOutputCommon(ostream& output, const string& option_group) cons
             }
         },
         val);
+  // NOLINTEND(clang-analyzer-core.CallAndMessage)
 }
 
 void

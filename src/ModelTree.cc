@@ -393,7 +393,7 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t& eval_context) const
           double val {[&] {
             try
               {
-                return d1->eval(eval_context);
+                return d1->eval(eval_context); // NOLINT(clang-analyzer-core.NullDereference)
               }
             catch (ExprNode::EvalExternalFunctionException& e)
               {

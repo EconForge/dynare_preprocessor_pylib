@@ -623,12 +623,15 @@ Range::eval(Environment& env) const
                      "the arguments must evaluate to reals");
 
   vector<ExpressionPtr> arr;
+  // We do want a float counter, because that’s the macro-language semantics
+  // NOLINTBEGIN(clang-analyzer-security.FloatLoopCounter)
   if (*incdbl > 0 && *startdbl <= *enddbl)
     for (double i = *startdbl; i <= *enddbl; i += *incdbl)
       arr.emplace_back(make_shared<Real>(i));
   else if (*startdbl >= *enddbl && *incdbl < 0)
     for (double i = *startdbl; i >= *enddbl; i += *incdbl)
       arr.emplace_back(make_shared<Real>(i));
+  // NOLINTEND(clang-analyzer-security.FloatLoopCounter)
 
   return make_shared<Array>(arr, location);
 }
