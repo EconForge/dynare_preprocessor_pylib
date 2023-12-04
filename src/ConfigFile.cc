@@ -166,7 +166,6 @@ ConfigFile::getConfigFileInfo(const filesystem::path& config_file)
       if (!configFile.is_open())
         {
           cerr << "ERROR: Couldn't open file " << config_file.string() << endl;
-          ;
           exit(EXIT_FAILURE);
         }
     }
