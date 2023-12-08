@@ -3331,7 +3331,9 @@ ConditionalForecastStatement::writeOutput(ostream& output, [[maybe_unused]] cons
                                           [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_cond_fcst_");
-  output << "imcforecast(constrained_paths_, constrained_vars_, options_cond_fcst_);" << endl;
+  output << "oo_.conditional_forecast=conditional_forecasts.run(M_,options_,"
+         << "oo_,bayestopt_,estim_params_,constrained_paths_, constrained_vars_,"
+         << "options_cond_fcst_);" << endl;
 }
 
 void
@@ -3375,9 +3377,9 @@ PlotConditionalForecastStatement::writeOutput(ostream& output,
 {
   symbol_list.writeOutput("var_list_", output);
   if (periods)
-    output << "plot_icforecast(var_list_, " << *periods << ",options_,oo_);" << endl;
+    output << "conditional_forecasts.plot(var_list_, " << *periods << ",options_,oo_);" << endl;
   else
-    output << "plot_icforecast(var_list_,[],options_,oo_);" << endl;
+    output << "conditional_forecasts.plot(var_list_,[],options_,oo_);" << endl;
 }
 
 void
