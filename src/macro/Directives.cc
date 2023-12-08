@@ -103,20 +103,7 @@ IncludePath::interpret([[maybe_unused]] ostream& output, Environment& env,
       StringPtr msp = dynamic_pointer_cast<String>(expr->eval(env));
       if (!msp)
         throw StackTrace("File name does not evaluate to a string");
-#ifdef _WIN32
-      /* Trim trailing slashes and backslashes in the path. This is a
-         workaround for a GCC/MinGW bug present in version 10.2
-         https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88881, that affects
-         gcc-mingw-w64 in Debian “Bullseye” 11. It is fixed in GCC 10.3, and
-         thus should be fixed in Debian “Bookworm” 12.
-         See Madysson/estimation-codes#11. */
-      string ipstr = static_cast<string>(*msp);
-      while (ipstr.size() > 1 && (ipstr.back() == '/' || ipstr.back() == '\\'))
-        ipstr.pop_back();
-      path ip {ipstr};
-#else
       path ip = static_cast<string>(*msp);
-#endif
       if (!is_directory(ip))
         throw StackTrace(ip.string() + " does not evaluate to a valid directory");
       if (!exists(ip))
