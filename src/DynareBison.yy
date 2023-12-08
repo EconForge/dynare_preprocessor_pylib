@@ -138,7 +138,7 @@ str_tolower(string s)
 %token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY TARGETS
 %token SHOCKS HETEROSKEDASTIC_SHOCKS SHOCK_DECOMPOSITION SHOCK_GROUPS USE_SHOCK_GROUPS SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
 %token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS ROBUST_LIN_SOLVE
-%token STDERR STEADY STOCH_SIMUL SYLVESTER SYLVESTER_FIXED_POINT_TOL REGIMES REGIME REALTIME_SHOCK_DECOMPOSITION CONDITIONAL UNCONDITIONAL
+%token STDERR STEADY STOCH_SIMUL REGIMES REGIME REALTIME_SHOCK_DECOMPOSITION CONDITIONAL UNCONDITIONAL
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT PLANNER_DISCOUNT_LATEX_NAME
 %token DISCRETIONARY_POLICY DISCRETIONARY_TOL EVALUATE_PLANNER_OBJECTIVE
 %token OCCBIN_SETUP OCCBIN_SOLVER OCCBIN_WRITE_REGIMES OCCBIN_GRAPH SIMUL_MAXIT LIKELIHOOD_MAXIT SMOOTHER_MAXIT SIMUL_PERIODS LIKELIHOOD_PERIODS SMOOTHER_PERIODS
@@ -1654,8 +1654,6 @@ method_of_moments_option : o_add_tiny_number_to_cholesky
                          | o_simulation_method
                          | o_simulation_multiple
                          | o_sub_draws
-                         | o_sylvester
-                         | o_sylvester_fixed_point_tol
                          | o_taper_steps
                          | o_tex
                          | o_use_penalized_objective_for_hessian
@@ -1762,8 +1760,6 @@ stoch_simul_primary_options : o_solve_algo
                             | o_conditional_variance_decomposition
                             | o_k_order_solver
                             | o_pruning
-                            | o_sylvester
-                            | o_sylvester_fixed_point_tol
                             | o_dr
                             | o_dr_cycle_reduction_tol
                             | o_dr_logarithmic_reduction_tol
@@ -2297,8 +2293,6 @@ estimation_options : o_datafile
                    | o_cova_compute
                    | o_irf_shocks
                    | o_sub_draws
-                   | o_sylvester
-                   | o_sylvester_fixed_point_tol
                    | o_lyapunov
                    | o_lyapunov_fixed_point_tol
                    | o_lyapunov_doubling_tol
@@ -3818,9 +3812,6 @@ o_partial_information : PARTIAL_INFORMATION { driver.option_num("partial_informa
 o_sub_draws: SUB_DRAWS EQUAL INT_NUMBER { driver.option_num("sub_draws", $3); };
 o_planner_discount : PLANNER_DISCOUNT EQUAL expression { driver.set_planner_discount($3); };
 o_planner_discount_latex_name : PLANNER_DISCOUNT_LATEX_NAME EQUAL TEX_NAME { driver.set_planner_discount_latex_name($3); };
-o_sylvester : SYLVESTER EQUAL FIXED_POINT { driver.option_num("sylvester_fp", "true"); }
-               | SYLVESTER EQUAL DEFAULT { driver.option_num("sylvester_fp", "false"); };
-o_sylvester_fixed_point_tol : SYLVESTER_FIXED_POINT_TOL EQUAL non_negative_number { driver.option_num("sylvester_fixed_point_tol", $3); };
 o_lyapunov : LYAPUNOV EQUAL FIXED_POINT { driver.option_num("lyapunov_fp", "true"); }
               | LYAPUNOV EQUAL DOUBLING { driver.option_num("lyapunov_db", "true"); }
               | LYAPUNOV EQUAL SQUARE_ROOT_SOLVER { driver.option_num("lyapunov_srs", "true"); }
