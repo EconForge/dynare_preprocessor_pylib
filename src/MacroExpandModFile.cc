@@ -34,9 +34,9 @@ macroExpandModFile(const filesystem::path& filename, const istream& modfile, boo
   stringstream macro_output;
   macro::Environment env = macro::Environment();
   macro::Driver m;
-  /* Calling `string()` method on filename because of bug in GCC/MinGW 10.2
-     (shipped in Debian “Bullseye” 11), that fails to accept implicit
-     conversion to string from filename::path. */
+  /* Calling string() method on filename: not necessary on GNU/Linux and macOS because there is an
+     implicit conversion from filesystem:path to string (i.e. basic_string<char>), but needed on
+     Windows because the implicit conversion is only to wstring (i.e. basic_string<wchar_t>). */
   m.parse(filename.string(), modfile, debug, defines, env, paths, macro_output);
   if (save_macro)
     {

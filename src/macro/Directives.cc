@@ -75,10 +75,10 @@ Include::interpret(ostream& output, Environment& env, vector<filesystem::path>& 
             }
         }
       Driver m;
-      /* Calling `string()` method on filename and filename.stem() because of
-         bug in GCC/MinGW 10.2 (shipped in Debian “Bullseye” 11), that fails
-         to accept implicit conversion to string from filename::path. See
-         https://en.cppreference.com/w/cpp/filesystem/path/native. */
+      /* Calling string() method on filename: not necessary on GNU/Linux and macOS because there is
+         an implicit conversion from from filesystem:path to string (i.e. basic_string<char>), but
+         needed on Windows because the implicit conversion is only to wstring (i.e.
+         basic_string<wchar_t>). */
       m.parse(filename.string(), incfile, false, {}, env, paths, output);
     }
   catch (StackTrace& ex)
