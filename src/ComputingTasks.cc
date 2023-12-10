@@ -5059,7 +5059,8 @@ ExtendedPathStatement::writeOutput(ostream& output, [[maybe_unused]] const strin
   options_list_new.erase("periods");
   options_list_new.writeOutput(output);
 
-  output << "extended_path([], " << periods << ", [], options_, M_, oo_);" << endl;
+  output << "[Simulated_time_series, oo_] = extended_path([], " << periods
+         << ", [], options_, M_, oo_);" << endl;
 }
 
 void
