@@ -463,7 +463,7 @@ main(int argc, char** argv)
   // Process config file
   Configuration config {parallel, parallel_test, parallel_follower_open_mode, parallel_use_psexec,
                         cluster_name};
-  config.getConfigFileInfo(conffile);
+  config.getConfigFileInfo(conffile, warnings);
   config.checkPass(warnings);
   config.transformPass();
 

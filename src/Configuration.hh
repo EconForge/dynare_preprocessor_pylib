@@ -114,10 +114,17 @@ private:
                                   const string& programPath, const string& programConfig,
                                   const string& matlabOctavePath, bool singleCompThread,
                                   int numberOfThreadsPerJob, const string& operatingSystem);
+  /* Given a filename (e.g. dynare.ini), looks for it in the configuration directory:
+     – if under Linux or macOS, look into the “dynare” subdirectory of the XDG
+       configuration directories (following the default values and the precedence order specified in
+       the XDG specification)
+     – if under Windows, look into %APPDATA%\dynare\
+     The returned path will be empty if the file is not found. */
+  [[nodiscard]] static filesystem::path findConfigFile(const string& filename);
 
 public:
   //! Parse config file
-  void getConfigFileInfo(const filesystem::path& conffile_option);
+  void getConfigFileInfo(const filesystem::path& conffile_option, WarningConsolidation& warnings);
   //! Check Pass
   void checkPass(WarningConsolidation& warnings) const;
   //! Check Pass

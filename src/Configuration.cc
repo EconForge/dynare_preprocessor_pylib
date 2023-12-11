@@ -21,7 +21,12 @@
 #include <iostream>
 #include <utility>
 
+#ifdef _WIN32
+# include <shlobj.h>
+#endif
+
 #include "Configuration.hh"
+#include "DataTree.hh" // For strsplit()
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -109,64 +114,59 @@ Configuration::Configuration(bool parallel_arg, bool parallel_test_arg,
 }
 
 void
-Configuration::getConfigFileInfo(const filesystem::path& conffile_option)
+Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
+                                 WarningConsolidation& warnings)
 {
   using namespace boost;
-  ifstream configFile;
 
-  if (conffile_option.empty())
+  filesystem::path config_file {conffile_option};
+
+  if (config_file.empty())
     {
-      filesystem::path defaultConfigFile;
-      // Test OS and try to open default file
-#if defined(_WIN32) || defined(__CYGWIN32__)
-      if (auto appdata = getenv("APPDATA"); appdata)
-        defaultConfigFile = filesystem::path {appdata} / "dynare.ini";
-      else
-        {
-          if (parallel || parallel_test)
-            cerr << "ERROR: ";
-          else
-            cerr << "WARNING: ";
-          cerr << "APPDATA environment variable not found." << endl;
+      config_file = findConfigFile("dynare.ini");
 
-          if (parallel || parallel_test)
-            exit(EXIT_FAILURE);
-        }
+      if (config_file.empty()) // Try old default location (Dynare ⩽ 5) for backward compatibility
+        {
+          filesystem::path old_default_config_file;
+#ifdef _WIN32
+          array<wchar_t, MAX_PATH + 1> appdata;
+          if (SHGetFolderPathW(nullptr, CSIDL_APPDATA | CSIDL_FLAG_DONT_VERIFY, nullptr,
+                               SHGFP_TYPE_CURRENT, appdata.data())
+              == S_OK)
+            old_default_config_file = filesystem::path {appdata.data()} / "dynare.ini";
 #else
-      if (auto home = getenv("HOME"); home)
-        defaultConfigFile = filesystem::path {home} / ".dynare";
-      else
-        {
-          if (parallel || parallel_test)
-            cerr << "ERROR: ";
-          else
-            cerr << "WARNING: ";
-          cerr << "HOME environment variable not found." << endl;
-          if (parallel || parallel_test)
-            exit(EXIT_FAILURE);
-        }
+          if (auto home = getenv("HOME"); home)
+            old_default_config_file = filesystem::path {home} / ".dynare";
 #endif
-      configFile.open(defaultConfigFile, fstream::in);
-      if (!configFile.is_open())
-        {
-          if (parallel || parallel_test)
+          if (!old_default_config_file.empty() && exists(old_default_config_file))
             {
-              cerr << "ERROR: Could not open the default config file ("
-                   << defaultConfigFile.string() << ")" << endl;
-              exit(EXIT_FAILURE);
+              warnings << "WARNING: the location " << old_default_config_file.string()
+                       << " for the configuration file is obsolete; please see the reference"
+                       << " manual for the new location." << endl;
+              config_file = old_default_config_file;
             }
-          else
-            return;
         }
     }
-  else
+
+  if (config_file.empty())
     {
-      configFile.open(conffile_option, fstream::in);
-      if (!configFile.is_open())
+      if (parallel || parallel_test)
         {
-          cerr << "ERROR: Couldn't open file " << conffile_option.string() << endl;
+          cerr << "ERROR: the parallel or parallel_test option was passed but no configuration "
+               << "file was found" << endl;
           exit(EXIT_FAILURE);
         }
+      else
+        return;
+    }
+
+  ifstream configFile;
+  configFile.open(config_file, fstream::in);
+
+  if (!configFile.is_open())
+    {
+      cerr << "ERROR: Couldn't open configuration file " << config_file.string() << endl;
+      exit(EXIT_FAILURE);
     }
 
   string name, computerName, port, userName, password, remoteDrive, remoteDirectory, programPath,
@@ -811,4 +811,47 @@ Configuration::writeEndParallel(ostream& output) const
   output << "if options_.parallel_info.leaveSlaveOpen == 1" << endl
          << "     closeSlave(options_.parallel,options_.parallel_info.RemoteTmpFolder);" << endl
          << "end" << endl;
+}
+
+filesystem::path
+Configuration::findConfigFile(const string& filename)
+{
+#ifdef _WIN32
+  array<wchar_t, MAX_PATH + 1> appdata;
+  if (SHGetFolderPathW(nullptr, CSIDL_APPDATA | CSIDL_FLAG_DONT_VERIFY, nullptr, SHGFP_TYPE_CURRENT,
+                       appdata.data())
+      == S_OK)
+    {
+      filesystem::path candidate {filesystem::path {appdata.data()} / "dynare" / filename};
+      if (exists(candidate))
+        return candidate;
+    }
+#else
+  filesystem::path xdg_config_home;
+  if (auto xdg_config_home_env = getenv("XDG_CONFIG_HOME"); xdg_config_home_env)
+    xdg_config_home = xdg_config_home_env;
+  if (auto home = getenv("HOME"); xdg_config_home.empty() && home)
+    xdg_config_home = filesystem::path {home} / ".config";
+
+  if (!xdg_config_home.empty())
+    {
+      filesystem::path candidate {xdg_config_home / "dynare" / filename};
+      if (exists(candidate))
+        return candidate;
+    }
+
+  string xdg_config_dirs;
+  if (auto xdg_config_dirs_env = getenv("XDG_CONFIG_DIRS"); xdg_config_dirs_env)
+    xdg_config_dirs = xdg_config_dirs_env;
+  if (xdg_config_dirs.empty())
+    xdg_config_dirs = "/etc/xdg";
+  for (const auto& dir : DataTree::strsplit(xdg_config_dirs, ':'))
+    {
+      filesystem::path candidate {filesystem::path {dir} / "dynare" / filename};
+      if (exists(candidate))
+        return candidate;
+    }
+#endif
+
+  return {};
 }
