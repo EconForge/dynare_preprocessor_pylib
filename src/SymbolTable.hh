@@ -33,8 +33,6 @@
 
 using namespace std;
 
-using expr_t = class ExprNode*;
-
 //! Types of auxiliary variables
 enum class AuxVarType
 {
