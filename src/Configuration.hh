@@ -28,73 +28,6 @@
 
 using namespace std;
 
-using member_nodes_t = map<string, double>;
-
-class Hook
-{
-public:
-  explicit Hook(string global_init_file_arg);
-
-private:
-  map<string, string> hooks;
-
-public:
-  [[nodiscard]] map<string, string>
-  get_hooks() const
-  {
-    return hooks;
-  };
-};
-
-class Path
-{
-public:
-  explicit Path(vector<string> includepath_arg);
-
-private:
-  map<string, vector<string>> paths;
-
-public:
-  [[nodiscard]] map<string, vector<string>>
-  get_paths() const
-  {
-    return paths;
-  };
-};
-
-class FollowerNode
-{
-  friend class Configuration;
-
-public:
-  FollowerNode(string computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg,
-               string userName_arg, string password_arg, string remoteDrive_arg,
-               string remoteDirectory_arg, string programPath_arg, string programConfig_arg,
-               string matlabOctavePath_arg, bool singleCompThread_arg,
-               int numberOfThreadsPerJob_arg, string operatingSystem_arg);
-
-protected:
-  const string computerName, port;
-  int minCpuNbr, maxCpuNbr;
-  const string userName, password;
-  const string remoteDrive, remoteDirectory;
-  const string programPath, programConfig, matlabOctavePath;
-  const bool singleCompThread;
-  const int numberOfThreadsPerJob;
-  const string operatingSystem;
-};
-
-class Cluster
-{
-  friend class Configuration;
-
-public:
-  explicit Cluster(member_nodes_t member_nodes_arg);
-
-protected:
-  member_nodes_t member_nodes;
-};
-
 /* The abstract representation of the configuration.
    Merges information from the command-line and from the configuration file. */
 class Configuration
@@ -104,6 +37,59 @@ public:
                 bool parallel_use_psexec_arg, string cluster_name);
 
 private:
+  using member_nodes_t = map<string, double>;
+
+  class Hook
+  {
+  public:
+    explicit Hook(string global_init_file_arg);
+    [[nodiscard]] map<string, string>
+    get_hooks() const
+    {
+      return hooks;
+    };
+
+  private:
+    map<string, string> hooks;
+  };
+
+  class Path
+  {
+  public:
+    explicit Path(vector<string> includepath_arg);
+    [[nodiscard]] map<string, vector<string>>
+    get_paths() const
+    {
+      return paths;
+    };
+
+  private:
+    map<string, vector<string>> paths;
+  };
+
+  struct FollowerNode
+  {
+    FollowerNode(string computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg,
+                 string userName_arg, string password_arg, string remoteDrive_arg,
+                 string remoteDirectory_arg, string programPath_arg, string programConfig_arg,
+                 string matlabOctavePath_arg, bool singleCompThread_arg,
+                 int numberOfThreadsPerJob_arg, string operatingSystem_arg);
+    const string computerName, port;
+    int minCpuNbr, maxCpuNbr;
+    const string userName, password;
+    const string remoteDrive, remoteDirectory;
+    const string programPath, programConfig, matlabOctavePath;
+    const bool singleCompThread;
+    const int numberOfThreadsPerJob;
+    const string operatingSystem;
+  };
+
+  struct Cluster
+  {
+    explicit Cluster(member_nodes_t member_nodes_arg);
+    member_nodes_t member_nodes;
+  };
+
   const bool parallel, parallel_test, parallel_follower_open_mode, parallel_use_psexec;
   const string cluster_name;
   string firstClusterName;

@@ -20,7 +20,6 @@
 #include <fstream>
 #include <iostream>
 #include <utility>
-#include <vector>
 
 #include "Configuration.hh"
 
@@ -31,9 +30,7 @@
 #include <boost/tokenizer.hpp>
 #pragma GCC diagnostic pop
 
-using namespace std;
-
-Hook::Hook(string global_init_file_arg)
+Configuration::Hook::Hook(string global_init_file_arg)
 {
   if (global_init_file_arg.empty())
     {
@@ -43,7 +40,7 @@ Hook::Hook(string global_init_file_arg)
   hooks["global_init_file"] = move(global_init_file_arg);
 }
 
-Path::Path(vector<string> includepath_arg)
+Configuration::Path::Path(vector<string> includepath_arg)
 {
   if (includepath_arg.empty())
     {
@@ -53,12 +50,13 @@ Path::Path(vector<string> includepath_arg)
   paths["include"] = move(includepath_arg);
 }
 
-FollowerNode::FollowerNode(string computerName_arg, string port_arg, int minCpuNbr_arg,
-                           int maxCpuNbr_arg, string userName_arg, string password_arg,
-                           string remoteDrive_arg, string remoteDirectory_arg,
-                           string programPath_arg, string programConfig_arg,
-                           string matlabOctavePath_arg, bool singleCompThread_arg,
-                           int numberOfThreadsPerJob_arg, string operatingSystem_arg) :
+Configuration::FollowerNode::FollowerNode(string computerName_arg, string port_arg,
+                                          int minCpuNbr_arg, int maxCpuNbr_arg, string userName_arg,
+                                          string password_arg, string remoteDrive_arg,
+                                          string remoteDirectory_arg, string programPath_arg,
+                                          string programConfig_arg, string matlabOctavePath_arg,
+                                          bool singleCompThread_arg, int numberOfThreadsPerJob_arg,
+                                          string operatingSystem_arg) :
     computerName {move(computerName_arg)},
     port {move(port_arg)},
     minCpuNbr {minCpuNbr_arg},
@@ -89,7 +87,8 @@ FollowerNode::FollowerNode(string computerName_arg, string port_arg, int minCpuN
       }
 }
 
-Cluster::Cluster(member_nodes_t member_nodes_arg) : member_nodes {move(member_nodes_arg)}
+Configuration::Cluster::Cluster(member_nodes_t member_nodes_arg) :
+    member_nodes {move(member_nodes_arg)}
 {
   if (member_nodes.empty())
     {
