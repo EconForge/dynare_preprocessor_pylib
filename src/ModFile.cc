@@ -27,7 +27,6 @@
 #include <filesystem>
 
 #include "ComputingTasks.hh"
-#include "ConfigFile.hh"
 #include "ModFile.hh"
 #include "Shocks.hh"
 
@@ -843,7 +842,7 @@ ModFile::remove_directory_with_matlab_lock(const filesystem::path& dir)
 
 void
 ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global, bool no_warn,
-                      bool console, bool nograph, bool nointeractive, const ConfigFile& config_file,
+                      bool console, bool nograph, bool nointeractive, const Configuration& config,
                       bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
                       const string& mexext, const filesystem::path& matlabroot, bool onlymodel,
                       bool gui, bool notime) const
@@ -916,7 +915,7 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
       << "% Some global variables initialization" << endl
       << "%" << endl;
   if (!onlymodel)
-    config_file.writeHooks(mOutputFile);
+    config.writeHooks(mOutputFile);
   mOutputFile << "global_initialization;" << endl;
 
   if (minimal_workspace)
@@ -1002,7 +1001,7 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
     }
 
   if (!onlymodel)
-    config_file.writeCluster(mOutputFile);
+    config.writeCluster(mOutputFile);
 
   if (bytecode)
     mOutputFile << "if exist('bytecode') ~= 3" << endl
@@ -1131,7 +1130,7 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
                   << "_results.mat'], 'options_mom_', '-append');" << endl
                   << "end" << endl;
 
-      config_file.writeEndParallel(mOutputFile);
+      config.writeEndParallel(mOutputFile);
 
       if (!no_warn)
         {

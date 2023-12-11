@@ -22,7 +22,7 @@
 #include <utility>
 #include <vector>
 
-#include "ConfigFile.hh"
+#include "Configuration.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -98,9 +98,9 @@ Cluster::Cluster(member_nodes_t member_nodes_arg) : member_nodes {move(member_no
     }
 }
 
-ConfigFile::ConfigFile(bool parallel_arg, bool parallel_test_arg,
-                       bool parallel_follower_open_mode_arg, bool parallel_use_psexec_arg,
-                       string cluster_name_arg) :
+Configuration::Configuration(bool parallel_arg, bool parallel_test_arg,
+                             bool parallel_follower_open_mode_arg, bool parallel_use_psexec_arg,
+                             string cluster_name_arg) :
     parallel {parallel_arg},
     parallel_test {parallel_test_arg},
     parallel_follower_open_mode {parallel_follower_open_mode_arg},
@@ -110,12 +110,12 @@ ConfigFile::ConfigFile(bool parallel_arg, bool parallel_test_arg,
 }
 
 void
-ConfigFile::getConfigFileInfo(const filesystem::path& config_file)
+Configuration::getConfigFileInfo(const filesystem::path& conffile_option)
 {
   using namespace boost;
   ifstream configFile;
 
-  if (config_file.empty())
+  if (conffile_option.empty())
     {
       filesystem::path defaultConfigFile;
       // Test OS and try to open default file
@@ -162,10 +162,10 @@ ConfigFile::getConfigFileInfo(const filesystem::path& config_file)
     }
   else
     {
-      configFile.open(config_file, fstream::in);
+      configFile.open(conffile_option, fstream::in);
       if (!configFile.is_open())
         {
-          cerr << "ERROR: Couldn't open file " << config_file.string() << endl;
+          cerr << "ERROR: Couldn't open file " << conffile_option.string() << endl;
           exit(EXIT_FAILURE);
         }
     }
@@ -469,7 +469,7 @@ ConfigFile::getConfigFileInfo(const filesystem::path& config_file)
 }
 
 void
-ConfigFile::addHooksConfFileElement(string global_init_file)
+Configuration::addHooksConfFileElement(string global_init_file)
 {
   if (global_init_file.empty())
     {
@@ -482,7 +482,7 @@ ConfigFile::addHooksConfFileElement(string global_init_file)
 }
 
 void
-ConfigFile::addPathsConfFileElement(vector<string> includepath)
+Configuration::addPathsConfFileElement(vector<string> includepath)
 {
   if (includepath.empty())
     {
@@ -494,15 +494,15 @@ ConfigFile::addPathsConfFileElement(vector<string> includepath)
 }
 
 void
-ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster,
-                                       const member_nodes_t& member_nodes, const string& name,
-                                       const string& computerName, const string& port,
-                                       int minCpuNbr, int maxCpuNbr, const string& userName,
-                                       const string& password, const string& remoteDrive,
-                                       const string& remoteDirectory, const string& programPath,
-                                       const string& programConfig, const string& matlabOctavePath,
-                                       bool singleCompThread, int numberOfThreadsPerJob,
-                                       const string& operatingSystem)
+Configuration::addParallelConfFileElement(bool inNode, bool inCluster,
+                                          const member_nodes_t& member_nodes, const string& name,
+                                          const string& computerName, const string& port,
+                                          int minCpuNbr, int maxCpuNbr, const string& userName,
+                                          const string& password, const string& remoteDrive,
+                                          const string& remoteDirectory, const string& programPath,
+                                          const string& programConfig,
+                                          const string& matlabOctavePath, bool singleCompThread,
+                                          int numberOfThreadsPerJob, const string& operatingSystem)
 {
   //! ADD NODE
   if (inNode)
@@ -546,7 +546,7 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster,
 }
 
 void
-ConfigFile::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
+Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
 {
   for (bool global_init_file_declared {false}; const auto& hook : hooks)
     for (const auto& mapit : hook.get_hooks())
@@ -684,7 +684,7 @@ ConfigFile::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
 }
 
 void
-ConfigFile::transformPass()
+Configuration::transformPass()
 {
   if (!parallel && !parallel_test)
     return;
@@ -711,7 +711,7 @@ ConfigFile::transformPass()
 }
 
 vector<filesystem::path>
-ConfigFile::getIncludePaths() const
+Configuration::getIncludePaths() const
 {
   vector<filesystem::path> include_paths;
   for (auto path : paths)
@@ -722,7 +722,7 @@ ConfigFile::getIncludePaths() const
 }
 
 void
-ConfigFile::writeHooks(ostream& output) const
+Configuration::writeHooks(ostream& output) const
 {
   for (auto hook : hooks)
     for (const auto& mapit : hook.get_hooks())
@@ -730,7 +730,7 @@ ConfigFile::writeHooks(ostream& output) const
 }
 
 void
-ConfigFile::writeCluster(ostream& output) const
+Configuration::writeCluster(ostream& output) const
 {
   if (!parallel && !parallel_test)
     return;
@@ -804,7 +804,7 @@ ConfigFile::writeCluster(ostream& output) const
 }
 
 void
-ConfigFile::writeEndParallel(ostream& output) const
+Configuration::writeEndParallel(ostream& output) const
 {
   if ((!parallel && !parallel_test) || !parallel_follower_open_mode)
     return;

@@ -31,7 +31,7 @@
 
 #include <unistd.h>
 
-#include "ConfigFile.hh"
+#include "Configuration.hh"
 #include "ExtendedPreprocessorTypes.hh"
 #include "ModFile.hh"
 #include "ParsingDriver.hh"
@@ -53,7 +53,7 @@ usage()
   cerr << "Dynare usage: dynare mod_file [debug] [noclearall] [onlyclearglobals] "
           "[savemacro[=macro_file]] [onlymacro] [linemacro] [notmpterms] [nolog] [warn_uninit]"
        << " [console] [nograph] [nointeractive] [parallel[=cluster_name]] "
-          "[conffile=parallel_config_path_and_filename] [parallel_follower_open_mode] "
+          "[conffile=path_to_config_file] [parallel_follower_open_mode] "
           "[parallel_test] [parallel_use_psexec=true|false]"
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] "
           "[compute_xrefs] [output=second|third] [language=matlab|julia]"
@@ -142,7 +142,7 @@ main(int argc, char** argv)
   bool console = false;
   bool nograph = false;
   bool nointeractive = false;
-  filesystem::path parallel_config_file;
+  filesystem::path conffile;
   bool parallel = false;
   string cluster_name;
   bool parallel_follower_open_mode
@@ -234,7 +234,7 @@ main(int argc, char** argv)
               cerr << "Incorrect syntax for conffile option" << endl;
               usage();
             }
-          parallel_config_file = s.substr(9);
+          conffile = s.substr(9);
         }
       else if (s == "parallel_follower_open_mode"
                || s == "parallel_slave_open_mode") // Kept for backward compatibility, see #86
@@ -461,15 +461,15 @@ main(int argc, char** argv)
   WarningConsolidation warnings(no_warn);
 
   // Process config file
-  ConfigFile config_file(parallel, parallel_test, parallel_follower_open_mode, parallel_use_psexec,
-                         cluster_name);
-  config_file.getConfigFileInfo(parallel_config_file);
-  config_file.checkPass(warnings);
-  config_file.transformPass();
+  Configuration config {parallel, parallel_test, parallel_follower_open_mode, parallel_use_psexec,
+                        cluster_name};
+  config.getConfigFileInfo(conffile);
+  config.checkPass(warnings);
+  config.transformPass();
 
   // If Include option was passed to the [paths] block of the config file, add
   // it to paths before macroprocessing
-  for (const auto& it : config_file.getIncludePaths())
+  for (const auto& it : config.getIncludePaths())
     paths.emplace_back(it);
 
   /*
@@ -540,7 +540,7 @@ main(int argc, char** argv)
     mod_file->writeJuliaOutput(basename);
   else
     mod_file->writeMOutput(basename, clear_all, clear_global, no_warn, console, nograph,
-                           nointeractive, config_file, check_model_changes, minimal_workspace,
+                           nointeractive, config, check_model_changes, minimal_workspace,
                            compute_xrefs, mexext, matlabroot, onlymodel, gui, notime);
 
   /* Ensures that workers are not destroyed before they finish compiling.

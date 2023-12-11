@@ -26,7 +26,7 @@
 #include <ostream>
 #include <sstream>
 
-#include "ConfigFile.hh"
+#include "Configuration.hh"
 #include "DynamicModel.hh"
 #include "ExtendedPreprocessorTypes.hh"
 #include "ExternalFunctionsTable.hh"
@@ -176,7 +176,7 @@ public:
     \param compute_xrefs if true, equation cross references will be computed
   */
   void writeMOutput(const string& basename, bool clear_all, bool clear_global, bool no_warn,
-                    bool console, bool nograph, bool nointeractive, const ConfigFile& config_file,
+                    bool console, bool nograph, bool nointeractive, const Configuration& config,
                     bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
                     const string& mexext, const filesystem::path& matlabroot, bool onlymodel,
                     bool gui, bool notime) const;

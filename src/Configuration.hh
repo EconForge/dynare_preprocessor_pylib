@@ -17,8 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef CONFIG_FILE_HH
-#define CONFIG_FILE_HH
+#ifndef CONFIGURATION_HH
+#define CONFIGURATION_HH
 
 #include <filesystem>
 #include <map>
@@ -64,7 +64,7 @@ public:
 
 class FollowerNode
 {
-  friend class ConfigFile;
+  friend class Configuration;
 
 public:
   FollowerNode(string computerName_arg, string port_arg, int minCpuNbr_arg, int maxCpuNbr_arg,
@@ -86,7 +86,7 @@ protected:
 
 class Cluster
 {
-  friend class ConfigFile;
+  friend class Configuration;
 
 public:
   explicit Cluster(member_nodes_t member_nodes_arg);
@@ -95,12 +95,13 @@ protected:
   member_nodes_t member_nodes;
 };
 
-//! The abstract representation of a "config" file
-class ConfigFile
+/* The abstract representation of the configuration.
+   Merges information from the command-line and from the configuration file. */
+class Configuration
 {
 public:
-  ConfigFile(bool parallel_arg, bool parallel_test_arg, bool parallel_follower_open_mode_arg,
-             bool parallel_use_psexec_arg, string cluster_name);
+  Configuration(bool parallel_arg, bool parallel_test_arg, bool parallel_follower_open_mode_arg,
+                bool parallel_use_psexec_arg, string cluster_name);
 
 private:
   const bool parallel, parallel_test, parallel_follower_open_mode, parallel_use_psexec;
@@ -130,7 +131,7 @@ private:
 
 public:
   //! Parse config file
-  void getConfigFileInfo(const filesystem::path& parallel_config_file);
+  void getConfigFileInfo(const filesystem::path& conffile_option);
   //! Check Pass
   void checkPass(WarningConsolidation& warnings) const;
   //! Check Pass
