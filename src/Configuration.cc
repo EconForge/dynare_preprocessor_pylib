@@ -35,16 +35,6 @@
 #include <boost/tokenizer.hpp>
 #pragma GCC diagnostic pop
 
-Configuration::Hook::Hook(string global_init_file_arg)
-{
-  if (global_init_file_arg.empty())
-    {
-      cerr << "ERROR: The Hook must have a Global Initialization File argument." << endl;
-      exit(EXIT_FAILURE);
-    }
-  hooks["global_init_file"] = move(global_init_file_arg);
-}
-
 Configuration::Path::Path(vector<string> includepath_arg)
 {
   if (includepath_arg.empty())
@@ -170,7 +160,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
     }
 
   string name, computerName, port, userName, password, remoteDrive, remoteDirectory, programPath,
-      programConfig, matlabOctavePath, operatingSystem, global_init_file;
+      programConfig, matlabOctavePath, operatingSystem;
   vector<string> includepath;
   int minCpuNbr {0}, maxCpuNbr {0};
   int numberOfThreadsPerJob {1};
@@ -189,10 +179,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
 
       if (line == "[node]" || line == "[cluster]" || line == "[hooks]" || line == "[paths]")
         {
-          if (!global_init_file.empty())
-            // we were just in [hooks]
-            addHooksConfFileElement(global_init_file);
-          else if (!includepath.empty())
+          if (!includepath.empty())
             // we were just in [paths]
             addPathsConfFileElement(includepath);
           else
@@ -233,8 +220,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
             }
 
           name = userName = computerName = port = password = remoteDrive = remoteDirectory
-              = programPath = programConfig = matlabOctavePath = operatingSystem = global_init_file
-              = "";
+              = programPath = programConfig = matlabOctavePath = operatingSystem = "";
           includepath.clear();
           minCpuNbr = maxCpuNbr = 0;
           numberOfThreadsPerJob = 1;
@@ -454,9 +440,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
         }
     }
 
-  if (!global_init_file.empty())
-    addHooksConfFileElement(global_init_file);
-  else if (!includepath.empty())
+  if (!includepath.empty())
     addPathsConfFileElement(includepath);
   else
     addParallelConfFileElement(inNode, inCluster, member_nodes, name, computerName, port, minCpuNbr,
@@ -465,19 +449,6 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
                                numberOfThreadsPerJob, operatingSystem);
 
   configFile.close();
-}
-
-void
-Configuration::addHooksConfFileElement(string global_init_file)
-{
-  if (global_init_file.empty())
-    {
-      cerr << "ERROR: The global initialization file must be passed to the GlobalInitFile option."
-           << endl;
-      exit(EXIT_FAILURE);
-    }
-  else
-    hooks.emplace_back(move(global_init_file));
 }
 
 void
@@ -547,15 +518,6 @@ Configuration::addParallelConfFileElement(bool inNode, bool inCluster,
 void
 Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
 {
-  for (bool global_init_file_declared {false}; const auto& hook : hooks)
-    for (const auto& mapit : hook.get_hooks())
-      if (mapit.first == "global_init_file")
-        if (exchange(global_init_file_declared, true))
-          {
-            cerr << "ERROR: Only one global initialization file may be provided." << endl;
-            exit(EXIT_FAILURE);
-          }
-
   if (!parallel && !parallel_test)
     return;
 
@@ -723,9 +685,8 @@ Configuration::getIncludePaths() const
 void
 Configuration::writeHooks(ostream& output) const
 {
-  for (auto hook : hooks)
-    for (const auto& mapit : hook.get_hooks())
-      output << "options_." << mapit.first << " = '" << mapit.second << "';" << endl;
+  if (!global_init_file.empty())
+    output << "options_.global_init_file = '" << global_init_file << "';" << endl;
 }
 
 void

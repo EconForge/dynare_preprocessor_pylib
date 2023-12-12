@@ -39,20 +39,6 @@ public:
 private:
   using member_nodes_t = map<string, double>;
 
-  class Hook
-  {
-  public:
-    explicit Hook(string global_init_file_arg);
-    [[nodiscard]] map<string, string>
-    get_hooks() const
-    {
-      return hooks;
-    };
-
-  private:
-    map<string, string> hooks;
-  };
-
   class Path
   {
   public:
@@ -94,15 +80,13 @@ private:
   const string cluster_name;
   string firstClusterName;
   //! Hooks
-  vector<Hook> hooks;
+  string global_init_file;
   //! Paths
   vector<Path> paths;
   //! Cluster Table
   map<string, Cluster> clusters;
   //! Node Map
   map<string, FollowerNode> follower_nodes;
-  //! Add Hooks
-  void addHooksConfFileElement(string global_init_file);
   //! Add Paths
   void addPathsConfFileElement(vector<string> includepath);
   //! Add a FollowerNode or a Cluster object
