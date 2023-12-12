@@ -647,6 +647,12 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
 void
 Configuration::transformPass()
 {
+  /* If the user did not specify the GlobalInitFile option, use global_init.m in configuration
+     directory if it exists */
+  if (auto default_global_init_file = findConfigFile("global_init.m");
+      global_init_file.empty() && !default_global_init_file.empty())
+    global_init_file = default_global_init_file.string();
+
   if (!parallel && !parallel_test)
     return;
 
