@@ -1,9 +1,8 @@
 # TODO: add the following check families:
-# - performance-*
 # - bugprone-*
 # - cppcoreguidelines-
 
 # NB: as of clang-tidy 16, we get several false positives inside boost, notably this one:
 #  https://github.com/llvm/llvm-project/issues/40486
 
-Checks: 'modernize-*,-modernize-use-trailing-return-type,-clang-diagnostic-unqualified-std-cast-call'
+Checks: 'performance-*,modernize-*,-modernize-use-trailing-return-type,-clang-diagnostic-unqualified-std-cast-call'
