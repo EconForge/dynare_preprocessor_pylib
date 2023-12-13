@@ -640,6 +640,7 @@ BaseTypePtr
 Array::eval(Environment& env) const
 {
   vector<ExpressionPtr> retval;
+  retval.reserve(arr.size());
   for (const auto& it : arr)
     retval.emplace_back(it->eval(env));
   return make_shared<Array>(retval);
@@ -649,6 +650,7 @@ BaseTypePtr
 Tuple::eval(Environment& env) const
 {
   vector<ExpressionPtr> retval;
+  retval.reserve(tup.size());
   for (const auto& it : tup)
     retval.emplace_back(it->eval(env));
   return make_shared<Tuple>(retval);

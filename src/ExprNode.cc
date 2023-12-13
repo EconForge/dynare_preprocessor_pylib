@@ -6917,6 +6917,7 @@ AbstractExternalFunctionNode::computeDerivative(int deriv_id)
 {
   assert(datatree.external_functions_table.getNargs(symb_id) > 0);
   vector<expr_t> dargs;
+  dargs.reserve(arguments.size());
   for (auto argument : arguments)
     dargs.push_back(argument->getDerivative(deriv_id));
   return composeDerivatives(dargs);
@@ -6930,6 +6931,7 @@ AbstractExternalFunctionNode::computeChainRuleDerivative(
 {
   assert(datatree.external_functions_table.getNargs(symb_id) > 0);
   vector<expr_t> dargs;
+  dargs.reserve(arguments.size());
   for (auto argument : arguments)
     dargs.push_back(argument->getChainRuleDerivative(deriv_id, recursive_variables,
                                                      non_null_chain_rule_derivatives, cache));
@@ -7405,6 +7407,7 @@ expr_t
 AbstractExternalFunctionNode::toStatic(DataTree& static_datatree) const
 {
   vector<expr_t> static_arguments;
+  static_arguments.reserve(arguments.size());
   for (auto argument : arguments)
     static_arguments.push_back(argument->toStatic(static_datatree));
   return buildSimilarExternalFunctionNode(static_arguments, static_datatree);
@@ -7414,6 +7417,7 @@ expr_t
 AbstractExternalFunctionNode::clone(DataTree& alt_datatree) const
 {
   vector<expr_t> dynamic_arguments;
+  dynamic_arguments.reserve(arguments.size());
   for (auto argument : arguments)
     dynamic_arguments.push_back(argument->clone(alt_datatree));
   return buildSimilarExternalFunctionNode(dynamic_arguments, alt_datatree);
@@ -7423,6 +7427,7 @@ expr_t
 ExternalFunctionNode::composeDerivatives(const vector<expr_t>& dargs)
 {
   vector<expr_t> dNodes;
+  dNodes.reserve(dargs.size());
   for (int i = 0; i < static_cast<int>(dargs.size()); i++)
     dNodes.push_back(datatree.AddTimes(
         dargs.at(i), datatree.AddFirstDerivExternalFunction(symb_id, arguments, i + 1)));
@@ -7715,6 +7720,7 @@ expr_t
 FirstDerivExternalFunctionNode::composeDerivatives(const vector<expr_t>& dargs)
 {
   vector<expr_t> dNodes;
+  dNodes.reserve(dargs.size());
   for (int i = 0; i < static_cast<int>(dargs.size()); i++)
     dNodes.push_back(datatree.AddTimes(dargs.at(i), datatree.AddSecondDerivExternalFunction(
                                                         symb_id, arguments, inputIndex, i + 1)));

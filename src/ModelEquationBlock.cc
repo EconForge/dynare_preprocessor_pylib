@@ -529,6 +529,7 @@ Epilogue::writeOutput(ostream& output) const
     expr->collectVariables(SymbolType::endogenous, endogs);
 
   vector<string> symbol_list;
+  symbol_list.reserve(endogs.size());
   for (auto symb_id : endogs)
     symbol_list.push_back(symbol_table.getName(symb_id));
   SymbolList {move(symbol_list)}.writeOutput("M_.epilogue_var_list_", output);

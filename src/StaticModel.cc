@@ -854,6 +854,7 @@ StaticModel::computeRamseyMultipliersDerivatives(int ramsey_orig_endo_nbr, bool 
   // Compute derivation IDs of Lagrange multipliers
   set<int> mult_symb_ids {symbol_table.getLagrangeMultipliers()};
   vector<int> mult_deriv_ids;
+  mult_deriv_ids.reserve(mult_symb_ids.size());
   for (int symb_id : mult_symb_ids)
     mult_deriv_ids.push_back(getDerivID(symb_id, 0));
 
