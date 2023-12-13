@@ -681,7 +681,7 @@ vector<filesystem::path>
 Configuration::getIncludePaths() const
 {
   vector<filesystem::path> include_paths;
-  for (auto path : paths)
+  for (const auto& path : paths)
     for (const auto& mapit : path.get_paths())
       for (const auto& vecit : mapit.second)
         include_paths.emplace_back(vecit);

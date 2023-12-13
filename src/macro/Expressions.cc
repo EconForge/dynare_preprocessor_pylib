@@ -1282,7 +1282,7 @@ void
 Array::print(ostream& output, bool matlab_output) const noexcept
 {
   output << (matlab_output ? "{" : "[");
-  for (bool printed_something {false}; auto e : arr)
+  for (bool printed_something {false}; const auto& e : arr)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -1295,7 +1295,7 @@ void
 Tuple::print(ostream& output, bool matlab_output) const noexcept
 {
   output << (matlab_output ? "{" : "(");
-  for (bool printed_something {false}; auto e : tup)
+  for (bool printed_something {false}; const auto& e : tup)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -1308,7 +1308,7 @@ void
 Function::printArgs(ostream& output) const noexcept
 {
   output << "(";
-  for (bool printed_something {false}; auto e : args)
+  for (bool printed_something {false}; const auto& e : args)
     {
       if (exchange(printed_something, true))
         output << ", ";

@@ -315,13 +315,13 @@ TrendComponentModelTable::writeOutput(const string& basename, ostream& output) c
 
       vector<string> target_eqtags_vec = target_eqtags.at(name);
       output << "M_.trend_component." << name << ".target_eqtags = {";
-      for (auto it : target_eqtags_vec)
+      for (const auto& it : target_eqtags_vec)
         output << "'" << it << "';";
       output << "};" << endl;
 
       vector<string> eqtags_vec = eqtags.at(name);
       output << "M_.trend_component." << name << ".target_eqn = [";
-      for (auto it : target_eqtags_vec)
+      for (const auto& it : target_eqtags_vec)
         output << distance(eqtags_vec.begin(), find(eqtags_vec.begin(), eqtags_vec.end(), it)) + 1
                << " ";
       output << "];" << endl;
@@ -595,7 +595,7 @@ void
 VarModelTable::setLhs(map<string, vector<int>> lhs_arg)
 {
   lhs = move(lhs_arg);
-  for (auto it : lhs)
+  for (const auto& it : lhs)
     {
       vector<int> lhsvec;
       for (auto ids : it.second)

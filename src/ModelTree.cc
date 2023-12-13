@@ -1927,6 +1927,12 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
   cout << "Spawning " << numworkers << " threads for compiling MEX files." << endl;
 
   for (int i {0}; i < numworkers; i++)
+    /* Passing the stop_token by const reference is ok (and makes clang-tidy happier),
+       since the std::jthread constructor calls the lambda with the return argument of the
+       get_stop_token() method, which returns a stop_token by value; hence there is no lifetime
+       issue. See:
+       https://stackoverflow.com/questions/72990607/const-stdstop-token-or-just-stdstop-token-as-parameter-for-thread-funct
+     */
     mex_compilation_workers.emplace_back([](const stop_token& stoken) {
       unique_lock<mutex> lk {mex_compilation_mut};
       filesystem::path output;
