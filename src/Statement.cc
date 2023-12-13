@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2022 Dynare Team
+ * Copyright © 2006-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -168,7 +168,7 @@ void
 OptionsList::writeOutput(ostream& output, const string& option_group) const
 {
   // Initialize option_group as an empty struct iff the field does not exist!
-  if (size_t idx = option_group.find_last_of("."); idx != string::npos)
+  if (size_t idx = option_group.find_last_of('.'); idx != string::npos)
     {
       output << "if ~isfield(" << option_group.substr(0, idx) << ",'"
              << option_group.substr(idx + 1) << "')" << endl;

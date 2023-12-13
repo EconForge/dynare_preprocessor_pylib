@@ -302,7 +302,7 @@ string
 DynamicModel::reform(const string& name1) const
 {
   string name = name1;
-  int pos = name.find(R"(\)", 0);
+  int pos = name.find('\\', 0);
   while (pos >= 0)
     {
       if (name.substr(pos + 1, 1) != R"(\)")
@@ -311,7 +311,7 @@ DynamicModel::reform(const string& name1) const
           pos++;
         }
       pos++;
-      pos = name.find(R"(\)", pos);
+      pos = name.find('\\', pos);
     }
   return name;
 }
@@ -573,12 +573,12 @@ DynamicModel::parseIncludeExcludeEquations(const string& inc_exc_option_value, b
           removeLeadingTrailingWhitespace(line);
           if (!line.empty())
             {
-              if (tags.empty() && line.find("=") != string::npos)
+              if (tags.empty() && line.find('=') != string::npos)
                 {
                   tagname_on_first_line = true;
                   tags += line + "(";
                 }
-              else if (line.find("'") != string::npos)
+              else if (line.find('\'') != string::npos)
                 tags += line + ",";
               else
                 tags += "'" + line + "',";

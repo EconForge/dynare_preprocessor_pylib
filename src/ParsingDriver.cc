@@ -341,7 +341,7 @@ ParsingDriver::add_inf_constant()
 expr_t
 ParsingDriver::add_model_variable(const string& name)
 {
-  if (name.find(".") != string::npos)
+  if (name.find('.') != string::npos)
     error(name + " treated as a variable, but it contains a '.'");
 
   check_symbol_existence_in_model_block(name);
@@ -456,7 +456,7 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
 expr_t
 ParsingDriver::add_expression_variable(const string& name)
 {
-  if (name.find(".") != string::npos)
+  if (name.find('.') != string::npos)
     error(name + " treated as a variable, but it contains a '.'");
 
   if (parsing_epilogue && !mod_file->symbol_table.exists(name))

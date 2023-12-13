@@ -1187,7 +1187,7 @@ ModelTree::fixNestedParenthesis(ostringstream& output, map<string, string>& tmp_
           else
             varname = it->second;
           str.replace(first_open_paren, matching_paren - first_open_paren + 1, varname);
-          size_t insertLoc = str.find_last_of("\n", first_open_paren);
+          size_t insertLoc = str.find_last_of('\n', first_open_paren);
           str.insert(insertLoc + 1, repstr);
           hit_limit = false;
           i = -1;
