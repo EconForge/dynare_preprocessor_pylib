@@ -1394,13 +1394,13 @@ ModelTree::writeLatexModelFile(const string& mod_basename, const string& latex_b
 }
 
 void
-ModelTree::addEquation(expr_t eq, optional<int> lineno)
+ModelTree::addEquation(expr_t eq, const optional<int>& lineno)
 {
   auto beq = dynamic_cast<BinaryOpNode*>(eq);
   assert(beq && beq->op_code == BinaryOpcode::equal);
 
   equations.push_back(beq);
-  equations_lineno.push_back(move(lineno));
+  equations_lineno.push_back(lineno);
 }
 
 void
@@ -1412,10 +1412,10 @@ ModelTree::findConstantEquationsWithoutMcpTag(map<VariableNode*, NumConstNode*>&
 }
 
 void
-ModelTree::addEquation(expr_t eq, optional<int> lineno, map<string, string> eq_tags)
+ModelTree::addEquation(expr_t eq, const optional<int>& lineno, map<string, string> eq_tags)
 {
   equation_tags.add(equations.size(), move(eq_tags));
-  addEquation(eq, move(lineno));
+  addEquation(eq, lineno);
 }
 
 void

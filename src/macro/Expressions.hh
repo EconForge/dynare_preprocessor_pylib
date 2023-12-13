@@ -1135,7 +1135,7 @@ private:
 
 public:
   UnaryOp(codes::UnaryOp op_code_arg, ExpressionPtr arg_arg, Tokenizer::location location_arg) :
-      Expression(move(location_arg)), op_code {move(op_code_arg)}, arg {move(arg_arg)}
+      Expression(move(location_arg)), op_code {op_code_arg}, arg {move(arg_arg)}
   {
   }
   [[nodiscard]] string to_string() const noexcept override;

@@ -650,9 +650,9 @@ public:
   //! Absolute value under which a number is considered to be zero
   double cutoff {1e-15};
   //! Declare a node as an equation of the model; also give its line number
-  void addEquation(expr_t eq, optional<int> lineno);
+  void addEquation(expr_t eq, const optional<int>& lineno);
   //! Declare a node as an equation of the model, also giving its tags
-  void addEquation(expr_t eq, optional<int> lineno, map<string, string> eq_tags);
+  void addEquation(expr_t eq, const optional<int>& lineno, map<string, string> eq_tags);
   //! Declare a node as an auxiliary equation of the model, adding it at the end of the list of
   //! auxiliary equations
   void addAuxEquation(expr_t eq);

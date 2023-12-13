@@ -929,7 +929,7 @@ private:
   const SymbolTable& symbol_table;
 
 public:
-  PlotConditionalForecastStatement(optional<int> periods_arg, SymbolList symbol_list_arg,
+  PlotConditionalForecastStatement(const optional<int>& periods_arg, SymbolList symbol_list_arg,
                                    const SymbolTable& symbol_table_arg);
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;

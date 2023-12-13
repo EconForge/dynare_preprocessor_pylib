@@ -1022,7 +1022,7 @@ public:
         Block_contain_type bc;
         read_member(bc.Variable);
         read_member(bc.Equation);
-        Block_Contain_.push_back(move(bc));
+        Block_Contain_.push_back(bc);
       }
     if (type == BlockSimulationType::solveTwoBoundariesSimple
         || type == BlockSimulationType::solveTwoBoundariesComplete

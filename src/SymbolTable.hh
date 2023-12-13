@@ -297,8 +297,8 @@ public:
      diffLead increases it). */
   [[nodiscard]] pair<int, int> unrollDiffLeadLagChain(int symb_id, int lag) const noexcept(false);
   //! Adds an auxiliary variable when the diff operator is encountered
-  int addDiffAuxiliaryVar(int index, expr_t expr_arg, optional<int> orig_symb_id = nullopt,
-                          optional<int> orig_lag = nullopt) noexcept(false);
+  int addDiffAuxiliaryVar(int index, expr_t expr_arg, const optional<int>& orig_symb_id = nullopt,
+                          const optional<int>& orig_lag = nullopt) noexcept(false);
   //! Takes care of timing between diff statements
   int addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id,
                              int orig_lag) noexcept(false);
@@ -307,8 +307,8 @@ public:
                               int orig_lead) noexcept(false);
   //! An Auxiliary variable for a unary op
   int addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
-                             optional<int> orig_symb_id = nullopt,
-                             optional<int> orig_lag = nullopt) noexcept(false);
+                             const optional<int>& orig_symb_id = nullopt,
+                             const optional<int>& orig_lag = nullopt) noexcept(false);
   //! An auxiliary variable for a pac_expectation operator
   int addPacExpectationAuxiliaryVar(const string& name, expr_t expr_arg);
   //! An auxiliary variable for a pac_target_nonstationary operator

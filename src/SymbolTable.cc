@@ -585,8 +585,8 @@ SymbolTable::addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_i
 }
 
 int
-SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, optional<int> orig_symb_id,
-                                 optional<int> orig_lag) noexcept(false)
+SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, const optional<int>& orig_symb_id,
+                                 const optional<int>& orig_lag) noexcept(false)
 {
   string varname {"AUX_DIFF_" + to_string(index)};
   int symb_id;
@@ -601,16 +601,15 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, optional<int> orig_
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::diff, move(orig_symb_id), move(orig_lag), 0, 0,
-                        expr_arg, "");
+  aux_vars.emplace_back(symb_id, AuxVarType::diff, orig_symb_id, orig_lag, 0, 0, expr_arg, "");
 
   return symb_id;
 }
 
 int
 SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
-                                    optional<int> orig_symb_id,
-                                    optional<int> orig_lag) noexcept(false)
+                                    const optional<int>& orig_symb_id,
+                                    const optional<int>& orig_lag) noexcept(false)
 {
   string varname {"AUX_UOP_" + to_string(index)};
   int symb_id;
@@ -625,8 +624,8 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
       exit(EXIT_FAILURE);
     }
 
-  aux_vars.emplace_back(symb_id, AuxVarType::unaryOp, move(orig_symb_id), move(orig_lag), 0, 0,
-                        expr_arg, move(unary_op));
+  aux_vars.emplace_back(symb_id, AuxVarType::unaryOp, orig_symb_id, orig_lag, 0, 0, expr_arg,
+                        move(unary_op));
 
   return symb_id;
 }

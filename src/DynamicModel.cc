@@ -1212,7 +1212,7 @@ DynamicModel::updateVarAndTrendModel() const
                           exit(EXIT_FAILURE);
                         }
                     }
-                  trend_var.push_back(move(trend_var_symb_id));
+                  trend_var.push_back(trend_var_symb_id);
                 }
             }
 
@@ -1906,7 +1906,7 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
             exit(EXIT_FAILURE);
           }
         pac_equation_info[name] = {lhs,
-                                   move(optim_share_index),
+                                   optim_share_index,
                                    move(ar_params_and_vars),
                                    move(ec_params_and_vars),
                                    move(non_optim_vars_params_and_constants),
@@ -3575,14 +3575,15 @@ DynamicModel::fillEvalContext(eval_context_t& eval_context) const
 }
 
 void
-DynamicModel::addStaticOnlyEquation(expr_t eq, optional<int> lineno, map<string, string> eq_tags)
+DynamicModel::addStaticOnlyEquation(expr_t eq, const optional<int>& lineno,
+                                    map<string, string> eq_tags)
 {
   auto beq = dynamic_cast<BinaryOpNode*>(eq);
   assert(beq && beq->op_code == BinaryOpcode::equal);
 
   static_only_equations_equation_tags.add(static_only_equations.size(), move(eq_tags));
   static_only_equations.push_back(beq);
-  static_only_equations_lineno.push_back(move(lineno));
+  static_only_equations_lineno.push_back(lineno);
 }
 
 size_t
@@ -3598,7 +3599,7 @@ DynamicModel::dynamicOnlyEquationsNbr() const
 }
 
 void
-DynamicModel::addOccbinEquation(expr_t eq, optional<int> lineno, map<string, string> eq_tags,
+DynamicModel::addOccbinEquation(expr_t eq, const optional<int>& lineno, map<string, string> eq_tags,
                                 const vector<string>& regimes_bind,
                                 const vector<string>& regimes_relax)
 {

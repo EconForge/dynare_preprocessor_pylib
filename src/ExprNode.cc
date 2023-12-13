@@ -5697,7 +5697,7 @@ BinaryOpNode::getPacAREC(
         {
           // NOLINTNEXTLINE(clang-analyzer-core.CallAndMessage)
           auto [vid, lag, pid, constant] = term->matchVariableTimesConstantTimesParam(true);
-          linear_combination.emplace_back(vid.value(), lag, move(pid), constant);
+          linear_combination.emplace_back(vid.value(), lag, pid, constant);
         }
       catch (MatchFailureException& e)
         {
@@ -9102,7 +9102,7 @@ ExprNode::matchVariableTimesConstantTimesParam(bool variable_obligatory) const
   matchVTCTPHelper(variable_id, lag, param_id, constant, false);
   if (variable_obligatory && !variable_id)
     throw MatchFailureException {"No variable in this expression"};
-  return {move(variable_id), lag, move(param_id), constant};
+  return {variable_id, lag, param_id, constant};
 }
 
 void
@@ -9194,7 +9194,7 @@ ExprNode::matchLinearCombinationOfVariables() const
       auto [variable_id, lag, param_id, constant]
           = term->matchVariableTimesConstantTimesParam(true);
       constant *= sign;
-      result.emplace_back(variable_id.value(), lag, move(param_id), constant);
+      result.emplace_back(variable_id.value(), lag, param_id, constant);
     }
   return result;
 }

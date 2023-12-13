@@ -3347,10 +3347,9 @@ ConditionalForecastStatement::writeJsonOutput(ostream& output) const
 }
 
 PlotConditionalForecastStatement::PlotConditionalForecastStatement(
-    optional<int> periods_arg, SymbolList symbol_list_arg, const SymbolTable& symbol_table_arg) :
-    periods {move(periods_arg)},
-    symbol_list {move(symbol_list_arg)},
-    symbol_table {symbol_table_arg}
+    const optional<int>& periods_arg, SymbolList symbol_list_arg,
+    const SymbolTable& symbol_table_arg) :
+    periods {periods_arg}, symbol_list {move(symbol_list_arg)}, symbol_table {symbol_table_arg}
 {
 }
 

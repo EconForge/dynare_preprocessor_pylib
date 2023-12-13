@@ -2127,7 +2127,7 @@ ParsingDriver::set_optim_weights(string name, expr_t value)
   check_symbol_is_endogenous(name);
   if (var_weights.contains(name))
     error("optim_weights: " + name + " declared twice");
-  var_weights[move(name)] = move(value);
+  var_weights[move(name)] = value;
 }
 
 void
@@ -2594,8 +2594,8 @@ ParsingDriver::plot_conditional_forecast(const optional<string>& periods,
   optional<int> iperiods;
   if (periods)
     iperiods = stoi(*periods);
-  mod_file->addStatement(make_unique<PlotConditionalForecastStatement>(
-      move(iperiods), move(symbol_list), mod_file->symbol_table));
+  mod_file->addStatement(make_unique<PlotConditionalForecastStatement>(iperiods, move(symbol_list),
+                                                                       mod_file->symbol_table));
 }
 
 void

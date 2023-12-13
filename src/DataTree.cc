@@ -946,10 +946,10 @@ DataTree::strsplit(string_view str, char delim)
 }
 
 filesystem::path
-DataTree::packageDir(string_view package)
+DataTree::packageDir(const string_view& package)
 {
   filesystem::path d;
-  for (const auto& it : strsplit(move(package), '.'))
+  for (const auto& it : strsplit(package, '.'))
     d /= "+" + it;
   return d;
 }

@@ -384,7 +384,7 @@ public:
     and returns the path to the corresponding filesystem directory.
     In practice the package nesting is used for the planner_objective (stored
     inside +objective subdir). */
-  static filesystem::path packageDir(string_view package);
+  static filesystem::path packageDir(const string_view& package);
 };
 
 inline expr_t
