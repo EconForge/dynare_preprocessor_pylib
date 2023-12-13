@@ -844,7 +844,7 @@ public:
   void
   set_arg_func_name(string arg_arg_func_name)
   {
-    arg_func_name = arg_arg_func_name;
+    arg_func_name = move(arg_arg_func_name);
   };
   string
   get_arg_func_name()

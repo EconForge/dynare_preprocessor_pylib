@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2022 Dynare Team
+ * Copyright © 2019-2023 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -25,7 +25,7 @@
 using namespace macro;
 
 void
-Environment::define(VariablePtr var, ExpressionPtr value)
+Environment::define(const VariablePtr& var, const ExpressionPtr& value)
 {
   string name = var->getName();
   if (functions.contains(name))

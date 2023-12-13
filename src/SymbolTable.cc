@@ -626,7 +626,7 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::unaryOp, move(orig_symb_id), move(orig_lag), 0, 0,
-                        expr_arg, unary_op);
+                        expr_arg, move(unary_op));
 
   return symb_id;
 }

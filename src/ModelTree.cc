@@ -109,7 +109,7 @@ ModelTree::copyHelper(const ModelTree& m)
       blocks_derivatives.push_back(v);
     }
 
-  auto convert_vector_tt = [f](vector<temporary_terms_t> vtt) {
+  auto convert_vector_tt = [f](const vector<temporary_terms_t>& vtt) {
     vector<temporary_terms_t> vtt2;
     for (const auto& tt : vtt)
       {
@@ -1927,7 +1927,7 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
   cout << "Spawning " << numworkers << " threads for compiling MEX files." << endl;
 
   for (int i {0}; i < numworkers; i++)
-    mex_compilation_workers.emplace_back([](stop_token stoken) {
+    mex_compilation_workers.emplace_back([](const stop_token& stoken) {
       unique_lock<mutex> lk {mex_compilation_mut};
       filesystem::path output;
       string cmd;

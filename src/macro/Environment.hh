@@ -40,7 +40,7 @@ public:
   Environment(const Environment* parent_arg) : parent {parent_arg}
   {
   }
-  void define(VariablePtr var, ExpressionPtr value);
+  void define(const VariablePtr& var, const ExpressionPtr& value);
   void define(FunctionPtr func, ExpressionPtr value);
   /* The following two functions are not marked [[nodiscard]], because they are used without output
      to check whether they return an exception or not. */
