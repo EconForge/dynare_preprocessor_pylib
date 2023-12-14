@@ -865,13 +865,11 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>robust_lin_solve {return token::ROBUST_LIN_SOLVE;}
 <DYNARE_STATEMENT>drop {return token::DROP;}
 <DYNARE_STATEMENT>order {return token::ORDER;}
-<DYNARE_STATEMENT>sylvester {return token::SYLVESTER;}
 <DYNARE_STATEMENT>lyapunov {return token::LYAPUNOV;}
 <DYNARE_STATEMENT>dr {
   yylval->build<string>(yytext);
   return token::DR;
  }
-<DYNARE_STATEMENT>sylvester_fixed_point_tol {return token::SYLVESTER_FIXED_POINT_TOL;}
 <DYNARE_STATEMENT>lyapunov_complex_threshold {return token::LYAPUNOV_COMPLEX_THRESHOLD;}
 <DYNARE_STATEMENT>lyapunov_fixed_point_tol {return token::LYAPUNOV_FIXED_POINT_TOL;}
 <DYNARE_STATEMENT>lyapunov_doubling_tol {return token::LYAPUNOV_DOUBLING_TOL;}
