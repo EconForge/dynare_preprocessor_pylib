@@ -131,24 +131,24 @@ StaticModel::writeStaticBytecode(const string& basename) const
   // First write the .bin file
   int u_count_int {writeBytecodeBinFile(basename + "/model/bytecode/static.bin", false)};
 
-  BytecodeWriter code_file {basename + "/model/bytecode/static.cod"};
+  Bytecode::Writer code_file {basename + "/model/bytecode/static.cod"};
   vector<int> eq_idx(equations.size());
   iota(eq_idx.begin(), eq_idx.end(), 0);
   vector<int> endo_idx(symbol_table.endo_nbr());
   iota(endo_idx.begin(), endo_idx.end(), 0);
 
   // Declare temporary terms and the (single) block
-  code_file << FDIMST_ {static_cast<int>(temporary_terms_derivatives[0].size()
-                                         + temporary_terms_derivatives[1].size())}
-            << FBEGINBLOCK_ {symbol_table.endo_nbr(),
-                             BlockSimulationType::solveForwardComplete,
-                             0,
-                             symbol_table.endo_nbr(),
-                             endo_idx,
-                             eq_idx,
-                             false,
-                             u_count_int,
-                             symbol_table.endo_nbr()};
+  code_file << Bytecode::FDIMST_ {static_cast<int>(temporary_terms_derivatives[0].size()
+                                                   + temporary_terms_derivatives[1].size())}
+            << Bytecode::FBEGINBLOCK_ {symbol_table.endo_nbr(),
+                                       BlockSimulationType::solveForwardComplete,
+                                       0,
+                                       symbol_table.endo_nbr(),
+                                       endo_idx,
+                                       eq_idx,
+                                       false,
+                                       u_count_int,
+                                       symbol_table.endo_nbr()};
 
   writeBytecodeHelper<false>(code_file);
 }
@@ -156,7 +156,7 @@ StaticModel::writeStaticBytecode(const string& basename) const
 void
 StaticModel::writeStaticBlockBytecode(const string& basename) const
 {
-  BytecodeWriter code_file {basename + "/model/bytecode/block/static.cod"};
+  Bytecode::Writer code_file {basename + "/model/bytecode/block/static.cod"};
 
   const filesystem::path bin_filename {basename + "/model/bytecode/block/static.bin"};
   ofstream bin_file {bin_filename, ios::out | ios::binary};
@@ -167,7 +167,7 @@ StaticModel::writeStaticBlockBytecode(const string& basename) const
     }
 
   // Temporary variables declaration
-  code_file << FDIMST_ {static_cast<int>(blocks_temporary_terms_idxs.size())};
+  code_file << Bytecode::FDIMST_ {static_cast<int>(blocks_temporary_terms_idxs.size())};
 
   temporary_terms_t temporary_terms_written;
 
@@ -181,19 +181,19 @@ StaticModel::writeStaticBlockBytecode(const string& basename) const
                              ? writeBlockBytecodeBinFile(bin_file, block)
                              : 0};
 
-      code_file << FBEGINBLOCK_ {blocks[block].mfs_size,
-                                 simulation_type,
-                                 blocks[block].first_equation,
-                                 block_size,
-                                 endo_idx_block2orig,
-                                 eq_idx_block2orig,
-                                 blocks[block].linear,
-                                 u_count,
-                                 block_size};
+      code_file << Bytecode::FBEGINBLOCK_ {blocks[block].mfs_size,
+                                           simulation_type,
+                                           blocks[block].first_equation,
+                                           block_size,
+                                           endo_idx_block2orig,
+                                           eq_idx_block2orig,
+                                           blocks[block].linear,
+                                           u_count,
+                                           block_size};
 
       writeBlockBytecodeHelper<false>(code_file, block, temporary_terms_written);
     }
-  code_file << FEND_ {};
+  code_file << Bytecode::FEND_ {};
 }
 
 void

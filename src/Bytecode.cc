@@ -24,7 +24,10 @@
 
 #include "Bytecode.hh"
 
-BytecodeWriter::BytecodeWriter(const filesystem::path& filename)
+namespace Bytecode
+{
+
+Writer::Writer(const filesystem::path& filename)
 {
   open(filename, ios::out | ios::binary);
   if (!is_open())
@@ -35,8 +38,8 @@ BytecodeWriter::BytecodeWriter(const filesystem::path& filename)
 }
 
 template<>
-BytecodeWriter&
-operator<<(BytecodeWriter& code_file, const FCALL_& instr)
+Writer&
+operator<<(Writer& code_file, const FCALL_& instr)
 {
   code_file.instructions_positions.push_back(code_file.tellp());
 
@@ -65,8 +68,8 @@ operator<<(BytecodeWriter& code_file, const FCALL_& instr)
 }
 
 template<>
-BytecodeWriter&
-operator<<(BytecodeWriter& code_file, const FBEGINBLOCK_& instr)
+Writer&
+operator<<(Writer& code_file, const FBEGINBLOCK_& instr)
 {
   code_file.instructions_positions.push_back(code_file.tellp());
 
@@ -98,4 +101,6 @@ operator<<(BytecodeWriter& code_file, const FBEGINBLOCK_& instr)
   for_each_n(instr.exogenous.begin(), instr.exo_size, write_member);
 
   return code_file;
+}
+
 }

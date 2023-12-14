@@ -31,7 +31,10 @@
 
 using namespace std;
 
-// The different opcodes of bytecode
+namespace Bytecode
+{
+
+// The different tags encoding a bytecode instruction
 enum class Tags
 {
   FLDZ, // Loads a zero onto the stack
@@ -124,12 +127,12 @@ struct Block_contain_type
   int Equation, Variable, Own_Derivative;
 };
 
-class BytecodeWriter;
+class Writer;
 
-struct BytecodeInstruction
+struct Instruction
 {
   const Tags op_code;
-  explicit BytecodeInstruction(Tags op_code_arg) : op_code {op_code_arg}
+  explicit Instruction(Tags op_code_arg) : op_code {op_code_arg}
   {
   }
 
@@ -139,28 +142,27 @@ protected:
      would no longer be POD; its memory representation would also include
      runtime type information, and our crude serialization technique (copying the
      whole object from memory) would thus not work. */
-  ~BytecodeInstruction() = default;
+  ~Instruction() = default;
 };
 
 template<typename T1>
-class TagWithOneArgument : public BytecodeInstruction
+class TagWithOneArgument : public Instruction
 {
 protected:
   T1 arg1;
 
 public:
-  TagWithOneArgument(Tags op_code_arg, T1 arg_arg1) :
-      BytecodeInstruction {op_code_arg}, arg1 {arg_arg1}
+  TagWithOneArgument(Tags op_code_arg, T1 arg_arg1) : Instruction {op_code_arg}, arg1 {arg_arg1}
   {
   }
 
 protected:
-  // See BytecodeInstruction destructor for the rationale
+  // See Instruction destructor for the rationale
   ~TagWithOneArgument() = default;
 };
 
 template<typename T1, typename T2>
-class TagWithTwoArguments : public BytecodeInstruction
+class TagWithTwoArguments : public Instruction
 {
 protected:
   T1 arg1;
@@ -168,17 +170,17 @@ protected:
 
 public:
   TagWithTwoArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2) :
-      BytecodeInstruction {op_code_arg}, arg1 {arg_arg1}, arg2 {arg_arg2}
+      Instruction {op_code_arg}, arg1 {arg_arg1}, arg2 {arg_arg2}
   {
   }
 
 protected:
-  // See BytecodeInstruction destructor for the rationale
+  // See Instruction destructor for the rationale
   ~TagWithTwoArguments() = default;
 };
 
 template<typename T1, typename T2, typename T3>
-class TagWithThreeArguments : public BytecodeInstruction
+class TagWithThreeArguments : public Instruction
 {
 protected:
   T1 arg1;
@@ -187,17 +189,17 @@ protected:
 
 public:
   TagWithThreeArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3) :
-      BytecodeInstruction {op_code_arg}, arg1 {arg_arg1}, arg2 {arg_arg2}, arg3 {arg_arg3}
+      Instruction {op_code_arg}, arg1 {arg_arg1}, arg2 {arg_arg2}, arg3 {arg_arg3}
   {
   }
 
 protected:
-  // See BytecodeInstruction destructor for the rationale
+  // See Instruction destructor for the rationale
   ~TagWithThreeArguments() = default;
 };
 
 template<typename T1, typename T2, typename T3, typename T4>
-class TagWithFourArguments : public BytecodeInstruction
+class TagWithFourArguments : public Instruction
 {
 protected:
   T1 arg1;
@@ -207,7 +209,7 @@ protected:
 
 public:
   TagWithFourArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) :
-      BytecodeInstruction {op_code_arg},
+      Instruction {op_code_arg},
       arg1 {arg_arg1},
       arg2 {arg_arg2},
       arg3 {move(arg_arg3)},
@@ -216,38 +218,38 @@ public:
   }
 
 protected:
-  // See BytecodeInstruction destructor for the rationale
+  // See Instruction destructor for the rationale
   ~TagWithFourArguments() = default;
 };
 
-class FLDZ_ final : public BytecodeInstruction
+class FLDZ_ final : public Instruction
 {
 public:
-  FLDZ_() : BytecodeInstruction {Tags::FLDZ}
+  FLDZ_() : Instruction {Tags::FLDZ}
   {
   }
 };
 
-class FEND_ final : public BytecodeInstruction
+class FEND_ final : public Instruction
 {
 public:
-  FEND_() : BytecodeInstruction {Tags::FEND}
+  FEND_() : Instruction {Tags::FEND}
   {
   }
 };
 
-class FENDBLOCK_ final : public BytecodeInstruction
+class FENDBLOCK_ final : public Instruction
 {
 public:
-  FENDBLOCK_() : BytecodeInstruction {Tags::FENDBLOCK}
+  FENDBLOCK_() : Instruction {Tags::FENDBLOCK}
   {
   }
 };
 
-class FENDEQU_ final : public BytecodeInstruction
+class FENDEQU_ final : public Instruction
 {
 public:
-  FENDEQU_() : BytecodeInstruction {Tags::FENDEQU}
+  FENDEQU_() : Instruction {Tags::FENDEQU}
   {
   }
 };
@@ -768,10 +770,10 @@ public:
   };
 };
 
-class FCALL_ final : public BytecodeInstruction
+class FCALL_ final : public Instruction
 {
   template<typename B>
-  friend BytecodeWriter& operator<<(BytecodeWriter& code_file, const B& instr);
+  friend Writer& operator<<(Writer& code_file, const B& instr);
 
 private:
   int nb_output_arguments, nb_input_arguments, indx;
@@ -783,7 +785,7 @@ private:
 public:
   FCALL_(int nb_output_arguments_arg, int nb_input_arguments_arg, string func_name_arg,
          int indx_arg, ExternalFunctionCallType call_type_arg) :
-      BytecodeInstruction {Tags::FCALL},
+      Instruction {Tags::FCALL},
       nb_output_arguments {nb_output_arguments_arg},
       nb_input_arguments {nb_input_arguments_arg},
       indx {indx_arg},
@@ -793,7 +795,7 @@ public:
   }
   /* Deserializing constructor.
      Updates the code pointer to point beyond the bytes read. */
-  FCALL_(char*& code) : BytecodeInstruction {Tags::FCALL}
+  FCALL_(char*& code) : Instruction {Tags::FCALL}
   {
     code += sizeof(op_code);
 
@@ -888,7 +890,7 @@ public:
   }
 };
 
-class FNUMEXPR_ final : public BytecodeInstruction
+class FNUMEXPR_ final : public Instruction
 {
 private:
   ExpressionType expression_type;
@@ -898,7 +900,7 @@ private:
   int lag1;       // For derivatives, lead/lag of the derivation variable
 public:
   FNUMEXPR_(const ExpressionType expression_type_arg, int equation_arg) :
-      BytecodeInstruction {Tags::FNUMEXPR},
+      Instruction {Tags::FNUMEXPR},
       expression_type {expression_type_arg},
       equation {equation_arg},
       dvariable1 {0},
@@ -906,7 +908,7 @@ public:
   {
   }
   FNUMEXPR_(const ExpressionType expression_type_arg, int equation_arg, int dvariable1_arg) :
-      BytecodeInstruction {Tags::FNUMEXPR},
+      Instruction {Tags::FNUMEXPR},
       expression_type {expression_type_arg},
       equation {equation_arg},
       dvariable1 {dvariable1_arg},
@@ -915,7 +917,7 @@ public:
   }
   FNUMEXPR_(const ExpressionType expression_type_arg, int equation_arg, int dvariable1_arg,
             int lag1_arg) :
-      BytecodeInstruction {Tags::FNUMEXPR},
+      Instruction {Tags::FNUMEXPR},
       expression_type {expression_type_arg},
       equation {equation_arg},
       dvariable1 {dvariable1_arg},
@@ -944,10 +946,10 @@ public:
   };
 };
 
-class FBEGINBLOCK_ final : public BytecodeInstruction
+class FBEGINBLOCK_ final : public Instruction
 {
   template<typename B>
-  friend BytecodeWriter& operator<<(BytecodeWriter& code_file, const B& instr);
+  friend Writer& operator<<(Writer& code_file, const B& instr);
 
 private:
   int size {0};
@@ -970,7 +972,7 @@ public:
                const vector<int>& variable_arg, const vector<int>& equation_arg, bool is_linear_arg,
                int u_count_int_arg, int nb_col_jacob_arg, int det_exo_size_arg, int exo_size_arg,
                vector<int> det_exogenous_arg, vector<int> exogenous_arg) :
-      BytecodeInstruction {Tags::FBEGINBLOCK},
+      Instruction {Tags::FBEGINBLOCK},
       size {size_arg},
       type {type_arg},
       variable {variable_arg.begin() + first_element,
@@ -990,7 +992,7 @@ public:
   FBEGINBLOCK_(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
                const vector<int>& variable_arg, const vector<int>& equation_arg, bool is_linear_arg,
                int u_count_int_arg, int nb_col_jacob_arg) :
-      BytecodeInstruction {Tags::FBEGINBLOCK},
+      Instruction {Tags::FBEGINBLOCK},
       size {size_arg},
       type {type_arg},
       variable {variable_arg.begin() + first_element,
@@ -1006,7 +1008,7 @@ public:
   }
   /* Deserializing constructor.
      Updates the code pointer to point beyond the bytes read. */
-  FBEGINBLOCK_(char*& code) : BytecodeInstruction {Tags::FBEGINBLOCK}
+  FBEGINBLOCK_(char*& code) : Instruction {Tags::FBEGINBLOCK}
   {
     code += sizeof(op_code);
 
@@ -1103,17 +1105,17 @@ public:
 };
 
 // Superclass of std::ofstream for writing a sequence of bytecode instructions
-class BytecodeWriter : private ofstream
+class Writer : private ofstream
 {
   template<typename B>
-  friend BytecodeWriter& operator<<(BytecodeWriter& code_file, const B& instr);
+  friend Writer& operator<<(Writer& code_file, const B& instr);
 
 private:
   // Stores the positions of all instructions in the byte stream
   vector<pos_type> instructions_positions;
 
 public:
-  BytecodeWriter(const filesystem::path& filename);
+  Writer(const filesystem::path& filename);
   // Returns the number of the next instruction to be written
   int
   getInstructionCounter() const
@@ -1137,8 +1139,8 @@ public:
 // Overloads of operator<< for writing bytecode instructions
 
 template<typename B>
-BytecodeWriter&
-operator<<(BytecodeWriter& code_file, const B& instr)
+Writer&
+operator<<(Writer& code_file, const B& instr)
 {
   code_file.instructions_positions.push_back(code_file.tellp());
   code_file.write(reinterpret_cast<const char*>(&instr), sizeof(B));
@@ -1146,9 +1148,11 @@ operator<<(BytecodeWriter& code_file, const B& instr)
 }
 
 template<>
-BytecodeWriter& operator<<(BytecodeWriter& code_file, const FCALL_& instr);
+Writer& operator<<(Writer& code_file, const FCALL_& instr);
 
 template<>
-BytecodeWriter& operator<<(BytecodeWriter& code_file, const FBEGINBLOCK_& instr);
+Writer& operator<<(Writer& code_file, const FBEGINBLOCK_& instr);
+
+}
 
 #endif

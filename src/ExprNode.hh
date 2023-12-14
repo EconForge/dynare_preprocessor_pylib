@@ -321,7 +321,7 @@ protected:
 
   // Same as above, for the bytecode case
   bool
-  checkIfTemporaryTermThenWriteBytecode(BytecodeWriter& code_file,
+  checkIfTemporaryTermThenWriteBytecode(Bytecode::Writer& code_file,
                                         ExprNodeBytecodeOutputType output_type,
                                         const temporary_terms_t& temporary_terms,
                                         const temporary_terms_idxs_t& temporary_terms_idxs) const;
@@ -488,7 +488,7 @@ public:
                                                bool isdynamic = true) const;
 
   virtual void writeBytecodeExternalFunctionOutput(
-      BytecodeWriter& code_file, ExprNodeBytecodeOutputType output_type,
+      Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
       const temporary_terms_t& temporary_terms, const temporary_terms_idxs_t& temporary_terms_idxs,
       deriv_node_temp_terms_t& tef_terms) const;
 
@@ -537,7 +537,7 @@ public:
   [[nodiscard]] virtual double eval(const eval_context_t& eval_context) const noexcept(false) = 0;
 
   // Write output to bytecode file
-  virtual void writeBytecodeOutput(BytecodeWriter& code_file,
+  virtual void writeBytecodeOutput(Bytecode::Writer& code_file,
                                    ExprNodeBytecodeOutputType output_type,
                                    const temporary_terms_t& temporary_terms,
                                    const temporary_terms_idxs_t& temporary_terms_idxs,
@@ -995,7 +995,7 @@ public:
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
-  void writeBytecodeOutput(BytecodeWriter& code_file, ExprNodeBytecodeOutputType output_type,
+  void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
                            const temporary_terms_t& temporary_terms,
                            const temporary_terms_idxs_t& temporary_terms_idxs,
                            const deriv_node_temp_terms_t& tef_terms) const override;
@@ -1095,7 +1095,7 @@ public:
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
-  void writeBytecodeOutput(BytecodeWriter& code_file, ExprNodeBytecodeOutputType output_type,
+  void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
                            const temporary_terms_t& temporary_terms,
                            const temporary_terms_idxs_t& temporary_terms_idxs,
                            const deriv_node_temp_terms_t& tef_terms) const override;
@@ -1231,7 +1231,7 @@ public:
                                        const temporary_terms_t& temporary_terms,
                                        deriv_node_temp_terms_t& tef_terms,
                                        bool isdynamic) const override;
-  void writeBytecodeExternalFunctionOutput(BytecodeWriter& code_file,
+  void writeBytecodeExternalFunctionOutput(Bytecode::Writer& code_file,
                                            ExprNodeBytecodeOutputType output_type,
                                            const temporary_terms_t& temporary_terms,
                                            const temporary_terms_idxs_t& temporary_terms_idxs,
@@ -1240,7 +1240,7 @@ public:
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
   static double eval_opcode(UnaryOpcode op_code, double v) noexcept(false);
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
-  void writeBytecodeOutput(BytecodeWriter& code_file, ExprNodeBytecodeOutputType output_type,
+  void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
                            const temporary_terms_t& temporary_terms,
                            const temporary_terms_idxs_t& temporary_terms_idxs,
                            const deriv_node_temp_terms_t& tef_terms) const override;
@@ -1376,7 +1376,7 @@ public:
                                        const temporary_terms_t& temporary_terms,
                                        deriv_node_temp_terms_t& tef_terms,
                                        bool isdynamic) const override;
-  void writeBytecodeExternalFunctionOutput(BytecodeWriter& code_file,
+  void writeBytecodeExternalFunctionOutput(Bytecode::Writer& code_file,
                                            ExprNodeBytecodeOutputType output_type,
                                            const temporary_terms_t& temporary_terms,
                                            const temporary_terms_idxs_t& temporary_terms_idxs,
@@ -1386,7 +1386,7 @@ public:
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2,
                             int derivOrder) noexcept(false);
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
-  void writeBytecodeOutput(BytecodeWriter& code_file, ExprNodeBytecodeOutputType output_type,
+  void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
                            const temporary_terms_t& temporary_terms,
                            const temporary_terms_idxs_t& temporary_terms_idxs,
                            const deriv_node_temp_terms_t& tef_terms) const override;
@@ -1569,7 +1569,7 @@ public:
                                        const temporary_terms_t& temporary_terms,
                                        deriv_node_temp_terms_t& tef_terms,
                                        bool isdynamic) const override;
-  void writeBytecodeExternalFunctionOutput(BytecodeWriter& code_file,
+  void writeBytecodeExternalFunctionOutput(Bytecode::Writer& code_file,
                                            ExprNodeBytecodeOutputType output_type,
                                            const temporary_terms_t& temporary_terms,
                                            const temporary_terms_idxs_t& temporary_terms_idxs,
@@ -1578,7 +1578,7 @@ public:
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) noexcept(false);
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
-  void writeBytecodeOutput(BytecodeWriter& code_file, ExprNodeBytecodeOutputType output_type,
+  void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
                            const temporary_terms_t& temporary_terms,
                            const temporary_terms_idxs_t& temporary_terms_idxs,
                            const deriv_node_temp_terms_t& tef_terms) const override;
@@ -1694,7 +1694,7 @@ protected:
   void writeJsonExternalFunctionArguments(ostream& output, const temporary_terms_t& temporary_terms,
                                           const deriv_node_temp_terms_t& tef_terms,
                                           bool isdynamic) const;
-  void writeBytecodeExternalFunctionArguments(BytecodeWriter& code_file,
+  void writeBytecodeExternalFunctionArguments(Bytecode::Writer& code_file,
                                               ExprNodeBytecodeOutputType output_type,
                                               const temporary_terms_t& temporary_terms,
                                               const temporary_terms_idxs_t& temporary_terms_idxs,
@@ -1737,7 +1737,7 @@ public:
                                        deriv_node_temp_terms_t& tef_terms,
                                        bool isdynamic = true) const override
       = 0;
-  void writeBytecodeExternalFunctionOutput(BytecodeWriter& code_file,
+  void writeBytecodeExternalFunctionOutput(Bytecode::Writer& code_file,
                                            ExprNodeBytecodeOutputType output_type,
                                            const temporary_terms_t& temporary_terms,
                                            const temporary_terms_idxs_t& temporary_terms_idxs,
@@ -1746,7 +1746,7 @@ public:
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
-  void writeBytecodeOutput(BytecodeWriter& code_file, ExprNodeBytecodeOutputType output_type,
+  void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
                            const temporary_terms_t& temporary_terms,
                            const temporary_terms_idxs_t& temporary_terms_idxs,
                            const deriv_node_temp_terms_t& tef_terms) const override
@@ -1842,12 +1842,12 @@ public:
                                        const temporary_terms_t& temporary_terms,
                                        deriv_node_temp_terms_t& tef_terms,
                                        bool isdynamic) const override;
-  void writeBytecodeExternalFunctionOutput(BytecodeWriter& code_file,
+  void writeBytecodeExternalFunctionOutput(Bytecode::Writer& code_file,
                                            ExprNodeBytecodeOutputType output_type,
                                            const temporary_terms_t& temporary_terms,
                                            const temporary_terms_idxs_t& temporary_terms_idxs,
                                            deriv_node_temp_terms_t& tef_terms) const override;
-  void writeBytecodeOutput(BytecodeWriter& code_file, ExprNodeBytecodeOutputType output_type,
+  void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
                            const temporary_terms_t& temporary_terms,
                            const temporary_terms_idxs_t& temporary_terms_idxs,
                            const deriv_node_temp_terms_t& tef_terms) const override;
@@ -1877,7 +1877,7 @@ public:
   void writeJsonAST(ostream& output) const override;
   void writeJsonOutput(ostream& output, const temporary_terms_t& temporary_terms,
                        const deriv_node_temp_terms_t& tef_terms, bool isdynamic) const override;
-  void writeBytecodeOutput(BytecodeWriter& code_file, ExprNodeBytecodeOutputType output_type,
+  void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
                            const temporary_terms_t& temporary_terms,
                            const temporary_terms_idxs_t& temporary_terms_idxs,
                            const deriv_node_temp_terms_t& tef_terms) const override;
@@ -1889,7 +1889,7 @@ public:
                                        const temporary_terms_t& temporary_terms,
                                        deriv_node_temp_terms_t& tef_terms,
                                        bool isdynamic) const override;
-  void writeBytecodeExternalFunctionOutput(BytecodeWriter& code_file,
+  void writeBytecodeExternalFunctionOutput(Bytecode::Writer& code_file,
                                            ExprNodeBytecodeOutputType output_type,
                                            const temporary_terms_t& temporary_terms,
                                            const temporary_terms_idxs_t& temporary_terms_idxs,
@@ -1922,7 +1922,7 @@ public:
   void writeJsonAST(ostream& output) const override;
   void writeJsonOutput(ostream& output, const temporary_terms_t& temporary_terms,
                        const deriv_node_temp_terms_t& tef_terms, bool isdynamic) const override;
-  void writeBytecodeOutput(BytecodeWriter& code_file, ExprNodeBytecodeOutputType output_type,
+  void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
                            const temporary_terms_t& temporary_terms,
                            const temporary_terms_idxs_t& temporary_terms_idxs,
                            const deriv_node_temp_terms_t& tef_terms) const override;
@@ -1934,7 +1934,7 @@ public:
                                        const temporary_terms_t& temporary_terms,
                                        deriv_node_temp_terms_t& tef_terms,
                                        bool isdynamic) const override;
-  void writeBytecodeExternalFunctionOutput(BytecodeWriter& code_file,
+  void writeBytecodeExternalFunctionOutput(Bytecode::Writer& code_file,
                                            ExprNodeBytecodeOutputType output_type,
                                            const temporary_terms_t& temporary_terms,
                                            const temporary_terms_idxs_t& temporary_terms_idxs,
@@ -1994,7 +1994,7 @@ public:
   expr_t substituteUnaryOpNodes(const lag_equivalence_table_t& nodes, subst_table_t& subst_table,
                                 vector<BinaryOpNode*>& neweqs) const override;
   BinaryOpNode* normalizeEquationHelper(const set<expr_t>& contain_var, expr_t rhs) const override;
-  void writeBytecodeOutput(BytecodeWriter& code_file, ExprNodeBytecodeOutputType output_type,
+  void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
                            const temporary_terms_t& temporary_terms,
                            const temporary_terms_idxs_t& temporary_terms_idxs,
                            const deriv_node_temp_terms_t& tef_terms) const override;
