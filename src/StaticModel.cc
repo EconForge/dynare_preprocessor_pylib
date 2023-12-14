@@ -138,17 +138,17 @@ StaticModel::writeStaticBytecode(const string& basename) const
   iota(endo_idx.begin(), endo_idx.end(), 0);
 
   // Declare temporary terms and the (single) block
-  code_file << Bytecode::FDIMST_ {static_cast<int>(temporary_terms_derivatives[0].size()
-                                                   + temporary_terms_derivatives[1].size())}
-            << Bytecode::FBEGINBLOCK_ {symbol_table.endo_nbr(),
-                                       BlockSimulationType::solveForwardComplete,
-                                       0,
-                                       symbol_table.endo_nbr(),
-                                       endo_idx,
-                                       eq_idx,
-                                       false,
-                                       u_count_int,
-                                       symbol_table.endo_nbr()};
+  code_file << Bytecode::FDIMST {static_cast<int>(temporary_terms_derivatives[0].size()
+                                                  + temporary_terms_derivatives[1].size())}
+            << Bytecode::FBEGINBLOCK {symbol_table.endo_nbr(),
+                                      BlockSimulationType::solveForwardComplete,
+                                      0,
+                                      symbol_table.endo_nbr(),
+                                      endo_idx,
+                                      eq_idx,
+                                      false,
+                                      u_count_int,
+                                      symbol_table.endo_nbr()};
 
   writeBytecodeHelper<false>(code_file);
 }
@@ -167,7 +167,7 @@ StaticModel::writeStaticBlockBytecode(const string& basename) const
     }
 
   // Temporary variables declaration
-  code_file << Bytecode::FDIMST_ {static_cast<int>(blocks_temporary_terms_idxs.size())};
+  code_file << Bytecode::FDIMST {static_cast<int>(blocks_temporary_terms_idxs.size())};
 
   temporary_terms_t temporary_terms_written;
 
@@ -181,19 +181,19 @@ StaticModel::writeStaticBlockBytecode(const string& basename) const
                              ? writeBlockBytecodeBinFile(bin_file, block)
                              : 0};
 
-      code_file << Bytecode::FBEGINBLOCK_ {blocks[block].mfs_size,
-                                           simulation_type,
-                                           blocks[block].first_equation,
-                                           block_size,
-                                           endo_idx_block2orig,
-                                           eq_idx_block2orig,
-                                           blocks[block].linear,
-                                           u_count,
-                                           block_size};
+      code_file << Bytecode::FBEGINBLOCK {blocks[block].mfs_size,
+                                          simulation_type,
+                                          blocks[block].first_equation,
+                                          block_size,
+                                          endo_idx_block2orig,
+                                          eq_idx_block2orig,
+                                          blocks[block].linear,
+                                          u_count,
+                                          block_size};
 
       writeBlockBytecodeHelper<false>(code_file, block, temporary_terms_written);
     }
-  code_file << Bytecode::FEND_ {};
+  code_file << Bytecode::FEND {};
 }
 
 void

@@ -35,7 +35,7 @@ namespace Bytecode
 {
 
 // The different tags encoding a bytecode instruction
-enum class Tags
+enum class Tag
 {
   FLDZ, // Loads a zero onto the stack
   FLDC, // Loads a constant term onto the stack
@@ -131,8 +131,8 @@ class Writer;
 
 struct Instruction
 {
-  const Tags op_code;
-  explicit Instruction(Tags op_code_arg) : op_code {op_code_arg}
+  const Tag tag;
+  explicit Instruction(Tag tag_arg) : tag {tag_arg}
   {
   }
 
@@ -146,41 +146,41 @@ protected:
 };
 
 template<typename T1>
-class TagWithOneArgument : public Instruction
+class InstructionWithOneArgument : public Instruction
 {
 protected:
   T1 arg1;
 
 public:
-  TagWithOneArgument(Tags op_code_arg, T1 arg_arg1) : Instruction {op_code_arg}, arg1 {arg_arg1}
+  InstructionWithOneArgument(Tag tag_arg, T1 arg_arg1) : Instruction {tag_arg}, arg1 {arg_arg1}
   {
   }
 
 protected:
   // See Instruction destructor for the rationale
-  ~TagWithOneArgument() = default;
+  ~InstructionWithOneArgument() = default;
 };
 
 template<typename T1, typename T2>
-class TagWithTwoArguments : public Instruction
+class InstructionWithTwoArguments : public Instruction
 {
 protected:
   T1 arg1;
   T2 arg2;
 
 public:
-  TagWithTwoArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2) :
-      Instruction {op_code_arg}, arg1 {arg_arg1}, arg2 {arg_arg2}
+  InstructionWithTwoArguments(Tag tag_arg, T1 arg_arg1, T2 arg_arg2) :
+      Instruction {tag_arg}, arg1 {arg_arg1}, arg2 {arg_arg2}
   {
   }
 
 protected:
   // See Instruction destructor for the rationale
-  ~TagWithTwoArguments() = default;
+  ~InstructionWithTwoArguments() = default;
 };
 
 template<typename T1, typename T2, typename T3>
-class TagWithThreeArguments : public Instruction
+class InstructionWithThreeArguments : public Instruction
 {
 protected:
   T1 arg1;
@@ -188,18 +188,18 @@ protected:
   T3 arg3;
 
 public:
-  TagWithThreeArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3) :
-      Instruction {op_code_arg}, arg1 {arg_arg1}, arg2 {arg_arg2}, arg3 {arg_arg3}
+  InstructionWithThreeArguments(Tag tag_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3) :
+      Instruction {tag_arg}, arg1 {arg_arg1}, arg2 {arg_arg2}, arg3 {arg_arg3}
   {
   }
 
 protected:
   // See Instruction destructor for the rationale
-  ~TagWithThreeArguments() = default;
+  ~InstructionWithThreeArguments() = default;
 };
 
 template<typename T1, typename T2, typename T3, typename T4>
-class TagWithFourArguments : public Instruction
+class InstructionWithFourArguments : public Instruction
 {
 protected:
   T1 arg1;
@@ -208,8 +208,8 @@ protected:
   T4 arg4;
 
 public:
-  TagWithFourArguments(Tags op_code_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) :
-      Instruction {op_code_arg},
+  InstructionWithFourArguments(Tag tag_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) :
+      Instruction {tag_arg},
       arg1 {arg_arg1},
       arg2 {arg_arg2},
       arg3 {move(arg_arg3)},
@@ -219,58 +219,45 @@ public:
 
 protected:
   // See Instruction destructor for the rationale
-  ~TagWithFourArguments() = default;
+  ~InstructionWithFourArguments() = default;
 };
 
-class FLDZ_ final : public Instruction
+class FLDZ final : public Instruction
 {
 public:
-  FLDZ_() : Instruction {Tags::FLDZ}
+  FLDZ() : Instruction {Tag::FLDZ}
   {
   }
 };
 
-class FEND_ final : public Instruction
+class FEND final : public Instruction
 {
 public:
-  FEND_() : Instruction {Tags::FEND}
+  FEND() : Instruction {Tag::FEND}
   {
   }
 };
 
-class FENDBLOCK_ final : public Instruction
+class FENDBLOCK final : public Instruction
 {
 public:
-  FENDBLOCK_() : Instruction {Tags::FENDBLOCK}
+  FENDBLOCK() : Instruction {Tag::FENDBLOCK}
   {
   }
 };
 
-class FENDEQU_ final : public Instruction
+class FENDEQU final : public Instruction
 {
 public:
-  FENDEQU_() : Instruction {Tags::FENDEQU}
+  FENDEQU() : Instruction {Tag::FENDEQU}
   {
   }
 };
 
-class FDIMT_ final : public TagWithOneArgument<int>
+class FDIMT final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FDIMT_(int size_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FDIMT, size_arg}
-  {
-  }
-  int
-  get_size()
-  {
-    return arg1;
-  };
-};
-
-class FDIMST_ final : public TagWithOneArgument<int>
-{
-public:
-  explicit FDIMST_(int size_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FDIMST, size_arg}
+  explicit FDIMT(int size_arg) : InstructionWithOneArgument {Tag::FDIMT, size_arg}
   {
   }
   int
@@ -280,10 +267,23 @@ public:
   };
 };
 
-class FLDC_ final : public TagWithOneArgument<double>
+class FDIMST final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FLDC_(double value_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FLDC, value_arg}
+  explicit FDIMST(int size_arg) : InstructionWithOneArgument {Tag::FDIMST, size_arg}
+  {
+  }
+  int
+  get_size()
+  {
+    return arg1;
+  };
+};
+
+class FLDC final : public InstructionWithOneArgument<double>
+{
+public:
+  explicit FLDC(double value_arg) : InstructionWithOneArgument {Tag::FLDC, value_arg}
   {
   }
   double
@@ -293,10 +293,10 @@ public:
   };
 };
 
-class FLDU_ final : public TagWithOneArgument<int>
+class FLDU final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FLDU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FLDU, pos_arg}
+  explicit FLDU(int pos_arg) : InstructionWithOneArgument {Tag::FLDU, pos_arg}
   {
   }
   int
@@ -306,10 +306,10 @@ public:
   };
 };
 
-class FLDSU_ final : public TagWithOneArgument<int>
+class FLDSU final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FLDSU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FLDSU, pos_arg}
+  explicit FLDSU(int pos_arg) : InstructionWithOneArgument {Tag::FLDSU, pos_arg}
   {
   }
   int
@@ -319,10 +319,10 @@ public:
   };
 };
 
-class FLDR_ final : public TagWithOneArgument<int>
+class FLDR final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FLDR_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FLDR, pos_arg}
+  explicit FLDR(int pos_arg) : InstructionWithOneArgument {Tag::FLDR, pos_arg}
   {
   }
   int
@@ -332,10 +332,10 @@ public:
   };
 };
 
-class FLDT_ final : public TagWithOneArgument<int>
+class FLDT final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FLDT_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FLDT, pos_arg}
+  explicit FLDT(int pos_arg) : InstructionWithOneArgument {Tag::FLDT, pos_arg}
   {
   }
   int
@@ -345,10 +345,10 @@ public:
   };
 };
 
-class FLDST_ final : public TagWithOneArgument<int>
+class FLDST final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FLDST_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FLDST, pos_arg}
+  explicit FLDST(int pos_arg) : InstructionWithOneArgument {Tag::FLDST, pos_arg}
   {
   }
   int
@@ -358,10 +358,10 @@ public:
   };
 };
 
-class FSTPT_ final : public TagWithOneArgument<int>
+class FSTPT final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FSTPT_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPT, pos_arg}
+  explicit FSTPT(int pos_arg) : InstructionWithOneArgument {Tag::FSTPT, pos_arg}
   {
   }
   int
@@ -371,10 +371,10 @@ public:
   };
 };
 
-class FSTPST_ final : public TagWithOneArgument<int>
+class FSTPST final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FSTPST_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPST, pos_arg}
+  explicit FSTPST(int pos_arg) : InstructionWithOneArgument {Tag::FSTPST, pos_arg}
   {
   }
   int
@@ -384,10 +384,10 @@ public:
   };
 };
 
-class FSTPR_ final : public TagWithOneArgument<int>
+class FSTPR final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FSTPR_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPR, pos_arg}
+  explicit FSTPR(int pos_arg) : InstructionWithOneArgument {Tag::FSTPR, pos_arg}
   {
   }
   int
@@ -397,10 +397,10 @@ public:
   };
 };
 
-class FSTPU_ final : public TagWithOneArgument<int>
+class FSTPU final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FSTPU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPU, pos_arg}
+  explicit FSTPU(int pos_arg) : InstructionWithOneArgument {Tag::FSTPU, pos_arg}
   {
   }
   int
@@ -410,10 +410,10 @@ public:
   };
 };
 
-class FSTPSU_ final : public TagWithOneArgument<int>
+class FSTPSU final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FSTPSU_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPSU, pos_arg}
+  explicit FSTPSU(int pos_arg) : InstructionWithOneArgument {Tag::FSTPSU, pos_arg}
   {
   }
   int
@@ -423,10 +423,10 @@ public:
   };
 };
 
-class FSTPG_ final : public TagWithOneArgument<int>
+class FSTPG final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FSTPG_(int pos_arg) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPG, pos_arg}
+  explicit FSTPG(int pos_arg) : InstructionWithOneArgument {Tag::FSTPG, pos_arg}
   {
   }
   int
@@ -436,11 +436,10 @@ public:
   };
 };
 
-class FSTPG2_ final : public TagWithTwoArguments<int, int>
+class FSTPG2 final : public InstructionWithTwoArguments<int, int>
 {
 public:
-  FSTPG2_(int row_arg, int col_arg) :
-      TagWithTwoArguments::TagWithTwoArguments {Tags::FSTPG2, row_arg, col_arg}
+  FSTPG2(int row_arg, int col_arg) : InstructionWithTwoArguments {Tag::FSTPG2, row_arg, col_arg}
   {
   }
   int
@@ -455,12 +454,11 @@ public:
   };
 };
 
-class FSTPG3_ final : public TagWithFourArguments<int, int, int, int>
+class FSTPG3 final : public InstructionWithFourArguments<int, int, int, int>
 {
 public:
-  FSTPG3_(int row_arg, int col_arg, int lag_arg, int col_pos_arg) :
-      TagWithFourArguments::TagWithFourArguments {Tags::FSTPG3, row_arg, col_arg, lag_arg,
-                                                  col_pos_arg}
+  FSTPG3(int row_arg, int col_arg, int lag_arg, int col_pos_arg) :
+      InstructionWithFourArguments {Tag::FSTPG3, row_arg, col_arg, lag_arg, col_pos_arg}
   {
   }
   int
@@ -485,11 +483,10 @@ public:
   };
 };
 
-class FUNARY_ final : public TagWithOneArgument<UnaryOpcode>
+class FUNARY final : public InstructionWithOneArgument<UnaryOpcode>
 {
 public:
-  explicit FUNARY_(UnaryOpcode op_type_arg) :
-      TagWithOneArgument::TagWithOneArgument {Tags::FUNARY, op_type_arg}
+  explicit FUNARY(UnaryOpcode op_type_arg) : InstructionWithOneArgument {Tag::FUNARY, op_type_arg}
   {
   }
   UnaryOpcode
@@ -499,11 +496,11 @@ public:
   };
 };
 
-class FBINARY_ final : public TagWithOneArgument<BinaryOpcode>
+class FBINARY final : public InstructionWithOneArgument<BinaryOpcode>
 {
 public:
-  explicit FBINARY_(BinaryOpcode op_type_arg) :
-      TagWithOneArgument::TagWithOneArgument {Tags::FBINARY, op_type_arg}
+  explicit FBINARY(BinaryOpcode op_type_arg) :
+      InstructionWithOneArgument {Tag::FBINARY, op_type_arg}
   {
   }
   BinaryOpcode
@@ -513,11 +510,11 @@ public:
   };
 };
 
-class FTRINARY_ final : public TagWithOneArgument<TrinaryOpcode>
+class FTRINARY final : public InstructionWithOneArgument<TrinaryOpcode>
 {
 public:
-  explicit FTRINARY_(TrinaryOpcode op_type_arg) :
-      TagWithOneArgument::TagWithOneArgument {Tags::FTRINARY, op_type_arg}
+  explicit FTRINARY(TrinaryOpcode op_type_arg) :
+      InstructionWithOneArgument {Tag::FTRINARY, op_type_arg}
   {
   }
   TrinaryOpcode
@@ -527,11 +524,10 @@ public:
   };
 };
 
-class FJMPIFEVAL_ final : public TagWithOneArgument<int>
+class FJMPIFEVAL final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FJMPIFEVAL_(int arg_pos) :
-      TagWithOneArgument::TagWithOneArgument {Tags::FJMPIFEVAL, arg_pos}
+  explicit FJMPIFEVAL(int arg_pos) : InstructionWithOneArgument {Tag::FJMPIFEVAL, arg_pos}
   {
   }
   int
@@ -541,10 +537,10 @@ public:
   }
 };
 
-class FJMP_ final : public TagWithOneArgument<int>
+class FJMP final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FJMP_(int arg_pos) : TagWithOneArgument::TagWithOneArgument {Tags::FJMP, arg_pos}
+  explicit FJMP(int arg_pos) : InstructionWithOneArgument {Tag::FJMP, arg_pos}
   {
   }
   int
@@ -554,10 +550,10 @@ public:
   }
 };
 
-class FLDTEF_ final : public TagWithOneArgument<int>
+class FLDTEF final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FLDTEF_(int number) : TagWithOneArgument::TagWithOneArgument {Tags::FLDTEF, number}
+  explicit FLDTEF(int number) : InstructionWithOneArgument {Tag::FLDTEF, number}
   {
   }
   int
@@ -567,10 +563,10 @@ public:
   }
 };
 
-class FSTPTEF_ final : public TagWithOneArgument<int>
+class FSTPTEF final : public InstructionWithOneArgument<int>
 {
 public:
-  explicit FSTPTEF_(int number) : TagWithOneArgument::TagWithOneArgument {Tags::FSTPTEF, number}
+  explicit FSTPTEF(int number) : InstructionWithOneArgument {Tag::FSTPTEF, number}
   {
   }
   int
@@ -580,10 +576,10 @@ public:
   }
 };
 
-class FLDTEFD_ final : public TagWithTwoArguments<int, int>
+class FLDTEFD final : public InstructionWithTwoArguments<int, int>
 {
 public:
-  FLDTEFD_(int indx, int row) : TagWithTwoArguments::TagWithTwoArguments {Tags::FLDTEFD, indx, row}
+  FLDTEFD(int indx, int row) : InstructionWithTwoArguments {Tag::FLDTEFD, indx, row}
   {
   }
   int
@@ -598,11 +594,10 @@ public:
   };
 };
 
-class FSTPTEFD_ final : public TagWithTwoArguments<int, int>
+class FSTPTEFD final : public InstructionWithTwoArguments<int, int>
 {
 public:
-  FSTPTEFD_(int indx, int row) :
-      TagWithTwoArguments::TagWithTwoArguments {Tags::FSTPTEFD, indx, row}
+  FSTPTEFD(int indx, int row) : InstructionWithTwoArguments {Tag::FSTPTEFD, indx, row}
   {
   }
   int
@@ -617,11 +612,11 @@ public:
   };
 };
 
-class FLDTEFDD_ final : public TagWithThreeArguments<int, int, int>
+class FLDTEFDD final : public InstructionWithThreeArguments<int, int, int>
 {
 public:
-  FLDTEFDD_(int indx, int row, int col) :
-      TagWithThreeArguments::TagWithThreeArguments {Tags::FLDTEFDD, indx, row, col}
+  FLDTEFDD(int indx, int row, int col) :
+      InstructionWithThreeArguments {Tag::FLDTEFDD, indx, row, col}
   {
   }
   int
@@ -641,11 +636,11 @@ public:
   };
 };
 
-class FSTPTEFDD_ final : public TagWithThreeArguments<int, int, int>
+class FSTPTEFDD final : public InstructionWithThreeArguments<int, int, int>
 {
 public:
-  FSTPTEFDD_(int indx, int row, int col) :
-      TagWithThreeArguments::TagWithThreeArguments {Tags::FSTPTEF, indx, row, col}
+  FSTPTEFDD(int indx, int row, int col) :
+      InstructionWithThreeArguments {Tag::FSTPTEF, indx, row, col}
   {
   }
   int
@@ -665,11 +660,11 @@ public:
   };
 };
 
-class FLDVS_ final : public TagWithTwoArguments<SymbolType, int>
+class FLDVS final : public InstructionWithTwoArguments<SymbolType, int>
 {
 public:
-  FLDVS_(SymbolType type_arg, int pos_arg) :
-      TagWithTwoArguments::TagWithTwoArguments {Tags::FLDVS, type_arg, pos_arg}
+  FLDVS(SymbolType type_arg, int pos_arg) :
+      InstructionWithTwoArguments {Tag::FLDVS, type_arg, pos_arg}
   {
   }
   SymbolType
@@ -684,11 +679,11 @@ public:
   };
 };
 
-class FLDSV_ final : public TagWithTwoArguments<SymbolType, int>
+class FLDSV final : public InstructionWithTwoArguments<SymbolType, int>
 {
 public:
-  FLDSV_(SymbolType type_arg, int pos_arg) :
-      TagWithTwoArguments::TagWithTwoArguments {Tags::FLDSV, type_arg, pos_arg}
+  FLDSV(SymbolType type_arg, int pos_arg) :
+      InstructionWithTwoArguments {Tag::FLDSV, type_arg, pos_arg}
   {
   }
   SymbolType
@@ -703,11 +698,11 @@ public:
   };
 };
 
-class FSTPSV_ final : public TagWithTwoArguments<SymbolType, int>
+class FSTPSV final : public InstructionWithTwoArguments<SymbolType, int>
 {
 public:
-  FSTPSV_(SymbolType type_arg, int pos_arg) :
-      TagWithTwoArguments::TagWithTwoArguments {Tags::FSTPSV, type_arg, pos_arg}
+  FSTPSV(SymbolType type_arg, int pos_arg) :
+      InstructionWithTwoArguments {Tag::FSTPSV, type_arg, pos_arg}
   {
   }
   SymbolType
@@ -722,35 +717,11 @@ public:
   };
 };
 
-class FLDV_ final : public TagWithThreeArguments<SymbolType, int, int>
+class FLDV final : public InstructionWithThreeArguments<SymbolType, int, int>
 {
 public:
-  FLDV_(SymbolType type_arg, int pos_arg, int lead_lag_arg) :
-      TagWithThreeArguments::TagWithThreeArguments {Tags::FLDV, type_arg, pos_arg, lead_lag_arg}
-  {
-  }
-  SymbolType
-  get_type()
-  {
-    return arg1;
-  };
-  int
-  get_pos()
-  {
-    return arg2;
-  };
-  int
-  get_lead_lag()
-  {
-    return arg3;
-  };
-};
-
-class FSTPV_ final : public TagWithThreeArguments<SymbolType, int, int>
-{
-public:
-  FSTPV_(SymbolType type_arg, int pos_arg, int lead_lag_arg) :
-      TagWithThreeArguments::TagWithThreeArguments {Tags::FSTPV, type_arg, pos_arg, lead_lag_arg}
+  FLDV(SymbolType type_arg, int pos_arg, int lead_lag_arg) :
+      InstructionWithThreeArguments {Tag::FLDV, type_arg, pos_arg, lead_lag_arg}
   {
   }
   SymbolType
@@ -770,7 +741,31 @@ public:
   };
 };
 
-class FCALL_ final : public Instruction
+class FSTPV final : public InstructionWithThreeArguments<SymbolType, int, int>
+{
+public:
+  FSTPV(SymbolType type_arg, int pos_arg, int lead_lag_arg) :
+      InstructionWithThreeArguments {Tag::FSTPV, type_arg, pos_arg, lead_lag_arg}
+  {
+  }
+  SymbolType
+  get_type()
+  {
+    return arg1;
+  };
+  int
+  get_pos()
+  {
+    return arg2;
+  };
+  int
+  get_lead_lag()
+  {
+    return arg3;
+  };
+};
+
+class FCALL final : public Instruction
 {
   template<typename B>
   friend Writer& operator<<(Writer& code_file, const B& instr);
@@ -783,9 +778,9 @@ private:
   ExternalFunctionCallType call_type;
 
 public:
-  FCALL_(int nb_output_arguments_arg, int nb_input_arguments_arg, string func_name_arg,
-         int indx_arg, ExternalFunctionCallType call_type_arg) :
-      Instruction {Tags::FCALL},
+  FCALL(int nb_output_arguments_arg, int nb_input_arguments_arg, string func_name_arg, int indx_arg,
+        ExternalFunctionCallType call_type_arg) :
+      Instruction {Tag::FCALL},
       nb_output_arguments {nb_output_arguments_arg},
       nb_input_arguments {nb_input_arguments_arg},
       indx {indx_arg},
@@ -795,9 +790,9 @@ public:
   }
   /* Deserializing constructor.
      Updates the code pointer to point beyond the bytes read. */
-  FCALL_(char*& code) : Instruction {Tags::FCALL}
+  FCALL(char*& code) : Instruction {Tag::FCALL}
   {
-    code += sizeof(op_code);
+    code += sizeof(tag);
 
     auto read_member = [&code](auto& member) {
       member = *reinterpret_cast<add_pointer_t<decltype(member)>>(code);
@@ -890,7 +885,7 @@ public:
   }
 };
 
-class FNUMEXPR_ final : public Instruction
+class FNUMEXPR final : public Instruction
 {
 private:
   ExpressionType expression_type;
@@ -899,25 +894,25 @@ private:
   int dvariable1; // For derivatives, type-specific ID of the derivation variable
   int lag1;       // For derivatives, lead/lag of the derivation variable
 public:
-  FNUMEXPR_(const ExpressionType expression_type_arg, int equation_arg) :
-      Instruction {Tags::FNUMEXPR},
+  FNUMEXPR(const ExpressionType expression_type_arg, int equation_arg) :
+      Instruction {Tag::FNUMEXPR},
       expression_type {expression_type_arg},
       equation {equation_arg},
       dvariable1 {0},
       lag1 {0}
   {
   }
-  FNUMEXPR_(const ExpressionType expression_type_arg, int equation_arg, int dvariable1_arg) :
-      Instruction {Tags::FNUMEXPR},
+  FNUMEXPR(const ExpressionType expression_type_arg, int equation_arg, int dvariable1_arg) :
+      Instruction {Tag::FNUMEXPR},
       expression_type {expression_type_arg},
       equation {equation_arg},
       dvariable1 {dvariable1_arg},
       lag1 {0}
   {
   }
-  FNUMEXPR_(const ExpressionType expression_type_arg, int equation_arg, int dvariable1_arg,
-            int lag1_arg) :
-      Instruction {Tags::FNUMEXPR},
+  FNUMEXPR(const ExpressionType expression_type_arg, int equation_arg, int dvariable1_arg,
+           int lag1_arg) :
+      Instruction {Tag::FNUMEXPR},
       expression_type {expression_type_arg},
       equation {equation_arg},
       dvariable1 {dvariable1_arg},
@@ -946,7 +941,7 @@ public:
   };
 };
 
-class FBEGINBLOCK_ final : public Instruction
+class FBEGINBLOCK final : public Instruction
 {
   template<typename B>
   friend Writer& operator<<(Writer& code_file, const B& instr);
@@ -968,11 +963,11 @@ public:
   /* Constructor when derivatives w.r.t. exogenous are present (only makes
      sense when there is no block-decomposition, since there is no provision for
      derivatives w.r.t. endogenous not belonging to the block) */
-  FBEGINBLOCK_(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
-               const vector<int>& variable_arg, const vector<int>& equation_arg, bool is_linear_arg,
-               int u_count_int_arg, int nb_col_jacob_arg, int det_exo_size_arg, int exo_size_arg,
-               vector<int> det_exogenous_arg, vector<int> exogenous_arg) :
-      Instruction {Tags::FBEGINBLOCK},
+  FBEGINBLOCK(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
+              const vector<int>& variable_arg, const vector<int>& equation_arg, bool is_linear_arg,
+              int u_count_int_arg, int nb_col_jacob_arg, int det_exo_size_arg, int exo_size_arg,
+              vector<int> det_exogenous_arg, vector<int> exogenous_arg) :
+      Instruction {Tag::FBEGINBLOCK},
       size {size_arg},
       type {type_arg},
       variable {variable_arg.begin() + first_element,
@@ -989,10 +984,10 @@ public:
   {
   }
   // Constructor when derivatives w.r.t. exogenous are absent
-  FBEGINBLOCK_(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
-               const vector<int>& variable_arg, const vector<int>& equation_arg, bool is_linear_arg,
-               int u_count_int_arg, int nb_col_jacob_arg) :
-      Instruction {Tags::FBEGINBLOCK},
+  FBEGINBLOCK(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
+              const vector<int>& variable_arg, const vector<int>& equation_arg, bool is_linear_arg,
+              int u_count_int_arg, int nb_col_jacob_arg) :
+      Instruction {Tag::FBEGINBLOCK},
       size {size_arg},
       type {type_arg},
       variable {variable_arg.begin() + first_element,
@@ -1008,9 +1003,9 @@ public:
   }
   /* Deserializing constructor.
      Updates the code pointer to point beyond the bytes read. */
-  FBEGINBLOCK_(char*& code) : Instruction {Tags::FBEGINBLOCK}
+  FBEGINBLOCK(char*& code) : Instruction {Tag::FBEGINBLOCK}
   {
-    code += sizeof(op_code);
+    code += sizeof(tag);
 
     auto read_member = [&code](auto& member) {
       member = *reinterpret_cast<add_pointer_t<decltype(member)>>(code);
@@ -1148,10 +1143,10 @@ operator<<(Writer& code_file, const B& instr)
 }
 
 template<>
-Writer& operator<<(Writer& code_file, const FCALL_& instr);
+Writer& operator<<(Writer& code_file, const FCALL& instr);
 
 template<>
-Writer& operator<<(Writer& code_file, const FBEGINBLOCK_& instr);
+Writer& operator<<(Writer& code_file, const FBEGINBLOCK& instr);
 
 }
 

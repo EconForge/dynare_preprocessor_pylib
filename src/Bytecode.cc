@@ -39,7 +39,7 @@ Writer::Writer(const filesystem::path& filename)
 
 template<>
 Writer&
-operator<<(Writer& code_file, const FCALL_& instr)
+operator<<(Writer& code_file, const FCALL& instr)
 {
   code_file.instructions_positions.push_back(code_file.tellp());
 
@@ -47,7 +47,7 @@ operator<<(Writer& code_file, const FCALL_& instr)
     code_file.write(reinterpret_cast<const char*>(&member), sizeof member);
   };
 
-  write_member(instr.op_code);
+  write_member(instr.tag);
   write_member(instr.nb_output_arguments);
   write_member(instr.nb_input_arguments);
   write_member(instr.indx);
@@ -69,7 +69,7 @@ operator<<(Writer& code_file, const FCALL_& instr)
 
 template<>
 Writer&
-operator<<(Writer& code_file, const FBEGINBLOCK_& instr)
+operator<<(Writer& code_file, const FBEGINBLOCK& instr)
 {
   code_file.instructions_positions.push_back(code_file.tellp());
 
@@ -77,7 +77,7 @@ operator<<(Writer& code_file, const FBEGINBLOCK_& instr)
     code_file.write(reinterpret_cast<const char*>(&member), sizeof member);
   };
 
-  write_member(instr.op_code);
+  write_member(instr.tag);
   write_member(instr.size);
   write_member(instr.type);
   for (int i = 0; i < instr.size; i++)

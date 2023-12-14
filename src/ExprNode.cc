@@ -163,10 +163,10 @@ ExprNode::checkIfTemporaryTermThenWriteBytecode(
          was initially not called with steady_dynamic=true). */
       return false;
     case ExprNodeBytecodeOutputType::dynamicModel:
-      code_file << Bytecode::FLDT_ {it2->second};
+      code_file << Bytecode::FLDT {it2->second};
       break;
     case ExprNodeBytecodeOutputType::staticModel:
-      code_file << Bytecode::FLDST_ {it2->second};
+      code_file << Bytecode::FLDST {it2->second};
       break;
     case ExprNodeBytecodeOutputType::dynamicAssignmentLHS:
     case ExprNodeBytecodeOutputType::staticAssignmentLHS:
@@ -565,7 +565,7 @@ NumConstNode::writeBytecodeOutput(Bytecode::Writer& code_file,
   assert(!isAssignmentLHSBytecodeOutput(output_type));
   if (!checkIfTemporaryTermThenWriteBytecode(code_file, output_type, temporary_terms,
                                              temporary_terms_idxs))
-    code_file << Bytecode::FLDC_ {datatree.num_constants.getDouble(id)};
+    code_file << Bytecode::FLDC {datatree.num_constants.getDouble(id)};
 }
 
 void
@@ -1452,19 +1452,19 @@ VariableNode::writeBytecodeOutput(Bytecode::Writer& code_file,
       switch (output_type)
         {
         case ExprNodeBytecodeOutputType::dynamicModel:
-          code_file << Bytecode::FLDV_ {type, tsid, lag};
+          code_file << Bytecode::FLDV {type, tsid, lag};
           break;
         case ExprNodeBytecodeOutputType::staticModel:
-          code_file << Bytecode::FLDSV_ {type, tsid};
+          code_file << Bytecode::FLDSV {type, tsid};
           break;
         case ExprNodeBytecodeOutputType::dynamicSteadyStateOperator:
-          code_file << Bytecode::FLDVS_ {type, tsid};
+          code_file << Bytecode::FLDVS {type, tsid};
           break;
         case ExprNodeBytecodeOutputType::dynamicAssignmentLHS:
-          code_file << Bytecode::FSTPV_ {type, tsid, lag};
+          code_file << Bytecode::FSTPV {type, tsid, lag};
           break;
         case ExprNodeBytecodeOutputType::staticAssignmentLHS:
-          code_file << Bytecode::FSTPSV_ {type, tsid};
+          code_file << Bytecode::FSTPSV {type, tsid};
           break;
         }
     }
@@ -3286,7 +3286,7 @@ UnaryOpNode::writeBytecodeOutput(Bytecode::Writer& code_file,
     {
       arg->writeBytecodeOutput(code_file, output_type, temporary_terms, temporary_terms_idxs,
                                tef_terms);
-      code_file << Bytecode::FUNARY_ {op_code};
+      code_file << Bytecode::FUNARY {op_code};
     }
 }
 
@@ -4562,12 +4562,12 @@ BinaryOpNode::writeBytecodeOutput(Bytecode::Writer& code_file,
     return;
 
   if (op_code == BinaryOpcode::powerDeriv)
-    code_file << Bytecode::FLDC_ {static_cast<double>(powerDerivOrder)};
+    code_file << Bytecode::FLDC {static_cast<double>(powerDerivOrder)};
   arg1->writeBytecodeOutput(code_file, output_type, temporary_terms, temporary_terms_idxs,
                             tef_terms);
   arg2->writeBytecodeOutput(code_file, output_type, temporary_terms, temporary_terms_idxs,
                             tef_terms);
-  code_file << Bytecode::FBINARY_ {op_code};
+  code_file << Bytecode::FBINARY {op_code};
 }
 
 bool
@@ -6309,7 +6309,7 @@ TrinaryOpNode::writeBytecodeOutput(Bytecode::Writer& code_file,
                             tef_terms);
   arg3->writeBytecodeOutput(code_file, output_type, temporary_terms, temporary_terms_idxs,
                             tef_terms);
-  code_file << Bytecode::FTRINARY_ {op_code};
+  code_file << Bytecode::FTRINARY {op_code};
 }
 
 bool
@@ -7460,9 +7460,9 @@ ExternalFunctionNode::writeBytecodeOutput(Bytecode::Writer& code_file,
     return;
 
   if (!isAssignmentLHSBytecodeOutput(output_type))
-    code_file << Bytecode::FLDTEF_ {getIndxInTefTerms(symb_id, tef_terms)};
+    code_file << Bytecode::FLDTEF {getIndxInTefTerms(symb_id, tef_terms)};
   else
-    code_file << Bytecode::FSTPTEF_ {getIndxInTefTerms(symb_id, tef_terms)};
+    code_file << Bytecode::FSTPTEF {getIndxInTefTerms(symb_id, tef_terms)};
 }
 
 void
@@ -7506,9 +7506,9 @@ ExternalFunctionNode::writeBytecodeExternalFunctionOutput(
           call_type = Bytecode::ExternalFunctionCallType::levelWithoutDerivative;
         }
 
-      code_file << Bytecode::FCALL_ {nb_output_arguments, static_cast<int>(arguments.size()),
-                                     datatree.symbol_table.getName(symb_id), indx, call_type}
-                << Bytecode::FSTPTEF_ {indx};
+      code_file << Bytecode::FCALL {nb_output_arguments, static_cast<int>(arguments.size()),
+                                    datatree.symbol_table.getName(symb_id), indx, call_type}
+                << Bytecode::FSTPTEF {indx};
     }
 }
 
@@ -7839,9 +7839,9 @@ FirstDerivExternalFunctionNode::writeBytecodeOutput(
   assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   if (!isAssignmentLHSBytecodeOutput(output_type))
-    code_file << Bytecode::FLDTEFD_ {getIndxInTefTerms(symb_id, tef_terms), inputIndex};
+    code_file << Bytecode::FLDTEFD {getIndxInTefTerms(symb_id, tef_terms), inputIndex};
   else
-    code_file << Bytecode::FSTPTEFD_ {getIndxInTefTerms(symb_id, tef_terms), inputIndex};
+    code_file << Bytecode::FSTPTEFD {getIndxInTefTerms(symb_id, tef_terms), inputIndex};
 }
 
 void
@@ -8004,12 +8004,12 @@ FirstDerivExternalFunctionNode::writeBytecodeExternalFunctionOutput(
     {
       int nb_input_arguments {0};
       int nb_output_arguments {1};
-      Bytecode::FCALL_ fcall {nb_output_arguments, nb_input_arguments, "jacob_element", indx,
-                              Bytecode::ExternalFunctionCallType::numericalFirstDerivative};
+      Bytecode::FCALL fcall {nb_output_arguments, nb_input_arguments, "jacob_element", indx,
+                             Bytecode::ExternalFunctionCallType::numericalFirstDerivative};
       fcall.set_arg_func_name(datatree.symbol_table.getName(symb_id));
       fcall.set_row(inputIndex);
       fcall.set_nb_add_input_arguments(static_cast<int>(arguments.size()));
-      code_file << fcall << Bytecode::FSTPTEFD_ {indx, inputIndex};
+      code_file << fcall << Bytecode::FSTPTEFD {indx, inputIndex};
     }
   else
     {
@@ -8019,11 +8019,11 @@ FirstDerivExternalFunctionNode::writeBytecodeExternalFunctionOutput(
 
       int nb_output_arguments {1};
 
-      code_file << Bytecode::
-              FCALL_ {nb_output_arguments, static_cast<int>(arguments.size()),
-                      datatree.symbol_table.getName(first_deriv_symb_id), indx,
-                      Bytecode::ExternalFunctionCallType::separatelyProvidedFirstDerivative}
-                << Bytecode::FSTPTEFD_ {indx, inputIndex};
+      code_file
+          << Bytecode::FCALL {nb_output_arguments, static_cast<int>(arguments.size()),
+                              datatree.symbol_table.getName(first_deriv_symb_id), indx,
+                              Bytecode::ExternalFunctionCallType::separatelyProvidedFirstDerivative}
+          << Bytecode::FSTPTEFD {indx, inputIndex};
     }
 }
 
@@ -8344,11 +8344,11 @@ SecondDerivExternalFunctionNode::writeBytecodeOutput(
   assert(second_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
   if (!isAssignmentLHSBytecodeOutput(output_type))
-    code_file << Bytecode::FLDTEFDD_ {getIndxInTefTerms(symb_id, tef_terms), inputIndex1,
-                                      inputIndex2};
+    code_file << Bytecode::FLDTEFDD {getIndxInTefTerms(symb_id, tef_terms), inputIndex1,
+                                     inputIndex2};
   else
-    code_file << Bytecode::FSTPTEFDD_ {getIndxInTefTerms(symb_id, tef_terms), inputIndex1,
-                                       inputIndex2};
+    code_file << Bytecode::FSTPTEFDD {getIndxInTefTerms(symb_id, tef_terms), inputIndex1,
+                                      inputIndex2};
 }
 
 void
@@ -8379,23 +8379,23 @@ SecondDerivExternalFunctionNode::writeBytecodeExternalFunctionOutput(
   if (int indx = getIndxInTefTerms(symb_id, tef_terms);
       second_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
     {
-      Bytecode::FCALL_ fcall {1, 0, "hess_element", indx,
-                              Bytecode::ExternalFunctionCallType::numericalSecondDerivative};
+      Bytecode::FCALL fcall {1, 0, "hess_element", indx,
+                             Bytecode::ExternalFunctionCallType::numericalSecondDerivative};
       fcall.set_arg_func_name(datatree.symbol_table.getName(symb_id));
       fcall.set_row(inputIndex1);
       fcall.set_col(inputIndex2);
       fcall.set_nb_add_input_arguments(static_cast<int>(arguments.size()));
-      code_file << fcall << Bytecode::FSTPTEFDD_ {indx, inputIndex1, inputIndex2};
+      code_file << fcall << Bytecode::FSTPTEFDD {indx, inputIndex1, inputIndex2};
     }
   else
     {
       tef_terms[{second_deriv_symb_id, arguments}] = static_cast<int>(tef_terms.size());
 
       code_file << Bytecode::
-              FCALL_ {1, static_cast<int>(arguments.size()),
-                      datatree.symbol_table.getName(second_deriv_symb_id), indx,
-                      Bytecode::ExternalFunctionCallType::separatelyProvidedSecondDerivative}
-                << Bytecode::FSTPTEFDD_ {indx, inputIndex1, inputIndex2};
+              FCALL {1, static_cast<int>(arguments.size()),
+                     datatree.symbol_table.getName(second_deriv_symb_id), indx,
+                     Bytecode::ExternalFunctionCallType::separatelyProvidedSecondDerivative}
+                << Bytecode::FSTPTEFDD {indx, inputIndex1, inputIndex2};
     }
 }
 

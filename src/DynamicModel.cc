@@ -167,8 +167,8 @@ DynamicModel::writeDynamicBytecode(const string& basename) const
   Bytecode::Writer code_file {basename + "/model/bytecode/dynamic.cod"};
 
   // Declare temporary terms
-  code_file << Bytecode::FDIMT_ {static_cast<int>(temporary_terms_derivatives[0].size()
-                                                  + temporary_terms_derivatives[1].size())};
+  code_file << Bytecode::FDIMT {static_cast<int>(temporary_terms_derivatives[0].size()
+                                                 + temporary_terms_derivatives[1].size())};
 
   // Declare the (single) block
   vector<int> exo(symbol_table.exo_nbr()), exo_det(symbol_table.exo_det_nbr());
@@ -183,19 +183,19 @@ DynamicModel::writeDynamicBytecode(const string& basename) const
   vector<int> endo_idx(symbol_table.endo_nbr());
   iota(endo_idx.begin(), endo_idx.end(), 0);
 
-  code_file << Bytecode::FBEGINBLOCK_ {symbol_table.endo_nbr(),
-                                       simulation_type,
-                                       0,
-                                       symbol_table.endo_nbr(),
-                                       endo_idx,
-                                       eq_idx,
-                                       false,
-                                       u_count_int,
-                                       jacobian_ncols_endo,
-                                       symbol_table.exo_det_nbr(),
-                                       symbol_table.exo_nbr(),
-                                       exo_det,
-                                       exo};
+  code_file << Bytecode::FBEGINBLOCK {symbol_table.endo_nbr(),
+                                      simulation_type,
+                                      0,
+                                      symbol_table.endo_nbr(),
+                                      endo_idx,
+                                      eq_idx,
+                                      false,
+                                      u_count_int,
+                                      jacobian_ncols_endo,
+                                      symbol_table.exo_det_nbr(),
+                                      symbol_table.exo_nbr(),
+                                      exo_det,
+                                      exo};
 
   writeBytecodeHelper<true>(code_file);
 }
@@ -214,7 +214,7 @@ DynamicModel::writeDynamicBlockBytecode(const string& basename) const
     }
 
   // Temporary variables declaration
-  code_file << Bytecode::FDIMT_ {static_cast<int>(blocks_temporary_terms_idxs.size())};
+  code_file << Bytecode::FDIMT {static_cast<int>(blocks_temporary_terms_idxs.size())};
 
   temporary_terms_t temporary_terms_written;
 
@@ -231,19 +231,19 @@ DynamicModel::writeDynamicBlockBytecode(const string& basename) const
                              ? writeBlockBytecodeBinFile(bin_file, block)
                              : 0};
 
-      code_file << Bytecode::FBEGINBLOCK_ {blocks[block].mfs_size,
-                                           simulation_type,
-                                           blocks[block].first_equation,
-                                           blocks[block].size,
-                                           endo_idx_block2orig,
-                                           eq_idx_block2orig,
-                                           blocks[block].linear,
-                                           u_count,
-                                           static_cast<int>(blocks_jacob_cols_endo[block].size())};
+      code_file << Bytecode::FBEGINBLOCK {blocks[block].mfs_size,
+                                          simulation_type,
+                                          blocks[block].first_equation,
+                                          blocks[block].size,
+                                          endo_idx_block2orig,
+                                          eq_idx_block2orig,
+                                          blocks[block].linear,
+                                          u_count,
+                                          static_cast<int>(blocks_jacob_cols_endo[block].size())};
 
       writeBlockBytecodeHelper<true>(code_file, block, temporary_terms_written);
     }
-  code_file << Bytecode::FEND_ {};
+  code_file << Bytecode::FEND {};
 }
 
 void

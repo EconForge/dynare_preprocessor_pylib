@@ -1529,16 +1529,16 @@ ModelTree::writeBytecodeTemporaryTerms(const temporary_terms_t& tt,
                                                 temporary_terms_idxs, tef_terms);
 
       int idx {temporary_terms_idxs.at(it)};
-      code_file << Bytecode::FNUMEXPR_ {Bytecode::ExpressionType::TemporaryTerm, idx};
+      code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::TemporaryTerm, idx};
       it->writeBytecodeOutput(code_file, output_type, temporary_terms_union, temporary_terms_idxs,
                               tef_terms);
 
       static_assert(output_type == ExprNodeBytecodeOutputType::dynamicModel
                     || output_type == ExprNodeBytecodeOutputType::staticModel);
       if constexpr (output_type == ExprNodeBytecodeOutputType::dynamicModel)
-        code_file << Bytecode::FSTPT_ {idx};
+        code_file << Bytecode::FSTPT {idx};
       else
-        code_file << Bytecode::FSTPST_ {idx};
+        code_file << Bytecode::FSTPST {idx};
 
       temporary_terms_union.insert(it);
     }
@@ -1554,7 +1554,7 @@ ModelTree::writeBytecodeModelEquations(Bytecode::Writer& code_file,
     {
       BinaryOpNode* eq_node {equations[eq]};
       expr_t lhs {eq_node->arg1}, rhs {eq_node->arg2};
-      code_file << Bytecode::FNUMEXPR_ {Bytecode::ExpressionType::ModelEquation, eq};
+      code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::ModelEquation, eq};
       // Test if the right hand side of the equation is empty.
       double vrhs {1.0};
       try
@@ -1572,13 +1572,13 @@ ModelTree::writeBytecodeModelEquations(Bytecode::Writer& code_file,
           rhs->writeBytecodeOutput(code_file, output_type, temporary_terms, temporary_terms_idxs,
                                    tef_terms);
 
-          code_file << Bytecode::FBINARY_ {BinaryOpcode::minus} << Bytecode::FSTPR_ {eq};
+          code_file << Bytecode::FBINARY {BinaryOpcode::minus} << Bytecode::FSTPR {eq};
         }
       else // The right hand side of the equation is empty ⇒ residual=lhs
         {
           lhs->writeBytecodeOutput(code_file, output_type, temporary_terms, temporary_terms_idxs,
                                    tef_terms);
-          code_file << Bytecode::FSTPR_ {eq};
+          code_file << Bytecode::FSTPR {eq};
         }
     }
 }
@@ -1597,7 +1597,7 @@ ModelTree::writeBytecodeHelper(Bytecode::Writer& code_file) const
                                            code_file, tef_terms);
   writeBytecodeModelEquations<output_type>(code_file, temporary_terms_union, tef_terms);
 
-  code_file << Bytecode::FENDEQU_ {};
+  code_file << Bytecode::FENDEQU {};
 
   // Temporary terms for the Jacobian
   writeBytecodeTemporaryTerms<output_type>(temporary_terms_derivatives[1], temporary_terms_union,
@@ -1605,7 +1605,7 @@ ModelTree::writeBytecodeHelper(Bytecode::Writer& code_file) const
 
   // Get the current code_file position and jump if “evaluate” mode
   int pos_jmpifeval {code_file.getInstructionCounter()};
-  code_file << Bytecode::FJMPIFEVAL_ {0}; // Use 0 as jump offset for the time being
+  code_file << Bytecode::FJMPIFEVAL {0}; // Use 0 as jump offset for the time being
 
   // The Jacobian in “simulate” mode
   vector<vector<tuple<int, int, int>>> my_derivatives(symbol_table.endo_nbr());
@@ -1619,53 +1619,53 @@ ModelTree::writeBytecodeHelper(Bytecode::Writer& code_file) const
           int tsid {getTypeSpecificIDByDerivID(deriv_id)};
           int lag {getLagByDerivID(deriv_id)};
           if constexpr (dynamic)
-            code_file << Bytecode::FNUMEXPR_ {Bytecode::ExpressionType::FirstEndoDerivative, eq,
-                                              tsid, lag};
+            code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::FirstEndoDerivative, eq,
+                                             tsid, lag};
           else
-            code_file << Bytecode::FNUMEXPR_ {Bytecode::ExpressionType::FirstEndoDerivative, eq,
-                                              tsid};
+            code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::FirstEndoDerivative, eq,
+                                             tsid};
           if (!my_derivatives[eq].size())
             my_derivatives[eq].clear();
           my_derivatives[eq].emplace_back(tsid, lag, count_u);
           d1->writeBytecodeOutput(code_file, output_type, temporary_terms_union,
                                   temporary_terms_idxs, tef_terms);
           if constexpr (dynamic)
-            code_file << Bytecode::FSTPU_ {count_u};
+            code_file << Bytecode::FSTPU {count_u};
           else
-            code_file << Bytecode::FSTPSU_ {count_u};
+            code_file << Bytecode::FSTPSU {count_u};
           count_u++;
         }
     }
   for (int i {0}; i < symbol_table.endo_nbr(); i++)
     {
-      code_file << Bytecode::FLDR_ {i};
+      code_file << Bytecode::FLDR {i};
       if (my_derivatives[i].size())
         {
           for (bool first_term {true}; const auto& [tsid, lag, uidx] : my_derivatives[i])
             {
               if constexpr (dynamic)
-                code_file << Bytecode::FLDU_ {uidx}
-                          << Bytecode::FLDV_ {SymbolType::endogenous, tsid, lag};
+                code_file << Bytecode::FLDU {uidx}
+                          << Bytecode::FLDV {SymbolType::endogenous, tsid, lag};
               else
-                code_file << Bytecode::FLDSU_ {uidx}
-                          << Bytecode::FLDSV_ {SymbolType::endogenous, tsid};
-              code_file << Bytecode::FBINARY_ {BinaryOpcode::times};
+                code_file << Bytecode::FLDSU {uidx}
+                          << Bytecode::FLDSV {SymbolType::endogenous, tsid};
+              code_file << Bytecode::FBINARY {BinaryOpcode::times};
               if (!exchange(first_term, false))
-                code_file << Bytecode::FBINARY_ {BinaryOpcode::plus};
+                code_file << Bytecode::FBINARY {BinaryOpcode::plus};
             }
-          code_file << Bytecode::FBINARY_ {BinaryOpcode::minus};
+          code_file << Bytecode::FBINARY {BinaryOpcode::minus};
         }
       if constexpr (dynamic)
-        code_file << Bytecode::FSTPU_ {i};
+        code_file << Bytecode::FSTPU {i};
       else
-        code_file << Bytecode::FSTPSU_ {i};
+        code_file << Bytecode::FSTPSU {i};
     }
 
   // Jump unconditionally after the block
   int pos_jmp {code_file.getInstructionCounter()};
-  code_file << Bytecode::FJMP_ {0}; // Use 0 as jump offset for the time being
+  code_file << Bytecode::FJMP {0}; // Use 0 as jump offset for the time being
   // Update jump offset for previous JMPIFEVAL
-  code_file.overwriteInstruction(pos_jmpifeval, Bytecode::FJMPIFEVAL_ {pos_jmp - pos_jmpifeval});
+  code_file.overwriteInstruction(pos_jmpifeval, Bytecode::FJMPIFEVAL {pos_jmp - pos_jmpifeval});
 
   // The Jacobian in “evaluate” mode
   for (const auto& [indices, d1] : derivatives[1])
@@ -1693,13 +1693,12 @@ ModelTree::writeBytecodeHelper(Bytecode::Writer& code_file) const
               assert(false);
               break;
             }
-          code_file << Bytecode::FNUMEXPR_ {expr_type, eq, tsid, lag};
+          code_file << Bytecode::FNUMEXPR {expr_type, eq, tsid, lag};
         }
       else
         {
           assert(type == SymbolType::endogenous);
-          code_file << Bytecode::FNUMEXPR_ {Bytecode::ExpressionType::FirstEndoDerivative, eq,
-                                            tsid};
+          code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::FirstEndoDerivative, eq, tsid};
         }
 
       d1->writeBytecodeOutput(code_file, output_type, temporary_terms_union, temporary_terms_idxs,
@@ -1708,17 +1707,17 @@ ModelTree::writeBytecodeHelper(Bytecode::Writer& code_file) const
         {
           // Bytecode MEX uses a separate matrix for exogenous and exodet Jacobians
           int jacob_col {type == SymbolType::endogenous ? getJacobianCol(deriv_id, false) : tsid};
-          code_file << Bytecode::FSTPG3_ {eq, tsid, lag, jacob_col};
+          code_file << Bytecode::FSTPG3 {eq, tsid, lag, jacob_col};
         }
       else
-        code_file << Bytecode::FSTPG2_ {eq, tsid};
+        code_file << Bytecode::FSTPG2 {eq, tsid};
     }
 
   // Update jump offset for previous JMP
   int pos_end_block {code_file.getInstructionCounter()};
-  code_file.overwriteInstruction(pos_jmp, Bytecode::FJMP_ {pos_end_block - pos_jmp - 1});
+  code_file.overwriteInstruction(pos_jmp, Bytecode::FJMP {pos_end_block - pos_jmp - 1});
 
-  code_file << Bytecode::FENDBLOCK_ {} << Bytecode::FEND_ {};
+  code_file << Bytecode::FENDBLOCK {} << Bytecode::FEND {};
 }
 
 template<bool dynamic>
@@ -1746,14 +1745,14 @@ ModelTree::writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
           it->writeBytecodeExternalFunctionOutput(code_file, output_type, temporary_terms_union,
                                                   blocks_temporary_terms_idxs, tef_terms);
 
-        code_file << Bytecode::FNUMEXPR_ {Bytecode::ExpressionType::TemporaryTerm,
-                                          blocks_temporary_terms_idxs.at(it)};
+        code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::TemporaryTerm,
+                                         blocks_temporary_terms_idxs.at(it)};
         it->writeBytecodeOutput(code_file, output_type, temporary_terms_union,
                                 blocks_temporary_terms_idxs, tef_terms);
         if constexpr (dynamic)
-          code_file << Bytecode::FSTPT_ {blocks_temporary_terms_idxs.at(it)};
+          code_file << Bytecode::FSTPT {blocks_temporary_terms_idxs.at(it)};
         else
-          code_file << Bytecode::FSTPST_ {blocks_temporary_terms_idxs.at(it)};
+          code_file << Bytecode::FSTPST {blocks_temporary_terms_idxs.at(it)};
         temporary_terms_union.insert(it);
       }
   };
@@ -1779,8 +1778,8 @@ ModelTree::writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
             }
           else
             assert(equ_type == EquationType::evaluate);
-          code_file << Bytecode::FNUMEXPR_ {Bytecode::ExpressionType::ModelEquation,
-                                            getBlockEquationID(block, i)};
+          code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::ModelEquation,
+                                           getBlockEquationID(block, i)};
           rhs->writeBytecodeOutput(code_file, output_type, temporary_terms_union,
                                    blocks_temporary_terms_idxs, tef_terms);
           lhs->writeBytecodeOutput(code_file, assignment_lhs_output_type, temporary_terms_union,
@@ -1795,14 +1794,14 @@ ModelTree::writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
           [[fallthrough]];
         case BlockSimulationType::solveBackwardSimple:
         case BlockSimulationType::solveForwardSimple:
-          code_file << Bytecode::FNUMEXPR_ {Bytecode::ExpressionType::ModelEquation,
-                                            getBlockEquationID(block, i)};
+          code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::ModelEquation,
+                                           getBlockEquationID(block, i)};
           lhs->writeBytecodeOutput(code_file, output_type, temporary_terms_union,
                                    blocks_temporary_terms_idxs, tef_terms);
           rhs->writeBytecodeOutput(code_file, output_type, temporary_terms_union,
                                    blocks_temporary_terms_idxs, tef_terms);
-          code_file << Bytecode::FBINARY_ {BinaryOpcode::minus}
-                    << Bytecode::FSTPR_ {i - block_recursive};
+          code_file << Bytecode::FBINARY {BinaryOpcode::minus}
+                    << Bytecode::FSTPR {i - block_recursive};
           break;
         }
     }
@@ -1817,11 +1816,11 @@ ModelTree::writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
      be needed in subsequent blocks. */
   write_eq_tt(blocks[block].size);
 
-  code_file << Bytecode::FENDEQU_ {};
+  code_file << Bytecode::FENDEQU {};
 
   // Get the current code_file position and jump if evaluating
   int pos_jmpifeval {code_file.getInstructionCounter()};
-  code_file << Bytecode::FJMPIFEVAL_ {0}; // Use 0 as jump offset for the time being
+  code_file << Bytecode::FJMPIFEVAL {0}; // Use 0 as jump offset for the time being
 
   /* Write the derivatives for the “simulate” mode (not needed if the block
      is of type “evaluate backward/forward”) */
@@ -1835,16 +1834,16 @@ ModelTree::writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
           {
             int eqr {getBlockEquationID(block, 0)};
             int varr {getBlockVariableID(block, 0)};
-            code_file << Bytecode::FNUMEXPR_ {Bytecode::ExpressionType::FirstEndoDerivative, eqr,
-                                              varr, 0};
+            code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::FirstEndoDerivative, eqr,
+                                             varr, 0};
             // Get contemporaneous derivative of the single variable in the block
             if (auto it {blocks_derivatives[block].find({0, 0, 0})};
                 it != blocks_derivatives[block].end())
               it->second->writeBytecodeOutput(code_file, output_type, temporary_terms_union,
                                               blocks_temporary_terms_idxs, tef_terms);
             else
-              code_file << Bytecode::FLDZ_ {};
-            code_file << Bytecode::FSTPG_ {0};
+              code_file << Bytecode::FLDZ {};
+            code_file << Bytecode::FSTPG {0};
           }
           break;
 
@@ -1869,14 +1868,14 @@ ModelTree::writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
                           && (simulation_type == BlockSimulationType::solveForwardComplete
                               || simulation_type == BlockSimulationType::solveBackwardComplete))
                         continue;
-                    code_file << Bytecode::FNUMEXPR_ {Bytecode::ExpressionType::FirstEndoDerivative,
-                                                      eqr, varr, lag};
+                    code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::FirstEndoDerivative,
+                                                     eqr, varr, lag};
                     d1->writeBytecodeOutput(code_file, output_type, temporary_terms_union,
                                             blocks_temporary_terms_idxs, tef_terms);
                     if constexpr (dynamic)
-                      code_file << Bytecode::FSTPU_ {count_u};
+                      code_file << Bytecode::FSTPU {count_u};
                     else
-                      code_file << Bytecode::FSTPSU_ {count_u};
+                      code_file << Bytecode::FSTPSU {count_u};
                     Uf[eqr].emplace_back(count_u, varr, lag);
                     count_u++;
                   }
@@ -1884,25 +1883,25 @@ ModelTree::writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
             for (int i {0}; i < block_size; i++)
               if (i >= block_recursive)
                 {
-                  code_file << Bytecode::FLDR_ {i - block_recursive} << Bytecode::FLDZ_ {};
+                  code_file << Bytecode::FLDR {i - block_recursive} << Bytecode::FLDZ {};
 
                   int eqr {getBlockEquationID(block, i)};
                   for (const auto& [index_u, var, lag] : Uf[eqr])
                     {
                       if constexpr (dynamic)
-                        code_file << Bytecode::FLDU_ {index_u}
-                                  << Bytecode::FLDV_ {SymbolType::endogenous, var, lag};
+                        code_file << Bytecode::FLDU {index_u}
+                                  << Bytecode::FLDV {SymbolType::endogenous, var, lag};
                       else
-                        code_file << Bytecode::FLDSU_ {index_u}
-                                  << Bytecode::FLDSV_ {SymbolType::endogenous, var};
-                      code_file << Bytecode::FBINARY_ {BinaryOpcode::times}
-                                << Bytecode::FBINARY_ {BinaryOpcode::plus};
+                        code_file << Bytecode::FLDSU {index_u}
+                                  << Bytecode::FLDSV {SymbolType::endogenous, var};
+                      code_file << Bytecode::FBINARY {BinaryOpcode::times}
+                                << Bytecode::FBINARY {BinaryOpcode::plus};
                     }
-                  code_file << Bytecode::FBINARY_ {BinaryOpcode::minus};
+                  code_file << Bytecode::FBINARY {BinaryOpcode::minus};
                   if constexpr (dynamic)
-                    code_file << Bytecode::FSTPU_ {i - block_recursive};
+                    code_file << Bytecode::FSTPU {i - block_recursive};
                   else
-                    code_file << Bytecode::FSTPSU_ {i - block_recursive};
+                    code_file << Bytecode::FSTPSU {i - block_recursive};
                 }
           }
           break;
@@ -1913,9 +1912,9 @@ ModelTree::writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
 
   // Jump unconditionally after the block
   int pos_jmp {code_file.getInstructionCounter()};
-  code_file << Bytecode::FJMP_ {0}; // Use 0 as jump offset for the time being
+  code_file << Bytecode::FJMP {0}; // Use 0 as jump offset for the time being
   // Update jump offset for previous JMPIFEVAL
-  code_file.overwriteInstruction(pos_jmpifeval, Bytecode::FJMPIFEVAL_ {pos_jmp - pos_jmpifeval});
+  code_file.overwriteInstruction(pos_jmpifeval, Bytecode::FJMPIFEVAL {pos_jmp - pos_jmpifeval});
 
   // Write the derivatives for the “evaluate” mode
   for (const auto& [indices, d] : blocks_derivatives[block])
@@ -1923,24 +1922,24 @@ ModelTree::writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
       const auto& [eq, var, lag] {indices};
       int eqr {getBlockEquationID(block, eq)};
       int varr {getBlockVariableID(block, var)};
-      code_file << Bytecode::FNUMEXPR_ {Bytecode::ExpressionType::FirstEndoDerivative, eqr, varr,
-                                        lag};
+      code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::FirstEndoDerivative, eqr, varr,
+                                       lag};
       d->writeBytecodeOutput(code_file, output_type, temporary_terms_union,
                              blocks_temporary_terms_idxs, tef_terms);
       assert(eq >= block_recursive);
       if constexpr (dynamic)
-        code_file << Bytecode::FSTPG3_ {eq - block_recursive, var, lag,
-                                        getBlockJacobianEndoCol(block, var, lag)};
+        code_file << Bytecode::FSTPG3 {eq - block_recursive, var, lag,
+                                       getBlockJacobianEndoCol(block, var, lag)};
       else
-        code_file << Bytecode::FSTPG2_ {eq - block_recursive,
-                                        getBlockJacobianEndoCol(block, var, lag)};
+        code_file << Bytecode::FSTPG2 {eq - block_recursive,
+                                       getBlockJacobianEndoCol(block, var, lag)};
     }
 
   // Update jump offset for previous JMP
   int pos_end_block {code_file.getInstructionCounter()};
-  code_file.overwriteInstruction(pos_jmp, Bytecode::FJMP_ {pos_end_block - pos_jmp - 1});
+  code_file.overwriteInstruction(pos_jmp, Bytecode::FJMP {pos_end_block - pos_jmp - 1});
 
-  code_file << Bytecode::FENDBLOCK_ {};
+  code_file << Bytecode::FENDBLOCK {};
 }
 
 template<bool dynamic>
