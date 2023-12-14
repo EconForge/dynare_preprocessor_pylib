@@ -145,624 +145,299 @@ protected:
   ~Instruction() = default;
 };
 
-template<typename T1>
-class InstructionWithOneArgument : public Instruction
+struct FLDZ final : public Instruction
 {
-protected:
-  T1 arg1;
-
-public:
-  InstructionWithOneArgument(Tag tag_arg, T1 arg_arg1) : Instruction {tag_arg}, arg1 {arg_arg1}
-  {
-  }
-
-protected:
-  // See Instruction destructor for the rationale
-  ~InstructionWithOneArgument() = default;
-};
-
-template<typename T1, typename T2>
-class InstructionWithTwoArguments : public Instruction
-{
-protected:
-  T1 arg1;
-  T2 arg2;
-
-public:
-  InstructionWithTwoArguments(Tag tag_arg, T1 arg_arg1, T2 arg_arg2) :
-      Instruction {tag_arg}, arg1 {arg_arg1}, arg2 {arg_arg2}
-  {
-  }
-
-protected:
-  // See Instruction destructor for the rationale
-  ~InstructionWithTwoArguments() = default;
-};
-
-template<typename T1, typename T2, typename T3>
-class InstructionWithThreeArguments : public Instruction
-{
-protected:
-  T1 arg1;
-  T2 arg2;
-  T3 arg3;
-
-public:
-  InstructionWithThreeArguments(Tag tag_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3) :
-      Instruction {tag_arg}, arg1 {arg_arg1}, arg2 {arg_arg2}, arg3 {arg_arg3}
-  {
-  }
-
-protected:
-  // See Instruction destructor for the rationale
-  ~InstructionWithThreeArguments() = default;
-};
-
-template<typename T1, typename T2, typename T3, typename T4>
-class InstructionWithFourArguments : public Instruction
-{
-protected:
-  T1 arg1;
-  T2 arg2;
-  T3 arg3;
-  T4 arg4;
-
-public:
-  InstructionWithFourArguments(Tag tag_arg, T1 arg_arg1, T2 arg_arg2, T3 arg_arg3, T4 arg_arg4) :
-      Instruction {tag_arg},
-      arg1 {arg_arg1},
-      arg2 {arg_arg2},
-      arg3 {move(arg_arg3)},
-      arg4 {arg_arg4}
-  {
-  }
-
-protected:
-  // See Instruction destructor for the rationale
-  ~InstructionWithFourArguments() = default;
-};
-
-class FLDZ final : public Instruction
-{
-public:
   FLDZ() : Instruction {Tag::FLDZ}
   {
   }
 };
 
-class FEND final : public Instruction
+struct FEND final : public Instruction
 {
-public:
   FEND() : Instruction {Tag::FEND}
   {
   }
 };
 
-class FENDBLOCK final : public Instruction
+struct FENDBLOCK final : public Instruction
 {
-public:
   FENDBLOCK() : Instruction {Tag::FENDBLOCK}
   {
   }
 };
 
-class FENDEQU final : public Instruction
+struct FENDEQU final : public Instruction
 {
-public:
   FENDEQU() : Instruction {Tag::FENDEQU}
   {
   }
 };
 
-class FDIMT final : public InstructionWithOneArgument<int>
+struct FDIMT final : public Instruction
 {
-public:
-  explicit FDIMT(int size_arg) : InstructionWithOneArgument {Tag::FDIMT, size_arg}
+  const int size;
+  explicit FDIMT(int size_arg) : Instruction {Tag::FDIMT}, size {size_arg}
   {
   }
-  int
-  get_size()
-  {
-    return arg1;
-  };
 };
 
-class FDIMST final : public InstructionWithOneArgument<int>
+struct FDIMST final : public Instruction
 {
-public:
-  explicit FDIMST(int size_arg) : InstructionWithOneArgument {Tag::FDIMST, size_arg}
+  const int size;
+  explicit FDIMST(int size_arg) : Instruction {Tag::FDIMST}, size {size_arg}
   {
   }
-  int
-  get_size()
-  {
-    return arg1;
-  };
 };
 
-class FLDC final : public InstructionWithOneArgument<double>
+struct FLDC final : public Instruction
 {
-public:
-  explicit FLDC(double value_arg) : InstructionWithOneArgument {Tag::FLDC, value_arg}
+  const double value;
+  explicit FLDC(double value_arg) : Instruction {Tag::FLDC}, value {value_arg}
   {
   }
-  double
-  get_value()
-  {
-    return arg1;
-  };
 };
 
-class FLDU final : public InstructionWithOneArgument<int>
+struct FLDU final : public Instruction
 {
-public:
-  explicit FLDU(int pos_arg) : InstructionWithOneArgument {Tag::FLDU, pos_arg}
+  const int pos;
+  explicit FLDU(int pos_arg) : Instruction {Tag::FLDU}, pos {pos_arg}
   {
   }
-  int
-  get_pos()
-  {
-    return arg1;
-  };
 };
 
-class FLDSU final : public InstructionWithOneArgument<int>
+struct FLDSU final : public Instruction
 {
-public:
-  explicit FLDSU(int pos_arg) : InstructionWithOneArgument {Tag::FLDSU, pos_arg}
+  const int pos;
+  explicit FLDSU(int pos_arg) : Instruction {Tag::FLDSU}, pos {pos_arg}
   {
   }
-  int
-  get_pos()
-  {
-    return arg1;
-  };
 };
 
-class FLDR final : public InstructionWithOneArgument<int>
+struct FLDR final : public Instruction
 {
-public:
-  explicit FLDR(int pos_arg) : InstructionWithOneArgument {Tag::FLDR, pos_arg}
+  const int pos;
+  explicit FLDR(int pos_arg) : Instruction {Tag::FLDR}, pos {pos_arg}
   {
   }
-  int
-  get_pos()
-  {
-    return arg1;
-  };
 };
 
-class FLDT final : public InstructionWithOneArgument<int>
+struct FLDT final : public Instruction
 {
-public:
-  explicit FLDT(int pos_arg) : InstructionWithOneArgument {Tag::FLDT, pos_arg}
+  const int pos;
+  explicit FLDT(int pos_arg) : Instruction {Tag::FLDT}, pos {pos_arg}
   {
   }
-  int
-  get_pos()
-  {
-    return arg1;
-  };
 };
 
-class FLDST final : public InstructionWithOneArgument<int>
+struct FLDST final : public Instruction
 {
-public:
-  explicit FLDST(int pos_arg) : InstructionWithOneArgument {Tag::FLDST, pos_arg}
+  const int pos;
+  explicit FLDST(int pos_arg) : Instruction {Tag::FLDST}, pos {pos_arg}
   {
   }
-  int
-  get_pos()
-  {
-    return arg1;
-  };
 };
 
-class FSTPT final : public InstructionWithOneArgument<int>
+struct FSTPT final : public Instruction
 {
-public:
-  explicit FSTPT(int pos_arg) : InstructionWithOneArgument {Tag::FSTPT, pos_arg}
+  const int pos;
+  explicit FSTPT(int pos_arg) : Instruction {Tag::FSTPT}, pos {pos_arg}
   {
   }
-  int
-  get_pos()
-  {
-    return arg1;
-  };
 };
 
-class FSTPST final : public InstructionWithOneArgument<int>
+struct FSTPST final : public Instruction
 {
-public:
-  explicit FSTPST(int pos_arg) : InstructionWithOneArgument {Tag::FSTPST, pos_arg}
+  const int pos;
+  explicit FSTPST(int pos_arg) : Instruction {Tag::FSTPST}, pos {pos_arg}
   {
   }
-  int
-  get_pos()
-  {
-    return arg1;
-  };
 };
 
-class FSTPR final : public InstructionWithOneArgument<int>
+struct FSTPR final : public Instruction
 {
-public:
-  explicit FSTPR(int pos_arg) : InstructionWithOneArgument {Tag::FSTPR, pos_arg}
+  const int pos;
+  explicit FSTPR(int pos_arg) : Instruction {Tag::FSTPR}, pos {pos_arg}
   {
   }
-  int
-  get_pos()
-  {
-    return arg1;
-  };
 };
 
-class FSTPU final : public InstructionWithOneArgument<int>
+struct FSTPU final : public Instruction
 {
-public:
-  explicit FSTPU(int pos_arg) : InstructionWithOneArgument {Tag::FSTPU, pos_arg}
+  const int pos;
+  explicit FSTPU(int pos_arg) : Instruction {Tag::FSTPU}, pos {pos_arg}
   {
   }
-  int
-  get_pos()
-  {
-    return arg1;
-  };
 };
 
-class FSTPSU final : public InstructionWithOneArgument<int>
+struct FSTPSU final : public Instruction
 {
-public:
-  explicit FSTPSU(int pos_arg) : InstructionWithOneArgument {Tag::FSTPSU, pos_arg}
+  const int pos;
+  explicit FSTPSU(int pos_arg) : Instruction {Tag::FSTPSU}, pos {pos_arg}
   {
   }
-  int
-  get_pos()
-  {
-    return arg1;
-  };
 };
 
-class FSTPG final : public InstructionWithOneArgument<int>
+struct FSTPG final : public Instruction
 {
-public:
-  explicit FSTPG(int pos_arg) : InstructionWithOneArgument {Tag::FSTPG, pos_arg}
+  const int pos;
+  explicit FSTPG(int pos_arg) : Instruction {Tag::FSTPG}, pos {pos_arg}
   {
   }
-  int
-  get_pos()
-  {
-    return arg1;
-  };
 };
 
-class FSTPG2 final : public InstructionWithTwoArguments<int, int>
+struct FSTPG2 final : public Instruction
 {
-public:
-  FSTPG2(int row_arg, int col_arg) : InstructionWithTwoArguments {Tag::FSTPG2, row_arg, col_arg}
+  const int row, col;
+  FSTPG2(int row_arg, int col_arg) : Instruction {Tag::FSTPG2}, row {row_arg}, col {col_arg}
   {
   }
-  int
-  get_row()
-  {
-    return arg1;
-  };
-  int
-  get_col()
-  {
-    return arg2;
-  };
 };
 
-class FSTPG3 final : public InstructionWithFourArguments<int, int, int, int>
+struct FSTPG3 final : public Instruction
 {
-public:
+  const int row, col, lag, col_pos;
   FSTPG3(int row_arg, int col_arg, int lag_arg, int col_pos_arg) :
-      InstructionWithFourArguments {Tag::FSTPG3, row_arg, col_arg, lag_arg, col_pos_arg}
+      Instruction {Tag::FSTPG3}, row {row_arg}, col {col_arg}, lag {lag_arg}, col_pos {col_pos_arg}
   {
-  }
-  int
-  get_row()
-  {
-    return arg1;
-  };
-  int
-  get_col()
-  {
-    return arg2;
-  };
-  int
-  get_lag()
-  {
-    return arg3;
-  };
-  int
-  get_col_pos()
-  {
-    return arg4;
-  };
-};
-
-class FUNARY final : public InstructionWithOneArgument<UnaryOpcode>
-{
-public:
-  explicit FUNARY(UnaryOpcode op_type_arg) : InstructionWithOneArgument {Tag::FUNARY, op_type_arg}
-  {
-  }
-  UnaryOpcode
-  get_op_type()
-  {
-    return arg1;
-  };
-};
-
-class FBINARY final : public InstructionWithOneArgument<BinaryOpcode>
-{
-public:
-  explicit FBINARY(BinaryOpcode op_type_arg) :
-      InstructionWithOneArgument {Tag::FBINARY, op_type_arg}
-  {
-  }
-  BinaryOpcode
-  get_op_type()
-  {
-    return arg1;
-  };
-};
-
-class FTRINARY final : public InstructionWithOneArgument<TrinaryOpcode>
-{
-public:
-  explicit FTRINARY(TrinaryOpcode op_type_arg) :
-      InstructionWithOneArgument {Tag::FTRINARY, op_type_arg}
-  {
-  }
-  TrinaryOpcode
-  get_op_type()
-  {
-    return arg1;
-  };
-};
-
-class FJMPIFEVAL final : public InstructionWithOneArgument<int>
-{
-public:
-  explicit FJMPIFEVAL(int arg_pos) : InstructionWithOneArgument {Tag::FJMPIFEVAL, arg_pos}
-  {
-  }
-  int
-  get_pos()
-  {
-    return arg1;
   }
 };
 
-class FJMP final : public InstructionWithOneArgument<int>
+struct FUNARY final : public Instruction
 {
-public:
-  explicit FJMP(int arg_pos) : InstructionWithOneArgument {Tag::FJMP, arg_pos}
+  const UnaryOpcode op_code;
+  explicit FUNARY(UnaryOpcode op_code_arg) : Instruction {Tag::FUNARY}, op_code {op_code_arg}
   {
-  }
-  int
-  get_pos()
-  {
-    return arg1;
   }
 };
 
-class FLDTEF final : public InstructionWithOneArgument<int>
+struct FBINARY final : public Instruction
 {
-public:
-  explicit FLDTEF(int number) : InstructionWithOneArgument {Tag::FLDTEF, number}
+  const BinaryOpcode op_code;
+  explicit FBINARY(BinaryOpcode op_code_arg) : Instruction {Tag::FBINARY}, op_code {op_code_arg}
   {
-  }
-  int
-  get_number()
-  {
-    return arg1;
   }
 };
 
-class FSTPTEF final : public InstructionWithOneArgument<int>
+struct FTRINARY final : public Instruction
 {
-public:
-  explicit FSTPTEF(int number) : InstructionWithOneArgument {Tag::FSTPTEF, number}
+  const TrinaryOpcode op_code;
+  explicit FTRINARY(TrinaryOpcode op_code_arg) : Instruction {Tag::FTRINARY}, op_code {op_code_arg}
   {
-  }
-  int
-  get_number()
-  {
-    return arg1;
   }
 };
 
-class FLDTEFD final : public InstructionWithTwoArguments<int, int>
+struct FJMPIFEVAL final : public Instruction
 {
-public:
-  FLDTEFD(int indx, int row) : InstructionWithTwoArguments {Tag::FLDTEFD, indx, row}
+  const int pos;
+  explicit FJMPIFEVAL(int pos_arg) : Instruction {Tag::FJMPIFEVAL}, pos {pos_arg}
   {
   }
-  int
-  get_indx()
-  {
-    return arg1;
-  };
-  int
-  get_row()
-  {
-    return arg2;
-  };
 };
 
-class FSTPTEFD final : public InstructionWithTwoArguments<int, int>
+struct FJMP final : public Instruction
 {
-public:
-  FSTPTEFD(int indx, int row) : InstructionWithTwoArguments {Tag::FSTPTEFD, indx, row}
+  const int pos;
+  explicit FJMP(int pos_arg) : Instruction {Tag::FJMP}, pos {pos_arg}
   {
   }
-  int
-  get_indx()
-  {
-    return arg1;
-  };
-  int
-  get_row()
-  {
-    return arg2;
-  };
 };
 
-class FLDTEFDD final : public InstructionWithThreeArguments<int, int, int>
+struct FLDTEF final : public Instruction
 {
-public:
-  FLDTEFDD(int indx, int row, int col) :
-      InstructionWithThreeArguments {Tag::FLDTEFDD, indx, row, col}
+  const int number;
+  explicit FLDTEF(int number_arg) : Instruction {Tag::FLDTEF}, number {number_arg}
   {
   }
-  int
-  get_indx()
-  {
-    return arg1;
-  };
-  int
-  get_row()
-  {
-    return arg2;
-  };
-  int
-  get_col()
-  {
-    return arg3;
-  };
 };
 
-class FSTPTEFDD final : public InstructionWithThreeArguments<int, int, int>
+struct FSTPTEF final : public Instruction
 {
-public:
-  FSTPTEFDD(int indx, int row, int col) :
-      InstructionWithThreeArguments {Tag::FSTPTEF, indx, row, col}
+  const int number;
+  explicit FSTPTEF(int number_arg) : Instruction {Tag::FSTPTEF}, number {number_arg}
   {
   }
-  int
-  get_indx()
-  {
-    return arg1;
-  };
-  int
-  get_row()
-  {
-    return arg2;
-  };
-  int
-  get_col()
-  {
-    return arg3;
-  };
 };
 
-class FLDVS final : public InstructionWithTwoArguments<SymbolType, int>
+struct FLDTEFD final : public Instruction
 {
-public:
-  FLDVS(SymbolType type_arg, int pos_arg) :
-      InstructionWithTwoArguments {Tag::FLDVS, type_arg, pos_arg}
+  const int indx, row;
+  FLDTEFD(int indx_arg, int row_arg) : Instruction {Tag::FLDTEFD}, indx {indx_arg}, row {row_arg}
   {
   }
-  SymbolType
-  get_type()
-  {
-    return arg1;
-  };
-  int
-  get_pos()
-  {
-    return arg2;
-  };
 };
 
-class FLDSV final : public InstructionWithTwoArguments<SymbolType, int>
+struct FSTPTEFD final : public Instruction
 {
-public:
-  FLDSV(SymbolType type_arg, int pos_arg) :
-      InstructionWithTwoArguments {Tag::FLDSV, type_arg, pos_arg}
+  const int indx, row;
+  FSTPTEFD(int indx_arg, int row_arg) : Instruction {Tag::FSTPTEFD}, indx {indx_arg}, row {row_arg}
   {
   }
-  SymbolType
-  get_type()
-  {
-    return arg1;
-  };
-  int
-  get_pos()
-  {
-    return arg2;
-  };
 };
 
-class FSTPSV final : public InstructionWithTwoArguments<SymbolType, int>
+struct FLDTEFDD final : public Instruction
 {
-public:
+  const int indx, row, col;
+  FLDTEFDD(int indx_arg, int row_arg, int col_arg) :
+      Instruction {Tag::FLDTEFDD}, indx {indx_arg}, row {row_arg}, col {col_arg}
+  {
+  }
+};
+
+struct FSTPTEFDD final : public Instruction
+{
+  const int indx, row, col;
+  FSTPTEFDD(int indx_arg, int row_arg, int col_arg) :
+      Instruction {Tag::FSTPTEF}, indx {indx_arg}, row {row_arg}, col {col_arg}
+  {
+  }
+};
+
+struct FLDVS final : public Instruction
+{
+  const SymbolType type;
+  const int pos;
+  FLDVS(SymbolType type_arg, int pos_arg) : Instruction {Tag::FLDVS}, type {type_arg}, pos {pos_arg}
+  {
+  }
+};
+
+struct FLDSV final : public Instruction
+{
+  const SymbolType type;
+  const int pos;
+  FLDSV(SymbolType type_arg, int pos_arg) : Instruction {Tag::FLDSV}, type {type_arg}, pos {pos_arg}
+  {
+  }
+};
+
+struct FSTPSV final : public Instruction
+{
+  const SymbolType type;
+  const int pos;
   FSTPSV(SymbolType type_arg, int pos_arg) :
-      InstructionWithTwoArguments {Tag::FSTPSV, type_arg, pos_arg}
+      Instruction {Tag::FSTPSV}, type {type_arg}, pos {pos_arg}
   {
   }
-  SymbolType
-  get_type()
-  {
-    return arg1;
-  };
-  int
-  get_pos()
-  {
-    return arg2;
-  };
 };
 
-class FLDV final : public InstructionWithThreeArguments<SymbolType, int, int>
+struct FLDV final : public Instruction
 {
-public:
+  const SymbolType type;
+  const int pos, lead_lag;
   FLDV(SymbolType type_arg, int pos_arg, int lead_lag_arg) :
-      InstructionWithThreeArguments {Tag::FLDV, type_arg, pos_arg, lead_lag_arg}
+      Instruction {Tag::FLDV}, type {type_arg}, pos {pos_arg}, lead_lag {lead_lag_arg}
   {
   }
-  SymbolType
-  get_type()
-  {
-    return arg1;
-  };
-  int
-  get_pos()
-  {
-    return arg2;
-  };
-  int
-  get_lead_lag()
-  {
-    return arg3;
-  };
 };
 
-class FSTPV final : public InstructionWithThreeArguments<SymbolType, int, int>
+struct FSTPV final : public Instruction
 {
-public:
+  const SymbolType type;
+  const int pos, lead_lag;
   FSTPV(SymbolType type_arg, int pos_arg, int lead_lag_arg) :
-      InstructionWithThreeArguments {Tag::FSTPV, type_arg, pos_arg, lead_lag_arg}
+      Instruction {Tag::FSTPV}, type {type_arg}, pos {pos_arg}, lead_lag {lead_lag_arg}
   {
   }
-  SymbolType
-  get_type()
-  {
-    return arg1;
-  };
-  int
-  get_pos()
-  {
-    return arg2;
-  };
-  int
-  get_lead_lag()
-  {
-    return arg3;
-  };
 };
 
 class FCALL final : public Instruction
@@ -822,47 +497,47 @@ public:
   {
     // printf("get_function_name => func_name=%s\n",func_name.c_str());fflush(stdout);
     return func_name;
-  };
+  }
   int
   get_nb_output_arguments()
   {
     return nb_output_arguments;
-  };
+  }
   int
   get_nb_input_arguments()
   {
     return nb_input_arguments;
-  };
+  }
   int
   get_indx()
   {
     return indx;
-  };
+  }
   void
   set_arg_func_name(string arg_arg_func_name)
   {
     arg_func_name = move(arg_arg_func_name);
-  };
+  }
   string
   get_arg_func_name()
   {
     return arg_func_name;
-  };
+  }
   void
   set_nb_add_input_arguments(int arg_add_input_arguments)
   {
     add_input_arguments = arg_add_input_arguments;
-  };
+  }
   int
   get_nb_add_input_arguments()
   {
     return add_input_arguments;
-  };
+  }
   void
   set_row(int arg_row)
   {
     row = arg_row;
-  };
+  }
   int
   get_row()
   {
@@ -872,12 +547,12 @@ public:
   set_col(int arg_col)
   {
     col = arg_col;
-  };
+  }
   int
   get_col()
   {
     return col;
-  };
+  }
   ExternalFunctionCallType
   get_call_type()
   {
@@ -928,17 +603,17 @@ public:
   get_equation()
   {
     return equation;
-  };
+  }
   int
   get_dvariable1()
   {
     return dvariable1;
-  };
+  }
   int
   get_lag1()
   {
     return lag1;
-  };
+  }
 };
 
 class FBEGINBLOCK final : public Instruction
@@ -1051,42 +726,42 @@ public:
   get_size()
   {
     return size;
-  };
+  }
   BlockSimulationType
   get_type()
   {
     return type;
-  };
+  }
   bool
   get_is_linear()
   {
     return is_linear;
-  };
+  }
   int
   get_u_count_int()
   {
     return u_count_int;
-  };
+  }
   vector<Block_contain_type>
   get_Block_Contain()
   {
     return Block_Contain_;
-  };
+  }
   int
   get_nb_col_jacob()
   {
     return nb_col_jacob;
-  };
+  }
   int
   get_exo_size()
   {
     return exo_size;
-  };
+  }
   int
   get_det_exo_size()
   {
     return det_exo_size;
-  };
+  }
   vector<int>
   get_endogenous()
   {
