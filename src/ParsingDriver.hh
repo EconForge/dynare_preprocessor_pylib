@@ -592,8 +592,8 @@ public:
   void set_corr_options(string name1, string name2, string subsample_name);
   //! Runs estimation process
   void run_estimation(vector<string> symbol_list);
-  //! Runs dynare_sensitivy()
-  void dynare_sensitivity();
+  //! Runs sensitivity
+  void sensitivity();
   //! Check that no observed variable has yet be defined
   void check_varobs();
   //! Add a new observed variable

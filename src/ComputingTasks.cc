@@ -1070,14 +1070,14 @@ EstimationStatement::writeJsonOutput(ostream& output) const
   output << "}";
 }
 
-DynareSensitivityStatement::DynareSensitivityStatement(OptionsList options_list_arg) :
+SensitivityStatement::SensitivityStatement(OptionsList options_list_arg) :
     options_list {move(options_list_arg)}
 {
 }
 
 void
-DynareSensitivityStatement::checkPass(ModFileStructure& mod_file_struct,
-                                      [[maybe_unused]] WarningConsolidation& warnings)
+SensitivityStatement::checkPass(ModFileStructure& mod_file_struct,
+                                [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (auto opt = options_list.get_if<OptionsList::NumVal>("identification"); opt && *opt == "1")
     {
@@ -1089,8 +1089,8 @@ DynareSensitivityStatement::checkPass(ModFileStructure& mod_file_struct,
 }
 
 void
-DynareSensitivityStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
-                                        [[maybe_unused]] bool minimal_workspace) const
+SensitivityStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
+                                  [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_gsa");
 
@@ -1110,9 +1110,9 @@ DynareSensitivityStatement::writeOutput(ostream& output, [[maybe_unused]] const 
 }
 
 void
-DynareSensitivityStatement::writeJsonOutput(ostream& output) const
+SensitivityStatement::writeJsonOutput(ostream& output) const
 {
-  output << R"({"statementName": "dynare_sensitivity")";
+  output << R"({"statementName": "sensitivity")";
   if (!options_list.empty())
     {
       output << ", ";

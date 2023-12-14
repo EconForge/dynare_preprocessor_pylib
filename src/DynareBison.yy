@@ -161,7 +161,7 @@ str_tolower(string s)
 %token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ASINH ACOSH ATANH ERF ERFC DIFF ADL AUXILIARY_MODEL_NAME
 %token SQRT CBRT NORMCDF NORMPDF STEADY_STATE EXPECTATION
 /* GSA analysis */
-%token DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
+%token SENSITIVITY DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
 %token MORRIS_NTRA NSAM LOAD_REDFORM LOAD_RMSE LOAD_STAB ALPHA2_STAB LOGTRANS_REDFORM THRESHOLD_REDFORM
 %token KSSTAT_REDFORM ALPHA2_REDFORM NAMENDO NAMLAGENDO NAMEXO RMSE LIK_ONLY VAR_RMSE PFILT_RMSE ISTART_RMSE
 %token ALPHA_RMSE ALPHA2_RMSE
@@ -326,7 +326,7 @@ statement : parameters
           | bvar_forecast
           | bvar_irf
           | sbvar
-          | dynare_sensitivity
+          | sensitivity
           | homotopy_setup
           | forecast
           | load_params_and_steady_state
@@ -3119,69 +3119,79 @@ ms_estimation : MS_ESTIMATION ';'
                 { driver.ms_estimation(); }
               ;
 
-dynare_sensitivity : DYNARE_SENSITIVITY ';'
-                     { driver.dynare_sensitivity(); }
-                   | DYNARE_SENSITIVITY '(' dynare_sensitivity_options_list ')' ';'
-                     { driver.dynare_sensitivity(); }
+sensitivity : SENSITIVITY ';'
+              { driver.sensitivity(); }
+            | SENSITIVITY '(' sensitivity_options_list ')' ';'
+              { driver.sensitivity(); }
+            | DYNARE_SENSITIVITY ';'
+              {
+                driver.warning("The 'dynare_sensitivity' command is deprecated. It has been renamed 'sensitivity'.");
+                driver.sensitivity();
+              }
+            | DYNARE_SENSITIVITY '(' sensitivity_options_list ')' ';'
+              {
+                driver.warning("The 'dynare_sensitivity' command is deprecated. It has been renamed 'sensitivity'.");
+                driver.sensitivity();
+              }
+            ;
+
+sensitivity_options_list : sensitivity_option COMMA sensitivity_options_list
+                         | sensitivity_option
+                         ;
+
+sensitivity_option : o_gsa_identification
+                   | o_gsa_morris
+                   | o_gsa_stab
+                   | o_gsa_redform
+                   | o_gsa_pprior
+                   | o_gsa_prior_range
+                   | o_gsa_ppost
+                   | o_gsa_ilptau
+                   | o_gsa_morris_nliv
+                   | o_gsa_morris_ntra
+                   | o_gsa_nsam
+                   | o_gsa_load_redform
+                   | o_gsa_load_rmse
+                   | o_gsa_load_stab
+                   | o_gsa_alpha2_stab
+                   | o_gsa_logtrans_redform
+                   | o_gsa_ksstat_redform
+                   | o_gsa_alpha2_redform
+                   | o_gsa_rmse
+                   | o_gsa_lik_only
+                   | o_gsa_pfilt_rmse
+                   | o_gsa_istart_rmse
+                   | o_gsa_alpha_rmse
+                   | o_gsa_alpha2_rmse
+                   | o_gsa_threshold_redform
+                   | o_gsa_namendo
+                   | o_gsa_namexo
+                   | o_gsa_namlagendo
+                   | o_gsa_var_rmse
+                   | o_gsa_neighborhood_width
+                   | o_gsa_pvalue_ks
+                   | o_gsa_pvalue_corr
+                   | o_datafile
+                   | o_nobs
+                   | o_first_obs
+                   | o_prefilter
+                   | o_presample
+                   | o_nograph
+                   | o_nodisplay
+                   | o_graph_format
+                   | o_forecasts_conf_sig
+                   | o_mh_conf_sig
+                   | o_loglinear
+                   | o_mode_file
+                   | o_load_ident_files
+                   | o_useautocorr
+                   | o_ar
+                   | o_kalman_algo
+                   | o_lik_init
+                   | o_diffuse_filter
+                   | o_analytic_derivation
+                   | o_analytic_derivation_mode
                    ;
-
-dynare_sensitivity_options_list : dynare_sensitivity_option COMMA dynare_sensitivity_options_list
-                                | dynare_sensitivity_option
-                                ;
-
-dynare_sensitivity_option : o_gsa_identification
-                          | o_gsa_morris
-                          | o_gsa_stab
-                          | o_gsa_redform
-                          | o_gsa_pprior
-                          | o_gsa_prior_range
-                          | o_gsa_ppost
-                          | o_gsa_ilptau
-                          | o_gsa_morris_nliv
-                          | o_gsa_morris_ntra
-                          | o_gsa_nsam
-                          | o_gsa_load_redform
-                          | o_gsa_load_rmse
-                          | o_gsa_load_stab
-                          | o_gsa_alpha2_stab
-                          | o_gsa_logtrans_redform
-                          | o_gsa_ksstat_redform
-                          | o_gsa_alpha2_redform
-                          | o_gsa_rmse
-                          | o_gsa_lik_only
-                          | o_gsa_pfilt_rmse
-                          | o_gsa_istart_rmse
-                          | o_gsa_alpha_rmse
-                          | o_gsa_alpha2_rmse
-                          | o_gsa_threshold_redform
-                          | o_gsa_namendo
-                          | o_gsa_namexo
-                          | o_gsa_namlagendo
-                          | o_gsa_var_rmse
-                          | o_gsa_neighborhood_width
-                          | o_gsa_pvalue_ks
-                          | o_gsa_pvalue_corr
-                          | o_datafile
-                          | o_nobs
-                          | o_first_obs
-                          | o_prefilter
-                          | o_presample
-                          | o_nograph
-                          | o_nodisplay
-                          | o_graph_format
-                          | o_forecasts_conf_sig
-                          | o_mh_conf_sig
-                          | o_loglinear
-                          | o_mode_file
-                          | o_load_ident_files
-                          | o_useautocorr
-                          | o_ar
-                          | o_kalman_algo
-                          | o_lik_init
-                          | o_diffuse_filter
-                          | o_analytic_derivation
-                          | o_analytic_derivation_mode
-                          ;
 
 shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomposition_options_list
                                  | shock_decomposition_option

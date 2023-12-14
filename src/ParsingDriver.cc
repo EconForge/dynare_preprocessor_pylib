@@ -2024,9 +2024,9 @@ ParsingDriver::run_estimation(vector<string> symbol_list)
 }
 
 void
-ParsingDriver::dynare_sensitivity()
+ParsingDriver::sensitivity()
 {
-  mod_file->addStatement(make_unique<DynareSensitivityStatement>(move(options_list)));
+  mod_file->addStatement(make_unique<SensitivityStatement>(move(options_list)));
   options_list.clear();
 }
 

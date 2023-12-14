@@ -155,7 +155,8 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>bvar_density {BEGIN DYNARE_STATEMENT; return token::BVAR_DENSITY; }
 <INITIAL>bvar_forecast {BEGIN DYNARE_STATEMENT; return token::BVAR_FORECAST; }
 <INITIAL>bvar_irf {BEGIN DYNARE_STATEMENT; return token::BVAR_IRF; }
-<INITIAL>dynare_sensitivity {BEGIN DYNARE_STATEMENT; return token::DYNARE_SENSITIVITY;}
+<INITIAL>sensitivity {BEGIN DYNARE_STATEMENT; return token::SENSITIVITY;}
+<INITIAL>dynare_sensitivity {BEGIN DYNARE_STATEMENT; return token::DYNARE_SENSITIVITY;} // Deprecated
 <INITIAL>initval_file {BEGIN DYNARE_STATEMENT; return token::INITVAL_FILE;}
 <INITIAL>histval_file {BEGIN DYNARE_STATEMENT; return token::HISTVAL_FILE;}
 <INITIAL>forecast {BEGIN DYNARE_STATEMENT; return token::FORECAST;}
