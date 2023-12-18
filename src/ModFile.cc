@@ -1300,6 +1300,9 @@ ModFile::writeJsonOutputParsingCheck(const string& basename, JsonFileOutputType 
       output << ",";
       dynamic_model.writeJsonDynamicModelInfo(output);
     }
+
+  output << R"(, "steady_state_model": )" << mod_file_struct.steady_state_model_present << endl;
+
   output << "}" << endl;
 
   ostringstream original_model_output;
