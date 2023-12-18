@@ -153,7 +153,8 @@ SimulStatement::writeOutput(ostream& output, [[maybe_unused]] const string& base
       options_list_new.erase("datafile");
     }
   options_list_new.writeOutput(output);
-  output << "perfect_foresight_setup;" << endl << "perfect_foresight_solver;" << endl;
+  output << "oo_ = perfect_foresight_setup(M_, options_, oo_);" << endl
+         << "[oo_, Simulated_time_series] = perfect_foresight_solver(M_, options_, oo_);" << endl;
 }
 
 void
@@ -188,7 +189,7 @@ PerfectForesightSetupStatement::writeOutput(ostream& output,
       options_list_new.erase("datafile");
     }
   options_list_new.writeOutput(output);
-  output << "perfect_foresight_setup;" << endl;
+  output << "oo_ = perfect_foresight_setup(M_, options_, oo_);" << endl;
 }
 
 void
@@ -221,7 +222,7 @@ PerfectForesightSolverStatement::writeOutput(ostream& output,
                                              [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "perfect_foresight_solver;" << endl;
+  output << "[oo_, Simulated_time_series] = perfect_foresight_solver(M_, options_, oo_);" << endl;
 }
 
 void
@@ -248,7 +249,7 @@ PerfectForesightWithExpectationErrorsSetupStatement::writeOutput(
     [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "perfect_foresight_with_expectation_errors_setup;" << endl;
+  output << "oo_ = perfect_foresight_with_expectation_errors_setup(M_, options_, oo_);" << endl;
 }
 
 void
@@ -282,7 +283,7 @@ PerfectForesightWithExpectationErrorsSolverStatement::writeOutput(
     [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "perfect_foresight_with_expectation_errors_solver;" << endl;
+  output << "oo_ = perfect_foresight_with_expectation_errors_solver(M_, options_, oo_);" << endl;
 }
 
 void
@@ -5059,7 +5060,8 @@ ExtendedPathStatement::writeOutput(ostream& output, [[maybe_unused]] const strin
   options_list_new.erase("periods");
   options_list_new.writeOutput(output);
 
-  output << "extended_path([], " << periods << ", [], options_, M_, oo_);" << endl;
+  output << "[Simulated_time_series, oo_] = extended_path([], " << periods
+         << ", [], options_, M_, oo_);" << endl;
 }
 
 void
