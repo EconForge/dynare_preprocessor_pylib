@@ -918,9 +918,6 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
     config.writeHooks(mOutputFile);
   mOutputFile << "global_initialization;" << endl;
 
-  if (minimal_workspace)
-    mOutputFile << "options_.minimal_workspace = true;" << endl;
-
   if (console)
     mOutputFile << "options_.console_mode = true;" << endl << "options_.nodisplay = true;" << endl;
   if (nograph)
