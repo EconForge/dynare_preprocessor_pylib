@@ -3875,3 +3875,16 @@ ParsingDriver::resid()
   mod_file->addStatement(make_unique<ResidStatement>(move(options_list)));
   options_list.clear();
 }
+
+void
+ParsingDriver::matched_irfs(MatchedIrfsStatement::matched_irfs_t values_weights, bool overwrite)
+{
+  mod_file->addStatement(make_unique<MatchedIrfsStatement>(move(values_weights), overwrite));
+}
+
+void
+ParsingDriver::matched_irfs_weights(MatchedIrfsWeightsStatement::matched_irfs_weights_t weights,
+                                    bool overwrite)
+{
+  mod_file->addStatement(make_unique<MatchedIrfsWeightsStatement>(move(weights), overwrite));
+}

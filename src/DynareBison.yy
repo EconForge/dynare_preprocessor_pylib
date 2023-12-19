@@ -215,7 +215,7 @@ str_tolower(string s)
 %token ENDVAL_STEADY STEADY_SOLVE_ALGO STEADY_MAXIT STEADY_TOLF STEADY_TOLX STEADY_MARKOWITZ
 %token HOMOTOPY_MAX_COMPLETION_SHARE HOMOTOPY_MIN_STEP_SIZE HOMOTOPY_INITIAL_STEP_SIZE HOMOTOPY_STEP_SIZE_INCREASE_SUCCESS_COUNT
 %token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK FROM_INITVAL_TO_ENDVAL
-%token STATIC_MFS RELATIVE_TO_INITVAL
+%token STATIC_MFS RELATIVE_TO_INITVAL MATCHED_IRFS MATCHED_IRFS_WEIGHTS WEIGHTS
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -236,7 +236,7 @@ str_tolower(string s)
 %type <vector<int>> vec_int_elem vec_int_1 vec_int vec_int_number
 %type <PriorDistributions> prior_pdf prior_distribution
 %type <pair<expr_t,expr_t>> calibration_range
-%type <pair<string,string>> partition_elem subsamples_eq_opt integer_range_w_inf tag_pair
+%type <pair<string,string>> partition_elem subsamples_eq_opt integer_range_w_inf tag_pair matched_irfs_elem_var_varexo
 %type <vector<pair<string,string>>> partition partition_1 symbol_list_with_tex
 %type <vector<map<string, string>>> tag_pair_list_for_selection
 %type <map<string, string>> tag_pair_list
@@ -251,6 +251,12 @@ str_tolower(string s)
 %type <vector<tuple<string, string, vector<pair<string, string>>>>> symbol_list_with_tex_and_partition
 %type <map<string, variant<bool, string>>> mshocks_options_list
 %type <pair<string, variant<bool, string>>> mshocks_option
+%type <pair<vector<expr_t>, vector<expr_t>>> matched_irfs_elem_values_weights
+%type <pair<pair<string, string>, vector<tuple<int, int, expr_t, expr_t>>>> matched_irfs_elem
+%type <map<pair<string, string>, vector<tuple<int, int, expr_t, expr_t>>>> matched_irfs_list
+%type <tuple<string, string, string>> matched_irfs_weights_elem_var_varexo
+%type <pair<tuple<string, string, string, string, string, string>, expr_t>> matched_irfs_weights_elem
+%type <map<tuple<string, string, string, string, string, string>, expr_t>> matched_irfs_weights_list
 %%
 
 %start statement_list;
@@ -386,6 +392,8 @@ statement : parameters
           | var_remove
           | pac_target_info
           | resid
+          | matched_irfs
+          | matched_irfs_weights
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -3547,6 +3555,108 @@ init2shocks_list : init2shocks_list init2shocks_element
 init2shocks_element : symbol symbol ';' { driver.add_init2shocks($1, $2); }
                     | symbol COMMA symbol ';' { driver.add_init2shocks($1, $3); }
                     ;
+
+matched_irfs : MATCHED_IRFS ';' matched_irfs_list END ';'
+               { driver.matched_irfs($3, false); }
+             | MATCHED_IRFS '(' OVERWRITE ')' ';' matched_irfs_list END ';'
+               { driver.matched_irfs($6, true); }
+             ;
+
+matched_irfs_list : matched_irfs_elem
+                    { $$ = {$1}; }
+                  | matched_irfs_list matched_irfs_elem
+                    {
+                      $$ = $1;
+                      auto [it, success] = $$.insert($2);
+                      if (!success)
+                        driver.error("matched_irfs: the pair endogenous " + $2.first.first + " with exogenous " + $2.first.second + " appears two times");
+                    }
+                  ;
+
+matched_irfs_elem : matched_irfs_elem_var_varexo
+                    PERIODS period_list ';'
+                    matched_irfs_elem_values_weights
+                    {
+                      if ($3.size() != $5.first.size())
+                        driver.error("matched_irfs: the 'periods' and 'values' keywords are not followed by the same number of elements");
+                      if ($3.size() != $5.second.size())
+                        driver.error("matched_irfs: the 'periods' and 'values' keywords are not followed by the same number of elements");
+                      vector<tuple<int, int, expr_t, expr_t>> v;
+                      v.reserve($3.size());
+                      for (size_t i {0}; i < $3.size(); i++)
+                        v.emplace_back($3[i].first, $3[i].second, $5.first[i], $5.second[i]);
+                      $$ = {$1, v};
+                    }
+                  ;
+
+matched_irfs_elem_var_varexo : VAR symbol ';' VAREXO symbol ';'
+                               {
+                                 driver.check_symbol_is_endogenous($2);
+                                 driver.check_symbol_is_exogenous($5, false);
+                                 $$ = {$2, $5};
+                               }
+                             | VAREXO symbol ';' VAR symbol ';'
+                               {
+                                 driver.check_symbol_is_endogenous($5);
+                                 driver.check_symbol_is_exogenous($2, false);
+                                 $$ = {$5, $2};
+                               }
+                             ;
+
+matched_irfs_elem_values_weights : VALUES value_list ';'
+                                   {
+                                     $$ = {$2, vector($2.size(),
+                                                      driver.add_non_negative_constant("1"))};
+                                   }
+                                 | VALUES value_list ';' WEIGHTS value_list ';'
+                                   { $$ = {$2, $5}; }
+                                 | WEIGHTS value_list ';' VALUES value_list ';'
+                                   { $$ = {$5, $2}; }
+                                 ;
+
+matched_irfs_weights : MATCHED_IRFS_WEIGHTS ';' matched_irfs_weights_list END ';'
+                       { driver.matched_irfs_weights($3, false); }
+                     | MATCHED_IRFS_WEIGHTS '(' OVERWRITE ')' ';' matched_irfs_weights_list END ';'
+                       { driver.matched_irfs_weights($6, true); }
+                     ;
+
+matched_irfs_weights_list : matched_irfs_weights_elem
+                            { $$ = {$1}; }
+                          | matched_irfs_weights_list matched_irfs_weights_elem
+                            {
+                              $$ = $1;
+                              auto [it, success] = $$.insert($2);
+                              if (!success)
+                                driver.error("matched_irfs: the tuple (" + get<0>($2.first)
+                                             + "(" + get<1>($2.first) + ")," + get<2>($2.first)
+                                             + "," + get<3>($2.first) + "(" + get<4>($2.first) + "),"
+                                             + get<5>($2.first) + ") appears two times");
+                            }
+                          ;
+
+matched_irfs_weights_elem : matched_irfs_weights_elem_var_varexo COMMA
+                            matched_irfs_weights_elem_var_varexo COMMA
+                            expression ';'
+                            {
+                              $$ = {{get<0>($1), get<1>($1), get<2>($1),
+                                     get<0>($3), get<1>($3), get<2>($3)},
+                                    $5};
+                            }
+                          ;
+
+matched_irfs_weights_elem_var_varexo : symbol '(' INT_NUMBER ')' COMMA symbol
+                                       {
+                                         driver.check_symbol_is_endogenous($1);
+                                         driver.check_symbol_is_exogenous($6, false);
+                                         $$ = {$1, $3, $6};
+                                       }
+                                     | symbol '(' integer_range ')' COMMA symbol
+                                       {
+                                         driver.check_symbol_is_endogenous($1);
+                                         driver.check_symbol_is_exogenous($6, false);
+                                         $$ = {$1, $3, $6};
+                                       }
+                                     ;
 
 o_solve_algo : SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("solve_algo", $3); };
 o_stack_solve_algo : STACK_SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("stack_solve_algo", $3); };

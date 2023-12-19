@@ -98,6 +98,7 @@ private:
   //! message if it isn't
   void check_symbol_is_endogenous_or_exogenous(const string& name, bool allow_exo_det);
 
+public:
   //! Checks that a given symbol exists and is a endogenous, and stops with an error message if it
   //! isn't
   void check_symbol_is_endogenous(const string& name);
@@ -106,6 +107,7 @@ private:
   //! isn't
   void check_symbol_is_exogenous(const string& name, bool allow_exo_det);
 
+private:
   //! Checks for symbol existence in model block. If it doesn't exist, an error message is stored to
   //! be printed at the end of the model block
   void check_symbol_existence_in_model_block(const string& name);
@@ -954,6 +956,11 @@ public:
   void set_pac_target_info_component_kind(PacTargetKind kind);
   // Add a resid statement
   void resid();
+  // Add a matched_irfs block
+  void matched_irfs(MatchedIrfsStatement::matched_irfs_t values_weights, bool overwrite);
+  // Add a matched_irfs_weights block
+  void matched_irfs_weights(MatchedIrfsWeightsStatement::matched_irfs_weights_t weights,
+                            bool overwrite);
   // Returns true iff the string is a legal symbol identifier (see NAME token in lexer)
   static bool isSymbolIdentifier(const string& str);
   // Given an Occbin regime name, returns the corresponding auxiliary parameter

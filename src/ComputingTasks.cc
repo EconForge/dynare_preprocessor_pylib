@@ -5483,3 +5483,103 @@ ResidStatement::writeJsonOutput(ostream& output) const
     }
   output << "}";
 }
+
+MatchedIrfsStatement::MatchedIrfsStatement(matched_irfs_t values_weights_arg, bool overwrite_arg) :
+    values_weights {move(values_weights_arg)}, overwrite {overwrite_arg}
+{
+}
+
+void
+MatchedIrfsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
+                                  [[maybe_unused]] bool minimal_workspace) const
+{
+  if (overwrite)
+    output << "M_.matched_irfs = {};" << endl;
+
+  for (const auto& [key, vec] : values_weights)
+    {
+      const auto& [endo, exo] = key;
+      output << "M_.matched_irfs = [M_.matched_irfs; {'" << endo << "', '" << exo << "', {";
+      for (const auto& [p1, p2, value, weight] : vec)
+        {
+          output << p1 << ":" << p2 << ", ";
+          value->writeOutput(output);
+          output << ", ";
+          weight->writeOutput(output);
+          output << "; ";
+        }
+      output << "}}];" << endl;
+    }
+}
+
+void
+MatchedIrfsStatement::writeJsonOutput(ostream& output) const
+{
+  output << R"({"statementName": "matched_irfs")"
+         << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "contents": [)";
+  for (bool printed_something {false}; const auto& [key, vec] : values_weights)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      const auto& [endo, exo] = key;
+      output << R"({"var": ")" << endo << R"(", "varexo": ")" << exo
+             << R"(", "periods_values_weights": [)";
+      for (bool printed_something2 {false}; const auto& [p1, p2, value, weight] : vec)
+        {
+          if (exchange(printed_something2, true))
+            output << ", ";
+          output << R"({"period1": )" << p1 << ", "
+                 << R"("period2": })" << p2 << ", "
+                 << R"("value": ")";
+          value->writeJsonOutput(output, {}, {});
+          output << R"(", "weight": ")";
+          weight->writeJsonOutput(output, {}, {});
+          output << R"("})";
+        }
+      output << "]}";
+    }
+  output << "]}";
+}
+
+MatchedIrfsWeightsStatement::MatchedIrfsWeightsStatement(matched_irfs_weights_t weights_arg,
+                                                         bool overwrite_arg) :
+    weights {move(weights_arg)}, overwrite {overwrite_arg}
+{
+}
+
+void
+MatchedIrfsWeightsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
+                                         [[maybe_unused]] bool minimal_workspace) const
+{
+  if (overwrite)
+    output << "M_.matched_irfs_weights = {};" << endl;
+
+  for (const auto& [key, val] : weights)
+    {
+      const auto& [endo1, periods1, exo1, endo2, periods2, exo2] = key;
+      output << "M_.matched_irfs_weights = [M_.matched_irfs_weights; {'" << endo1 << "', "
+             << periods1 << ", '" << exo1 << "', '" << endo2 << "', " << periods2 << ", '" << exo2
+             << "', ";
+      val->writeOutput(output);
+      output << "}];" << endl;
+    }
+}
+
+void
+MatchedIrfsWeightsStatement::writeJsonOutput(ostream& output) const
+{
+  output << R"({"statementName": "matched_irfs_weights")"
+         << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "contents": [)";
+  for (bool printed_something {false}; const auto& [key, val] : weights)
+    {
+      const auto& [endo1, periods1, exo1, endo2, periods2, exo2] = key;
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << R"({"endo1": ")" << endo1 << R"(", "periods1": ")" << periods1 << R"(", "exo1": )"
+             << exo1 << R"(", "endo2": ")" << endo2 << R"(", "periods2": ")" << periods2
+             << R"(", "exo2": )" << exo2 << R"(", "weight": ")";
+      val->writeJsonOutput(output, {}, {});
+      output << R"("})";
+    }
+  output << "]}";
+}

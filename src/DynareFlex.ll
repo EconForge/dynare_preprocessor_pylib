@@ -233,6 +233,8 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>occbin_constraints {BEGIN DYNARE_BLOCK; return token::OCCBIN_CONSTRAINTS;}
 <INITIAL>model_replace {BEGIN DYNARE_BLOCK; return token::MODEL_REPLACE;}
 <INITIAL>pac_target_info {BEGIN DYNARE_BLOCK; return token::PAC_TARGET_INFO;}
+<INITIAL>matched_irfs {BEGIN DYNARE_BLOCK; return token::MATCHED_IRFS;}
+<INITIAL>matched_irfs_weights {BEGIN DYNARE_BLOCK; return token::MATCHED_IRFS_WEIGHTS;}
 
  /* For the semicolon after an "end" keyword */
 <INITIAL>; {return Dynare::parser::token_type (yytext[0]);}
@@ -787,6 +789,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 
  /* Inside a Dynare block */
 <DYNARE_BLOCK>var {return token::VAR;}
+<DYNARE_BLOCK>varexo {return token::VAREXO;}
 <DYNARE_BLOCK>stderr {return token::STDERR;}
 <DYNARE_BLOCK>values {return token::VALUES;}
 <DYNARE_BLOCK>corr {return token::CORR;}
@@ -856,7 +859,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
   yylval->build<string>(yytext);
   return token::DD;
 }
-
+<DYNARE_BLOCK>weights {return token::WEIGHTS;}
 
  /* Inside Dynare statement */
 <DYNARE_STATEMENT>solve_algo {return token::SOLVE_ALGO;}

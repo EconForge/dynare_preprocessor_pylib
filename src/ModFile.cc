@@ -953,14 +953,16 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
   // May be later modified by a shocks block
   mOutputFile << "M_.sigma_e_is_diagonal = true;" << endl;
 
-  // Initialize M_.det_shocks, M_.surprise_shocks, M_.learnt_shocks, M_.learnt_endval and
-  // M_.heteroskedastic_shocks
+  /* Initialize the structures created for several blocks, as part of the implementation of the
+     “overwrite” option */
   mOutputFile << "M_.det_shocks = [];" << endl
               << "M_.surprise_shocks = [];" << endl
               << "M_.learnt_shocks = [];" << endl
               << "M_.learnt_endval = [];" << endl
               << "M_.heteroskedastic_shocks.Qvalue_orig = [];" << endl
-              << "M_.heteroskedastic_shocks.Qscale_orig = [];" << endl;
+              << "M_.heteroskedastic_shocks.Qscale_orig = [];" << endl
+              << "M_.matched_irfs = {};" << endl
+              << "M_.matched_irfs_weights = {};" << endl;
 
   // NB: options_.{ramsey,discretionary}_policy should rather be fields of M_
   mOutputFile << boolalpha << "options_.linear = " << linear << ";" << endl

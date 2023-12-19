@@ -1332,4 +1332,33 @@ public:
   void writeJsonOutput(ostream& output) const override;
 };
 
+class MatchedIrfsStatement : public Statement
+{
+public:
+  // (endo name, exo name) → vector of (period start, period end, value, weight)
+  using matched_irfs_t = map<pair<string, string>, vector<tuple<int, int, expr_t, expr_t>>>;
+  MatchedIrfsStatement(matched_irfs_t values_weights_arg, bool overwrite_arg);
+  void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream& output) const override;
+
+private:
+  const matched_irfs_t values_weights;
+  const bool overwrite;
+};
+
+class MatchedIrfsWeightsStatement : public Statement
+{
+public:
+  /* (endo1 name, period index or range for endo1, exo1 name, endo2 name, period index or range for
+     endo2, exo2 name) → weight */
+  using matched_irfs_weights_t = map<tuple<string, string, string, string, string, string>, expr_t>;
+  MatchedIrfsWeightsStatement(matched_irfs_weights_t weights_arg, bool overwrite_arg);
+  void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream& output) const override;
+
+private:
+  const matched_irfs_weights_t weights;
+  const bool overwrite;
+};
+
 #endif
