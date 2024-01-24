@@ -2676,8 +2676,44 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
         }
       eq_tags.erase("bind");
       eq_tags.erase("relax");
-      dynamic_model->addOccbinEquation(id, location.begin.line, move(eq_tags), regimes_bind,
-                                       regimes_relax);
+
+      try
+        {
+          dynamic_model->addOccbinEquation(id, location.begin.line, move(eq_tags), regimes_bind,
+                                           regimes_relax);
+        }
+      catch (DynamicModel::OccbinRegimeTracker::RegimeInBothBindAndRelaxException& e)
+        {
+          error("The regime '" + e.regime + "' is both in the 'bind' and 'relax' tags");
+        }
+      catch (DynamicModel::OccbinRegimeTracker::AlternativeAlreadyPresentException& e)
+        {
+          stringstream s;
+          if (!e.regimes_bind.empty())
+            {
+              cerr << "bind=";
+              for (bool first_printed {false}; const auto& r : e.regimes_bind)
+                {
+                  if (exchange(first_printed, true))
+                    cerr << ",";
+                  cerr << r;
+                }
+            }
+          if (!e.regimes_bind.empty() && !e.regimes_relax.empty())
+            cerr << "'and '";
+          if (!e.regimes_relax.empty())
+            {
+              cerr << "relax=";
+              for (bool first_printed {false}; const auto& r : e.regimes_relax)
+                {
+                  if (exchange(first_printed, true))
+                    cerr << ",";
+                  cerr << r;
+                }
+            }
+          error("The alternative corresponding to '" + s.str()
+                + "' has already been declared for this equation");
+        }
     }
   else // General case
     model_tree->addEquation(id, location.begin.line, move(eq_tags));

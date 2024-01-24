@@ -279,6 +279,10 @@ ModFile::checkPass(bool nostrict, bool stochastic)
         }
     }
 
+  /* This check must come before checking that there are as many static-only as dynamic-only
+     equations, see #103 */
+  dynamic_model.checkOccbinRegimes();
+
   if (dynamic_model.staticOnlyEquationsNbr() != dynamic_model.dynamicOnlyEquationsNbr())
     {
       cerr << "ERROR: the number of equations marked [static] must be equal to the number of "

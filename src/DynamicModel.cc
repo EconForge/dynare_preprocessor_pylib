@@ -3606,6 +3606,8 @@ DynamicModel::addOccbinEquation(expr_t eq, const optional<int>& lineno, map<stri
   auto beq = dynamic_cast<BinaryOpNode*>(eq);
   assert(beq && beq->op_code == BinaryOpcode::equal);
 
+  occbin_regime_trackers[eq_tags.at("name")].addAlternative(regimes_bind, regimes_relax);
+
   // Construct the term to be added to the corresponding equation
   expr_t basic_term = AddMinus(beq->arg1, beq->arg2);
   expr_t term = basic_term;
@@ -4020,4 +4022,145 @@ DynamicModel::checkIsLinear() const
         }
       exit(EXIT_FAILURE);
     }
+}
+
+void
+DynamicModel::checkOccbinRegimes() const
+{
+  for (const auto& [eq_name, tracker] : occbin_regime_trackers)
+    {
+      try
+        {
+          tracker.checkAllAlternativesPresent();
+        }
+      catch (OccbinRegimeTracker::MissingAlternativeException& e)
+        {
+          cerr << "ERROR: for equation '" << eq_name << "', the alternative corresponding to '";
+          if (!e.regimes_bind.empty())
+            {
+              cerr << "bind=";
+              for (bool first_printed {false}; const auto& r : e.regimes_bind)
+                {
+                  if (exchange(first_printed, true))
+                    cerr << ",";
+                  cerr << r;
+                }
+            }
+          if (!e.regimes_bind.empty() && !e.regimes_relax.empty())
+            cerr << "'and '";
+          if (!e.regimes_relax.empty())
+            {
+              cerr << "relax=";
+              for (bool first_printed {false}; const auto& r : e.regimes_relax)
+                {
+                  if (exchange(first_printed, true))
+                    cerr << ",";
+                  cerr << r;
+                }
+            }
+          cerr << "' is not defined" << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void
+DynamicModel::OccbinRegimeTracker::addAlternative(const vector<string>& regimes_bind,
+                                                  const vector<string>& regimes_relax)
+{
+  // Check that no regime appears in both bind and relax
+  set regimes_bind_sorted(regimes_bind.begin(), regimes_bind.end()),
+      regimes_relax_sorted(regimes_relax.begin(), regimes_relax.end());
+  vector<string> regimes_intersect;
+  ranges::set_intersection(regimes_bind_sorted, regimes_relax_sorted,
+                           back_inserter(regimes_intersect));
+  if (!regimes_intersect.empty())
+    throw RegimeInBothBindAndRelaxException {regimes_intersect.front()};
+
+  // If a regime has never been mentioned before, add it to the list and adapt the alternatives
+  vector<string> regimes_union;
+  ranges::set_union(regimes_bind_sorted, regimes_relax_sorted, back_inserter(regimes_union));
+  for (const auto& r : regimes_union)
+    if (ranges::find(regimes, r) == regimes.end())
+      {
+        regimes.push_back(r);
+        auto alt_copy = alternatives_present;
+        alternatives_present.clear();
+        for (const auto& a : alt_copy)
+          {
+            auto a0 = a, a1 = a;
+            a0.push_back(false);
+            a1.push_back(true);
+            alternatives_present.insert(a0);
+            alternatives_present.insert(a1);
+          }
+      }
+
+  // Create the bit vector(s) corresponding to the function arguments
+  vector<bool> new_alt_template(regimes.size(), false);
+  for (const auto& r : regimes_bind)
+    {
+      int i = distance(regimes.begin(), ranges::find(regimes, r));
+      new_alt_template[i] = true;
+    }
+  set<vector<bool>> new_alts {new_alt_template};
+  set all_regimes_sorted(regimes.begin(), regimes.end());
+  vector<string> regimes_not_mentioned;
+  ranges::set_difference(all_regimes_sorted, regimes_union, back_inserter(regimes_not_mentioned));
+  for (const auto& r : regimes_not_mentioned)
+    {
+      int i = distance(regimes.begin(), ranges::find(regimes, r));
+      auto new_alts_copy = new_alts;
+      for (const auto& a : new_alts_copy)
+        {
+          auto a2 = a;
+          a2[i] = true;
+          new_alts.insert(move(a2));
+        }
+    }
+
+  // Add the new bit vector(s)
+  for (const auto& a : new_alts)
+    {
+      auto [it, success] = alternatives_present.insert(a);
+      if (!success)
+        {
+          auto [regimes_bind_duplicate, regimes_relax_duplicate] = convertBitVectorToRegimes(a);
+          throw AlternativeAlreadyPresentException {regimes_bind_duplicate,
+                                                    regimes_relax_duplicate};
+        }
+    }
+}
+
+void
+DynamicModel::OccbinRegimeTracker::checkAllAlternativesPresent() const
+{
+  vector<bool> a(regimes.size(), false);
+  do
+    {
+      if (!alternatives_present.contains(a))
+        {
+          auto [regimes_bind, regimes_relax] = convertBitVectorToRegimes(a);
+          throw MissingAlternativeException {regimes_bind, regimes_relax};
+        }
+      auto it = ranges::find(a, false);
+      if (it == a.end())
+        break;
+      *it = true;
+      if (it != a.begin())
+        fill(a.begin(), prev(it), false);
+    }
+  while (true);
+}
+
+pair<vector<string>, vector<string>>
+DynamicModel::OccbinRegimeTracker::convertBitVectorToRegimes(const vector<bool>& a) const
+{
+  vector<string> regimes_bind, regimes_relax;
+  for (size_t i = 0; i < regimes.size(); i++)
+    if (a[i])
+      regimes_bind.push_back(regimes[i]);
+    else
+      regimes_relax.push_back(regimes[i]);
+  return {regimes_bind, regimes_relax};
 }
