@@ -43,6 +43,39 @@ public:
      “model” block. The default should not be too small (see dynare#1389). */
   double balanced_growth_test_tol {1e-6};
 
+  /* For a given equation, tracks all the regimes and the declared alternatives with combinations of
+     bind and relax tags */
+  class OccbinRegimeTracker
+  {
+  private:
+    // The list of regimes used for this equation
+    vector<string> regimes;
+    /* The list of alternatives present for this equation; each alternative is a vector of boolean,
+       of same length as “regimes”; each boolean represents a regime (in the order of “regimes”):
+       false for relax, true for bind */
+    set<vector<bool>> alternatives_present;
+
+  public:
+    struct RegimeInBothBindAndRelaxException
+    {
+      const string regime;
+    };
+    struct AlternativeAlreadyPresentException
+    {
+      const vector<string> regimes_bind, regimes_relax;
+    };
+    void addAlternative(const vector<string>& regimes_bind,
+                        const vector<string>& regimes_relax) noexcept(false);
+    struct MissingAlternativeException
+    {
+      const vector<string> regimes_bind, regimes_relax;
+    };
+    void checkAllAlternativesPresent() const noexcept(false);
+
+  private:
+    pair<vector<string>, vector<string>> convertBitVectorToRegimes(const vector<bool>& a) const;
+  };
+
 private:
   /* Used in the balanced growth test, for skipping equations where the test
      cannot be performed (i.e. when LHS=RHS at the initial values). Should not
@@ -275,6 +308,9 @@ private:
   {
     return blocks_jacob_cols_endo[blk].at({var, lag});
   }
+
+  // Used to check consistency of bind/relax tags; the keys are equation names
+  map<string, OccbinRegimeTracker> occbin_regime_trackers;
 
 protected:
   string
@@ -695,6 +731,9 @@ public:
   {
     static_mfs = static_mfs_arg;
   }
+
+  // Checks that all alternatives are declared for all Occbin regimes in all equations
+  void checkOccbinRegimes() const;
 };
 
 template<bool julia>
