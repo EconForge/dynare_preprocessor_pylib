@@ -45,7 +45,11 @@ NativeStatement::writeOutput(ostream& output, [[maybe_unused]] const string& bas
                              [[maybe_unused]] bool minimal_workspace) const
 {
   using namespace boost::xpressive;
-  string date_regex = R"((-?\d+([YyAa]|[Mm]([1-9]|1[0-2])|[Qq][1-4]|[SsHh][1-2])))";
+  /* NB: in date_regex, for monthly dates, “1[0-2]” must come before “[1-9]” in the alternative,
+     otherwise 2023M12 will be matched as 2023M1 (see dynare#1918). Technically, it seems that
+     boost::xpressive does not look for the longest match in an alternation, but stops at the first
+     match from left to right. */
+  string date_regex = R"((-?\d+([YyAa]|[Mm](1[0-2]|[1-9])|[Qq][1-4]|[SsHh][1-2])))";
   sregex regex_lookbehind = sregex::compile(R"((?<!\$|\d|[a-zA-Z_]|-|'))" + date_regex);
   sregex regex_dollar = sregex::compile(R"((\$))" + date_regex);
 
