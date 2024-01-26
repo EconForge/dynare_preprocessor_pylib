@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2023 Dynare Team
+ * Copyright © 2007-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -795,9 +795,8 @@ public:
   /* Overwrites an existing instruction, given its number.
      It is the responsibility of the caller to ensure that the new instruction
      occupies exactly as many bytes as the former one. */
-  template<typename B>
   void
-  overwriteInstruction(int instruction_number, const B& new_instruction)
+  overwriteInstruction(int instruction_number, const auto& new_instruction)
   {
     seekp(instructions_positions.at(instruction_number));
     *this << new_instruction;
