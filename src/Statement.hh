@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2023 Dynare Team
+ * Copyright © 2006-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -254,6 +254,12 @@ public:
   {
   };
 
+  // pair<string, string> corresponds to a pair of numerical values
+  // vector<vector<string>> corresponds to a vector of vectors of numerical values
+  using OptionValue
+      = variant<NumVal, pair<string, string>, StringVal, DateVal, SymbolListVal, vector<int>,
+                VecStrVal, VecCellStrVal, VecValueVal, vector<vector<string>>>;
+
   [[nodiscard]] bool empty() const;
   void clear();
   // Whether there is an option with that name that has been given a value
@@ -281,7 +287,8 @@ public:
   /* Retrieves the value of the option with that name.
      Throws UnknownOptionException if there is no option with that name.
      Throws bad_variant_access if the option has a value of a different type. */
-  template<class T>
+  template<typename T>
+    requires requires(T p) { std::get<T>(OptionValue {}); }
   T
   get(const string& name) const
   {
@@ -295,7 +302,8 @@ public:
   /* Retrieves the value of the option with that name.
      Returns nullopt if there is no option with that name.
      Throws bad_variant_access if the option has a value of a different type. */
-  template<class T>
+  template<typename T>
+    requires requires(T p) { std::get<T>(OptionValue {}); }
   optional<T>
   get_if(const string& name) const
   {
@@ -309,7 +317,7 @@ public:
   /* Applies a variant visitor to the value of the option with that name.
      Throws UnknownOptionException if there is no option with that name. */
   template<class Visitor>
-  decltype(auto)
+    requires invocable<Visitor, OptionValue> decltype(auto)
   visit(const string& name, Visitor&& vis) const
   {
     auto it = options.find(name);
@@ -324,11 +332,7 @@ public:
   void writeJsonOutput(ostream& output) const;
 
 private:
-  // pair<string, string> corresponds to a pair of numerical values
-  // vector<vector<string>> corresponds to a vector of vectors of numerical values
-  map<string, variant<NumVal, pair<string, string>, StringVal, DateVal, SymbolListVal, vector<int>,
-                      VecStrVal, VecCellStrVal, VecValueVal, vector<vector<string>>>>
-      options;
+  map<string, OptionValue> options;
   void writeOutputCommon(ostream& output, const string& option_group) const;
   // Helper constant for visitors
   template<class>

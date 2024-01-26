@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2023 Dynare Team
+ * Copyright © 2007-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -20,6 +20,7 @@
 #ifndef EXPR_NODE_HH
 #define EXPR_NODE_HH
 
+#include <concepts>
 #include <functional>
 #include <map>
 #include <optional>
@@ -1173,6 +1174,7 @@ protected:
   // Returns the node obtained by applying a transformation recursively on the argument (in same
   // datatree)
   template<typename Callable, typename... Args>
+    requires invocable<Callable, expr_t, Args...>
   expr_t
   recurseTransform(Callable&& op, Args&&... args) const
   {
@@ -1339,6 +1341,7 @@ private:
   // Returns the node obtained by applying a transformation recursively on the arguments (in same
   // datatree)
   template<typename Callable, typename... Args>
+    requires invocable<Callable, expr_t, Args...>
   expr_t
   recurseTransform(Callable&& op, Args&&... args) const
   {
@@ -1532,6 +1535,7 @@ private:
   // Returns the node obtained by applying a transformation recursively on the arguments (in same
   // datatree)
   template<typename Callable, typename... Args>
+    requires invocable<Callable, expr_t, Args...>
   expr_t
   recurseTransform(Callable&& op, Args&&... args) const
   {
@@ -1660,6 +1664,7 @@ private:
   // Returns the node obtained by applying a transformation recursively on the arguments (in same
   // datatree)
   template<typename Callable, typename... Args>
+    requires invocable<Callable, expr_t, Args...>
   expr_t
   recurseTransform(Callable&& op, Args&&... args) const
   {

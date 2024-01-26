@@ -20,6 +20,7 @@
 #ifndef BYTECODE_HH
 #define BYTECODE_HH
 
+#include <concepts>
 #include <filesystem>
 #include <fstream>
 #include <ios>
@@ -138,6 +139,9 @@ protected:
      whole object from memory) would thus not work. */
   ~Instruction() = default;
 };
+
+template<typename T>
+concept IsInstruction = derived_from<T, Instruction>;
 
 struct FLDZ final : public Instruction
 {
@@ -426,7 +430,7 @@ struct FSTPV final : public Instruction
 
 class FCALL final : public Instruction
 {
-  template<typename B>
+  template<IsInstruction B>
   friend Writer& operator<<(Writer& code_file, const B& instr);
 
 private:
@@ -602,7 +606,7 @@ public:
 
 class FBEGINBLOCK final : public Instruction
 {
-  template<typename B>
+  template<IsInstruction B>
   friend Writer& operator<<(Writer& code_file, const B& instr);
 
 private:
@@ -760,7 +764,7 @@ public:
 // Superclass of std::ofstream for writing a sequence of bytecode instructions
 class Writer : private ofstream
 {
-  template<typename B>
+  template<IsInstruction B>
   friend Writer& operator<<(Writer& code_file, const B& instr);
 
 private:
@@ -779,7 +783,7 @@ public:
      It is the responsibility of the caller to ensure that the new instruction
      occupies exactly as many bytes as the former one. */
   void
-  overwriteInstruction(int instruction_number, const auto& new_instruction)
+  overwriteInstruction(int instruction_number, const IsInstruction auto& new_instruction)
   {
     seekp(instructions_positions.at(instruction_number));
     *this << new_instruction;
@@ -790,7 +794,7 @@ public:
 
 // Overloads of operator<< for writing bytecode instructions
 
-template<typename B>
+template<IsInstruction B>
 Writer&
 operator<<(Writer& code_file, const B& instr)
 {
