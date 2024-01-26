@@ -2648,23 +2648,23 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
       // If the equation has a “bind” or “relax” tag (occbin case)
       if (!eq_tags.contains("name"))
         error("An equation with a 'bind' or 'relax' tag must have a 'name' tag");
-      auto regimes_bind = DataTree::strsplit(eq_tags["bind"], ',');
-      auto regimes_relax = DataTree::strsplit(eq_tags["relax"], ',');
-      auto regimes_all = regimes_bind;
-      regimes_all.insert(regimes_all.end(), regimes_relax.begin(),
-                         regimes_relax.end()); // Concatenate the two vectors
-      for (const auto& regime : regimes_all)
+      auto constraints_bind = DataTree::strsplit(eq_tags["bind"], ',');
+      auto constraints_relax = DataTree::strsplit(eq_tags["relax"], ',');
+      auto constraints_all = constraints_bind;
+      constraints_all.insert(constraints_all.end(), constraints_relax.begin(),
+                             constraints_relax.end()); // Concatenate the two vectors
+      for (const auto& constraint : constraints_all)
         {
-          if (!isSymbolIdentifier(regime))
-            error("The string '" + regime
-                  + "' is not a valid Occbin regime name (contains unauthorized characters)");
-          string param_name = buildOccbinBindParamName(regime);
+          if (!isSymbolIdentifier(constraint))
+            error("The string '" + constraint
+                  + "' is not a valid Occbin constraint name (contains unauthorized characters)");
+          string param_name = buildOccbinBindParamName(constraint);
           try
             {
               if (mod_file->symbol_table.getType(param_name) != SymbolType::parameter)
                 error("The name '" + param_name
-                      + "' is already used. Please use another name for Occbin regime '" + regime
-                      + "'");
+                      + "' is already used. Please use another name for Occbin constraint '"
+                      + constraint + "'");
             }
           catch (SymbolTable::UnknownSymbolNameException& e)
             {
@@ -2679,40 +2679,41 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
 
       try
         {
-          dynamic_model->addOccbinEquation(id, location.begin.line, move(eq_tags), regimes_bind,
-                                           regimes_relax);
+          dynamic_model->addOccbinEquation(id, location.begin.line, move(eq_tags), constraints_bind,
+                                           constraints_relax);
         }
-      catch (DynamicModel::OccbinRegimeTracker::RegimeInBothBindAndRelaxException& e)
+      catch (DynamicModel::OccbinRegimeTracker::ConstraintInBothBindAndRelaxException& e)
         {
-          error("The regime '" + e.regime + "' is both in the 'bind' and 'relax' tags");
+          error("The constraint '" + e.constraint + "' is both in the 'bind' and 'relax' tags");
         }
-      catch (DynamicModel::OccbinRegimeTracker::AlternativeAlreadyPresentException& e)
+      catch (DynamicModel::OccbinRegimeTracker::RegimeAlreadyPresentException& e)
         {
           stringstream s;
-          if (!e.regimes_bind.empty())
+          if (!e.constraints_bind.empty())
             {
-              cerr << "bind=";
-              for (bool first_printed {false}; const auto& r : e.regimes_bind)
+              s << "bind='";
+              for (bool first_printed {false}; const auto& c : e.constraints_bind)
                 {
                   if (exchange(first_printed, true))
-                    cerr << ",";
-                  cerr << r;
+                    s << ",";
+                  s << c;
                 }
             }
-          if (!e.regimes_bind.empty() && !e.regimes_relax.empty())
-            cerr << "'and '";
-          if (!e.regimes_relax.empty())
+          if (!e.constraints_bind.empty() && !e.constraints_relax.empty())
+            s << "' and ";
+          if (!e.constraints_relax.empty())
             {
-              cerr << "relax=";
-              for (bool first_printed {false}; const auto& r : e.regimes_relax)
+              s << "relax='";
+              for (bool first_printed {false}; const auto& c : e.constraints_relax)
                 {
                   if (exchange(first_printed, true))
-                    cerr << ",";
-                  cerr << r;
+                    s << ",";
+                  s << c;
                 }
             }
-          error("The alternative corresponding to '" + s.str()
-                + "' has already been declared for this equation");
+          s << "'";
+          error("The regime corresponding to " + s.str()
+                + " has already been declared for this equation");
         }
     }
   else // General case
@@ -3802,7 +3803,7 @@ ParsingDriver::end_occbin_constraints(
     {
       string param_name = buildOccbinBindParamName(name);
       if (!mod_file->symbol_table.exists(param_name))
-        error("No equation has been declared for regime '" + name + "'");
+        error("No equation has been declared for constraint '" + name + "'");
       if (!bind)
         error("The 'bind' expression is missing in constraint '" + name + "'");
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -3600,25 +3600,25 @@ DynamicModel::dynamicOnlyEquationsNbr() const
 
 void
 DynamicModel::addOccbinEquation(expr_t eq, const optional<int>& lineno, map<string, string> eq_tags,
-                                const vector<string>& regimes_bind,
-                                const vector<string>& regimes_relax)
+                                const vector<string>& constraints_bind,
+                                const vector<string>& constraints_relax)
 {
   auto beq = dynamic_cast<BinaryOpNode*>(eq);
   assert(beq && beq->op_code == BinaryOpcode::equal);
 
-  occbin_regime_trackers[eq_tags.at("name")].addAlternative(regimes_bind, regimes_relax);
+  occbin_regime_trackers[eq_tags.at("name")].addRegime(constraints_bind, constraints_relax);
 
   // Construct the term to be added to the corresponding equation
   expr_t basic_term = AddMinus(beq->arg1, beq->arg2);
   expr_t term = basic_term;
-  for (auto& regime : regimes_bind)
+  for (auto& constraint : constraints_bind)
     {
-      int param_id = symbol_table.getID(ParsingDriver::buildOccbinBindParamName(regime));
+      int param_id = symbol_table.getID(ParsingDriver::buildOccbinBindParamName(constraint));
       term = AddTimes(term, AddVariable(param_id));
     }
-  for (auto& regime : regimes_relax)
+  for (auto& constraint : constraints_relax)
     {
-      int param_id = symbol_table.getID(ParsingDriver::buildOccbinBindParamName(regime));
+      int param_id = symbol_table.getID(ParsingDriver::buildOccbinBindParamName(constraint));
       term = AddTimes(term, AddMinus(One, AddVariable(param_id)));
     }
 
@@ -3641,7 +3641,7 @@ DynamicModel::addOccbinEquation(expr_t eq, const optional<int>& lineno, map<stri
     }
 
   // Create or update the static equation (corresponding to the pure relax regime)
-  if (regimes_bind.empty())
+  if (constraints_bind.empty())
     {
       /* Similar remark as above. We could have entirely skipped this
          equation updating, since normally there is only one such clause,
@@ -4031,27 +4031,27 @@ DynamicModel::checkOccbinRegimes() const
     {
       try
         {
-          tracker.checkAllAlternativesPresent();
+          tracker.checkAllRegimesPresent();
         }
-      catch (OccbinRegimeTracker::MissingAlternativeException& e)
+      catch (OccbinRegimeTracker::MissingRegimeException& e)
         {
-          cerr << "ERROR: for equation '" << eq_name << "', the alternative corresponding to '";
-          if (!e.regimes_bind.empty())
+          cerr << "ERROR: for equation '" << eq_name << "', the regime corresponding to ";
+          if (!e.constraints_bind.empty())
             {
-              cerr << "bind=";
-              for (bool first_printed {false}; const auto& r : e.regimes_bind)
+              cerr << "bind='";
+              for (bool first_printed {false}; const auto& r : e.constraints_bind)
                 {
                   if (exchange(first_printed, true))
                     cerr << ",";
                   cerr << r;
                 }
             }
-          if (!e.regimes_bind.empty() && !e.regimes_relax.empty())
-            cerr << "'and '";
-          if (!e.regimes_relax.empty())
+          if (!e.constraints_bind.empty() && !e.constraints_relax.empty())
+            cerr << "' and ";
+          if (!e.constraints_relax.empty())
             {
-              cerr << "relax=";
-              for (bool first_printed {false}; const auto& r : e.regimes_relax)
+              cerr << "relax='";
+              for (bool first_printed {false}; const auto& r : e.constraints_relax)
                 {
                   if (exchange(first_printed, true))
                     cerr << ",";
@@ -4065,102 +4065,105 @@ DynamicModel::checkOccbinRegimes() const
 }
 
 void
-DynamicModel::OccbinRegimeTracker::addAlternative(const vector<string>& regimes_bind,
-                                                  const vector<string>& regimes_relax)
+DynamicModel::OccbinRegimeTracker::addRegime(const vector<string>& constraints_bind,
+                                             const vector<string>& constraints_relax)
 {
-  // Check that no regime appears in both bind and relax
-  set regimes_bind_sorted(regimes_bind.begin(), regimes_bind.end()),
-      regimes_relax_sorted(regimes_relax.begin(), regimes_relax.end());
-  vector<string> regimes_intersect;
-  ranges::set_intersection(regimes_bind_sorted, regimes_relax_sorted,
-                           back_inserter(regimes_intersect));
-  if (!regimes_intersect.empty())
-    throw RegimeInBothBindAndRelaxException {regimes_intersect.front()};
+  // Check that no constraint appears in both bind and relax
+  set constraints_bind_sorted(constraints_bind.begin(), constraints_bind.end()),
+      constraints_relax_sorted(constraints_relax.begin(), constraints_relax.end());
+  vector<string> constraints_intersect;
+  ranges::set_intersection(constraints_bind_sorted, constraints_relax_sorted,
+                           back_inserter(constraints_intersect));
+  if (!constraints_intersect.empty())
+    throw ConstraintInBothBindAndRelaxException {constraints_intersect.front()};
 
-  // If a regime has never been mentioned before, add it to the list and adapt the alternatives
-  vector<string> regimes_union;
-  ranges::set_union(regimes_bind_sorted, regimes_relax_sorted, back_inserter(regimes_union));
-  for (const auto& r : regimes_union)
-    if (ranges::find(regimes, r) == regimes.end())
+  // If a constraint has never been mentioned before, add it to the list and adapt the regimes
+  vector<string> constraints_union;
+  ranges::set_union(constraints_bind_sorted, constraints_relax_sorted,
+                    back_inserter(constraints_union));
+  for (const auto& c : constraints_union)
+    if (ranges::find(constraints, c) == constraints.end())
       {
-        regimes.push_back(r);
-        auto alt_copy = alternatives_present;
-        alternatives_present.clear();
-        for (const auto& a : alt_copy)
+        constraints.push_back(c);
+        auto regimes_copy = regimes_present;
+        regimes_present.clear();
+        for (const auto& r : regimes_copy)
           {
-            auto a0 = a, a1 = a;
-            a0.push_back(false);
-            a1.push_back(true);
-            alternatives_present.insert(a0);
-            alternatives_present.insert(a1);
+            auto r0 = r, r1 = r;
+            r0.push_back(false);
+            r1.push_back(true);
+            regimes_present.insert(r0);
+            regimes_present.insert(r1);
           }
       }
 
   // Create the bit vector(s) corresponding to the function arguments
-  vector<bool> new_alt_template(regimes.size(), false);
-  for (const auto& r : regimes_bind)
+  vector<bool> new_regime_template(constraints.size(), false);
+  for (const auto& c : constraints_bind)
     {
-      int i = distance(regimes.begin(), ranges::find(regimes, r));
-      new_alt_template[i] = true;
+      int i = distance(constraints.begin(), ranges::find(constraints, c));
+      new_regime_template[i] = true;
     }
-  set<vector<bool>> new_alts {new_alt_template};
-  set all_regimes_sorted(regimes.begin(), regimes.end());
-  vector<string> regimes_not_mentioned;
-  ranges::set_difference(all_regimes_sorted, regimes_union, back_inserter(regimes_not_mentioned));
-  for (const auto& r : regimes_not_mentioned)
+  set<vector<bool>> new_regimes {new_regime_template};
+  set all_constraints_sorted(constraints.begin(), constraints.end());
+  vector<string> constraints_not_mentioned;
+  ranges::set_difference(all_constraints_sorted, constraints_union,
+                         back_inserter(constraints_not_mentioned));
+  for (const auto& c : constraints_not_mentioned)
     {
-      int i = distance(regimes.begin(), ranges::find(regimes, r));
-      auto new_alts_copy = new_alts;
-      for (const auto& a : new_alts_copy)
+      int i = distance(constraints.begin(), ranges::find(constraints, c));
+      auto new_regimes_copy = new_regimes;
+      for (const auto& r : new_regimes_copy)
         {
-          auto a2 = a;
-          a2[i] = true;
-          new_alts.insert(move(a2));
+          auto r2 = r;
+          r2[i] = true;
+          new_regimes.insert(move(r2));
         }
     }
 
   // Add the new bit vector(s)
-  for (const auto& a : new_alts)
+  for (const auto& r : new_regimes)
     {
-      auto [it, success] = alternatives_present.insert(a);
+      auto [it, success] = regimes_present.insert(r);
       if (!success)
         {
-          auto [regimes_bind_duplicate, regimes_relax_duplicate] = convertBitVectorToRegimes(a);
-          throw AlternativeAlreadyPresentException {regimes_bind_duplicate,
-                                                    regimes_relax_duplicate};
+          auto [constraints_bind_duplicate, constraints_relax_duplicate]
+              = convertBitVectorToRegimes(r);
+          throw RegimeAlreadyPresentException {constraints_bind_duplicate,
+                                               constraints_relax_duplicate};
         }
     }
 }
 
 void
-DynamicModel::OccbinRegimeTracker::checkAllAlternativesPresent() const
+DynamicModel::OccbinRegimeTracker::checkAllRegimesPresent() const
 {
-  vector<bool> a(regimes.size(), false);
+  vector<bool> r(constraints.size(), false);
   do
     {
-      if (!alternatives_present.contains(a))
+      if (!regimes_present.contains(r))
         {
-          auto [regimes_bind, regimes_relax] = convertBitVectorToRegimes(a);
-          throw MissingAlternativeException {regimes_bind, regimes_relax};
+          auto [constraints_bind, constraints_relax] = convertBitVectorToRegimes(r);
+          throw MissingRegimeException {constraints_bind, constraints_relax};
         }
-      auto it = ranges::find(a, false);
-      if (it == a.end())
+      auto it = ranges::find(r, false);
+      if (it == r.end())
         break;
       *it = true;
-      if (it != a.begin())
-        fill(a.begin(), prev(it), false);
+      if (it != r.begin())
+        fill(r.begin(), prev(it), false);
     }
   while (true);
 }
 
 pair<vector<string>, vector<string>>
-DynamicModel::OccbinRegimeTracker::convertBitVectorToRegimes(const vector<bool>& a) const
+DynamicModel::OccbinRegimeTracker::convertBitVectorToRegimes(const vector<bool>& r) const
 {
-  vector<string> regimes_bind, regimes_relax;
-  for (size_t i = 0; i < regimes.size(); i++)
-    if (a[i])
-      regimes_bind.push_back(regimes[i]);
+  vector<string> constraints_bind, constraints_relax;
+  for (size_t i = 0; i < constraints.size(); i++)
+    if (r[i])
+      constraints_bind.push_back(constraints[i]);
     else
-      regimes_relax.push_back(regimes[i]);
-  return {regimes_bind, regimes_relax};
+      constraints_relax.push_back(constraints[i]);
+  return {constraints_bind, constraints_relax};
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -48,32 +48,32 @@ public:
   class OccbinRegimeTracker
   {
   private:
-    // The list of regimes used for this equation
-    vector<string> regimes;
-    /* The list of alternatives present for this equation; each alternative is a vector of boolean,
-       of same length as “regimes”; each boolean represents a regime (in the order of “regimes”):
-       false for relax, true for bind */
-    set<vector<bool>> alternatives_present;
+    // The list of constraints used for this equation
+    vector<string> constraints;
+    /* The list of regimes present for this equation; each regime is a vector of boolean, of same
+       length as “constraints”; each boolean represents a constraint (in the order of
+       “constraints”): false for relax, true for bind */
+    set<vector<bool>> regimes_present;
 
   public:
-    struct RegimeInBothBindAndRelaxException
+    struct ConstraintInBothBindAndRelaxException
     {
-      const string regime;
+      const string constraint;
     };
-    struct AlternativeAlreadyPresentException
+    struct RegimeAlreadyPresentException
     {
-      const vector<string> regimes_bind, regimes_relax;
+      const vector<string> constraints_bind, constraints_relax;
     };
-    void addAlternative(const vector<string>& regimes_bind,
-                        const vector<string>& regimes_relax) noexcept(false);
-    struct MissingAlternativeException
+    void addRegime(const vector<string>& constraints_bind,
+                   const vector<string>& constraints_relax) noexcept(false);
+    struct MissingRegimeException
     {
-      const vector<string> regimes_bind, regimes_relax;
+      const vector<string> constraints_bind, constraints_relax;
     };
-    void checkAllAlternativesPresent() const noexcept(false);
+    void checkAllRegimesPresent() const noexcept(false);
 
   private:
-    pair<vector<string>, vector<string>> convertBitVectorToRegimes(const vector<bool>& a) const;
+    pair<vector<string>, vector<string>> convertBitVectorToRegimes(const vector<bool>& r) const;
   };
 
 private:
@@ -478,7 +478,8 @@ public:
      It also assumes that the “bind” and “relax” tags have been cleared from
      eq_tags. */
   void addOccbinEquation(expr_t eq, const optional<int>& lineno, map<string, string> eq_tags,
-                         const vector<string>& regimes_bind, const vector<string>& regimes_relax);
+                         const vector<string>& constraints_bind,
+                         const vector<string>& constraints_relax);
 
   //! Writes LaTeX file with the equations of the dynamic model
   void writeLatexFile(const string& basename, bool write_equation_tags) const;
