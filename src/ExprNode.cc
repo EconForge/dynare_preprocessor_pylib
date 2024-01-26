@@ -195,7 +195,7 @@ ExprNode::collectVariables(SymbolType type, set<int>& result) const
   set<pair<int, int>> symbs_lags;
   collectDynamicVariables(type, symbs_lags);
   transform(symbs_lags.begin(), symbs_lags.end(), inserter(result, result.begin()),
-            [](auto x) { return x.first; });
+            [](const auto& x) { return x.first; });
 }
 
 void
