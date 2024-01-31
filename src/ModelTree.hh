@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -688,27 +688,6 @@ public:
 
   // Write the definitions of the auxiliary variables (assumed to be in recursive order)
   void writeAuxVarRecursiveDefinitions(ostream& output, ExprNodeOutputType output_type) const;
-
-  //! Returns the vector of non-zero derivative counts
-  const vector<int>&
-  getNNZDerivatives() const
-  {
-    return NNZDerivatives;
-  }
-
-  //! Returns the vector of temporary terms derivatives
-  const vector<temporary_terms_t>&
-  getTemporaryTermsDerivatives() const
-  {
-    return temporary_terms_derivatives;
-  }
-
-  //! Returns the maximum order of computed derivatives
-  int
-  getComputedDerivsOrder() const
-  {
-    return computed_derivs_order;
-  }
 
   static string
   BlockSim(BlockSimulationType type)

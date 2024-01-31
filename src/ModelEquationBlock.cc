@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2023 Dynare Team
+ * Copyright © 2010-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -29,6 +29,18 @@ PlannerObjective::PlannerObjective(SymbolTable& symbol_table_arg,
                                    ExternalFunctionsTable& external_functions_table_arg) :
     StaticModel {symbol_table_arg, num_constants_arg, external_functions_table_arg}
 {
+}
+
+void
+PlannerObjective::writeDriverOutput(ostream& output) const
+{
+  output << "M_.NNZDerivatives_objective = [";
+  for (int i = 1; i < static_cast<int>(NNZDerivatives.size()); i++)
+    output << (i > computed_derivs_order ? -1 : NNZDerivatives[i]) << ";";
+  output << "];" << endl << "M_.objective_tmp_nbr = [";
+  for (const auto& it : temporary_terms_derivatives)
+    output << it.size() << "; ";
+  output << "];" << endl;
 }
 
 void

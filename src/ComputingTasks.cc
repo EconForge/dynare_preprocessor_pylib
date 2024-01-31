@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -2439,14 +2439,7 @@ void
 PlannerObjectiveStatement::writeOutput(ostream& output, const string& basename,
                                        [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "M_.NNZDerivatives_objective = [";
-  for (int i = 1; i < static_cast<int>(model_tree->getNNZDerivatives().size()); i++)
-    output << (i > model_tree->getComputedDerivsOrder() ? -1 : model_tree->getNNZDerivatives()[i])
-           << ";";
-  output << "];" << endl << "M_.objective_tmp_nbr = [";
-  for (const auto& temporary_terms_derivative : model_tree->getTemporaryTermsDerivatives())
-    output << temporary_terms_derivative.size() << "; ";
-  output << "];" << endl;
+  model_tree->writeDriverOutput(output);
   model_tree->writeStaticFile(basename + ".objective", false, "", {}, false);
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2023 Dynare Team
+ * Copyright © 2010-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -31,6 +31,8 @@ class PlannerObjective : public StaticModel
 public:
   PlannerObjective(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                    ExternalFunctionsTable& external_functions_table_arg);
+  // NB: masks the method with the same name in StaticModel (not in a virtual fashion)
+  void writeDriverOutput(ostream& output) const;
 
 protected:
   string
