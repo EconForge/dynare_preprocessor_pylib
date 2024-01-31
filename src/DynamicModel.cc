@@ -1123,7 +1123,7 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
     output << (i > computed_derivs_order ? -1 : NNZDerivatives[i]) << "; ";
   output << "];" << endl;
 
-  writeDriverSparseIndicesHelper<true>(output);
+  writeDriverSparseIndicesHelper<true, false>(output);
 
   // Write LHS of each equation in text form
   output << "M_.lhs = {" << endl;

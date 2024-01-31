@@ -41,6 +41,7 @@ PlannerObjective::writeDriverOutput(ostream& output) const
   for (const auto& it : temporary_terms_derivatives)
     output << it.size() << "; ";
   output << "];" << endl;
+  writeDriverSparseIndicesHelper<false, true>(output);
 }
 
 void

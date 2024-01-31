@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -564,7 +564,7 @@ StaticModel::writeDriverOutput(ostream& output) const
   if (block_decomposed)
     writeBlockDriverOutput(output);
 
-  writeDriverSparseIndicesHelper<false>(output);
+  writeDriverSparseIndicesHelper<false, false>(output);
 }
 
 void

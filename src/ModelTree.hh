@@ -351,8 +351,9 @@ protected:
   void writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
                                 temporary_terms_t& temporary_terms_union) const;
 
-  // Helper for writing sparse derivatives indices in MATLAB/Octave driver file
-  template<bool dynamic>
+  /* Helper for writing sparse derivatives indices in MATLAB/Octave driver file.
+     Also supports the planner objective through the corresponding boolean. */
+  template<bool dynamic, bool objective>
   void writeDriverSparseIndicesHelper(ostream& output) const;
 
   // Helper for writing sparse derivatives indices in JSON
@@ -2246,12 +2247,13 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
           move(rpp_output), move(gpp_output), move(hp_output), move(g3p_output)};
 }
 
-template<bool dynamic>
+template<bool dynamic, bool objective>
 void
 ModelTree::writeDriverSparseIndicesHelper(ostream& output) const
 {
+  static_assert(!(objective && dynamic), "There is no such thing as a dynamic planner objective");
   // TODO: when C++20 support is complete, mark this constexpr
-  const string model_name {dynamic ? "dynamic" : "static"};
+  const string model_name {objective ? "objective" : (dynamic ? "dynamic" : "static")};
 
   // Write indices for the sparse Jacobian (both naive and CSC storage)
   output << "M_." << model_name << "_g1_sparse_rowval = int32([";
