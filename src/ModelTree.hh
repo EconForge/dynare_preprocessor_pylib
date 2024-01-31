@@ -2599,7 +2599,8 @@ ModelTree::writeSparseModelMFiles(const string& basename) const
       ttlen += temporary_terms_derivatives[i].size();
 
       open_file(m_dir / (prefix + "g" + to_string(i) + "_tt.m"));
-      output << "function T = " << prefix << "g" << i << "_tt(y, x, params" << ss_arg << ")" << endl
+      output << "function [T_order, T] = " << prefix << "g" << i << "_tt(y, x, params" << ss_arg
+             << ", T_order, T)" << endl
              << "if T_order >= " << i << endl
              << "    return" << endl
              << "end" << endl
