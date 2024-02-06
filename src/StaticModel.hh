@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -60,9 +60,6 @@ private:
      block. See the DynamicModel class for the default value in that case. */
   int static_mfs {0};
 
-  // Writes static model file (MATLAB/Octave version, legacy representation)
-  void writeStaticMFile(const string& basename) const;
-
   //! Writes the code of the block-decomposed model in virtual machine bytecode
   void writeStaticBlockBytecode(const string& basename) const;
 
@@ -94,20 +91,6 @@ private:
   }
 
   void computeChainRuleJacobian() override;
-
-  /* Helper for writing MATLAB/Octave functions for residuals/derivatives and
-     their temporary terms (legacy representation) */
-  void writeStaticMFileHelper(const string& basename, const string& name, const string& retvalname,
-                              const string& name_tt, size_t ttlen, const string& previous_tt_name,
-                              const ostringstream& init_s, const ostringstream& end_s,
-                              const ostringstream& s, const ostringstream& s_tt) const;
-  /* Writes MATLAB/Octave wrapper function for computing residuals and
-     derivatives at the same time (legacy representation) */
-  void writeStaticMWrapperFunction(const string& basename, const string& ending) const;
-
-  /* Create the compatibility static.m file for MATLAB/Octave not yet using the
-     temporary terms array interface (legacy representation) */
-  void writeStaticMCompatFile(const string& name) const;
 
   int
   getBlockJacobianEndoCol([[maybe_unused]] int blk, int var,
