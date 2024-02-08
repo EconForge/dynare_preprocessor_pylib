@@ -34,10 +34,7 @@ PlannerObjective::PlannerObjective(SymbolTable& symbol_table_arg,
 void
 PlannerObjective::writeDriverOutput(ostream& output) const
 {
-  output << "M_.NNZDerivatives_objective = [";
-  for (int i = 1; i < static_cast<int>(NNZDerivatives.size()); i++)
-    output << (i > computed_derivs_order ? -1 : NNZDerivatives[i]) << ";";
-  output << "];" << endl << "M_.objective_tmp_nbr = [";
+  output << "M_.objective_tmp_nbr = [";
   for (const auto& it : temporary_terms_derivatives)
     output << it.size() << "; ";
   output << "];" << endl;
