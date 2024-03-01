@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -658,6 +658,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>homotopy_step_size_increase_success_count {return token::HOMOTOPY_STEP_SIZE_INCREASE_SUCCESS_COUNT;}
 <DYNARE_STATEMENT>homotopy_linearization_fallback {return token::HOMOTOPY_LINEARIZATION_FALLBACK;}
 <DYNARE_STATEMENT>homotopy_marginal_linearization_fallback {return token::HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK;}
+<DYNARE_STATEMENT>homotopy_exclude_varexo {return token::HOMOTOPY_EXCLUDE_VAREXO;}
 <DYNARE_STATEMENT>nocheck {return token::NOCHECK; }
 
 <DYNARE_STATEMENT>steady_solve_algo {return token::STEADY_SOLVE_ALGO;}

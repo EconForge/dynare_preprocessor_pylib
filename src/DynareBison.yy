@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -214,7 +214,7 @@ str_tolower(string s)
 %token FSOLVE_OPTIONS
 %token ENDVAL_STEADY STEADY_SOLVE_ALGO STEADY_MAXIT STEADY_TOLF STEADY_TOLX STEADY_MARKOWITZ
 %token HOMOTOPY_MAX_COMPLETION_SHARE HOMOTOPY_MIN_STEP_SIZE HOMOTOPY_INITIAL_STEP_SIZE HOMOTOPY_STEP_SIZE_INCREASE_SUCCESS_COUNT
-%token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK FROM_INITVAL_TO_ENDVAL
+%token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK HOMOTOPY_EXCLUDE_VAREXO FROM_INITVAL_TO_ENDVAL
 %token STATIC_MFS RELATIVE_TO_INITVAL MATCHED_IRFS MATCHED_IRFS_WEIGHTS WEIGHTS
 
 %token <vector<string>> SYMBOL_VEC
@@ -1541,6 +1541,7 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_homotopy_step_size_increase_success_count
                                  | o_homotopy_linearization_fallback
                                  | o_homotopy_marginal_linearization_fallback
+                                 | o_homotopy_exclude_varexo
                                  ;
 
 perfect_foresight_with_expectation_errors_setup : PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SETUP ';'
@@ -4291,6 +4292,7 @@ o_homotopy_step_size_increase_success_count : HOMOTOPY_STEP_SIZE_INCREASE_SUCCES
 o_homotopy_linearization_fallback : HOMOTOPY_LINEARIZATION_FALLBACK { driver.option_num("simul.homotopy_linearization_fallback", "true"); }
 o_homotopy_marginal_linearization_fallback : HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK { driver.option_num("simul.homotopy_marginal_linearization_fallback", "0.01"); }
                                            | HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK EQUAL non_negative_number { driver.option_num("simul.homotopy_marginal_linearization_fallback", $3); }
+o_homotopy_exclude_varexo : HOMOTOPY_EXCLUDE_VAREXO EQUAL '(' symbol_list ')' { driver.option_symbol_list("simul.homotopy_exclude_varexo", $4); };
 
 o_infile : INFILE EQUAL filename { driver.option_str("infile", $3); };
 o_invars : INVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("invars", $4); };
