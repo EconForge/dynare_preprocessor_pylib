@@ -1589,7 +1589,6 @@ ModelTree::writeBytecodeHelper(Bytecode::Writer& code_file) const
 
   // The Jacobian in “simulate” mode
   vector<vector<tuple<int, int, int>>> my_derivatives(symbol_table.endo_nbr());
-  ;
   int count_u {symbol_table.endo_nbr()};
   for (const auto& [indices, d1] : derivatives[1])
     {
