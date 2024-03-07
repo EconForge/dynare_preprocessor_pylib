@@ -1687,7 +1687,7 @@ ModelTree::writeBytecodeHelper(Bytecode::Writer& code_file) const
         {
           // Bytecode MEX uses a separate matrix for exogenous and exodet Jacobians
           int jacob_col {type == SymbolType::endogenous ? getJacobianCol(deriv_id, false) : tsid};
-          code_file << Bytecode::FSTPG3 {eq, tsid, lag, jacob_col};
+          code_file << Bytecode::FSTPG2 {eq, jacob_col};
         }
       else
         code_file << Bytecode::FSTPG2 {eq, tsid};
@@ -1907,12 +1907,8 @@ ModelTree::writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
       d->writeBytecodeOutput(code_file, output_type, temporary_terms_union,
                              blocks_temporary_terms_idxs, tef_terms);
       assert(eq >= block_recursive);
-      if constexpr (dynamic)
-        code_file << Bytecode::FSTPG3 {eq - block_recursive, var, lag,
-                                       getBlockJacobianEndoCol(block, var, lag)};
-      else
-        code_file << Bytecode::FSTPG2 {eq - block_recursive,
-                                       getBlockJacobianEndoCol(block, var, lag)};
+      code_file << Bytecode::FSTPG2 {eq - block_recursive,
+                                     getBlockJacobianEndoCol(block, var, lag)};
     }
 
   // Update jump offset for previous JMP

@@ -75,8 +75,7 @@ enum class Tag
   FSTPR, // Stores a residual from the stack
 
   FSTPG,  // Stores the derivative of a simple (single-equation) block in simulate mode
-  FSTPG2, // Stores a derivative matrix for a static model from the stack
-  FSTPG3, // Stores a derivative matrix for a dynamic model from the stack
+  FSTPG2, // Stores the derivative matrix of a block in evaluate mode
 
   FUNARY,   // A unary operator
   FBINARY,  // A binary operator
@@ -288,15 +287,6 @@ struct FSTPG2 final : public Instruction
 {
   const int row, col;
   FSTPG2(int row_arg, int col_arg) : Instruction {Tag::FSTPG2}, row {row_arg}, col {col_arg}
-  {
-  }
-};
-
-struct FSTPG3 final : public Instruction
-{
-  const int row, col, lag, col_pos;
-  FSTPG3(int row_arg, int col_arg, int lag_arg, int col_pos_arg) :
-      Instruction {Tag::FSTPG3}, row {row_arg}, col {col_arg}, lag {lag_arg}, col_pos {col_pos_arg}
   {
   }
 };
