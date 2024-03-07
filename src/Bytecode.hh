@@ -74,7 +74,7 @@ enum class Tag
   FLDR,  // Loads a residual onto the stack
   FSTPR, // Stores a residual from the stack
 
-  FSTPG,  // Stores a derivative from the stack
+  FSTPG,  // Stores the derivative of a simple (single-equation) block in simulate mode
   FSTPG2, // Stores a derivative matrix for a static model from the stack
   FSTPG3, // Stores a derivative matrix for a dynamic model from the stack
 
@@ -279,8 +279,7 @@ struct FSTPSU final : public Instruction
 
 struct FSTPG final : public Instruction
 {
-  const int pos;
-  explicit FSTPG(int pos_arg) : Instruction {Tag::FSTPG}, pos {pos_arg}
+  explicit FSTPG() : Instruction {Tag::FSTPG}
   {
   }
 };

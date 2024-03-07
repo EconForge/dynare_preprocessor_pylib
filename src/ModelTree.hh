@@ -1823,7 +1823,7 @@ ModelTree::writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
                                               blocks_temporary_terms_idxs, tef_terms);
             else
               code_file << Bytecode::FLDZ {};
-            code_file << Bytecode::FSTPG {0};
+            code_file << Bytecode::FSTPG {};
           }
           break;
 
