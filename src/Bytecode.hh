@@ -121,11 +121,6 @@ enum class ExternalFunctionCallType
   numericalSecondDerivative
 };
 
-struct Block_contain_type
-{
-  int Equation, Variable, Own_Derivative;
-};
-
 class Writer;
 
 struct Instruction
@@ -613,12 +608,11 @@ class FBEGINBLOCK final : public Instruction
 private:
   int size {0};
   BlockSimulationType type;
-  vector<int> variable;
-  vector<int> equation;
+  vector<int> variables;
+  vector<int> equations;
   vector<int> exogenous;
   vector<int> det_exogenous;
   bool is_linear {false};
-  vector<Block_contain_type> Block_Contain_;
   int u_count_int {0};
   int nb_col_jacob {0};
   int det_exo_size, exo_size;
@@ -628,16 +622,16 @@ public:
      sense when there is no block-decomposition, since there is no provision for
      derivatives w.r.t. endogenous not belonging to the block) */
   FBEGINBLOCK(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
-              const vector<int>& variable_arg, const vector<int>& equation_arg, bool is_linear_arg,
-              int u_count_int_arg, int nb_col_jacob_arg, int det_exo_size_arg, int exo_size_arg,
-              vector<int> det_exogenous_arg, vector<int> exogenous_arg) :
+              const vector<int>& variables_arg, const vector<int>& equations_arg,
+              bool is_linear_arg, int u_count_int_arg, int nb_col_jacob_arg, int det_exo_size_arg,
+              int exo_size_arg, vector<int> det_exogenous_arg, vector<int> exogenous_arg) :
       Instruction {Tag::FBEGINBLOCK},
       size {size_arg},
       type {type_arg},
-      variable {variable_arg.begin() + first_element,
-                variable_arg.begin() + (first_element + block_size)},
-      equation {equation_arg.begin() + first_element,
-                equation_arg.begin() + (first_element + block_size)},
+      variables {variables_arg.begin() + first_element,
+                 variables_arg.begin() + (first_element + block_size)},
+      equations {equations_arg.begin() + first_element,
+                 equations_arg.begin() + (first_element + block_size)},
       exogenous {move(exogenous_arg)},
       det_exogenous {move(det_exogenous_arg)},
       is_linear {is_linear_arg},
@@ -649,15 +643,15 @@ public:
   }
   // Constructor when derivatives w.r.t. exogenous are absent
   FBEGINBLOCK(int size_arg, BlockSimulationType type_arg, int first_element, int block_size,
-              const vector<int>& variable_arg, const vector<int>& equation_arg, bool is_linear_arg,
-              int u_count_int_arg, int nb_col_jacob_arg) :
+              const vector<int>& variables_arg, const vector<int>& equations_arg,
+              bool is_linear_arg, int u_count_int_arg, int nb_col_jacob_arg) :
       Instruction {Tag::FBEGINBLOCK},
       size {size_arg},
       type {type_arg},
-      variable {variable_arg.begin() + first_element,
-                variable_arg.begin() + (first_element + block_size)},
-      equation {equation_arg.begin() + first_element,
-                equation_arg.begin() + (first_element + block_size)},
+      variables {variables_arg.begin() + first_element,
+                 variables_arg.begin() + (first_element + block_size)},
+      equations {equations_arg.begin() + first_element,
+                 equations_arg.begin() + (first_element + block_size)},
       is_linear {is_linear_arg},
       u_count_int {u_count_int_arg},
       nb_col_jacob {nb_col_jacob_arg},
@@ -678,12 +672,12 @@ public:
 
     read_member(size);
     read_member(type);
+    variables.resize(size);
+    equations.resize(size);
     for (int i {0}; i < size; i++)
       {
-        Block_contain_type bc;
-        read_member(bc.Variable);
-        read_member(bc.Equation);
-        Block_Contain_.push_back(bc);
+        read_member(variables[i]);
+        read_member(equations[i]);
       }
     if (type == BlockSimulationType::solveTwoBoundariesSimple
         || type == BlockSimulationType::solveTwoBoundariesComplete
@@ -731,10 +725,15 @@ public:
   {
     return u_count_int;
   }
-  vector<Block_contain_type>
-  get_Block_Contain()
+  vector<int>
+  get_variables()
   {
-    return Block_Contain_;
+    return variables;
+  }
+  vector<int>
+  get_equations()
+  {
+    return equations;
   }
   int
   get_nb_col_jacob()
@@ -750,11 +749,6 @@ public:
   get_det_exo_size()
   {
     return det_exo_size;
-  }
-  vector<int>
-  get_endogenous()
-  {
-    return variable;
   }
   vector<int>
   get_exogenous()

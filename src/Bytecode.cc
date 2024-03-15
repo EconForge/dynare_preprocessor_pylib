@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022-2023 Dynare Team
+ * Copyright © 2022-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -82,8 +82,8 @@ operator<<(Writer& code_file, const FBEGINBLOCK& instr)
   write_member(instr.type);
   for (int i = 0; i < instr.size; i++)
     {
-      write_member(instr.variable[i]);
-      write_member(instr.equation[i]);
+      write_member(instr.variables[i]);
+      write_member(instr.equations[i]);
     }
   if (instr.type == BlockSimulationType::solveTwoBoundariesSimple
       || instr.type == BlockSimulationType::solveTwoBoundariesComplete
