@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -748,9 +748,11 @@ public:
   //! Extended path
   void extended_path();
   //! Writes token "arg1=arg2" to model tree
-  expr_t add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_tags);
+  expr_t add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_tags,
+                         expr_t complementarity_condition = nullptr);
   //! Writes token "arg=0" to model tree
-  expr_t add_model_equal_with_zero_rhs(expr_t arg, map<string, string> eq_tags);
+  expr_t add_model_equal_with_zero_rhs(expr_t arg, map<string, string> eq_tags,
+                                       expr_t complementarity_condition = nullptr);
   //! Writes token "arg1+arg2" to model tree
   expr_t add_plus(expr_t arg1, expr_t arg2);
   //! Writes token "arg1-arg2" to model tree

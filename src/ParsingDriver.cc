@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -2626,13 +2626,36 @@ ParsingDriver::extended_path()
 }
 
 expr_t
-ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_tags)
+ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_tags,
+                               expr_t complementarity_condition)
 {
   expr_t id = model_tree->AddEqual(arg1, arg2);
 
   for (const auto& [key, value] : eq_tags)
     if (key == "endogenous")
       declare_or_change_type(SymbolType::endogenous, value);
+
+  if (eq_tags.contains("mcp"))
+    {
+      if (complementarity_condition)
+        error("Can't have both an 'mcp' tag and a complementarity condition after the "
+              "perpendicular symbol");
+      else
+        warning("Specifying complementarity conditions with the 'mcp' tag is obsolete. Please "
+                "consider switching to the new syntax using the perpendicular symbol.");
+    }
+
+  if (complementarity_condition)
+    {
+      if (auto bcomp = dynamic_cast<BinaryOpNode*>(complementarity_condition);
+          !(bcomp
+            && (bcomp->op_code == BinaryOpcode::less || bcomp->op_code == BinaryOpcode::lessEqual
+                || bcomp->op_code == BinaryOpcode::greater
+                || bcomp->op_code == BinaryOpcode::greaterEqual)))
+        error("The complementarity constraint must be an inequality.");
+
+      eq_tags.emplace("mcp", complementarity_condition->toString());
+    }
 
   if (eq_tags.contains("static"))
     {
@@ -2723,9 +2746,10 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
 }
 
 expr_t
-ParsingDriver::add_model_equal_with_zero_rhs(expr_t arg, map<string, string> eq_tags)
+ParsingDriver::add_model_equal_with_zero_rhs(expr_t arg, map<string, string> eq_tags,
+                                             expr_t complementarity_condition)
 {
-  return add_model_equal(arg, model_tree->Zero, move(eq_tags));
+  return add_model_equal(arg, model_tree->Zero, move(eq_tags), complementarity_condition);
 }
 
 void

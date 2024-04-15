@@ -1016,6 +1016,8 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT,DYNARE_BLOCK>nan {return token::NAN_CONSTANT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>inf {return token::INF_CONSTANT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>constants {return token::CONSTANTS;}
+<DYNARE_BLOCK>⟂ {return token::PERPENDICULAR;}
+<DYNARE_BLOCK>_\|_ {return token::PERPENDICULAR;}
 
  /* options for GSA module by Marco Ratto */
 <DYNARE_STATEMENT>identification {return token::IDENTIFICATION;}

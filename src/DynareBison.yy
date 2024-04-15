@@ -215,7 +215,7 @@ str_tolower(string s)
 %token ENDVAL_STEADY STEADY_SOLVE_ALGO STEADY_MAXIT STEADY_TOLF STEADY_TOLX STEADY_MARKOWITZ
 %token HOMOTOPY_MAX_COMPLETION_SHARE HOMOTOPY_MIN_STEP_SIZE HOMOTOPY_INITIAL_STEP_SIZE HOMOTOPY_STEP_SIZE_INCREASE_SUCCESS_COUNT
 %token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK HOMOTOPY_EXCLUDE_VAREXO FROM_INITVAL_TO_ENDVAL
-%token STATIC_MFS RELATIVE_TO_INITVAL MATCHED_IRFS MATCHED_IRFS_WEIGHTS WEIGHTS
+%token STATIC_MFS RELATIVE_TO_INITVAL MATCHED_IRFS MATCHED_IRFS_WEIGHTS WEIGHTS PERPENDICULAR
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -1011,6 +1011,14 @@ equation : hand_side EQUAL hand_side ';'
            { $$ = driver.add_model_equal($4, $6, $2); }
          | '[' tag_pair_list ']' hand_side ';'
            { $$ = driver.add_model_equal_with_zero_rhs($4, $2); }
+         | hand_side EQUAL hand_side PERPENDICULAR hand_side ';'
+           { $$ = driver.add_model_equal($1, $3, {}, $5); }
+         | hand_side PERPENDICULAR hand_side ';'
+           { $$ = driver.add_model_equal_with_zero_rhs($1, {}, $3); }
+         | '[' tag_pair_list ']' hand_side EQUAL hand_side PERPENDICULAR hand_side ';'
+           { $$ = driver.add_model_equal($4, $6, $2, $8); }
+         | '[' tag_pair_list ']' hand_side PERPENDICULAR hand_side ';'
+           { $$ = driver.add_model_equal_with_zero_rhs($4, $2, $6); }
          ;
 
 tag_pair_list : tag_pair_list COMMA tag_pair
