@@ -34,10 +34,18 @@
 void
 DynamicModel::copyHelper(const DynamicModel& m)
 {
-  auto f = [this](const ExprNode* e) { return e->clone(*this); };
+  auto f = [this](const ExprNode* e) { return e ? e->clone(*this) : nullptr; };
 
   for (const auto& it : m.static_only_equations)
     static_only_equations.push_back(dynamic_cast<BinaryOpNode*>(f(it)));
+  for (const auto& it : m.static_only_complementarity_conditions)
+    if (it)
+      {
+        const auto& [symb_id, lb, ub] = *it;
+        static_only_complementarity_conditions.emplace_back(in_place, symb_id, f(lb), f(ub));
+      }
+    else
+      static_only_complementarity_conditions.emplace_back(nullopt);
 }
 
 DynamicModel::DynamicModel(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
@@ -104,6 +112,7 @@ DynamicModel::operator=(const DynamicModel& m)
 
   static_only_equations_lineno = m.static_only_equations_lineno;
   static_only_equations_equation_tags = m.static_only_equations_equation_tags;
+  static_only_complementarity_conditions.clear();
   deriv_id_table = m.deriv_id_table;
   inv_deriv_id_table = m.inv_deriv_id_table;
   dyn_jacobian_cols_table = m.dyn_jacobian_cols_table;
@@ -651,11 +660,11 @@ DynamicModel::parseIncludeExcludeEquations(const string& inc_exc_option_value, b
 }
 
 vector<int>
-DynamicModel::removeEquationsHelper(set<map<string, string>>& listed_eqs_by_tag, bool exclude_eqs,
-                                    bool excluded_vars_change_type,
-                                    vector<BinaryOpNode*>& all_equations,
-                                    vector<optional<int>>& all_equations_lineno,
-                                    EquationTags& all_equation_tags, bool static_equations) const
+DynamicModel::removeEquationsHelper(
+    set<map<string, string>>& listed_eqs_by_tag, bool exclude_eqs, bool excluded_vars_change_type,
+    vector<BinaryOpNode*>& all_equations, vector<optional<int>>& all_equations_lineno,
+    vector<optional<tuple<int, expr_t, expr_t>>>& all_complementarity_conditions,
+    EquationTags& all_equation_tags, bool static_equations) const
 {
   if (all_equations.empty())
     return {};
@@ -686,6 +695,7 @@ DynamicModel::removeEquationsHelper(set<map<string, string>>& listed_eqs_by_tag,
   // remove from equations, equations_lineno, equation_tags
   vector<BinaryOpNode*> new_equations;
   vector<optional<int>> new_equations_lineno;
+  vector<optional<tuple<int, expr_t, expr_t>>> new_complementarity_conditions;
   map<int, int> old_eqn_num_2_new;
   vector<int> excluded_vars;
   for (size_t i = 0; i < all_equations.size(); i++)
@@ -717,11 +727,13 @@ DynamicModel::removeEquationsHelper(set<map<string, string>>& listed_eqs_by_tag,
         new_equations.emplace_back(all_equations[i]);
         old_eqn_num_2_new[i] = new_equations.size() - 1;
         new_equations_lineno.emplace_back(all_equations_lineno[i]);
+        new_complementarity_conditions.emplace_back(all_complementarity_conditions[i]);
       }
   int n_excl = all_equations.size() - new_equations.size();
 
   all_equations = new_equations;
   all_equations_lineno = new_equations_lineno;
+  all_complementarity_conditions = new_complementarity_conditions;
 
   all_equation_tags.erase(eqs_to_delete_by_number, old_eqn_num_2_new);
 
@@ -754,12 +766,13 @@ DynamicModel::removeEquations(const vector<map<string, string>>& listed_eqs_by_t
 
   vector<int> excluded_vars
       = removeEquationsHelper(listed_eqs_by_tag2, exclude_eqs, excluded_vars_change_type, equations,
-                              equations_lineno, equation_tags, false);
+                              equations_lineno, complementarity_conditions, equation_tags, false);
 
   // Ignore output because variables are not excluded when equations marked 'static' are excluded
   removeEquationsHelper(listed_eqs_by_tag2, exclude_eqs, excluded_vars_change_type,
                         static_only_equations, static_only_equations_lineno,
-                        static_only_equations_equation_tags, true);
+                        static_only_complementarity_conditions, static_only_equations_equation_tags,
+                        true);
 
   if (!listed_eqs_by_tag2.empty())
     {
@@ -1134,6 +1147,11 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
       output << "'; " << endl;
     }
   output << "};" << endl;
+
+  output << "M_.dynamic_mcp_equations_reordering = [";
+  for (auto i : mcp_equations_reordering)
+    output << i + 1 << "; ";
+  output << "];" << endl;
 }
 
 void
@@ -2507,6 +2525,8 @@ DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder,
       cerr << "ERROR: Block decomposition requested but failed." << endl;
       exit(EXIT_FAILURE);
     }
+
+  computeMCPEquationsReordering();
 }
 
 void
@@ -2810,6 +2830,8 @@ DynamicModel::writeDynamicFile(const string& basename, bool use_dll, const strin
 
   writeSetAuxiliaryVariablesFile<true>(basename, julia);
 
+  writeComplementarityConditionsFile<true>(basename);
+
   // Support for model debugging
   if (!julia)
     writeDebugModelMFiles<true>(basename);
@@ -2821,6 +2843,7 @@ DynamicModel::clearEquations()
   equations.clear();
   equations_lineno.clear();
   equation_tags.clear();
+  complementarity_conditions.clear();
 }
 
 void
@@ -2828,14 +2851,26 @@ DynamicModel::replaceMyEquations(DynamicModel& dynamic_model) const
 {
   dynamic_model.clearEquations();
 
+  auto clone_if_not_null = [&](expr_t e) { return e ? e->clone(dynamic_model) : nullptr; };
+
   for (size_t i = 0; i < equations.size(); i++)
-    dynamic_model.addEquation(equations[i]->clone(dynamic_model), equations_lineno[i]);
+    {
+      optional<tuple<int, expr_t, expr_t>> cc_clone;
+      if (complementarity_conditions[i])
+        {
+          auto& [symb_id, lower_bound, upper_bound] = *complementarity_conditions[i];
+          cc_clone = {symb_id, clone_if_not_null(lower_bound), clone_if_not_null(upper_bound)};
+        }
+      dynamic_model.addEquation(equations[i]->clone(dynamic_model), equations_lineno[i],
+                                move(cc_clone));
+    }
 
   dynamic_model.equation_tags = equation_tags;
 }
 
 int
-DynamicModel::computeRamseyPolicyFOCs(const StaticModel& static_model)
+DynamicModel::computeRamseyPolicyFOCs(const StaticModel& static_model,
+                                      map<int, pair<expr_t, expr_t>> cloned_ramsey_constraints)
 {
   cout << "Ramsey Problem: added " << equations.size() << " multipliers." << endl;
 
@@ -2892,9 +2927,10 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel& static_model)
                       lagrangian);
       }
 
-  // Save line numbers and tags, see below
+  // Save line numbers, tags and complementarity conditions, see below
   auto old_equations_lineno = equations_lineno;
   auto old_equation_tags = equation_tags;
+  auto old_complementarity_conditions = complementarity_conditions;
 
   // Prepare derivation of the Lagrangian
   clearEquations();
@@ -2911,6 +2947,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel& static_model)
   vector<expr_t> neweqs;
   vector<optional<int>> neweqs_lineno;
   map<int, map<string, string>> neweqs_tags;
+  map<int, optional<tuple<int, expr_t, expr_t>>> new_complementarity_conditions;
   int orig_endo_nbr {0};
   for (auto& [symb_id_and_lag, deriv_id] : deriv_id_table)
     {
@@ -2924,11 +2961,19 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel& static_model)
               // This is a derivative w.r.t. a Lagrange multiplier
               neweqs_lineno.push_back(old_equations_lineno[*i]);
               neweqs_tags[neweqs.size() - 1] = old_equation_tags.getTagsByEqn(*i);
+              new_complementarity_conditions.emplace(neweqs.size() - 1,
+                                                     old_complementarity_conditions.at(*i));
             }
           else
             {
               orig_endo_nbr++;
               neweqs_lineno.emplace_back(nullopt);
+              if (cloned_ramsey_constraints.contains(symb_id))
+                {
+                  auto& [lower_bound, upper_bound] = cloned_ramsey_constraints.at(symb_id);
+                  new_complementarity_conditions.emplace(neweqs.size() - 1,
+                                                         tuple {symb_id, lower_bound, upper_bound});
+                }
             }
         }
     }
@@ -2936,7 +2981,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel& static_model)
   // Overwrite equations with the Lagrangian derivatives
   clearEquations();
   for (size_t i = 0; i < neweqs.size(); i++)
-    addEquation(neweqs[i], neweqs_lineno[i], neweqs_tags[i]);
+    addEquation(neweqs[i], neweqs_lineno[i], new_complementarity_conditions[i], neweqs_tags[i]);
 
   return orig_endo_nbr;
 }
@@ -3773,6 +3818,7 @@ DynamicModel::fillEvalContext(eval_context_t& eval_context) const
 
 void
 DynamicModel::addStaticOnlyEquation(expr_t eq, const optional<int>& lineno,
+                                    optional<tuple<int, expr_t, expr_t>> complementarity_condition,
                                     map<string, string> eq_tags)
 {
   auto beq = dynamic_cast<BinaryOpNode*>(eq);
@@ -3781,6 +3827,7 @@ DynamicModel::addStaticOnlyEquation(expr_t eq, const optional<int>& lineno,
   static_only_equations_equation_tags.add(static_only_equations.size(), move(eq_tags));
   static_only_equations.push_back(beq);
   static_only_equations_lineno.push_back(lineno);
+  static_only_complementarity_conditions.push_back(move(complementarity_condition));
 }
 
 size_t
@@ -3834,7 +3881,7 @@ DynamicModel::addOccbinEquation(expr_t eq, const optional<int>& lineno, map<stri
     {
       auto eq_tags_dynamic = eq_tags;
       eq_tags_dynamic["dynamic"] = "";
-      addEquation(AddEqual(term, Zero), lineno, eq_tags_dynamic);
+      addEquation(AddEqual(term, Zero), lineno, nullopt, eq_tags_dynamic);
     }
 
   // Create or update the static equation (corresponding to the pure relax regime)
@@ -3856,7 +3903,7 @@ DynamicModel::addOccbinEquation(expr_t eq, const optional<int>& lineno, map<stri
       else
         {
           eq_tags["static"] = "";
-          addStaticOnlyEquation(AddEqual(basic_term, Zero), lineno, move(eq_tags));
+          addStaticOnlyEquation(AddEqual(basic_term, Zero), lineno, nullopt, move(eq_tags));
         }
     }
 }
@@ -4171,8 +4218,8 @@ DynamicModel::simplifyEquations()
 {
   size_t last_subst_table_size = 0;
   map<VariableNode*, NumConstNode*> subst_table;
-  // Equations with “mcp” tag are excluded, see dynare#1697
-  findConstantEquationsWithoutMcpTag(subst_table);
+  // Equations with a complementarity condition are excluded, see dynare#1697
+  findConstantEquationsWithoutComplementarityCondition(subst_table);
   while (subst_table.size() != last_subst_table_size)
     {
       last_subst_table_size = subst_table.size();
@@ -4183,7 +4230,7 @@ DynamicModel::simplifyEquations()
       for (auto& equation : static_only_equations)
         equation = dynamic_cast<BinaryOpNode*>(equation->replaceVarsInEquation(subst_table));
       subst_table.clear();
-      findConstantEquationsWithoutMcpTag(subst_table);
+      findConstantEquationsWithoutComplementarityCondition(subst_table);
     }
 }
 

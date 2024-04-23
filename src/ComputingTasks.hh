@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -174,28 +174,6 @@ private:
 
 public:
   explicit RamseyModelStatement(OptionsList options_list_arg);
-  void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
-  void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
-  void writeJsonOutput(ostream& output) const override;
-};
-
-class RamseyConstraintsStatement : public Statement
-{
-public:
-  struct Constraint
-  {
-    int endo;
-    BinaryOpcode code;
-    expr_t expression;
-  };
-  using constraints_t = vector<Constraint>;
-
-private:
-  const SymbolTable& symbol_table;
-  const constraints_t constraints;
-
-public:
-  RamseyConstraintsStatement(const SymbolTable& symbol_table_arg, constraints_t constraints_arg);
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;

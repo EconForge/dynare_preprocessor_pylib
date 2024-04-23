@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2023 Dynare Team
+ * Copyright © 2006-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -116,6 +116,11 @@ public:
   //! Stores the list of extra files to be transefered during a parallel run
   /*! (i.e. option parallel_local_files of model block) */
   vector<string> parallel_local_files;
+
+  /* Contents of the ramsey_constraints block.
+     Maps symb_id → (lower_bound, upper_bound).
+     NB: The two expr_t live in dynamic_model */
+  map<int, pair<expr_t, expr_t>> ramsey_constraints;
 
 private:
   //! List of statements

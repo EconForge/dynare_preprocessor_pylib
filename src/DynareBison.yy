@@ -242,7 +242,7 @@ str_tolower(string s)
 %type <map<string, string>> tag_pair_list
 %type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
 %type <vector<pair<int, int>>> period_list
-%type <vector<expr_t>> matched_moments_list value_list
+%type <vector<expr_t>> matched_moments_list value_list ramsey_constraints_list
 %type <tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> occbin_constraints_regime
 %type <vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>>> occbin_constraints_regimes_list
 %type <map<string, expr_t>> occbin_constraints_regime_options_list
@@ -2616,23 +2616,20 @@ ramsey_policy : RAMSEY_POLICY ';'
                 { driver.ramsey_policy($5); }
               ;
 
-ramsey_constraints : RAMSEY_CONSTRAINTS ';' ramsey_constraints_list END ';'
-                     { driver.add_ramsey_constraints_statement(); }
+ramsey_constraints : RAMSEY_CONSTRAINTS ';'
+                     { driver.begin_ramsey_constraints(); }
+                     ramsey_constraints_list END ';'
+                     { driver.end_ramsey_constraints($4); }
 		   ;
 
-ramsey_constraints_list : ramsey_constraints_list ramsey_constraint
-                 | ramsey_constraint
-		 ;
-
-ramsey_constraint : NAME  LESS expression ';'
-                    { driver.ramsey_constraint_add_less($1, $3); }
-		  | NAME  GREATER  expression ';'
-                    { driver.ramsey_constraint_add_greater($1, $3); }
-		  | NAME  LESS_EQUAL expression ';'
-                    { driver.ramsey_constraint_add_less_equal($1, $3); }
-		  | NAME  GREATER_EQUAL  expression ';'
-                    { driver.ramsey_constraint_add_greater_equal($1, $3); }
-		  ;
+ramsey_constraints_list : ramsey_constraints_list hand_side ';'
+                          {
+                            $$ = $1;
+                            $$.push_back($2);
+                          }
+                        | hand_side ';'
+                          { $$ = { $1 }; }
+                        ;
 
 evaluate_planner_objective : EVALUATE_PLANNER_OBJECTIVE ';'
                              { driver.evaluate_planner_objective(); }

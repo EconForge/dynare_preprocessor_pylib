@@ -169,8 +169,6 @@ struct ModFileStructure
   bool endval_learnt_in_present {false};
   // Whether an occbin_constraints block appears
   bool occbin_constraints_present {false};
-  // Whether a ramsey_constraints block appears
-  bool ramsey_constraints_present {false};
 };
 
 class Statement

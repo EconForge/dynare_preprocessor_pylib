@@ -2635,6 +2635,9 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
     if (key == "endogenous")
       declare_or_change_type(SymbolType::endogenous, value);
 
+  optional<tuple<int, expr_t, expr_t>> matched_complementarity_condition;
+
+  // Handle legacy “mcp” tags, for backward compatibility
   if (eq_tags.contains("mcp"))
     {
       if (complementarity_condition)
@@ -2643,19 +2646,53 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
       else
         warning("Specifying complementarity conditions with the 'mcp' tag is obsolete. Please "
                 "consider switching to the new syntax using the perpendicular symbol.");
+
+      auto [var_name, is_lower_bound, constant] {[&]() -> tuple<string, bool, string> {
+        auto tagval = eq_tags.at("mcp");
+        if (auto less_pos = tagval.find('<'); less_pos != string::npos)
+          return {tagval.substr(0, less_pos), false, tagval.substr(less_pos + 1)};
+        else if (auto greater_pos = tagval.find('>'); greater_pos != string::npos)
+          return {tagval.substr(0, greater_pos), true, tagval.substr(greater_pos + 1)};
+        else
+          error("'mcp' tag does not contain an inequality");
+      }()};
+
+      int symb_id {[&] {
+        try
+          {
+            return mod_file->symbol_table.getID(var_name);
+          }
+        catch (SymbolTable::UnknownSymbolNameException&)
+          {
+            error("Left hand-side of expression in 'mcp' tag is not a variable");
+          }
+      }()};
+
+      if (mod_file->symbol_table.getType(symb_id) != SymbolType::endogenous)
+        error("Left hand-side of expression in 'mcp' tag is not an endogenous variable");
+
+      expr_t matched_constant {[&] {
+        char* str_end;
+        double d = strtod(constant.c_str(), &str_end);
+        if (str_end == constant.c_str())
+          error("Right hand-side of expression in 'mcp' tag should be a constant");
+        return data_tree->AddPossiblyNegativeConstant(d);
+      }()};
+
+      matched_complementarity_condition = {symb_id, is_lower_bound ? matched_constant : nullptr,
+                                           is_lower_bound ? nullptr : matched_constant};
     }
 
   if (complementarity_condition)
-    {
-      if (auto bcomp = dynamic_cast<BinaryOpNode*>(complementarity_condition);
-          !(bcomp
-            && (bcomp->op_code == BinaryOpcode::less || bcomp->op_code == BinaryOpcode::lessEqual
-                || bcomp->op_code == BinaryOpcode::greater
-                || bcomp->op_code == BinaryOpcode::greaterEqual)))
-        error("The complementarity constraint must be an inequality.");
-
-      eq_tags.emplace("mcp", complementarity_condition->toString());
-    }
+    try
+      {
+        matched_complementarity_condition
+            = complementarity_condition->matchComplementarityCondition();
+      }
+    catch (ExprNode::MatchFailureException& e)
+      {
+        error("Complementarity condition has an incorrect form: " + e.message);
+      }
 
   if (eq_tags.contains("static"))
     {
@@ -2664,7 +2701,8 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
         error("An equation tagged [static] cannot contain leads, lags, expectations or "
               "STEADY_STATE operators");
 
-      dynamic_model->addStaticOnlyEquation(id, location.begin.line, eq_tags);
+      dynamic_model->addStaticOnlyEquation(id, location.begin.line,
+                                           move(matched_complementarity_condition), eq_tags);
     }
   else if (eq_tags.contains("bind") || eq_tags.contains("relax"))
     {
@@ -2740,7 +2778,8 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
         }
     }
   else // General case
-    model_tree->addEquation(id, location.begin.line, move(eq_tags));
+    model_tree->addEquation(id, location.begin.line, move(matched_complementarity_condition),
+                            move(eq_tags));
 
   return id;
 }
@@ -3629,48 +3668,31 @@ ParsingDriver::prior_posterior_function(bool prior_func)
 }
 
 void
-ParsingDriver::add_ramsey_constraints_statement()
+ParsingDriver::begin_ramsey_constraints()
 {
-  mod_file->addStatement(
-      make_unique<RamseyConstraintsStatement>(mod_file->symbol_table, move(ramsey_constraints)));
-  ramsey_constraints.clear();
+  set_current_data_tree(&mod_file->dynamic_model);
 }
 
 void
-ParsingDriver::ramsey_constraint_add_less(const string& name, const expr_t rhs)
+ParsingDriver::end_ramsey_constraints(const vector<expr_t>& constraints)
 {
-  add_ramsey_constraint(name, BinaryOpcode::less, rhs);
-}
+  for (expr_t c : constraints)
+    try
+      {
+        auto [symb_id, lower_bound, upper_bound] = c->matchComplementarityCondition();
 
-void
-ParsingDriver::ramsey_constraint_add_greater(const string& name, const expr_t rhs)
-{
-  add_ramsey_constraint(name, BinaryOpcode::greater, rhs);
-}
+        auto [it, success]
+            = mod_file->ramsey_constraints.try_emplace(symb_id, lower_bound, upper_bound);
+        if (!success)
+          error("The ramsey_constraints block contains two constraints for variable "
+                + mod_file->symbol_table.getName(symb_id));
+      }
+    catch (ExprNode::MatchFailureException& e)
+      {
+        error("Ramsey constraint has an incorrect form: " + e.message);
+      }
 
-void
-ParsingDriver::ramsey_constraint_add_less_equal(const string& name, const expr_t rhs)
-{
-  add_ramsey_constraint(name, BinaryOpcode::lessEqual, rhs);
-}
-
-void
-ParsingDriver::ramsey_constraint_add_greater_equal(const string& name, const expr_t rhs)
-{
-  add_ramsey_constraint(name, BinaryOpcode::greaterEqual, rhs);
-}
-
-void
-ParsingDriver::add_ramsey_constraint(const string& name, BinaryOpcode op_code, const expr_t rhs)
-{
-  check_symbol_is_endogenous(name);
-  int symb_id = mod_file->symbol_table.getID(name);
-
-  RamseyConstraintsStatement::Constraint C;
-  C.endo = symb_id;
-  C.code = op_code;
-  C.expression = rhs;
-  ramsey_constraints.push_back(C);
+  reset_data_tree();
 }
 
 void

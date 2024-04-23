@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2023 Dynare Team
+ * Copyright © 2006-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -167,7 +167,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.ramsey_constraints_present && !mod_file_struct.ramsey_model_present)
+  if (!ramsey_constraints.empty() && !mod_file_struct.ramsey_model_present)
     {
       cerr << "ERROR: A ramsey_constraints block requires the presence of a ramsey_model or "
               "ramsey_policy statement"
@@ -535,8 +535,15 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
           symbol_table, num_constants, external_functions_table, trend_component_model_table,
           var_model_table};
       ramsey_FOC_equations_dynamic_model = dynamic_model;
+      auto clone_if_not_null
+          = [&](expr_t e) { return e ? e->clone(ramsey_FOC_equations_dynamic_model) : nullptr; };
+      map<int, pair<expr_t, expr_t>> cloned_ramsey_constraints;
+      for (const auto& [symb_id, bounds] : ramsey_constraints)
+        cloned_ramsey_constraints.try_emplace(symb_id, clone_if_not_null(bounds.first),
+                                              clone_if_not_null(bounds.second));
       mod_file_struct.ramsey_orig_endo_nbr
-          = ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(planner_objective);
+          = ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(planner_objective,
+                                                                       cloned_ramsey_constraints);
       ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
     }
 

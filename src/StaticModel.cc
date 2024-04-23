@@ -87,17 +87,18 @@ StaticModel::StaticModel(const DynamicModel& m) :
         if (dynamic_equations.contains(i))
           {
             auto [static_only_equations, static_only_equations_lineno,
-                  static_only_equations_equation_tags]
+                  static_only_complementarity_conditions, static_only_equations_equation_tags]
                 = m.getStaticOnlyEquationsInfo();
 
             addEquation(static_only_equations[static_only_index]->toStatic(*this),
                         static_only_equations_lineno[static_only_index],
+                        static_only_complementarity_conditions[static_only_index],
                         static_only_equations_equation_tags.getTagsByEqn(static_only_index));
             static_only_index++;
           }
         else
           addEquation(m.equations[i]->toStatic(*this), m.equations_lineno[i],
-                      m.equation_tags.getTagsByEqn(i));
+                      m.complementarity_conditions[i], m.equation_tags.getTagsByEqn(i));
       }
     catch (DataTree::DivisionByZeroException)
       {
@@ -250,6 +251,8 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder,
            << endl;
       exit(EXIT_FAILURE);
     }
+
+  computeMCPEquationsReordering();
 }
 
 void
@@ -305,6 +308,8 @@ StaticModel::writeStaticFile(const string& basename, bool use_dll, const string&
 
   writeSetAuxiliaryVariablesFile<false>(basename, julia);
 
+  writeComplementarityConditionsFile<false>(basename);
+
   // Support for model debugging
   if (!julia)
     writeDebugModelMFiles<false>(basename);
@@ -331,6 +336,11 @@ StaticModel::writeDriverOutput(ostream& output) const
     writeBlockDriverOutput(output);
 
   writeDriverSparseIndicesHelper<false, false>(output);
+
+  output << "M_.static_mcp_equations_reordering = [";
+  for (auto i : mcp_equations_reordering)
+    output << i + 1 << "; ";
+  output << "];" << endl;
 }
 
 void

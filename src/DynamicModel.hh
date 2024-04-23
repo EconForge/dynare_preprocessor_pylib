@@ -92,6 +92,9 @@ private:
   //! Stores the equation tags of equations declared as [static]
   EquationTags static_only_equations_equation_tags;
 
+  // Complementarity conditions of equations declared as [static]
+  vector<optional<tuple<int, expr_t, expr_t>>> static_only_complementarity_conditions;
+
   using deriv_id_table_t = map<pair<int, int>, int>;
   //! Maps a pair (symbol_id, lag) to a deriv ID
   deriv_id_table_t deriv_id_table;
@@ -279,11 +282,11 @@ private:
 
      Returns a list of excluded variables (empty if
      excluded_vars_change_type=false) */
-  vector<int> removeEquationsHelper(set<map<string, string>>& listed_eqs_by_tag, bool exclude_eqs,
-                                    bool excluded_vars_change_type,
-                                    vector<BinaryOpNode*>& all_equations,
-                                    vector<optional<int>>& all_equations_lineno,
-                                    EquationTags& all_equation_tags, bool static_equations) const;
+  vector<int> removeEquationsHelper(
+      set<map<string, string>>& listed_eqs_by_tag, bool exclude_eqs, bool excluded_vars_change_type,
+      vector<BinaryOpNode*>& all_equations, vector<optional<int>>& all_equations_lineno,
+      vector<optional<tuple<int, expr_t, expr_t>>>& all_complementarity_conditions,
+      EquationTags& all_equation_tags, bool static_equations) const;
 
   //! Compute autoregressive matrices of trend component models
   /* The algorithm uses matching rules over expression trees. It cannot handle
@@ -455,7 +458,8 @@ public:
      Returns the number of optimality FOCs, which is by construction equal to
      the number of endogenous before adding the Lagrange multipliers
      (internally called ramsey_endo_nbr). */
-  int computeRamseyPolicyFOCs(const StaticModel& static_model);
+  int computeRamseyPolicyFOCs(const StaticModel& _model,
+                              map<int, pair<expr_t, expr_t>> cloned_ramsey_constraints);
 
   //! Clears all equations
   void clearEquations();
@@ -464,7 +468,9 @@ public:
   void replaceMyEquations(DynamicModel& dynamic_model) const;
 
   //! Adds an equation marked as [static]
-  void addStaticOnlyEquation(expr_t eq, const optional<int>& lineno, map<string, string> eq_tags);
+  void addStaticOnlyEquation(expr_t eq, const optional<int>& lineno,
+                             optional<tuple<int, expr_t, expr_t>> complementarity_condition,
+                             map<string, string> eq_tags);
 
   //! Returns number of static only equations
   size_t staticOnlyEquationsNbr() const;
@@ -708,7 +714,7 @@ public:
   getStaticOnlyEquationsInfo() const
   {
     return tuple {static_only_equations, static_only_equations_lineno,
-                  static_only_equations_equation_tags};
+                  static_only_complementarity_conditions, static_only_equations_equation_tags};
   };
 
   //! Returns true if a parameter was used in the model block with a lead or lag

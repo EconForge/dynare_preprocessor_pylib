@@ -942,6 +942,11 @@ public:
 
   // Substitutes orig_symb_id(±l) with exp(aux_symb_id(±l)) (used for “var(log)”)
   [[nodiscard]] virtual expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const = 0;
+
+  /* Matches an expression that constitutes a complementarity condition.
+     If successful, returns a triplet (endo_symb_id, lower_bound, upper_bound).
+     Otherwise, throws a MatchFailureException. */
+  [[nodiscard]] virtual tuple<int, expr_t, expr_t> matchComplementarityCondition() const;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -1499,6 +1504,7 @@ public:
                           vector<int>& powers) const override;
   [[nodiscard]] pair<int, expr_t> matchEndogenousTimesConstant() const override;
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
+  [[nodiscard]] tuple<int, expr_t, expr_t> matchComplementarityCondition() const override;
 };
 
 //! Trinary operator node

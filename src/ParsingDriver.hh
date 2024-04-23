@@ -186,8 +186,6 @@ private:
   MomentCalibration::constraints_t moment_calibration_constraints;
   //! Temporary storage for irf_calibration
   IrfCalibration::constraints_t irf_calibration_constraints;
-  //! Temporary storage for ramsey_constraints
-  RamseyConstraintsStatement::constraints_t ramsey_constraints;
   //! Temporary storage for svar_identification blocks
   SvarIdentificationStatement::svar_identification_restrictions_t svar_ident_restrictions;
   //! Temporary storage for mapping the equation number to the restrictions within an
@@ -667,18 +665,9 @@ public:
   void end_planner_objective(expr_t expr);
   //! Ramsey model statement
   void ramsey_model();
-  //! Ramsey constraints statement
-  void add_ramsey_constraints_statement();
-  //! Ramsey less constraint
-  void ramsey_constraint_add_less(const string& name, const expr_t rhs);
-  //! Ramsey greater constraint
-  void ramsey_constraint_add_greater(const string& name, const expr_t rhs);
-  //! Ramsey less or equal constraint
-  void ramsey_constraint_add_less_equal(const string& name, const expr_t rhs);
-  //! Ramsey greater or equal constraint
-  void ramsey_constraint_add_greater_equal(const string& name, const expr_t rhs);
-  //! Ramsey constraint helper function
-  void add_ramsey_constraint(const string& name, BinaryOpcode op_code, const expr_t rhs);
+  // Ramsey constraints statement
+  void begin_ramsey_constraints();
+  void end_ramsey_constraints(const vector<expr_t>& constraints);
   //! Ramsey policy statement
   void ramsey_policy(vector<string> symbol_list);
   //! Evaluate Planner Objective

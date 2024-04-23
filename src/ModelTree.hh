@@ -91,6 +91,9 @@ protected:
   vector<optional<int>> equations_lineno;
   //! Stores equation tags
   EquationTags equation_tags;
+  /* The tuple is: endogenous symbol ID, lower bound (possibly nullptr), upper bound (possibly
+     nullptr). */
+  vector<optional<tuple<int, expr_t, expr_t>>> complementarity_conditions;
   /*
    * ************** END **************
    */
@@ -271,6 +274,12 @@ protected:
      Same remark as above regarding blocks of type “evaluate”. */
   vector<vector<int>> blocks_jacobian_sparse_colptr;
 
+  /* Indices of reordered equations for use with an MCP solver. Contains a permutation of the
+     equation indices, so that reordered equations appear at the (type-specific) index of the
+     endogenous to which they are associated through the complementarity condition.
+     Also see computeMCPEquationsReordering() method. */
+  vector<int> mcp_equations_reordering;
+
   //! Computes derivatives
   /*! \param order the derivation order
       \param vars the derivation IDs w.r.t. which compute the derivatives */
@@ -284,6 +293,11 @@ protected:
 
   //! Computes temporary terms for the file containing parameters derivatives
   void computeParamsDerivativesTemporaryTerms();
+
+  /* Computes the mcp_equations_reordering vector.
+     Also checks that a variable does not appear as constrained in two different equations. */
+  void computeMCPEquationsReordering();
+
   //! Writes temporary terms
   template<ExprNodeOutputType output_type>
   void writeTemporaryTerms(const temporary_terms_t& tt, temporary_terms_t& temp_term_union,
@@ -423,6 +437,9 @@ protected:
   // Write the file that sets auxiliary variables given the original variables
   template<bool dynamic>
   void writeSetAuxiliaryVariablesFile(const string& basename, bool julia) const;
+
+  template<bool dynamic>
+  void writeComplementarityConditionsFile(const string& basename) const;
 
 private:
   //! Sparse matrix of double to store the values of the static Jacobian
@@ -651,10 +668,14 @@ protected:
 public:
   //! Absolute value under which a number is considered to be zero
   double cutoff {1e-15};
-  //! Declare a node as an equation of the model; also give its line number
-  void addEquation(expr_t eq, const optional<int>& lineno);
+  /* Declare a node as an equation of the model; also give its line number and complementarity
+     condition */
+  void addEquation(expr_t eq, const optional<int>& lineno,
+                   optional<tuple<int, expr_t, expr_t>> complementarity_condition = nullopt);
   //! Declare a node as an equation of the model, also giving its tags
-  void addEquation(expr_t eq, const optional<int>& lineno, map<string, string> eq_tags);
+  void addEquation(expr_t eq, const optional<int>& lineno,
+                   optional<tuple<int, expr_t, expr_t>> complementarity_condition,
+                   map<string, string> eq_tags);
   //! Declare a node as an auxiliary equation of the model, adding it at the end of the list of
   //! auxiliary equations
   void addAuxEquation(expr_t eq);
@@ -671,9 +692,10 @@ public:
   /*! Reorder auxiliary variables so that they appear in recursive order in
       set_auxiliary_variables.m and dynamic_set_auxiliary_series.m */
   void reorderAuxiliaryEquations();
-  //! Find equations of the form “variable=constant”, excluding equations with “mcp” tag (see
-  //! dynare#1697)
-  void findConstantEquationsWithoutMcpTag(map<VariableNode*, NumConstNode*>& subst_table) const;
+  /* Find equations of the form “variable=constant”, excluding equations with a complementarity
+     condition (see dynare#1697) */
+  void findConstantEquationsWithoutComplementarityCondition(
+      map<VariableNode*, NumConstNode*>& subst_table) const;
   /* Given an expression, searches for the first equation that has exactly this
      expression on the LHS, and returns the RHS of that equation.
      If no such equation can be found, throws an ExprNode::MatchFailureExpression */
@@ -3131,6 +3153,52 @@ ModelTree::writeSetAuxiliaryVariablesFile(const string& basename, bool julia) co
       output_file << output.str();
       output_file.close();
     }
+}
+
+template<bool dynamic>
+void
+ModelTree::writeComplementarityConditionsFile(const string& basename) const
+{
+  // TODO: when C++20 support is complete, mark the following string constexpr
+  const string funcname {(dynamic ? "dynamic"s : "static"s) + "_complementarity_conditions"};
+  const filesystem::path filename {packageDir(basename) / (funcname + ".m")};
+  /* Can’t use matlabOutsideModel for output type, since it uses M_.
+     Static is ok even for the dynamic model, since there are no leads/lags. */
+  constexpr ExprNodeOutputType output_type {ExprNodeOutputType::matlabStaticModel};
+
+  ofstream output {filename, ios::out | ios::binary};
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << "function [lb, ub] = " << funcname << "(params)" << endl
+         << "ub = inf(" << equations.size() << ",1);" << endl
+         << "lb = -ub;" << endl;
+
+  for (const auto& it : complementarity_conditions)
+    if (it)
+      {
+        const auto& [symb_id, lb, ub] = *it;
+        int endo_id {symbol_table.getTypeSpecificID(symb_id)};
+        if (lb)
+          {
+            output << "lb(" << endo_id + 1 << ")=";
+            lb->writeOutput(output, output_type);
+            output << ";" << endl;
+          }
+        if (ub)
+          {
+            output << "ub(" << endo_id + 1 << ")=";
+            ub->writeOutput(output, output_type);
+            output << ";" << endl;
+          }
+      }
+
+  output << "end" << endl;
+
+  output.close();
 }
 
 #endif

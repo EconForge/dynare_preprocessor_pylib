@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -34,6 +34,7 @@
 #endif
 
 #include <algorithm>
+#include <numeric>
 #include <regex>
 #include <utility>
 
@@ -51,13 +52,21 @@ vector<jthread> ModelTree::mex_compilation_workers;
 void
 ModelTree::copyHelper(const ModelTree& m)
 {
-  auto f = [this](expr_t e) { return e->clone(*this); };
+  auto f = [this](expr_t e) { return e ? e->clone(*this) : nullptr; };
 
   // Equations
   for (const auto& it : m.equations)
     equations.push_back(dynamic_cast<BinaryOpNode*>(f(it)));
   for (const auto& it : m.aux_equations)
     aux_equations.push_back(dynamic_cast<BinaryOpNode*>(f(it)));
+  for (const auto& it : m.complementarity_conditions)
+    if (it)
+      {
+        const auto& [symb_id, lb, ub] = *it;
+        complementarity_conditions.emplace_back(in_place, symb_id, f(lb), f(ub));
+      }
+    else
+      complementarity_conditions.emplace_back(nullopt);
 
   auto convert_deriv_map = [f](const map<vector<int>, expr_t>& dm) {
     map<vector<int>, expr_t> dm2;
@@ -184,6 +193,8 @@ ModelTree::operator=(const ModelTree& m)
   equations_lineno = m.equations_lineno;
   aux_equations.clear();
   equation_tags = m.equation_tags;
+  complementarity_conditions.clear();
+
   computed_derivs_order = m.computed_derivs_order;
   NNZDerivatives = m.NNZDerivatives;
 
@@ -1394,28 +1405,33 @@ ModelTree::writeLatexModelFile(const string& mod_basename, const string& latex_b
 }
 
 void
-ModelTree::addEquation(expr_t eq, const optional<int>& lineno)
+ModelTree::addEquation(expr_t eq, const optional<int>& lineno,
+                       optional<tuple<int, expr_t, expr_t>> complementarity_condition)
 {
   auto beq = dynamic_cast<BinaryOpNode*>(eq);
   assert(beq && beq->op_code == BinaryOpcode::equal);
 
   equations.push_back(beq);
   equations_lineno.push_back(lineno);
+  complementarity_conditions.push_back(move(complementarity_condition));
 }
 
 void
-ModelTree::findConstantEquationsWithoutMcpTag(map<VariableNode*, NumConstNode*>& subst_table) const
+ModelTree::findConstantEquationsWithoutComplementarityCondition(
+    map<VariableNode*, NumConstNode*>& subst_table) const
 {
   for (size_t i = 0; i < equations.size(); i++)
-    if (!equation_tags.exists(i, "mcp"))
+    if (!complementarity_conditions[i])
       equations[i]->findConstantEquations(subst_table);
 }
 
 void
-ModelTree::addEquation(expr_t eq, const optional<int>& lineno, map<string, string> eq_tags)
+ModelTree::addEquation(expr_t eq, const optional<int>& lineno,
+                       optional<tuple<int, expr_t, expr_t>> complementarity_condition,
+                       map<string, string> eq_tags)
 {
   equation_tags.add(equations.size(), move(eq_tags));
-  addEquation(eq, lineno);
+  addEquation(eq, lineno, move(complementarity_condition));
 }
 
 void
@@ -1593,6 +1609,27 @@ ModelTree::writeJsonModelEquations(ostream& output, bool residuals) const
               eqtags.clear();
             }
         }
+
+      if (complementarity_conditions[eq])
+        {
+          auto& [symb_id, lower_bound, upper_bound] = *complementarity_conditions[eq];
+          output << R"(, "complementarity_condition": {"variable": ")"
+                 << symbol_table.getName(symb_id) << '"';
+          if (lower_bound)
+            {
+              output << R"(, "lower_bound": ")";
+              lower_bound->writeJsonOutput(output, {}, {});
+              output << '"';
+            }
+          if (upper_bound)
+            {
+              output << R"(, "upper_bound": ")";
+              upper_bound->writeJsonOutput(output, {}, {});
+              output << '"';
+            }
+          output << "}";
+        }
+
       output << "}" << endl;
     }
   output << endl << "]" << endl;
@@ -2077,4 +2114,39 @@ ModelTree::writeAuxVarRecursiveDefinitions(ostream& output, ExprNodeOutputType o
       aux_equation->writeOutput(output, output_type, {}, {}, tef_terms);
       output << ";" << endl;
     }
+}
+
+void
+ModelTree::computeMCPEquationsReordering()
+{
+  /* Optimal policy models (discretionary, or Ramsey before computing FOCs) do not have as many
+     equations as variables. Do not even try to compute the reordering. */
+  if (static_cast<int>(equations.size()) != symbol_table.endo_nbr())
+    return;
+
+  assert(equations.size() == complementarity_conditions.size());
+
+  mcp_equations_reordering.resize(equations.size());
+  iota(mcp_equations_reordering.begin(), mcp_equations_reordering.end(), 0);
+
+  set<int> endos;
+
+  for (int eq {0}; eq < static_cast<int>(equations.size()); eq++)
+    if (complementarity_conditions.at(eq))
+      {
+        int symb_id {get<0>(*complementarity_conditions[eq])};
+        auto [ignore, inserted] = endos.insert(symb_id);
+        if (!inserted)
+          {
+            cerr << "ERROR: variable " << symbol_table.getName(symb_id)
+                 << " appears in two complementarity conditions" << endl;
+            exit(EXIT_FAILURE);
+          }
+
+        int endo_id {symbol_table.getTypeSpecificID(symb_id)};
+
+        auto it = ranges::find(mcp_equations_reordering, eq);
+        assert(it != mcp_equations_reordering.end());
+        swap(mcp_equations_reordering[endo_id], *it);
+      }
 }

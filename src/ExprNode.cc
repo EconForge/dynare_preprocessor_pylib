@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2023 Dynare Team
+ * Copyright © 2007-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -9369,4 +9369,41 @@ ExprNode::toString() const
   ostringstream ss;
   writeJsonOutput(ss, {}, {});
   return ss.str();
+}
+
+tuple<int, expr_t, expr_t>
+ExprNode::matchComplementarityCondition() const
+{
+  throw MatchFailureException {"This expression is not an inequality"};
+}
+
+tuple<int, expr_t, expr_t>
+BinaryOpNode::matchComplementarityCondition() const
+{
+  bool is_lower_bound {[&] {
+    switch (op_code)
+      {
+      case BinaryOpcode::less:
+      case BinaryOpcode::lessEqual:
+        return false;
+      case BinaryOpcode::greater:
+      case BinaryOpcode::greaterEqual:
+        return true;
+      default:
+        throw MatchFailureException {"This expression is not an inequality"};
+      }
+  }()};
+
+  auto* varg = dynamic_cast<VariableNode*>(arg1);
+  if (!varg)
+    throw MatchFailureException {"Left-hand side is not a variable"};
+  if (varg->lag != 0)
+    throw MatchFailureException {"Left-hand side variable must not have a lead or a lag"};
+  if (datatree.symbol_table.getType(varg->symb_id) != SymbolType::endogenous)
+    throw MatchFailureException {"Left-hand side is not an endogenous variable"};
+
+  if (!arg2->isConstant())
+    throw MatchFailureException {"Right-hand side is not a constant"};
+
+  return {varg->symb_id, is_lower_bound ? arg2 : nullptr, is_lower_bound ? nullptr : arg2};
 }
