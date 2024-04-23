@@ -1384,11 +1384,11 @@ PacModelTable::transformPass(const lag_equivalence_table_t& unary_ops_nodes,
         {
           if (target_info.contains(name))
             {
-              cerr << "ERROR: the block 'pac_target_info(" << name
-                   << ")' is not supported in the context of a PAC model with model-consistent "
-                      "expectations (MCE)."
-                   << endl;
-              exit(EXIT_FAILURE);
+              assert(growth_correction_term == dynamic_model.Zero);
+              dynamic_model.computePacModelConsistentExpectationSubstitutionWithComponents(
+                  name, symbol_table.getID(discount[name]), pacEquationMaxLag(name),
+                  diff_subst_table, aux_param_symb_ids, get<2>(target_info[name]),
+                  pac_expectation_substitution);
             }
           else
             dynamic_model.computePacModelConsistentExpectationSubstitution(
@@ -1507,7 +1507,7 @@ PacModelTable::writeOutput(ostream& output) const
 
   // Write the auxiliary variable IDs created for the pac_expectation operator
   for (auto& [name, id] : aux_var_symb_ids)
-    output << "M_.pac." << name << "." << (aux_model_name.at(name).empty() ? "mce.z1" : "aux_id")
+    output << "M_.pac." << name << "." << (aux_model_name.at(name).empty() ? "mce.z" : "aux_id")
            << " = " << symbol_table.getTypeSpecificID(id) + 1 << ";" << endl;
 
   // Write PAC equation name info
@@ -1708,6 +1708,21 @@ PacModelTable::writeOutput(ostream& output) const
             growth_info_helper(fieldname + ".growth_linear_comb", growth_component_info);
           }
         component_idx++;
+      }
+
+  for (auto& [name, val] : target_info)
+    if (aux_model_name.at(name).empty())
+      {
+        string pac_model_name = "M_.pac." + name + ".mce.";
+        output << pac_model_name << "z = NaN(" << get<2>(val).size() << ",1);" << endl;
+        for (int component_idx {1};
+             auto& [component, growth_component, auxname, kind, coeff, growth_neutrality_param,
+                    h_indices, original_growth_component, growth_component_info] : get<2>(val))
+          {
+            output << pac_model_name << "z(" << component_idx
+                   << ") = " << symbol_table.getTypeSpecificID(auxname) + 1 << ";" << endl;
+            component_idx++;
+          }
       }
 }
 
