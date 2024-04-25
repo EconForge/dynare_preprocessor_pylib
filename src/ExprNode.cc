@@ -422,7 +422,7 @@ ExprNode::fillErrorCorrectionRow(int eqn, const vector<int>& nontarget_lhs,
                      << endl;
                 exit(EXIT_FAILURE);
               }
-            if (*param_id)
+            if (param_id)
               {
                 cerr
                     << "ERROR in trend component model: spurious parameter in error correction term"
