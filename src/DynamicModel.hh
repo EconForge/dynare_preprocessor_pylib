@@ -638,6 +638,18 @@ public:
       map<string, int>& pac_aux_var_symb_ids, map<string, vector<int>>& pac_aux_param_symb_ids,
       map<string, expr_t>& pac_expectation_substitution);
 
+  /* For a PAC MCE model with an associated pac_target_info, fill pac_expectation_substitution with
+     the expression that will be substituted for the pac_expectation operator. In the process, add
+     the variables and the equations defining Z₁ and Z₀ for each component. The new auxiliary
+     parameters are added to pac_mce_alpha_symb_ids. The routine also creates the auxiliary
+     variables for the components, and adds the corresponding equations.
+  */
+  void computePacModelConsistentExpectationSubstitutionWithComponents(
+      const string& name, int discount_symb_id, int pac_eq_max_lag,
+      ExprNode::subst_table_t& diff_subst_table, map<string, vector<int>>& pac_aux_param_symb_ids,
+      vector<PacModelTable::target_component_t>& pac_target_components,
+      map<string, expr_t>& pac_expectation_substitution);
+
   /* For a PAC backward model, fill pac_expectation_substitution with the
      expression that will be substituted for the pac_expectation operator.
      The symbol IDs of the new parameters are also added to pac_aux_param_symb_ids.

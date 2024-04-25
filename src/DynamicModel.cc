@@ -2085,6 +2085,203 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(
 }
 
 void
+DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
+    const string& name, int discount_symb_id, int pac_eq_max_lag,
+    ExprNode::subst_table_t& diff_subst_table, map<string, vector<int>>& pac_aux_param_symb_ids,
+    vector<PacModelTable::target_component_t>& pac_target_components,
+    map<string, expr_t>& pac_expectation_substitution)
+{
+  auto create_aux_param = [&](const string& param_name) {
+    try
+      {
+        return symbol_table.addSymbol(param_name, SymbolType::parameter);
+      }
+    catch (SymbolTable::AlreadyDeclaredException)
+      {
+        cerr << "ERROR: the variable/parameter '" << param_name
+             << "' conflicts with some auxiliary parameter that will be generated for the '" << name
+             << "' PAC model. Please rename that parameter." << endl;
+        exit(EXIT_FAILURE);
+      }
+  };
+  int neqs = 0;
+
+  // At the end of this loop:
+  //         ₘ                          ₘ
+  // A_1 = 1+∑ αᵢ = A(1) and A_beta = 1+∑ αᵢβⁱ
+  //        ᵢ₌₁                        ᵢ₌₁
+  expr_t A_1 = One;
+  expr_t A_beta = One;
+  expr_t beta = AddVariable(discount_symb_id);
+  for (int i = 1; i <= pac_eq_max_lag + 1; i++)
+    {
+      string param_name = "mce_alpha_" + name + "_" + to_string(i);
+      try
+        {
+          int alpha_i_symb_id = symbol_table.addSymbol(param_name, SymbolType::parameter);
+          pac_aux_param_symb_ids[name].push_back(alpha_i_symb_id);
+          A_1 = AddPlus(A_1, AddVariable(alpha_i_symb_id));
+          A_beta = AddPlus(A_beta, AddTimes(AddVariable(alpha_i_symb_id),
+                                            AddPower(beta, AddPossiblyNegativeConstant(i))));
+        }
+      catch (SymbolTable::AlreadyDeclaredException& e)
+        {
+          cerr << "The variable/parameter '" << param_name
+               << "' conflicts with a parameter that will be generated for the '" << name
+               << "' PAC model. Please rename it." << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+
+  auto create_target_lag = [&](int variable, int lag) {
+    if (symbol_table.isAuxiliaryVariable(variable))
+      return AddVariable(symbol_table.getOrigSymbIdForAuxVar(variable), lag);
+    else
+      return AddVariable(variable, lag);
+  };
+
+  expr_t substexpr = Zero;
+  for (int component_idx {1};
+       auto& [component, growth, auxname, kind, coeff, growth_neutrality_param, h_indices,
+              original_growth, growth_info] : pac_target_components)
+    {
+      // Create the auxiliary variable for this component
+      int aux_id = symbol_table.addPacExpectationAuxiliaryVar(auxname, component);
+
+      // Get the component variable id
+      int component_id = dynamic_cast<VariableNode*>(component)->symb_id;
+
+      //      ₘ
+      // fp = ∑ αᵢβⁱZₜ₊ᵢ
+      //     ᵢ₌₁
+      expr_t fp = Zero;
+      for (int i = 1; i <= pac_eq_max_lag + 1; i++)
+        {
+          int alpha_i_symb_id = -1;
+          string param_name = "mce_alpha_" + name + "_" + to_string(i);
+          try
+            {
+              alpha_i_symb_id = symbol_table.getID(param_name);
+            }
+          catch (SymbolTable::UnknownSymbolNameException& e)
+            {
+              alpha_i_symb_id = symbol_table.addSymbol(param_name, SymbolType::parameter);
+            }
+          fp = AddPlus(fp, AddTimes(AddTimes(AddVariable(alpha_i_symb_id),
+                                             AddPower(beta, AddPossiblyNegativeConstant(i))),
+                                    AddVariable(aux_id, i)));
+        }
+      if (kind != PacTargetKind::ll) // non-stationary component y¹ₜ
+        {
+          // Add diff nodes and eqs for the non-stationary component
+          const VariableNode* aux_target_ns_var_diff_node;
+          expr_t diff_node_to_search = AddDiff(create_target_lag(component_id, 0));
+          if (auto sit = diff_subst_table.find(diff_node_to_search); sit != diff_subst_table.end())
+            aux_target_ns_var_diff_node = sit->second;
+          else
+            {
+              int symb_id
+                  = symbol_table.addDiffAuxiliaryVar(diff_node_to_search->idx, diff_node_to_search);
+              aux_target_ns_var_diff_node = AddVariable(symb_id);
+              auto neweq = AddEqual(const_cast<VariableNode*>(aux_target_ns_var_diff_node),
+                                    AddMinus(create_target_lag(component_id, 0),
+                                             create_target_lag(component_id, -1)));
+              addEquation(neweq, nullopt);
+              addAuxEquation(neweq);
+              neqs++;
+            }
+
+          map<int, VariableNode*> target_ns_aux_var_to_add;
+          const VariableNode* last_aux_var = aux_target_ns_var_diff_node;
+          for (int i = 1; i <= pac_eq_max_lag; i++, neqs++)
+            {
+              expr_t this_diff_node = AddDiff(create_target_lag(component_id, i));
+              int symb_id = symbol_table.addDiffLeadAuxiliaryVar(
+                  this_diff_node->idx, this_diff_node, last_aux_var->symb_id, 1);
+              VariableNode* current_aux_var = AddVariable(symb_id);
+              auto neweq = AddEqual(current_aux_var, AddVariable(last_aux_var->symb_id, 1));
+              addEquation(neweq, nullopt);
+              addAuxEquation(neweq);
+              last_aux_var = current_aux_var;
+              target_ns_aux_var_to_add[i] = current_aux_var;
+            }
+
+          // At the end of this loop,
+          //      ₘ₋₁ ⎛ ₘ₋₁     ⎞
+          //  fs = ∑  ⎢  ∑  αᵢβⁱ⎥ Δy¹ₜ₊ᵢ
+          //      ₖ₌₁ ⎝ ᵢ₌ₖ     ⎠
+          expr_t fs = Zero;
+          for (int k = 1; k <= pac_eq_max_lag; k++)
+            {
+              expr_t ssum = Zero;
+              for (int j = k + 1; j <= pac_eq_max_lag + 1; j++)
+                {
+                  int alpha_j_symb_id = -1;
+                  string param_name = "mce_alpha_" + name + "_" + to_string(j);
+                  try
+                    {
+                      alpha_j_symb_id = symbol_table.getID(param_name);
+                    }
+                  catch (SymbolTable::UnknownSymbolNameException& e)
+                    {
+                      alpha_j_symb_id = symbol_table.addSymbol(param_name, SymbolType::parameter);
+                    }
+                  ssum = AddPlus(ssum, AddTimes(AddVariable(alpha_j_symb_id),
+                                                AddPower(beta, AddPossiblyNegativeConstant(j))));
+                }
+              fs = AddPlus(fs, AddTimes(ssum, target_ns_aux_var_to_add[k]));
+            }
+
+          // Assembling the equation Zₜ¹ = A_1 ( Δyₜ¹ - fs ) - fp_1
+          auto neweq_1 = AddEqual(
+              AddVariable(aux_id),
+              AddMinus(
+                  AddTimes(A_1,
+                           AddMinus(const_cast<VariableNode*>(aux_target_ns_var_diff_node), fs)),
+                  fp));
+          addEquation(neweq_1, nullopt);
+          neqs++;
+          /* This equation is not added to the list of auxiliary equations, because it
+             is recursive, and this would in particular break dynamic_set_auxiliary_series.m */
+        }
+      else // Stationary component yₜ⁰
+        {
+          // Assembling the equation Zₜ⁰ = A_beta A_1 yₜ⁰ - fp
+          auto neweq_0 = AddEqual(AddVariable(aux_id),
+                                  AddMinus(AddTimes(A_beta, AddTimes(A_1, component)), fp));
+          addEquation(neweq_0, nullopt);
+          neqs++;
+          /* This equation is not added to the list of auxiliary equations, because it
+             is recursive, and this would in particular break dynamic_set_auxiliary_series.m */
+        }
+
+      // If needed, add the growth neutrality correction for this component
+      expr_t growth_correction_term = Zero;
+      string name_component = name + "_component" + to_string(component_idx);
+      if (growth)
+        {
+          growth_neutrality_param
+              = create_aux_param(name_component + "_pac_growth_neutrality_correction");
+          growth_correction_term = AddTimes(growth, AddVariable(growth_neutrality_param));
+        }
+      else
+        growth_neutrality_param = -1;
+
+      substexpr = AddPlus(substexpr,
+                          AddTimes(coeff, AddPlus(AddVariable(aux_id), growth_correction_term)));
+      component_idx++;
+    }
+
+  cout << "PAC Model Consistent Expectation: added " << neqs
+       << " auxiliary variables and equations for model " << name << "." << endl;
+
+  /* The growth correction term is not added to the definition of Z₁
+     because the latter is recursive. Rather put it at the level of the
+     substition of pac_expectation operator. */
+  pac_expectation_substitution[name] = substexpr;
+}
+
+void
 DynamicModel::computePacBackwardExpectationSubstitution(
     const string& name, const vector<int>& lhs, int max_lag, const string& aux_model_type,
     expr_t growth_correction_term, string auxname, map<string, int>& pac_aux_var_symb_ids,
