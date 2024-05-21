@@ -9380,7 +9380,7 @@ ExprNode::matchComplementarityCondition() const
 tuple<int, expr_t, expr_t>
 BinaryOpNode::matchComplementarityCondition() const
 {
-  bool is_lower_bound {[&] {
+  bool is_greater {[&] {
     switch (op_code)
       {
       case BinaryOpcode::less:
@@ -9394,16 +9394,52 @@ BinaryOpNode::matchComplementarityCondition() const
       }
   }()};
 
-  auto* varg = dynamic_cast<VariableNode*>(arg1);
-  if (!varg)
-    throw MatchFailureException {"Left-hand side is not a variable"};
-  if (varg->lag != 0)
-    throw MatchFailureException {"Left-hand side variable must not have a lead or a lag"};
-  if (datatree.symbol_table.getType(varg->symb_id) != SymbolType::endogenous)
-    throw MatchFailureException {"Left-hand side is not an endogenous variable"};
+  auto match_contemporaneous_endogenous = [&](expr_t e) -> optional<int> {
+    auto* ve = dynamic_cast<VariableNode*>(e);
+    if (ve && ve->lag == 0 && datatree.symbol_table.getType(ve->symb_id) == SymbolType::endogenous)
+      return ve->symb_id;
+    else
+      return nullopt;
+  };
 
-  if (!arg2->isConstant())
-    throw MatchFailureException {"Right-hand side is not a constant"};
+  auto check_bound_constant = [](expr_t e) {
+    if (!e->isConstant())
+      throw MatchFailureException {"Bounds must not contain any endogenous or exogenous variable"};
+  };
 
-  return {varg->symb_id, is_lower_bound ? arg2 : nullptr, is_lower_bound ? nullptr : arg2};
+  // Match “endogenous ≶ bound”
+  if (auto id = match_contemporaneous_endogenous(arg1); id)
+    {
+      check_bound_constant(arg2);
+      return {*id, is_greater ? arg2 : nullptr, is_greater ? nullptr : arg2};
+    }
+
+  // Match “bound ≶ endogenous”
+  if (auto id = match_contemporaneous_endogenous(arg2); id)
+    {
+      check_bound_constant(arg1);
+      return {*id, is_greater ? nullptr : arg1, is_greater ? arg1 : nullptr};
+    }
+
+  // Match: “bound < endogenous < bound” or “bound > endogenous > bound”
+  /* NB: we exploit the fact that inequality signs are left-associative, hence the constraint is
+     necessarily “(bound < endogenous) < bound” or “(bound > endogenous) > bound” (assuming the user
+     did not add a spurious parenthesis). */
+  auto barg1 = dynamic_cast<BinaryOpNode*>(arg1);
+  if (!(barg1
+        && ((is_greater
+             && (barg1->op_code == BinaryOpcode::greater
+                 || barg1->op_code == BinaryOpcode::greaterEqual))
+            || (!is_greater
+                && (barg1->op_code == BinaryOpcode::less
+                    || barg1->op_code == BinaryOpcode::lessEqual)))))
+    throw MatchFailureException {"Complementarity condition does not have the right form"};
+
+  auto id = match_contemporaneous_endogenous(barg1->arg2);
+  if (!id)
+    throw MatchFailureException {"Complementarity condition does not have the right form"};
+  check_bound_constant(barg1->arg1);
+  check_bound_constant(arg2);
+
+  return {*id, is_greater ? arg2 : barg1->arg1, is_greater ? barg1->arg1 : arg2};
 }
