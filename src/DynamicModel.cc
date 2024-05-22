@@ -2869,7 +2869,7 @@ DynamicModel::replaceMyEquations(DynamicModel& dynamic_model) const
 }
 
 int
-DynamicModel::computeRamseyPolicyFOCs(const StaticModel& static_model,
+DynamicModel::computeRamseyPolicyFOCs(const StaticModel& planner_objective,
                                       map<int, pair<expr_t, expr_t>> cloned_ramsey_constraints)
 {
   cout << "Ramsey Problem: added " << equations.size() << " multipliers." << endl;
@@ -2884,8 +2884,8 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel& static_model,
     }
 
   // Add Planner Objective to equations so that it appears in Lagrangian
-  assert(static_model.equations.size() == 1);
-  addEquation(static_model.equations[0]->clone(*this), nullopt);
+  assert(planner_objective.equations.size() == 1);
+  addEquation(planner_objective.equations[0]->clone(*this), nullopt);
 
   // Get max endo lead and max endo lag
   set<pair<int, int>> dynvars;

@@ -458,7 +458,7 @@ public:
      Returns the number of optimality FOCs, which is by construction equal to
      the number of endogenous before adding the Lagrange multipliers
      (internally called ramsey_endo_nbr). */
-  int computeRamseyPolicyFOCs(const StaticModel& _model,
+  int computeRamseyPolicyFOCs(const StaticModel& planner_objective,
                               map<int, pair<expr_t, expr_t>> cloned_ramsey_constraints);
 
   //! Clears all equations
