@@ -2960,7 +2960,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel& planner_objective,
             {
               // This is a derivative w.r.t. a Lagrange multiplier
               neweqs_lineno.push_back(old_equations_lineno[*i]);
-              neweqs_tags[neweqs.size() - 1] = old_equation_tags.getTagsByEqn(*i);
+              neweqs_tags.emplace(neweqs.size() - 1, old_equation_tags.getTagsByEqn(*i));
               new_complementarity_conditions.emplace(neweqs.size() - 1,
                                                      old_complementarity_conditions.at(*i));
             }
