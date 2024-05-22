@@ -367,7 +367,7 @@ Epilogue::checkPass(ModFileStructure& mod_file_struct) const
   for (const auto& [symb_id, expr] : dynamic_def_table)
     if (so_far_defined.contains(symb_id))
       {
-        cerr << "WARNING: in the 'epilogue' block, variable '" << symbol_table.getName(symb_id)
+        cerr << "ERROR: in the 'epilogue' block, variable '" << symbol_table.getName(symb_id)
              << "' is declared twice" << endl;
         exit(EXIT_FAILURE);
       }
