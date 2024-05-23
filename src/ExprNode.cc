@@ -870,6 +870,13 @@ NumConstNode::substituteLogTransform([[maybe_unused]] int orig_symb_id,
   return const_cast<NumConstNode*>(this);
 }
 
+expr_t
+NumConstNode::substituteAggregationOperators([[maybe_unused]] subst_table_t& subst_table,
+                                             [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
+{
+  return const_cast<NumConstNode*>(this);
+}
+
 VariableNode::VariableNode(DataTree& datatree_arg, int idx_arg, int symb_id_arg, int lag_arg) :
     ExprNode {datatree_arg, idx_arg}, symb_id {symb_id_arg}, lag {lag_arg}
 {
@@ -900,6 +907,7 @@ VariableNode::prepareForDerivation()
       [[fallthrough]];
     case SymbolType::endogenous:
     case SymbolType::parameter:
+    case SymbolType::heterogeneousEndogenous:
       non_null_derivatives.insert(getDerivID());
       break;
     case SymbolType::modelLocalVariable:
@@ -907,6 +915,8 @@ VariableNode::prepareForDerivation()
       // Non null derivatives are those of the value of the local parameter
       non_null_derivatives = datatree.getLocalVariable(symb_id, lag)->non_null_derivatives;
       break;
+    case SymbolType::heterogeneousExogenous:
+    case SymbolType::heterogeneousParameter:
     case SymbolType::modFileLocalVariable:
     case SymbolType::statementDeclaredVariable:
     case SymbolType::unusedEndogenous:
@@ -955,6 +965,9 @@ VariableNode::prepareForChainRuleDerivation(
     case SymbolType::modFileLocalVariable:
     case SymbolType::statementDeclaredVariable:
     case SymbolType::unusedEndogenous:
+    case SymbolType::heterogeneousEndogenous:
+    case SymbolType::heterogeneousExogenous:
+    case SymbolType::heterogeneousParameter:
       // Those variables are never derived using chain rule
       non_null_chain_rule_derivatives.try_emplace(const_cast<VariableNode*>(this));
       break;
@@ -990,10 +1003,14 @@ VariableNode::computeDerivative(int deriv_id)
       [[fallthrough]];
     case SymbolType::endogenous:
     case SymbolType::parameter:
+    case SymbolType::heterogeneousEndogenous:
       if (deriv_id == getDerivID())
         return datatree.One;
       else
         return datatree.Zero;
+    case SymbolType::heterogeneousExogenous:
+    case SymbolType::heterogeneousParameter:
+      return datatree.Zero;
     case SymbolType::modelLocalVariable:
       return datatree.getLocalVariable(symb_id, lag)->getDerivative(deriv_id);
     case SymbolType::modFileLocalVariable:
@@ -1069,8 +1086,23 @@ VariableNode::writeJsonAST(ostream& output) const
     case SymbolType::excludedVariable:
       cerr << "VariableNode::computeDerivative: Impossible case!" << endl;
       exit(EXIT_FAILURE);
+    case SymbolType::heterogeneousEndogenous:
+      output << "heterogeneousEndogenous";
+      break;
+    case SymbolType::heterogeneousExogenous:
+      output << "heterogeneousExogenous";
+      break;
+    case SymbolType::heterogeneousParameter:
+      output << "heterogeneousParameter";
+      break;
     }
-  output << R"(", "lag" : )" << lag << "}";
+  output << '"';
+  if (isHeterogeneous(get_type()))
+    output << R"(, "heterogeneity_dimension" : ")"
+           << datatree.heterogeneity_table.getName(
+                  datatree.symbol_table.getHeterogeneityDimension(symb_id))
+           << '"';
+  output << R"(, "lag" : )" << lag << "}";
 }
 
 void
@@ -1411,6 +1443,64 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case SymbolType::excludedVariable:
       cerr << "VariableNode::writeOutput: Impossible case" << endl;
       exit(EXIT_FAILURE);
+
+    case SymbolType::heterogeneousEndogenous:
+      switch (int tsid = datatree.symbol_table.getTypeSpecificID(symb_id); output_type)
+        {
+        case ExprNodeOutputType::juliaSparseDynamicModel:
+        case ExprNodeOutputType::matlabSparseDynamicModel:
+        case ExprNodeOutputType::CSparseDynamicModel:
+          assert(lag >= -1 && lag <= 1);
+          i = tsid
+              + (lag + 1)
+                    * datatree.symbol_table.het_endo_nbr(
+                        datatree.symbol_table.getHeterogeneityDimension(symb_id))
+              + ARRAY_SUBSCRIPT_OFFSET(output_type);
+          output << "yh" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
+        default:
+          cerr << "VariableNode::writeOutput: unsupported output type for heterogeneousEndogenous "
+                  "symbol"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      break;
+    case SymbolType::heterogeneousExogenous:
+      i = datatree.symbol_table.getTypeSpecificID(symb_id) + ARRAY_SUBSCRIPT_OFFSET(output_type);
+      switch (output_type)
+        {
+        case ExprNodeOutputType::juliaSparseDynamicModel:
+        case ExprNodeOutputType::matlabSparseDynamicModel:
+        case ExprNodeOutputType::CSparseDynamicModel:
+          assert(lag == 0);
+          output << "xh" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
+        default:
+          cerr << "VariableNode::writeOutput: unsupported output type for heterogeneousExogenous "
+                  "symbol"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      break;
+    case SymbolType::heterogeneousParameter:
+      i = datatree.symbol_table.getTypeSpecificID(symb_id) + ARRAY_SUBSCRIPT_OFFSET(output_type);
+      switch (output_type)
+        {
+        case ExprNodeOutputType::juliaSparseDynamicModel:
+        case ExprNodeOutputType::matlabSparseDynamicModel:
+        case ExprNodeOutputType::CSparseDynamicModel:
+          output << "paramsh" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
+        default:
+          cerr << "VariableNode::writeOutput: unsupported output type for heterogeneousParameter "
+                  "symbol"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      break;
     }
 }
 
@@ -1525,6 +1615,7 @@ VariableNode::computeChainRuleDerivative(
       [[fallthrough]];
     case SymbolType::endogenous:
     case SymbolType::parameter:
+    case SymbolType::heterogeneousEndogenous:
       if (deriv_id == getDerivID())
         return datatree.One;
       // If there is in the equation a recursive variable we could use a chaine rule derivation
@@ -1533,6 +1624,9 @@ VariableNode::computeChainRuleDerivative(
                                                         non_null_chain_rule_derivatives, cache);
       else
         return datatree.Zero;
+    case SymbolType::heterogeneousExogenous:
+    case SymbolType::heterogeneousParameter:
+      return datatree.Zero;
 
     case SymbolType::modelLocalVariable:
       return datatree.getLocalVariable(symb_id, lag)
@@ -1590,6 +1684,9 @@ VariableNode::computeXrefs(EquationInfo& ei) const
     case SymbolType::externalFunction:
     case SymbolType::epilogue:
     case SymbolType::excludedVariable:
+    case SymbolType::heterogeneousEndogenous:
+    case SymbolType::heterogeneousExogenous:
+    case SymbolType::heterogeneousParameter:
       break;
     }
 }
@@ -1688,6 +1785,8 @@ VariableNode::maxLead() const
     case SymbolType::endogenous:
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
+    case SymbolType::heterogeneousEndogenous:
+    case SymbolType::heterogeneousExogenous:
       return lag;
     case SymbolType::modelLocalVariable:
       return datatree.getLocalVariable(symb_id, lag)->maxLead();
@@ -1704,6 +1803,8 @@ VariableNode::maxLag() const
     case SymbolType::endogenous:
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
+    case SymbolType::heterogeneousEndogenous:
+    case SymbolType::heterogeneousExogenous:
       return -lag;
     case SymbolType::modelLocalVariable:
       return datatree.getLocalVariable(symb_id, lag)->maxLag();
@@ -1721,6 +1822,8 @@ VariableNode::maxLagWithDiffsExpanded() const
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
     case SymbolType::epilogue:
+    case SymbolType::heterogeneousEndogenous:
+    case SymbolType::heterogeneousExogenous:
       return -lag;
     case SymbolType::modelLocalVariable:
       return datatree.getLocalVariable(symb_id, lag)->maxLagWithDiffsExpanded();
@@ -1844,6 +1947,8 @@ VariableNode::decreaseLeadsLags(int n) const
     case SymbolType::exogenousDet:
     case SymbolType::trend:
     case SymbolType::logTrend:
+    case SymbolType::heterogeneousEndogenous:
+    case SymbolType::heterogeneousExogenous:
       return datatree.AddVariable(symb_id, lag - n);
     case SymbolType::modelLocalVariable:
       return datatree.getLocalVariable(symb_id, lag)->decreaseLeadsLags(n);
@@ -2240,6 +2345,17 @@ VariableNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
     return const_cast<VariableNode*>(this);
 }
 
+expr_t
+VariableNode::substituteAggregationOperators(subst_table_t& subst_table,
+                                             vector<BinaryOpNode*>& neweqs) const
+{
+  if (get_type() == SymbolType::modelLocalVariable)
+    return datatree.getLocalVariable(symb_id, lag)
+        ->substituteAggregationOperators(subst_table, neweqs);
+
+  return const_cast<VariableNode*>(this);
+}
+
 UnaryOpNode::UnaryOpNode(DataTree& datatree_arg, int idx_arg, UnaryOpcode op_code_arg,
                          const expr_t arg_arg, int expectation_information_set_arg,
                          int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg,
@@ -2265,12 +2381,12 @@ UnaryOpNode::prepareForDerivation()
 
   /* Non-null derivatives are those of the argument (except for STEADY_STATE in
      a dynamic context, in which case the potentially non-null derivatives are
-     all the parameters) */
+     all the parameters; and for SUM, which will be substituted out before deriving) */
   if ((op_code == UnaryOpcode::steadyState || op_code == UnaryOpcode::steadyStateParamDeriv
        || op_code == UnaryOpcode::steadyStateParam2ndDeriv)
       && datatree.is_dynamic)
     datatree.addAllParamDerivId(non_null_derivatives);
-  else
+  else if (op_code != UnaryOpcode::sum)
     {
       arg->prepareForDerivation();
       non_null_derivatives = arg->non_null_derivatives;
@@ -2447,6 +2563,9 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
     case UnaryOpcode::adl:
       cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::adl" << endl;
       exit(EXIT_FAILURE);
+    case UnaryOpcode::sum:
+      cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::sum" << endl;
+      exit(EXIT_FAILURE);
     }
   __builtin_unreachable(); // Silence GCC warning
 }
@@ -2541,6 +2660,8 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
       case UnaryOpcode::adl:
         cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::adl" << endl;
         exit(EXIT_FAILURE);
+      case UnaryOpcode::sum:
+        return 0; // In the generated files, the SUM() operator behaves like a variable
       }
   else
     // Cost for C files
@@ -2591,6 +2712,8 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
       case UnaryOpcode::adl:
         cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::adl" << endl;
         exit(EXIT_FAILURE);
+      case UnaryOpcode::sum:
+        return 0; // In the generated files, the SUM() operator behaves like a variable
       }
   __builtin_unreachable(); // Silence GCC warning
 }
@@ -2734,6 +2857,9 @@ UnaryOpNode::writeJsonAST(ostream& output) const
       break;
     case UnaryOpcode::erfc:
       output << "erfc";
+      break;
+    case UnaryOpcode::sum:
+      output << "sum";
       break;
     }
   output << R"(", "arg" : )";
@@ -2886,6 +3012,9 @@ UnaryOpNode::writeJsonOutput(ostream& output, const temporary_terms_t& temporary
       break;
     case UnaryOpcode::erfc:
       output << "erfc";
+      break;
+    case UnaryOpcode::sum:
+      output << "sum";
       break;
     }
 
@@ -3117,6 +3246,20 @@ UnaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case UnaryOpcode::adl:
       output << "adl";
       break;
+    case UnaryOpcode::sum:
+      if (isLatexOutput(output_type))
+        output << "sum";
+      else
+        {
+          auto varg {dynamic_cast<VariableNode*>(arg)};
+          assert(varg && varg->lag == 0);
+          int idx {
+              datatree.heterogeneity_table.getSummedHeterogenousEndogenousIndex(varg->symb_id)};
+          output << "yagg" << LEFT_ARRAY_SUBSCRIPT(output_type) << idx + 1
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          return;
+        }
+      break;
     }
 
   if (output_type == ExprNodeOutputType::juliaTimeDataFrame && op_code != UnaryOpcode::uminus)
@@ -3245,6 +3388,9 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) noexcept(false)
       exit(EXIT_FAILURE);
     case UnaryOpcode::adl:
       cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::adl" << endl;
+      exit(EXIT_FAILURE);
+    case UnaryOpcode::sum:
+      cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::sum" << endl;
       exit(EXIT_FAILURE);
     }
   __builtin_unreachable(); // Silence GCC warning
@@ -3503,6 +3649,8 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree& alt_datatree) con
       return alt_datatree.AddDiff(alt_arg);
     case UnaryOpcode::adl:
       return alt_datatree.AddAdl(alt_arg, adl_param_name, adl_lags);
+    case UnaryOpcode::sum:
+      return alt_datatree.AddSum(alt_arg);
     }
   __builtin_unreachable(); // Silence GCC warning
 }
@@ -4093,6 +4241,34 @@ expr_t
 UnaryOpNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
 {
   return recurseTransform(&ExprNode::substituteLogTransform, orig_symb_id, aux_symb_id);
+}
+
+expr_t
+UnaryOpNode::substituteAggregationOperators(subst_table_t& subst_table,
+                                            vector<BinaryOpNode*>& neweqs) const
+{
+  if (op_code == UnaryOpcode::sum)
+    {
+      if (auto it = subst_table.find(const_cast<UnaryOpNode*>(this)); it != subst_table.end())
+        return const_cast<VariableNode*>(it->second);
+
+      // Arriving here, we need to create an auxiliary variable for this operator
+      const VariableNode* varg {dynamic_cast<const VariableNode*>(arg)};
+      assert(varg && varg->lag == 0);
+      const string varname {"SUM_" + varg->getName()};
+      int symb_id {datatree.symbol_table.addAggregationOpAuxiliaryVar(
+          varname, const_cast<UnaryOpNode*>(this))};
+      expr_t newAuxE = datatree.AddVariable(symb_id, 0);
+
+      subst_table[this] = dynamic_cast<VariableNode*>(newAuxE);
+      neweqs.push_back(datatree.AddEqual(newAuxE, const_cast<UnaryOpNode*>(this)));
+
+      datatree.heterogeneity_table.addSummedHeterogeneousEndogenous(varg->symb_id);
+
+      return newAuxE;
+    }
+  else
+    return recurseTransform(&ExprNode::substituteAggregationOperators, subst_table, neweqs);
 }
 
 BinaryOpNode::BinaryOpNode(DataTree& datatree_arg, int idx_arg, const expr_t arg1_arg,
@@ -6020,6 +6196,13 @@ BinaryOpNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
   return recurseTransform(&ExprNode::substituteLogTransform, orig_symb_id, aux_symb_id);
 }
 
+expr_t
+BinaryOpNode::substituteAggregationOperators(subst_table_t& subst_table,
+                                             vector<BinaryOpNode*>& neweqs) const
+{
+  return recurseTransform(&ExprNode::substituteAggregationOperators, subst_table, neweqs);
+}
+
 TrinaryOpNode::TrinaryOpNode(DataTree& datatree_arg, int idx_arg, const expr_t arg1_arg,
                              TrinaryOpcode op_code_arg, const expr_t arg2_arg,
                              const expr_t arg3_arg) :
@@ -6859,6 +7042,13 @@ TrinaryOpNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
   return recurseTransform(&ExprNode::substituteLogTransform, orig_symb_id, aux_symb_id);
 }
 
+expr_t
+TrinaryOpNode::substituteAggregationOperators(subst_table_t& subst_table,
+                                              vector<BinaryOpNode*>& neweqs) const
+{
+  return recurseTransform(&ExprNode::substituteAggregationOperators, subst_table, neweqs);
+}
+
 AbstractExternalFunctionNode::AbstractExternalFunctionNode(DataTree& datatree_arg, int idx_arg,
                                                            int symb_id_arg,
                                                            vector<expr_t> arguments_arg) :
@@ -7406,6 +7596,13 @@ expr_t
 AbstractExternalFunctionNode::substituteLogTransform(int orig_symb_id, int aux_symb_id) const
 {
   return recurseTransform(&ExprNode::substituteLogTransform, orig_symb_id, aux_symb_id);
+}
+
+expr_t
+AbstractExternalFunctionNode::substituteAggregationOperators(subst_table_t& subst_table,
+                                                             vector<BinaryOpNode*>& neweqs) const
+{
+  return recurseTransform(&ExprNode::substituteAggregationOperators, subst_table, neweqs);
 }
 
 expr_t
@@ -8762,6 +8959,13 @@ SubModelNode::removeTrendLeadLag([[maybe_unused]] const map<int, expr_t>& trend_
 expr_t
 SubModelNode::substituteLogTransform([[maybe_unused]] int orig_symb_id,
                                      [[maybe_unused]] int aux_symb_id) const
+{
+  return const_cast<SubModelNode*>(this);
+}
+
+expr_t
+SubModelNode::substituteAggregationOperators([[maybe_unused]] subst_table_t& subst_table,
+                                             [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
 {
   return const_cast<SubModelNode*>(this);
 }

@@ -31,7 +31,8 @@
 
 int
 SymbolTable::addSymbol(const string& name, SymbolType type, const string& tex_name,
-                       const vector<pair<string, string>>& partition_value) noexcept(false)
+                       const vector<pair<string, string>>& partition_value,
+                       const optional<int>& heterogeneity_dimension) noexcept(false)
 {
   if (frozen)
     throw FrozenException();
@@ -78,13 +79,20 @@ SymbolTable::addSymbol(const string& name, SymbolType type, const string& tex_na
         pmv[it.first] = it.second;
       partition_value_map[id] = pmv;
     }
+
+  assert(!isHeterogeneous(type)
+         || (heterogeneity_dimension.has_value() && *heterogeneity_dimension >= 0
+             && *heterogeneity_dimension < heterogeneity_table.size()));
+  if (isHeterogeneous(type))
+    heterogeneity_dimensions.emplace(id, *heterogeneity_dimension);
+
   return id;
 }
 
 int
 SymbolTable::addSymbol(const string& name, SymbolType type) noexcept(false)
 {
-  return addSymbol(name, type, "", {});
+  return addSymbol(name, type, "", {}, {});
 }
 
 void
@@ -94,6 +102,10 @@ SymbolTable::freeze() noexcept(false)
     throw FrozenException();
 
   frozen = true;
+
+  het_endo_ids.resize(heterogeneity_table.size());
+  het_exo_ids.resize(heterogeneity_table.size());
+  het_param_ids.resize(heterogeneity_table.size());
 
   for (int i = 0; i < static_cast<int>(symbol_table.size()); i++)
     {
@@ -116,6 +128,18 @@ SymbolTable::freeze() noexcept(false)
           tsi = param_ids.size();
           param_ids.push_back(i);
           break;
+        case SymbolType::heterogeneousEndogenous:
+          tsi = het_endo_ids.at(heterogeneity_dimensions.at(i)).size();
+          het_endo_ids.at(heterogeneity_dimensions.at(i)).push_back(i);
+          break;
+        case SymbolType::heterogeneousExogenous:
+          tsi = het_exo_ids.at(heterogeneity_dimensions.at(i)).size();
+          het_exo_ids.at(heterogeneity_dimensions.at(i)).push_back(i);
+          break;
+        case SymbolType::heterogeneousParameter:
+          tsi = het_param_ids.at(heterogeneity_dimensions.at(i)).size();
+          het_param_ids.at(heterogeneity_dimensions.at(i)).push_back(i);
+          break;
         default:
           continue;
         }
@@ -131,12 +155,18 @@ SymbolTable::unfreeze()
   exo_ids.clear();
   exo_det_ids.clear();
   param_ids.clear();
+  het_endo_ids.clear();
+  het_exo_ids.clear();
+  het_param_ids.clear();
   type_specific_ids.clear();
 }
 
 void
 SymbolTable::changeType(int id, SymbolType newtype) noexcept(false)
 {
+  // FIXME: implement switch to heterogeneous variable; dimension will have to be provided
+  assert(!isHeterogeneous(newtype));
+
   if (frozen)
     throw FrozenException();
 
@@ -146,7 +176,8 @@ SymbolTable::changeType(int id, SymbolType newtype) noexcept(false)
 }
 
 int
-SymbolTable::getID(SymbolType type, int tsid) const noexcept(false)
+SymbolTable::getID(SymbolType type, int tsid, const optional<int>& heterogeneity_dimension) const
+    noexcept(false)
 {
   if (!frozen)
     throw NotYetFrozenException();
@@ -155,26 +186,44 @@ SymbolTable::getID(SymbolType type, int tsid) const noexcept(false)
     {
     case SymbolType::endogenous:
       if (tsid < 0 || tsid >= static_cast<int>(endo_ids.size()))
-        throw UnknownTypeSpecificIDException {tsid, type};
+        throw UnknownTypeSpecificIDException {tsid, type, {}};
       else
         return endo_ids[tsid];
     case SymbolType::exogenous:
       if (tsid < 0 || tsid >= static_cast<int>(exo_ids.size()))
-        throw UnknownTypeSpecificIDException {tsid, type};
+        throw UnknownTypeSpecificIDException {tsid, type, {}};
       else
         return exo_ids[tsid];
     case SymbolType::exogenousDet:
       if (tsid < 0 || tsid >= static_cast<int>(exo_det_ids.size()))
-        throw UnknownTypeSpecificIDException {tsid, type};
+        throw UnknownTypeSpecificIDException {tsid, type, {}};
       else
         return exo_det_ids[tsid];
     case SymbolType::parameter:
       if (tsid < 0 || tsid >= static_cast<int>(param_ids.size()))
-        throw UnknownTypeSpecificIDException {tsid, type};
+        throw UnknownTypeSpecificIDException {tsid, type, {}};
       else
         return param_ids[tsid];
+    case SymbolType::heterogeneousEndogenous:
+      assert(heterogeneity_dimension.has_value());
+      if (tsid < 0 || tsid >= static_cast<int>(het_endo_ids.at(*heterogeneity_dimension).size()))
+        throw UnknownTypeSpecificIDException {tsid, type, *heterogeneity_dimension};
+      else
+        return het_endo_ids.at(*heterogeneity_dimension).at(tsid);
+    case SymbolType::heterogeneousExogenous:
+      assert(heterogeneity_dimension.has_value());
+      if (tsid < 0 || tsid >= static_cast<int>(het_exo_ids.at(*heterogeneity_dimension).size()))
+        throw UnknownTypeSpecificIDException {tsid, type, *heterogeneity_dimension};
+      else
+        return het_exo_ids.at(*heterogeneity_dimension).at(tsid);
+    case SymbolType::heterogeneousParameter:
+      assert(heterogeneity_dimension.has_value());
+      if (tsid < 0 || tsid >= static_cast<int>(het_param_ids.at(*heterogeneity_dimension).size()))
+        throw UnknownTypeSpecificIDException {tsid, type, *heterogeneity_dimension};
+      else
+        return het_param_ids.at(*heterogeneity_dimension).at(tsid);
     default:
-      throw UnknownTypeSpecificIDException {tsid, type};
+      throw UnknownTypeSpecificIDException {tsid, type, {}};
     }
 }
 
@@ -348,6 +397,7 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
           case AuxVarType::expectation:
           case AuxVarType::pacExpectation:
           case AuxVarType::pacTargetNonstationary:
+          case AuxVarType::aggregationOp:
             break;
           case AuxVarType::endoLag:
           case AuxVarType::exoLag:
@@ -418,6 +468,39 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
       for (int varexob : varexobs)
         output << getTypeSpecificID(varexob) + 1 << " ";
       output << " ];" << endl;
+    }
+
+  // Heterogeneous symbols
+  // FIXME: the following helper could be used to simplify non-heterogenous variables
+  auto print_symb_names = [this, &output](const string& field, const auto& symb_ids) {
+    auto helper = [this, &output, &symb_ids](auto nameMethod) {
+      for (bool first_printed {false}; int symb_id : symb_ids)
+        {
+          if (exchange(first_printed, true))
+            output << "; ";
+          output << "'" << (this->*nameMethod)(symb_id) << "'";
+        }
+    };
+    output << field << " = {";
+    helper(&SymbolTable::getName);
+    output << "};" << endl << field << "_tex = {";
+    helper(&SymbolTable::getTeXName);
+    output << "};" << endl << field << "_long = {";
+    helper(&SymbolTable::getLongName);
+    output << "};" << endl;
+  };
+  for (int het_dim {0}; het_dim < heterogeneity_table.size(); het_dim++)
+    {
+      const string basefield {"M_.heterogeneity(" + to_string(het_dim + 1) + ")."};
+
+      output << basefield << "endo_nbr = " << het_endo_nbr(het_dim) << ";" << endl;
+      print_symb_names(basefield + "endo_names", het_endo_ids.at(het_dim));
+
+      output << basefield << "exo_nbr = " << het_exo_nbr(het_dim) << ";" << endl;
+      print_symb_names(basefield + "exo_names", het_exo_ids.at(het_dim));
+
+      output << basefield << "param_nbr = " << het_param_nbr(het_dim) << ";" << endl;
+      print_symb_names(basefield + "param_names", het_param_ids.at(het_dim));
     }
 }
 
@@ -715,6 +798,28 @@ SymbolTable::addPacTargetNonstationaryAuxiliaryVar(const string& name, expr_t ex
 }
 
 int
+SymbolTable::addAggregationOpAuxiliaryVar(const string& name, expr_t expr_arg)
+{
+  int symb_id {[&] {
+    try
+      {
+        return addSymbol(name, SymbolType::endogenous);
+      }
+    catch (AlreadyDeclaredException&)
+      {
+        cerr << "ERROR: the variable/parameter '" << name
+             << "' conflicts with a variable that will be generated for an aggregation operator. "
+                "Please rename it."
+             << endl;
+        exit(EXIT_FAILURE);
+      }
+  }()};
+
+  aux_vars.emplace_back(symb_id, AuxVarType::aggregationOp, 0, 0, 0, 0, expr_arg, "");
+  return symb_id;
+}
+
+int
 SymbolTable::searchAuxiliaryVars(int orig_symb_id, int orig_lead_lag) const noexcept(false)
 {
   for (const auto& aux_var : aux_vars)
@@ -994,6 +1099,7 @@ SymbolTable::writeJsonOutput(ostream& output) const
             case AuxVarType::expectation:
             case AuxVarType::pacExpectation:
             case AuxVarType::pacTargetNonstationary:
+            case AuxVarType::aggregationOp:
               break;
             case AuxVarType::endoLag:
             case AuxVarType::exoLag:
@@ -1025,6 +1131,25 @@ SymbolTable::writeJsonOutput(ostream& output) const
               output << R"(")";
             }
           output << '}' << endl;
+        }
+      output << "]" << endl;
+    }
+
+  if (!heterogeneity_table.empty())
+    {
+      output << R"(, "heterogeneous_symbols": [)";
+      for (int i {0}; i < heterogeneity_table.size(); i++)
+        {
+          if (i != 0)
+            output << ", ";
+          output << R"({ "dimension": ")" << heterogeneity_table.getName(i)
+                 << R"(", "endogenous": )";
+          writeJsonVarVector(output, het_endo_ids.at(i));
+          output << R"(, "exogenous": )";
+          writeJsonVarVector(output, het_exo_ids.at(i));
+          output << R"(, "parameters": )";
+          writeJsonVarVector(output, het_param_ids.at(i));
+          output << "}";
         }
       output << "]" << endl;
     }
@@ -1086,4 +1211,15 @@ SymbolTable::getLagrangeMultipliers() const
     if (aux_var.type == AuxVarType::multiplier)
       r.insert(aux_var.symb_id);
   return r;
+}
+
+int
+SymbolTable::getHeterogeneityDimension(int symb_id) const
+{
+  validateSymbID(symb_id);
+  auto it = heterogeneity_dimensions.find(symb_id);
+  if (it != heterogeneity_dimensions.end())
+    return it->second;
+  else
+    throw NonHeteregeneousSymbolException {symb_id};
 }

@@ -114,7 +114,8 @@ private:
 
   //! Helper to add a symbol declaration (returns its symbol ID)
   int declare_symbol(const string& name, SymbolType type, const string& tex_name,
-                     const vector<pair<string, string>>& partition_value);
+                     const vector<pair<string, string>>& partition_value,
+                     const optional<int>& heterogeneity_dimension);
 
   //! Temporary store for the planner objective
   unique_ptr<PlannerObjective> planner_objective;
@@ -136,6 +137,11 @@ private:
   /*! It is only a dynamic cast of data_tree pointer, and is therefore null if data_tree is not a
    * DynamicModel instance */
   DynamicModel* dynamic_model;
+
+  //! The heterogeneous model tree in which to add expressions currently parsed
+  /*! It is only a dynamic cast of data_tree pointer, and is therefore null if data_tree is not a
+   * HeterogeneousModel instance */
+  HeterogeneousModel* heterogeneous_model;
 
   //! Sets data_tree and model_tree pointers
   void set_current_data_tree(DataTree* data_tree_arg);
@@ -371,19 +377,21 @@ public:
                          const vector<pair<string, string>>& partition_value = {});
   // Handles a “var” or “var(log)” statement (without “deflator” or “log_deflator” options)
   void var(const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list,
-           bool log_option);
+           const optional<string>& heterogeneity_dimension, bool log_option);
   //! Declares an exogenous variable (and returns its symbol ID)
   int declare_exogenous(const string& name, const string& tex_name = "",
                         const vector<pair<string, string>>& partition_value = {});
   // Handles a “varexo” statement
-  void varexo(const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list);
+  void varexo(const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list,
+              const optional<string>& heterogeneity_dimension);
   // Handles a “varexo_det” statement
   void varexo_det(const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list);
   //! Declares a parameter (and returns its symbol ID)
   int declare_parameter(const string& name, const string& tex_name = "",
                         const vector<pair<string, string>>& partition_value = {});
   // Handles a “parameters” statement
-  void parameters(const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list);
+  void parameters(const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list,
+                  const optional<string>& heterogeneity_dimension);
   // Handles a “model_local_variable” statement
   void model_local_variable(const vector<pair<string, string>>& symbol_list);
   //! Declares a statement local variable
@@ -454,10 +462,11 @@ public:
   void add_epilogue_variable(const string& varname);
   //! Add equation in epilogue block
   void add_epilogue_equal(const string& varname, expr_t expr);
-  /* Begin a model or model_replace block, or an expression as an option value
-     of some statement.
-     Must be followed by a call to reset_data_tree(). */
+  /* Begin a model block (without heterogeneity option), or an expression as an option value of some
+     statement. Must be followed by a call to reset_data_tree(). */
   void begin_model();
+  // Begin a model(heterogeneity=…) block
+  void begin_heterogeneous_model(const string& heterogeneity_dimension);
   //! End a model or model_replace block, printing errors that were encountered in parsing
   void end_model();
   //! Writes a shocks statement
@@ -468,6 +477,8 @@ public:
   void end_shocks_surprise(bool overwrite);
   //! Writes a shocks(learnt_in=…) block
   void end_shocks_learnt_in(const string& learnt_in_period, bool overwrite);
+  // For a shocks(heterogeneity=…) block
+  void end_heterogeneous_shocks(const string& heterogeneity_dimension, bool overwrite);
   //! Writes a mshocks(learnt_in=…) block
   void end_mshocks_learnt_in(const string& learnt_in_period, bool overwrite,
                              bool relative_to_initval);
@@ -844,6 +855,8 @@ public:
   expr_t add_erfc(expr_t arg);
   //! Writes token "steadyState(arg1)" to model tree
   expr_t add_steady_state(expr_t arg1);
+  // Add a “sum(arg)” node to model tree
+  expr_t add_sum(expr_t arg);
   //! Pushes empty vector onto stack when a symbol is encountered (mod_var or ext_fun)
   void push_external_function_arg_vector_onto_stack();
   //! Adds an external function argument
@@ -952,6 +965,8 @@ public:
   // Add a matched_irfs_weights block
   void matched_irfs_weights(MatchedIrfsWeightsStatement::matched_irfs_weights_t weights,
                             bool overwrite);
+  void heterogeneity_dimension(const vector<string>& dims);
+
   // Returns true iff the string is a legal symbol identifier (see NAME token in lexer)
   static bool isSymbolIdentifier(const string& str);
   // Given an Occbin regime name, returns the corresponding auxiliary parameter

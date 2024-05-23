@@ -33,6 +33,7 @@
 
 #include "ExprNode.hh"
 #include "ExternalFunctionsTable.hh"
+#include "HeterogeneityTable.hh"
 #include "NumericalConstants.hh"
 #include "SubModel.hh"
 #include "SymbolTable.hh"
@@ -48,6 +49,8 @@ public:
   NumericalConstants& num_constants;
   //! A reference to the external functions table
   ExternalFunctionsTable& external_functions_table;
+  // A reference to the heterogeneity table
+  HeterogeneityTable& heterogeneity_table;
   //! Is it possible to use leads/lags on variable nodes?
   /* NB: This data member cannot be replaced by a virtual method, because this information is needed
      in AddVariable(), which itself can be called from the copy constructor. */
@@ -139,7 +142,8 @@ private:
 
 public:
   DataTree(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
-           ExternalFunctionsTable& external_functions_table_arg, bool is_dynamic_arg = false);
+           ExternalFunctionsTable& external_functions_table_arg,
+           HeterogeneityTable& heterogeneity_table_arg, bool is_dynamic_arg = false);
 
   virtual ~DataTree() = default;
 
@@ -275,6 +279,9 @@ public:
   //! Adds an external function node for the second derivative of an external function
   expr_t AddSecondDerivExternalFunction(int top_level_symb_id, const vector<expr_t>& arguments,
                                         int input_index1, int input_index2);
+  // Adds "SUM(arg)" to model tree
+  expr_t AddSum(expr_t arg);
+
   //! Checks if a given symbol is used somewhere in the data tree
   [[nodiscard]] bool isSymbolUsed(int symb_id) const;
   //! Checks if a given unary op is used somewhere in the data tree

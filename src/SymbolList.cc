@@ -103,6 +103,15 @@ SymbolList::checkPass(WarningConsolidation& warnings, const vector<SymbolType>& 
               case SymbolType::excludedVariable:
                 valid_types += "excludedVariable, ";
                 break;
+              case SymbolType::heterogeneousEndogenous:
+                valid_types += "heterogeneousEndogenous, ";
+                break;
+              case SymbolType::heterogeneousExogenous:
+                valid_types += "heterogeneousExogenous, ";
+                break;
+              case SymbolType::heterogeneousParameter:
+                valid_types += "heterogeneousParameter, ";
+                break;
               }
           valid_types = valid_types.erase(valid_types.size() - 2, 2);
           throw SymbolListException {"Variable " + symbol + " is not one of {" + valid_types + "}"};

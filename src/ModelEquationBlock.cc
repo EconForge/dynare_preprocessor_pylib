@@ -26,8 +26,10 @@
 
 PlannerObjective::PlannerObjective(SymbolTable& symbol_table_arg,
                                    NumericalConstants& num_constants_arg,
-                                   ExternalFunctionsTable& external_functions_table_arg) :
-    StaticModel {symbol_table_arg, num_constants_arg, external_functions_table_arg}
+                                   ExternalFunctionsTable& external_functions_table_arg,
+                                   HeterogeneityTable& heterogeneity_table_arg) :
+    StaticModel {symbol_table_arg, num_constants_arg, external_functions_table_arg,
+                 heterogeneity_table_arg}
 {
 }
 
@@ -38,7 +40,7 @@ PlannerObjective::writeDriverOutput(ostream& output) const
   for (const auto& it : temporary_terms_derivatives)
     output << it.size() << "; ";
   output << "];" << endl;
-  writeDriverSparseIndicesHelper<false, true>(output);
+  writeDriverSparseIndicesHelper("objective", output);
 }
 
 void
@@ -51,9 +53,14 @@ PlannerObjective::computingPassBlock([[maybe_unused]] const eval_context_t& eval
 OrigRamseyDynamicModel::OrigRamseyDynamicModel(
     SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
     ExternalFunctionsTable& external_functions_table_arg,
+    HeterogeneityTable& heterogeneity_table_arg,
     TrendComponentModelTable& trend_component_model_table_arg, VarModelTable& var_model_table_arg) :
-    DynamicModel {symbol_table_arg, num_constants_arg, external_functions_table_arg,
-                  trend_component_model_table_arg, var_model_table_arg}
+    DynamicModel {symbol_table_arg,
+                  num_constants_arg,
+                  external_functions_table_arg,
+                  heterogeneity_table_arg,
+                  trend_component_model_table_arg,
+                  var_model_table_arg}
 {
 }
 
@@ -67,8 +74,10 @@ OrigRamseyDynamicModel::operator=(const DynamicModel& m)
 SteadyStateModel::SteadyStateModel(SymbolTable& symbol_table_arg,
                                    NumericalConstants& num_constants_arg,
                                    ExternalFunctionsTable& external_functions_table_arg,
+                                   HeterogeneityTable& heterogeneity_table_arg,
                                    const StaticModel& static_model_arg) :
-    DataTree {symbol_table_arg, num_constants_arg, external_functions_table_arg},
+    DataTree {symbol_table_arg, num_constants_arg, external_functions_table_arg,
+              heterogeneity_table_arg},
     static_model {static_model_arg}
 {
 }
@@ -327,10 +336,15 @@ SteadyStateModel::writeJsonSteadyStateFile(ostream& output, bool transformComput
 
 Epilogue::Epilogue(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                    ExternalFunctionsTable& external_functions_table_arg,
+                   HeterogeneityTable& heterogeneity_table_arg,
                    TrendComponentModelTable& trend_component_model_table_arg,
                    VarModelTable& var_model_table_arg) :
-    DynamicModel {symbol_table_arg, num_constants_arg, external_functions_table_arg,
-                  trend_component_model_table_arg, var_model_table_arg}
+    DynamicModel {symbol_table_arg,
+                  num_constants_arg,
+                  external_functions_table_arg,
+                  heterogeneity_table_arg,
+                  trend_component_model_table_arg,
+                  var_model_table_arg}
 {
 }
 

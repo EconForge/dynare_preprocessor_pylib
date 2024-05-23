@@ -366,9 +366,8 @@ protected:
                                 temporary_terms_t& temporary_terms_union) const;
 
   /* Helper for writing sparse derivatives indices in MATLAB/Octave driver file.
-     Also supports the planner objective through the corresponding boolean. */
-  template<bool dynamic, bool objective>
-  void writeDriverSparseIndicesHelper(ostream& output) const;
+     The “prefix” will be prepended to variable names to construct objects under M_. */
+  void writeDriverSparseIndicesHelper(const string& prefix, ostream& output) const;
 
   // Helper for writing sparse derivatives indices in JSON
   template<bool dynamic>
@@ -409,7 +408,8 @@ protected:
 
   // Writes the sparse representation of the model in MATLAB/Octave
   template<bool dynamic>
-  void writeSparseModelMFiles(const string& basename) const;
+  void writeSparseModelMFiles(const string& basename,
+                              const optional<int>& heterogeneous_dimension = nullopt) const;
 
   // Writes and compiles the sparse representation of the model in C
   template<bool dynamic>
@@ -659,7 +659,8 @@ private:
 
 public:
   ModelTree(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
-            ExternalFunctionsTable& external_functions_table_arg, bool is_dynamic_arg = false);
+            ExternalFunctionsTable& external_functions_table_arg,
+            HeterogeneityTable& heterogeneity_table_arg, bool is_dynamic_arg = false);
 
 protected:
   ModelTree(const ModelTree& m);
@@ -2264,41 +2265,6 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
           move(rpp_output), move(gpp_output), move(hp_output), move(g3p_output)};
 }
 
-template<bool dynamic, bool objective>
-void
-ModelTree::writeDriverSparseIndicesHelper(ostream& output) const
-{
-  static_assert(!(objective && dynamic), "There is no such thing as a dynamic planner objective");
-  // TODO: when C++20 support is complete, mark this constexpr
-  const string model_name {objective ? "objective" : (dynamic ? "dynamic" : "static")};
-
-  // Write indices for the sparse Jacobian (both naive and CSC storage)
-  output << "M_." << model_name << "_g1_sparse_rowval = int32([";
-  for (const auto& [indices, d1] : jacobian_sparse_column_major_order)
-    output << indices.first + 1 << ' ';
-  output << "]);" << endl << "M_." << model_name << "_g1_sparse_colval = int32([";
-  for (const auto& [indices, d1] : jacobian_sparse_column_major_order)
-    output << indices.second + 1 << ' ';
-  output << "]);" << endl << "M_." << model_name << "_g1_sparse_colptr = int32([";
-  for (int it : jacobian_sparse_colptr)
-    output << it + 1 << ' ';
-  output << "]);" << endl;
-
-  // Write indices for the sparse higher-order derivatives
-  for (int i {2}; i <= computed_derivs_order; i++)
-    {
-      output << "M_." << model_name << "_g" << i << "_sparse_indices = int32([";
-      for (const auto& [vidx, d] : derivatives[i])
-        {
-          for (bool row_number {true}; // First element of vidx is row number
-               int it : vidx)
-            output << (exchange(row_number, false) ? it : getJacobianCol(it, true)) + 1 << ' ';
-          output << ';' << endl;
-        }
-      output << "]);" << endl;
-    }
-}
-
 template<bool dynamic>
 void
 ModelTree::writeJsonSparseIndicesHelper(ostream& output) const
@@ -2408,6 +2374,8 @@ template<bool dynamic>
 void
 ModelTree::writeSparseModelJuliaFiles(const string& basename) const
 {
+  assert(heterogeneity_table.empty());
+
   auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper < dynamic
                                                  ? ExprNodeOutputType::juliaSparseDynamicModel
                                                  : ExprNodeOutputType::juliaSparseStaticModel > ();
@@ -2518,7 +2486,8 @@ ModelTree::writeSparseModelJuliaFiles(const string& basename) const
 
 template<bool dynamic>
 void
-ModelTree::writeSparseModelMFiles(const string& basename) const
+ModelTree::writeSparseModelMFiles(const string& basename,
+                                  const optional<int>& heterogeneous_dimension) const
 {
   constexpr ExprNodeOutputType output_type {dynamic ? ExprNodeOutputType::matlabSparseDynamicModel
                                                     : ExprNodeOutputType::matlabSparseStaticModel};
@@ -2526,9 +2495,17 @@ ModelTree::writeSparseModelMFiles(const string& basename) const
 
   const filesystem::path m_dir {packageDir(basename) / "+sparse"};
   // TODO: when C++20 support is complete, mark the following strings constexpr
-  const string prefix {dynamic ? "dynamic_" : "static_"};
+  const string prefix {
+      (dynamic ? "dynamic_"s : "static_"s)
+      + (heterogeneous_dimension ? "het"s + to_string(*heterogeneous_dimension + 1) + "_"s : ""s)};
   const string full_prefix {basename + ".sparse." + prefix};
-  const string ss_arg {dynamic ? ", steady_state" : ""};
+  const string extra_args {(dynamic ? ", steady_state"s : ""s)
+                           + (heterogeneous_dimension
+                                  ? ", yh, xh, paramsh"s
+                                  : (heterogeneity_table.empty() ? ""s : ", yagg"s))};
+  const int nextra_args {
+      static_cast<int>(dynamic)
+      + (heterogeneous_dimension ? 3 : static_cast<int>(!heterogeneity_table.empty()))};
 
   size_t ttlen {temporary_terms_derivatives[0].size()};
 
@@ -2544,7 +2521,7 @@ ModelTree::writeSparseModelMFiles(const string& basename) const
 
   // Residuals (non-block)
   open_file(m_dir / (prefix + "resid_tt.m"));
-  output << "function [T_order, T] = " << prefix << "resid_tt(y, x, params" << ss_arg
+  output << "function [T_order, T] = " << prefix << "resid_tt(y, x, params" << extra_args
          << ", T_order, T)" << endl
          << "if T_order >= 0" << endl
          << "    return" << endl
@@ -2557,13 +2534,13 @@ ModelTree::writeSparseModelMFiles(const string& basename) const
   output.close();
 
   open_file(m_dir / (prefix + "resid.m"));
-  output << "function [residual, T_order, T] = " << prefix << "resid(y, x, params" << ss_arg
+  output << "function [residual, T_order, T] = " << prefix << "resid(y, x, params" << extra_args
          << ", T_order, T)" << endl
-         << "if nargin < " << 5 + static_cast<int>(dynamic) << endl
+         << "if nargin < " << 5 + nextra_args << endl
          << "    T_order = -1;" << endl
          << "    T = NaN(" << ttlen << ", 1);" << endl
          << "end" << endl
-         << "[T_order, T] = " << full_prefix << "resid_tt(y, x, params" << ss_arg
+         << "[T_order, T] = " << full_prefix << "resid_tt(y, x, params" << extra_args
          << ", T_order, T);" << endl
          << "residual = NaN(" << equations.size() << ", 1);" << endl
          << d_sparse_output[0].str();
@@ -2574,12 +2551,12 @@ ModelTree::writeSparseModelMFiles(const string& basename) const
   ttlen += temporary_terms_derivatives[1].size();
 
   open_file(m_dir / (prefix + "g1_tt.m"));
-  output << "function [T_order, T] = " << prefix << "g1_tt(y, x, params" << ss_arg
+  output << "function [T_order, T] = " << prefix << "g1_tt(y, x, params" << extra_args
          << ", T_order, T)" << endl
          << "if T_order >= 1" << endl
          << "    return" << endl
          << "end" << endl
-         << "[T_order, T] = " << full_prefix << "resid_tt(y, x, params" << ss_arg
+         << "[T_order, T] = " << full_prefix << "resid_tt(y, x, params" << extra_args
          << ", T_order, T);" << endl
          << "T_order = 1;" << endl
          << "if size(T, 1) < " << ttlen << endl
@@ -2590,14 +2567,14 @@ ModelTree::writeSparseModelMFiles(const string& basename) const
 
   open_file(m_dir / (prefix + "g1.m"));
   // NB: At first order, sparse indices are passed as extra arguments
-  output << "function [g1, T_order, T] = " << prefix << "g1(y, x, params" << ss_arg
+  output << "function [g1, T_order, T] = " << prefix << "g1(y, x, params" << extra_args
          << ", sparse_rowval, sparse_colval, sparse_colptr, T_order, T)" << endl
-         << "if nargin < " << 8 + static_cast<int>(dynamic) << endl
+         << "if nargin < " << 8 + nextra_args << endl
          << "    T_order = -1;" << endl
          << "    T = NaN(" << ttlen << ", 1);" << endl
          << "end" << endl
-         << "[T_order, T] = " << full_prefix << "g1_tt(y, x, params" << ss_arg << ", T_order, T);"
-         << endl
+         << "[T_order, T] = " << full_prefix << "g1_tt(y, x, params" << extra_args
+         << ", T_order, T);" << endl
          << "g1_v = NaN(" << jacobian_sparse_column_major_order.size() << ", 1);" << endl
          << d_sparse_output[1].str();
   // On MATLAB < R2020a, sparse() does not accept int32 indices
@@ -2616,12 +2593,12 @@ ModelTree::writeSparseModelMFiles(const string& basename) const
       ttlen += temporary_terms_derivatives[i].size();
 
       open_file(m_dir / (prefix + "g" + to_string(i) + "_tt.m"));
-      output << "function [T_order, T] = " << prefix << "g" << i << "_tt(y, x, params" << ss_arg
+      output << "function [T_order, T] = " << prefix << "g" << i << "_tt(y, x, params" << extra_args
              << ", T_order, T)" << endl
              << "if T_order >= " << i << endl
              << "    return" << endl
              << "end" << endl
-             << "[T_order, T] = " << full_prefix << "g" << i - 1 << "_tt(y, x, params" << ss_arg
+             << "[T_order, T] = " << full_prefix << "g" << i - 1 << "_tt(y, x, params" << extra_args
              << ", T_order, T);" << endl
              << "T_order = " << i << ";" << endl
              << "if size(T, 1) < " << ttlen << endl
@@ -2632,12 +2609,12 @@ ModelTree::writeSparseModelMFiles(const string& basename) const
 
       open_file(m_dir / (prefix + "g" + to_string(i) + ".m"));
       output << "function [g" << i << "_v, T_order, T] = " << prefix << "g" << i << "(y, x, params"
-             << ss_arg << ", T_order, T)" << endl
-             << "if nargin < " << 5 + static_cast<int>(dynamic) << endl
+             << extra_args << ", T_order, T)" << endl
+             << "if nargin < " << 5 + nextra_args << endl
              << "    T_order = -1;" << endl
              << "    T = NaN(" << ttlen << ", 1);" << endl
              << "end" << endl
-             << "[T_order, T] = " << full_prefix << "g" << i << "_tt(y, x, params" << ss_arg
+             << "[T_order, T] = " << full_prefix << "g" << i << "_tt(y, x, params" << extra_args
              << ", T_order, T);" << endl
              << "g" << i << "_v = NaN(" << derivatives[i].size() << ", 1);" << endl
              << d_sparse_output[i].str() << "end" << endl;
@@ -2658,7 +2635,7 @@ ModelTree::writeSparseModelMFiles(const string& basename) const
           const string resid_g1_arg {evaluate ? "" : ", residual, g1"};
           open_file(block_dir / (funcname + ".m"));
           output << "function [y, T" << resid_g1_arg << "] = " << funcname << "(y, x, params"
-                 << ss_arg << ", sparse_rowval, sparse_colval, sparse_colptr, T)" << endl;
+                 << extra_args << ", sparse_rowval, sparse_colval, sparse_colptr, T)" << endl;
           if (!evaluate)
             output << "residual=NaN(" << blocks[blk].mfs_size << ", 1);" << endl;
 
@@ -2706,8 +2683,13 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
   const filesystem::path model_src_dir {filesystem::path {basename} / "model" / "src" / "sparse"};
   // TODO: when C++20 support is complete, mark the following strings constexpr
   const string prefix {dynamic ? "dynamic_" : "static_"};
-  const string ss_argin {dynamic ? ", const double *restrict steady_state" : ""};
-  const string ss_argout {dynamic ? ", steady_state" : ""};
+  const string extra_argin {
+      (dynamic ? ", const double *restrict steady_state"s : ""s)
+      + (heterogeneity_table.empty() ? ""s : ", const double *restrict yagg"s)};
+  const string extra_argout {(dynamic ? ", steady_state"s : ""s)
+                             + (heterogeneity_table.empty() ? ""s : ", yagg"s)};
+  const int nextra_args {static_cast<int>(dynamic)
+                         + static_cast<int>(!heterogeneity_table.empty())};
   const int ylen {(dynamic ? 3 : 1) * symbol_table.endo_nbr()};
   const int xlen {symbol_table.exo_nbr() + symbol_table.exo_det_nbr()};
 
@@ -2725,8 +2707,8 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
 
   size_t ttlen {0};
 
-  // Helper for dealing with y, x, params and steady_state inputs (shared with block case)
-  auto y_x_params_ss_inputs = [&](bool assign_y) {
+  // Helper for dealing with y, x, params, steady_state and yagg inputs (shared with block case)
+  auto y_x_params_ss_yagg_inputs = [&](bool assign_y) {
     output << "  if (!(mxIsDouble(prhs[0]) && !mxIsComplex(prhs[0]) && !mxIsSparse(prhs[0]) && "
               "mxGetNumberOfElements(prhs[0]) == "
            << ylen << "))" << endl
@@ -2753,12 +2735,22 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
              << R"(    mexErrMsgTxt("steady_state must be a real dense numeric array with )"
              << symbol_table.endo_nbr() << R"( elements");)" << endl
              << "  const double *restrict steady_state = mxGetPr(prhs[3]);" << endl;
+    if (!heterogeneity_table.empty())
+      {
+        const int idx {3 + static_cast<int>(dynamic)};
+        output << "  if (!(mxIsDouble(prhs[" << idx << "]) && !mxIsComplex(prhs[" << idx
+               << "]) && !mxIsSparse(prhs[" << idx << "]) && mxGetNumberOfElements(prhs[" << idx
+               << "]) == " << heterogeneity_table.aggregateEndoSize() << "))" << endl
+               << R"(    mexErrMsgTxt("yagg must be a real dense numeric array with )"
+               << heterogeneity_table.aggregateEndoSize() << R"( elements");)" << endl
+               << "  const double *restrict yagg = mxGetPr(prhs[" << idx << "]);" << endl;
+      }
   };
 
   // Helper for dealing with sparse_rowval and sparse_colptr inputs (shared with block case)
   auto sparse_indices_inputs = [&](int ncols, int nzval) {
     // We use sparse_rowval and sparse_colptr (sparse_colval is unused)
-    const int row_idx {3 + static_cast<int>(dynamic)}, col_idx {row_idx + 2};
+    const int row_idx {3 + nextra_args}, col_idx {row_idx + 2};
     output << "  if (!(mxIsInt32(prhs[" << row_idx << "]) && mxGetNumberOfElements(prhs[" << row_idx
            << "]) == " << nzval << "))" << endl
            << R"(    mexErrMsgTxt("sparse_rowval must be an int32 array with )" << nzval
@@ -2800,7 +2792,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
       const string prototype_tt {
           "void " + funcname
           + "_tt(const double *restrict y, const double *restrict x, const double *restrict params"
-          + ss_argin + ", double *restrict T)"};
+          + extra_argin + ", double *restrict T)"};
 
       const filesystem::path header_tt {model_src_dir / (funcname + "_tt.h")};
       open_file(header_tt);
@@ -2825,7 +2817,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
       const string prototype_main {
           "void " + funcname
           + "(const double *restrict y, const double *restrict x, const double *restrict params"
-          + ss_argin + ", const double *restrict T, double *restrict "
+          + extra_argin + ", const double *restrict T, double *restrict "
           + (i == 0 ? "residual" : "g" + to_string(i) + "_v") + ")"};
 
       const filesystem::path header_main {model_src_dir / (funcname + ".h")};
@@ -2850,7 +2842,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
           compileMEX(model_src_dir, funcname, mexext, {source_main}, matlabroot, false)};
 
       const filesystem::path source_mex {model_src_dir / (funcname + "_mex.c")};
-      int nargin {5 + static_cast<int>(dynamic) + 3 * static_cast<int>(i == 1)};
+      int nargin {5 + nextra_args + 3 * static_cast<int>(i == 1)};
       open_file(source_mex);
       output << "#include <string.h>" << endl // For memcpy()
              << R"(#include "mex.h")" << endl
@@ -2870,7 +2862,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
              << "  if (nlhs != 1 && nlhs != 3)" << endl
              << R"(    mexErrMsgTxt("Accepts exactly 1 or 3 output arguments");)" << endl;
 
-      y_x_params_ss_inputs(true);
+      y_x_params_ss_yagg_inputs(true);
 
       if (i == 1)
         sparse_indices_inputs(getJacobianColsNbr(true), jacobian_sparse_column_major_order.size());
@@ -2918,7 +2910,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
             output << "      default:" << endl << "        " << prefix << "resid";
           else
             output << "      case " << j - 1 << ":" << endl << "        " << prefix << "g" << j;
-          output << "_tt(y, x, params" << ss_argout << ", T);" << endl;
+          output << "_tt(y, x, params" << extra_argout << ", T);" << endl;
         }
       output << "      }" << endl;
       if (i == 1)
@@ -2928,7 +2920,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
         output << "  plhs[0] = mxCreateDoubleMatrix("
                << (i == 0 ? equations.size() : derivatives[i].size()) << ", 1, mxREAL);" << endl;
       output << "  " << prefix << (i == 0 ? "resid" : "g" + to_string(i)) << "(y, x, params"
-             << ss_argout << ", T, mxGetPr(plhs[0]));" << endl
+             << extra_argout << ", T, mxGetPr(plhs[0]));" << endl
              << "  if (nlhs == 3)" << endl
              << "    {" << endl
              << "      plhs[1] = T_order_mx;" << endl
@@ -2981,7 +2973,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
                evaluate the recursive variables. */
             output << "  if (nlhs < 2 || nlhs > 4)" << endl
                    << R"(    mexErrMsgTxt("Accepts 2 to 4 output arguments");)" << endl;
-          y_x_params_ss_inputs(false);
+          y_x_params_ss_yagg_inputs(false);
 
           /* We’d like to avoid copying y if this is a “solve” block without
             recursive variables. Unfortunately “plhs[0]=prhs[0]” leads to
@@ -3054,7 +3046,6 @@ ModelTree::writeDebugModelMFiles(const string& basename) const
   const filesystem::path m_dir {packageDir(basename) / "+debug"};
   // TODO: when C++20 support is complete, mark the following strings constexpr
   const string prefix {dynamic ? "dynamic_" : "static_"};
-  const string ss_arg {dynamic ? ", steady_state" : ""};
 
   const filesystem::path resid_filename {m_dir / (prefix + "resid.m")};
   ofstream output {resid_filename, ios::out | ios::binary};
@@ -3064,7 +3055,13 @@ ModelTree::writeDebugModelMFiles(const string& basename) const
       exit(EXIT_FAILURE);
     }
 
-  output << "function [lhs, rhs] = " << prefix << "resid(y, x, params" << ss_arg << ")" << endl
+  output << "function [lhs, rhs] = " << prefix << "resid(y, x, params";
+  if (dynamic)
+    output << ", steady_state";
+  if (!heterogeneity_table.empty())
+    output << ", yagg";
+
+  output << ")" << endl
          << "T = NaN(" << temporary_terms_derivatives[0].size() << ", 1);" << endl
          << "lhs = NaN(" << equations.size() << ", 1);" << endl
          << "rhs = NaN(" << equations.size() << ", 1);" << endl;

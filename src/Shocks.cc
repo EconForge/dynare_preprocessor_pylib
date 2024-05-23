@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -590,6 +590,213 @@ ShocksLearntInStatement::writeJsonOutput(ostream& output) const
       output << "]}";
     }
   output << "]}";
+}
+
+HeterogeneousShocksStatement::HeterogeneousShocksStatement(
+    int heterogeneity_dimension_arg, bool overwrite_arg, var_and_std_shocks_t var_shocks_arg,
+    var_and_std_shocks_t std_shocks_arg, covar_and_corr_shocks_t covar_shocks_arg,
+    covar_and_corr_shocks_t corr_shocks_arg, const SymbolTable& symbol_table_arg,
+    const HeterogeneityTable& heterogeneity_table_arg) :
+    heterogeneity_dimension {heterogeneity_dimension_arg},
+    overwrite {overwrite_arg},
+    var_shocks {move(var_shocks_arg)},
+    std_shocks {move(std_shocks_arg)},
+    covar_shocks {move(covar_shocks_arg)},
+    corr_shocks {move(corr_shocks_arg)},
+    symbol_table {symbol_table_arg},
+    heterogeneity_table {heterogeneity_table_arg}
+{
+}
+
+void
+HeterogeneousShocksStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
+                                          [[maybe_unused]] bool minimal_workspace) const
+{
+  if (overwrite)
+    output << sigmaeName() << " = zeros(" << symbol_table.het_exo_nbr(heterogeneity_dimension)
+           << ", " << symbol_table.het_exo_nbr(heterogeneity_dimension) << ");" << endl;
+
+  writeVarAndStdShocks(output);
+  writeCovarAndCorrShocks(output);
+}
+
+void
+HeterogeneousShocksStatement::writeJsonOutput(ostream& output) const
+{
+  output << R"({"statementName": "shocks")"
+         << R"(, "heterogeneity": ")" << heterogeneity_table.getName(heterogeneity_dimension)
+         << R"(", "overwrite": )" << boolalpha << overwrite;
+  output << R"(, "variance": [)";
+  for (bool printed_something {false}; auto& [id, value] : var_shocks)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << R"({"name": ")" << symbol_table.getName(id) << R"(", )"
+             << R"("variance": ")";
+      value->writeJsonOutput(output, {}, {});
+      output << R"("})";
+    }
+  output << "]"
+         << R"(, "stderr": [)";
+  for (bool printed_something {false}; auto& [id, value] : std_shocks)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << R"({"name": ")" << symbol_table.getName(id) << R"(", )"
+             << R"("stderr": ")";
+      value->writeJsonOutput(output, {}, {});
+      output << R"("})";
+    }
+  output << "]"
+         << R"(, "covariance": [)";
+  for (bool printed_something {false}; auto& [ids, value] : covar_shocks)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << "{"
+             << R"("name": ")" << symbol_table.getName(ids.first) << R"(", )"
+             << R"("name2": ")" << symbol_table.getName(ids.second) << R"(", )"
+             << R"("covariance": ")";
+      value->writeJsonOutput(output, {}, {});
+      output << R"("})";
+    }
+  output << "]"
+         << R"(, "correlation": [)";
+  for (bool printed_something {false}; auto& [ids, value] : corr_shocks)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << "{"
+             << R"("name": ")" << symbol_table.getName(ids.first) << R"(", )"
+             << R"("name2": ")" << symbol_table.getName(ids.second) << R"(", )"
+             << R"("correlation": ")";
+      value->writeJsonOutput(output, {}, {});
+      output << R"("})";
+    }
+  output << "]"
+         << "}";
+}
+
+void
+HeterogeneousShocksStatement::writeVarOrStdShock(ostream& output, const pair<int, expr_t>& it,
+                                                 bool stddev) const
+{
+  SymbolType type = symbol_table.getType(it.first);
+  assert(type == SymbolType::heterogeneousExogenous);
+
+  int id {symbol_table.getTypeSpecificID(it.first) + 1};
+  output << sigmaeName() << "(" << id << ", " << id << ") = ";
+  if (stddev)
+    output << "(";
+  it.second->writeOutput(output);
+  if (stddev)
+    output << ")^2";
+  output << ";" << endl;
+}
+
+void
+HeterogeneousShocksStatement::writeVarAndStdShocks(ostream& output) const
+{
+  for (const auto& it : var_shocks)
+    writeVarOrStdShock(output, it, false);
+
+  for (const auto& it : std_shocks)
+    writeVarOrStdShock(output, it, true);
+}
+
+void
+HeterogeneousShocksStatement::writeCovarOrCorrShock(ostream& output,
+                                                    const pair<pair<int, int>, expr_t>& it,
+                                                    bool corr) const
+{
+  assert(symbol_table.getType(it.first.first) == SymbolType::heterogeneousExogenous
+         && symbol_table.getType(it.first.second) == SymbolType::heterogeneousExogenous);
+  int id1 {symbol_table.getTypeSpecificID(it.first.first) + 1},
+      id2 {symbol_table.getTypeSpecificID(it.first.second) + 1};
+
+  output << sigmaeName() << "(" << id1 << ", " << id2 << ") = ";
+  it.second->writeOutput(output);
+  if (corr)
+    output << "*sqrt(" << sigmaeName() << "(" << id1 << ", " << id1 << ")*" << sigmaeName() << "("
+           << id2 << ", " << id2 << "))";
+  output << ";" << endl
+         << sigmaeName() << "(" << id2 << ", " << id1 << ") = " << sigmaeName() << "(" << id1
+         << ", " << id2 << ");" << endl;
+}
+
+void
+HeterogeneousShocksStatement::writeCovarAndCorrShocks(ostream& output) const
+{
+  for (const auto& it : covar_shocks)
+    writeCovarOrCorrShock(output, it, false);
+
+  for (const auto& it : corr_shocks)
+    writeCovarOrCorrShock(output, it, true);
+}
+
+void
+HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
+                                        [[maybe_unused]] WarningConsolidation& warnings)
+{
+  /* Error out if variables are not of the right type. This must be done here
+     and not at parsing time (see #448). */
+  for (auto [id, val] : var_shocks)
+    if (symbol_table.getType(id) != SymbolType::heterogeneousExogenous)
+      {
+        cerr << "shocks: setting a variance on '" << symbol_table.getName(id)
+             << "' is not allowed, because it is not a heterogeneous exogenous variable" << endl;
+        exit(EXIT_FAILURE);
+      }
+
+  for (auto [id, val] : std_shocks)
+    if (symbol_table.getType(id) != SymbolType::heterogeneousExogenous)
+      {
+        cerr << "shocks: setting a standard error on '" << symbol_table.getName(id)
+             << "' is not allowed, because it is not a heterogeneous exogenous variable" << endl;
+        exit(EXIT_FAILURE);
+      }
+
+  for (const auto& [ids, val] : covar_shocks)
+    {
+      auto& [symb_id1, symb_id2] = ids;
+
+      if (!(symbol_table.getType(symb_id1) == SymbolType::heterogeneousExogenous
+            && symbol_table.getType(symb_id2) == SymbolType::heterogeneousExogenous))
+        {
+          cerr << "shocks: setting a covariance between '" << symbol_table.getName(symb_id1)
+               << "' and '" << symbol_table.getName(symb_id2)
+               << "'is not allowed; covariances can only be specified for heterogeneous exogenous "
+                  "variables"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+
+  for (const auto& [ids, val] : corr_shocks)
+    {
+      auto& [symb_id1, symb_id2] = ids;
+
+      if (!(symbol_table.getType(symb_id1) == SymbolType::heterogeneousExogenous
+            && symbol_table.getType(symb_id2) == SymbolType::heterogeneousExogenous))
+        {
+          cerr << "shocks: setting a correlation between '" << symbol_table.getName(symb_id1)
+               << "' and '" << symbol_table.getName(symb_id2)
+               << "'is not allowed; covariances can only be specified for heterogeneous exogenous "
+                  "variables"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+
+  // Fill in mod_file_struct.parameters_with_shocks_values (related to #469)
+  for (auto [id, val] : var_shocks)
+    val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
+  for (auto [id, val] : std_shocks)
+    val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
+  for (const auto& [ids, val] : covar_shocks)
+    val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
+  for (const auto& [ids, val] : corr_shocks)
+    val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
 }
 
 ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(

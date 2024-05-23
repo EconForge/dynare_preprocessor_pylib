@@ -216,6 +216,7 @@ str_tolower(string s)
 %token HOMOTOPY_MAX_COMPLETION_SHARE HOMOTOPY_MIN_STEP_SIZE HOMOTOPY_INITIAL_STEP_SIZE HOMOTOPY_STEP_SIZE_INCREASE_SUCCESS_COUNT
 %token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK HOMOTOPY_EXCLUDE_VAREXO FROM_INITVAL_TO_ENDVAL
 %token STATIC_MFS RELATIVE_TO_INITVAL MATCHED_IRFS MATCHED_IRFS_WEIGHTS WEIGHTS PERPENDICULAR
+%token HETEROGENEITY HETEROGENEITY_DIMENSION SUM
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -272,6 +273,7 @@ statement : parameters
           | predetermined_variables
           | model_local_variable
           | change_type
+          | heterogeneity_dimension
           | model
           | initval
           | initval_file
@@ -531,9 +533,9 @@ log_trend_var : LOG_TREND_VAR '(' LOG_GROWTH_FACTOR EQUAL { driver.begin_model()
               ;
 
 var : VAR symbol_list_with_tex_and_partition ';'
-      { driver.var($2, false); }
+      { driver.var($2, {}, false); }
     | VAR '(' LOG ')' symbol_list_with_tex_and_partition ';'
-      { driver.var($5, true); }
+      { driver.var($5, {}, true); }
     | VAR '(' DEFLATOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex_and_partition ';'
       { driver.end_nonstationary_var(false, $6, $8, false); }
     | VAR '(' LOG COMMA DEFLATOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex_and_partition ';'
@@ -542,6 +544,8 @@ var : VAR symbol_list_with_tex_and_partition ';'
       { driver.end_nonstationary_var(true, $6, $8, false); }
     /* The case LOG + LOG_DEFLATOR is omitted, because it does not make much sense
        from an economic point of view (amounts to taking the log two times) */
+    | VAR '(' HETEROGENEITY EQUAL symbol ')' symbol_list_with_tex_and_partition ';'
+      { driver.var($7, $5, false); }
     ;
 
 var_remove : VAR_REMOVE symbol_list ';' { driver.var_remove($2); };
@@ -615,7 +619,9 @@ var_expectation_model_option : VARIABLE EQUAL symbol
                              ;
 
 varexo : VAREXO symbol_list_with_tex_and_partition ';'
-         { driver.varexo($2); }
+         { driver.varexo($2, {}); }
+       | VAREXO '(' HETEROGENEITY EQUAL symbol ')' symbol_list_with_tex_and_partition ';'
+         { driver.varexo($7, $5); }
        ;
 
 varexo_det : VAREXO_DET symbol_list_with_tex_and_partition ';'
@@ -627,7 +633,9 @@ predetermined_variables : PREDETERMINED_VARIABLES symbol_list ';'
                         ;
 
 parameters : PARAMETERS symbol_list_with_tex_and_partition ';'
-             { driver.parameters($2); }
+             { driver.parameters($2, {}); }
+           | PARAMETERS '(' HETEROGENEITY EQUAL symbol ')' symbol_list_with_tex_and_partition ';'
+             { driver.parameters($7, $5); }
            ;
 
 model_local_variable : MODEL_LOCAL_VARIABLE symbol_list_with_tex ';'
@@ -647,6 +655,10 @@ change_type_arg : PARAMETERS
                 | VAREXO_DET
                   { $$ = SymbolType::exogenousDet; }
                 ;
+
+heterogeneity_dimension : HETEROGENEITY_DIMENSION symbol_list ';'
+                          { driver.heterogeneity_dimension($2); }
+                        ;
 
 init_param : symbol EQUAL expression ';' { driver.init_param($1, $3); };
 
@@ -995,6 +1007,8 @@ model : MODEL ';' { driver.begin_model(); }
         equation_list END ';' { driver.end_model(); }
       | MODEL '(' model_options_list ')' ';' { driver.begin_model(); }
         equation_list END ';' { driver.end_model(); }
+      | MODEL '(' HETEROGENEITY EQUAL symbol ')' { driver.begin_heterogeneous_model($5); }';'
+        equation_list END ';' { driver.end_model(); }
       ;
 
 equation_list : equation_list equation
@@ -1152,6 +1166,8 @@ hand_side : '(' hand_side ')'
             { $$ = driver.add_erfc($3); }
           | STEADY_STATE '(' hand_side ')'
             { $$ = driver.add_steady_state($3); }
+          | SUM '(' hand_side ')'
+            { $$ = driver.add_sum($3); }
           ;
 
 comma_hand_side : hand_side
@@ -1205,6 +1221,12 @@ shocks : SHOCKS ';' shock_list END ';' { driver.end_shocks(false); }
        | SHOCKS '(' LEARNT_IN EQUAL INT_NUMBER ')' ';' det_shock_list END ';' { driver.end_shocks_learnt_in($5, false); }
        | SHOCKS '(' LEARNT_IN EQUAL INT_NUMBER COMMA OVERWRITE ')' ';' det_shock_list END ';' { driver.end_shocks_learnt_in($5, true); }
        | SHOCKS '(' OVERWRITE COMMA LEARNT_IN EQUAL INT_NUMBER ')' ';' det_shock_list END ';' { driver.end_shocks_learnt_in($7, true); }
+       | SHOCKS '(' HETEROGENEITY EQUAL symbol ')' ';' stoch_shock_list END ';'
+         { driver.end_heterogeneous_shocks($5, false); }
+       | SHOCKS '(' HETEROGENEITY EQUAL symbol COMMA OVERWRITE ')' ';' stoch_shock_list END ';'
+         { driver.end_heterogeneous_shocks($5, true); }
+       | SHOCKS '(' OVERWRITE COMMA HETEROGENEITY EQUAL symbol ')' ';' stoch_shock_list END ';'
+         { driver.end_heterogeneous_shocks($7, true); }
        ;
 
 shock_list : shock_list shock_elem
@@ -1212,15 +1234,22 @@ shock_list : shock_list shock_elem
            ;
 
 shock_elem : det_shock_elem
-           | VAR symbol ';' STDERR expression ';'
-             { driver.add_stderr_shock($2, $5); }
-           | VAR symbol EQUAL expression ';'
-             { driver.add_var_shock($2, $4); }
-           | VAR symbol COMMA symbol EQUAL expression ';'
-             { driver.add_covar_shock($2, $4, $6); }
-           | CORR symbol COMMA symbol EQUAL expression ';'
-             { driver.add_correl_shock($2, $4, $6); }
+           | stoch_shock_elem
            ;
+
+stoch_shock_elem : VAR symbol ';' STDERR expression ';'
+                   { driver.add_stderr_shock($2, $5); }
+                 | VAR symbol EQUAL expression ';'
+                   { driver.add_var_shock($2, $4); }
+                 | VAR symbol COMMA symbol EQUAL expression ';'
+                   { driver.add_covar_shock($2, $4, $6); }
+                 | CORR symbol COMMA symbol EQUAL expression ';'
+                   { driver.add_correl_shock($2, $4, $6); }
+                 ;
+
+stoch_shock_list : stoch_shock_list stoch_shock_elem
+                 | stoch_shock_elem
+                 ;
 
 det_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
                  { driver.add_det_shock($2, $5, $8, ParsingDriver::DetShockType::standard); }

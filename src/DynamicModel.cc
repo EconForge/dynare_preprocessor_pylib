@@ -50,9 +50,11 @@ DynamicModel::copyHelper(const DynamicModel& m)
 
 DynamicModel::DynamicModel(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                            ExternalFunctionsTable& external_functions_table_arg,
+                           HeterogeneityTable& heterogeneity_table_arg,
                            TrendComponentModelTable& trend_component_model_table_arg,
                            VarModelTable& var_model_table_arg) :
-    ModelTree {symbol_table_arg, num_constants_arg, external_functions_table_arg, true},
+    ModelTree {symbol_table_arg, num_constants_arg, external_functions_table_arg,
+               heterogeneity_table_arg, true},
     trend_component_model_table {trend_component_model_table_arg},
     var_model_table {var_model_table_arg}
 {
@@ -1133,7 +1135,7 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
     output << (i > computed_derivs_order ? -1 : NNZDerivatives[i]) << "; ";
   output << "];" << endl;
 
-  writeDriverSparseIndicesHelper<true, false>(output);
+  writeDriverSparseIndicesHelper("dynamic", output);
 
   // Write LHS of each equation in text form
   output << "M_.lhs = {" << endl;
@@ -3694,6 +3696,36 @@ DynamicModel::substituteLogTransform()
       */
       addAuxEquation(AddEqual(AddVariable(aux_symb_id), aux_def));
       addEquation(AddEqual(AddVariable(symb_id), AddExp(AddVariable(aux_symb_id))), nullopt, {});
+    }
+}
+
+void
+DynamicModel::substituteAggregationOperators()
+{
+  ExprNode::subst_table_t subst_table;
+  vector<BinaryOpNode*> neweqs;
+
+  for (auto& [symb_id, expr] : local_variables_table)
+    expr = expr->substituteAggregationOperators(subst_table, neweqs);
+
+  for (auto& equation : equations)
+    {
+      equation = dynamic_cast<BinaryOpNode*>(
+          equation->substituteAggregationOperators(subst_table, neweqs));
+      assert(equation);
+    }
+
+  for (auto& equation : static_only_equations)
+    {
+      equation = dynamic_cast<BinaryOpNode*>(
+          equation->substituteAggregationOperators(subst_table, neweqs));
+      assert(equation);
+    }
+
+  for (auto neweq : neweqs)
+    {
+      addEquation(neweq, nullopt);
+      addAuxEquation(neweq);
     }
 }
 

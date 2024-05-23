@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -30,6 +30,7 @@
 
 #include "CommonEnums.hh"
 #include "ExprNode.hh"
+#include "HeterogeneityTable.hh"
 
 using namespace std;
 
@@ -53,7 +54,9 @@ enum class AuxVarType
   diffLead = 11, //!< Variable for timing between Diff operators (lead)
   pacExpectation = 12, //!< Variable created for the substitution of the pac_expectation operator
   pacTargetNonstationary
-  = 13 //!< Variable created for the substitution of the pac_target_nonstationary operator
+  = 13, //!< Variable created for the substitution of the pac_target_nonstationary operator
+  aggregationOp
+  = 14 // Substitute for an aggregation operator in a heterogeneous setup, such as SUM()
 };
 
 //! Information on some auxiliary variables
@@ -106,6 +109,8 @@ struct AuxVarInfo
 class SymbolTable
 {
 private:
+  HeterogeneityTable& heterogeneity_table;
+
   //! Has method freeze() been called?
   bool frozen {false};
 
@@ -123,6 +128,8 @@ private:
   map<int, map<string, string>> partition_value_map;
   //! Maps IDs to types
   vector<SymbolType> type_table;
+  // Maps IDs of heterogenous symbols to heterogeneity dimension IDs
+  map<int, int> heterogeneity_dimensions;
 
   //! Maps symbol IDs to type specific IDs
   map<int, int> type_specific_ids;
@@ -135,6 +142,16 @@ private:
   vector<int> exo_det_ids;
   //! Maps type specific IDs of parameters to symbol IDs
   vector<int> param_ids;
+  /* Maps type specific IDs of heterogeneous endogenous to symbol IDs (outer vector is for
+     heterogeneity dimensions) */
+  vector<vector<int>> het_endo_ids;
+  /* Maps type specific IDs of heterogeneous exogenous to symbol IDs (outer vector is for
+     heterogeneity dimensions) */
+  vector<vector<int>> het_exo_ids;
+  /* Maps type specific IDs of heterogeneous parameters to symbol IDs (outer vector is for
+     heterogeneity dimensions) */
+  vector<vector<int>> het_param_ids;
+
   //! Information about auxiliary variables
   vector<AuxVarInfo> aux_vars;
 
@@ -168,6 +185,7 @@ public:
   {
     const int tsid;
     const SymbolType type;
+    const optional<int> heterogeneity_dimension;
   };
   /* Thrown when requesting the type specific ID of a symbol which doesn’t
      have one */
@@ -202,6 +220,12 @@ public:
     }
   };
 
+  // Thrown by getHeterogeneityDimension() on non-heterogeneous symbols
+  struct NonHeteregeneousSymbolException
+  {
+    const int id;
+  };
+
 private:
   //! Factorized code for adding aux lag variables
   int addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag,
@@ -214,11 +238,19 @@ private:
   inline void validateSymbID(int symb_id) const noexcept(false);
 
 public:
+  SymbolTable(HeterogeneityTable& heterogeneity_table_arg) :
+      heterogeneity_table {heterogeneity_table_arg}
+  {
+  }
+
   //! Add a symbol
-  /*! Returns the symbol ID */
+  /* Returns the symbol ID.
+     heterogeneity_dimension must be defined if this is a heterogeneous symbol (otherwise it is
+     ignored) */
   int addSymbol(const string& name, SymbolType type, const string& tex_name,
-                const vector<pair<string, string>>& partition_value) noexcept(false);
-  //! Add a symbol without its TeX name (will be equal to its name)
+                const vector<pair<string, string>>& partition_value,
+                const optional<int>& heterogeneity_dimension) noexcept(false);
+  //! Add a (non-heterogenous) symbol without its TeX name (will be equal to its name)
   /*! Returns the symbol ID */
   int addSymbol(const string& name, SymbolType type) noexcept(false);
   //! Adds an auxiliary variable for endogenous with lead >= 2
@@ -313,6 +345,8 @@ public:
   int addPacExpectationAuxiliaryVar(const string& name, expr_t expr_arg);
   //! An auxiliary variable for a pac_target_nonstationary operator
   int addPacTargetNonstationaryAuxiliaryVar(const string& name, expr_t expr_arg);
+  // An auxiliary variable for an aggregation operator (e.g. SUM(yh) where yh is heterogeneous)
+  int addAggregationOpAuxiliaryVar(const string& name, expr_t expr_arg);
   //! Returns the number of auxiliary variables
   [[nodiscard]] int
   AuxVarsSize() const
@@ -340,7 +374,9 @@ public:
   //! Get ID (by name)
   [[nodiscard]] inline int getID(const string& name) const noexcept(false);
   //! Get ID (by type specific ID)
-  [[nodiscard]] int getID(SymbolType type, int tsid) const noexcept(false);
+  [[nodiscard]] int getID(SymbolType type, int tsid,
+                          const optional<int>& heterogeneity_dimension = nullopt) const
+      noexcept(false);
   //! Freeze symbol table
   void freeze() noexcept(false);
   //! unreeze symbol table
@@ -360,6 +396,12 @@ public:
   [[nodiscard]] inline int exo_det_nbr() const noexcept(false);
   //! Get number of parameters
   [[nodiscard]] inline int param_nbr() const noexcept(false);
+  //! Get number of heterogeneous endogenous variables along a given dimension
+  [[nodiscard]] inline int het_endo_nbr(int het_dim) const noexcept(false);
+  //! Get number of heterogeneous exogenous variables along a given dimension
+  [[nodiscard]] inline int het_exo_nbr(int het_dim) const noexcept(false);
+  //! Get number of heterogeneous parameters along a given dimension
+  [[nodiscard]] inline int het_param_nbr(int het_dim) const noexcept(false);
   //! Returns the greatest symbol ID (the smallest is zero)
   [[nodiscard]] inline int maxID() const;
   //! Get number of user-declared endogenous variables (without the auxiliary variables)
@@ -423,6 +465,9 @@ public:
   [[nodiscard]] const set<int>& getVariablesWithLogTransform() const;
   // Returns all Lagrange multipliers
   [[nodiscard]] set<int> getLagrangeMultipliers() const;
+  /* Get heterogeneity dimension of a given symbol. Throws NonHeterogeneousSymbolException
+     if there is no such dimension. */
+  [[nodiscard]] int getHeterogeneityDimension(int symb_id) const;
 };
 
 inline void
@@ -535,6 +580,33 @@ SymbolTable::param_nbr() const noexcept(false)
     throw NotYetFrozenException();
 
   return param_ids.size();
+}
+
+inline int
+SymbolTable::het_endo_nbr(int het_dim) const noexcept(false)
+{
+  if (!frozen)
+    throw NotYetFrozenException();
+
+  return het_endo_ids.at(het_dim).size();
+}
+
+inline int
+SymbolTable::het_exo_nbr(int het_dim) const noexcept(false)
+{
+  if (!frozen)
+    throw NotYetFrozenException();
+
+  return het_exo_ids.at(het_dim).size();
+}
+
+inline int
+SymbolTable::het_param_nbr(int het_dim) const noexcept(false)
+{
+  if (!frozen)
+    throw NotYetFrozenException();
+
+  return het_param_ids.at(het_dim).size();
 }
 
 inline int

@@ -31,25 +31,48 @@
 #include "Shocks.hh"
 
 ModFile::ModFile(WarningConsolidation& warnings_arg) :
+    symbol_table {heterogeneity_table},
     var_model_table {symbol_table},
     trend_component_model_table {symbol_table},
     var_expectation_model_table {symbol_table},
     pac_model_table {symbol_table},
-    expressions_tree {symbol_table, num_constants, external_functions_table},
-    original_model {symbol_table, num_constants, external_functions_table,
-                    trend_component_model_table, var_model_table},
-    dynamic_model {symbol_table, num_constants, external_functions_table,
-                   trend_component_model_table, var_model_table},
-    trend_dynamic_model {symbol_table, num_constants, external_functions_table,
-                         trend_component_model_table, var_model_table},
-    orig_ramsey_dynamic_model {symbol_table, num_constants, external_functions_table,
-                               trend_component_model_table, var_model_table},
-    epilogue {symbol_table, num_constants, external_functions_table, trend_component_model_table,
+    expressions_tree {symbol_table, num_constants, external_functions_table, heterogeneity_table},
+    original_model {symbol_table,
+                    num_constants,
+                    external_functions_table,
+                    heterogeneity_table,
+                    trend_component_model_table,
+                    var_model_table},
+    dynamic_model {symbol_table,
+                   num_constants,
+                   external_functions_table,
+                   heterogeneity_table,
+                   trend_component_model_table,
+                   var_model_table},
+    trend_dynamic_model {symbol_table,
+                         num_constants,
+                         external_functions_table,
+                         heterogeneity_table,
+                         trend_component_model_table,
+                         var_model_table},
+    orig_ramsey_dynamic_model {symbol_table,
+                               num_constants,
+                               external_functions_table,
+                               heterogeneity_table,
+                               trend_component_model_table,
+                               var_model_table},
+    epilogue {symbol_table,
+              num_constants,
+              external_functions_table,
+              heterogeneity_table,
+              trend_component_model_table,
               var_model_table},
-    static_model {symbol_table, num_constants, external_functions_table},
-    steady_state_model {symbol_table, num_constants, external_functions_table, static_model},
+    static_model {symbol_table, num_constants, external_functions_table, heterogeneity_table},
+    steady_state_model {symbol_table, num_constants, external_functions_table, heterogeneity_table,
+                        static_model},
     warnings {warnings_arg}
 {
+  heterogeneity_table.setSymbolTable(&symbol_table);
 }
 
 void
@@ -396,6 +419,120 @@ ModFile::checkPass(bool nostrict, bool stochastic)
           exit(EXIT_FAILURE);
         }
     }
+
+  if (!heterogeneity_table.empty())
+    {
+      if (block)
+        {
+          cerr << "ERROR: the 'block' option of the 'model' block is not supported for "
+                  "heterogeneous models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.check_present)
+        {
+          cerr << "ERROR: The 'check' command is not supported for heterogeneous models" << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.steady_present)
+        {
+          cerr << "ERROR: The 'steady' command is not supported for heterogeneous models" << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.perfect_foresight_solver_present)
+        {
+          cerr << "ERROR: The 'perfect_foresight_solver' command is not supported for "
+                  "heterogeneous models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.perfect_foresight_with_expectation_errors_solver_present)
+        {
+          cerr << "ERROR: The 'perfect_foresight_with_expectation_errors_solver' command is not "
+                  "supported for heterogeneous models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.stoch_simul_present)
+        {
+          cerr << "ERROR: The 'stoch_simul' command is not supported for heterogeneous models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.estimation_present)
+        {
+          cerr << "ERROR: The 'estimation' command is not supported for heterogeneous models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.osr_present)
+        {
+          cerr << "ERROR: The 'osr' command is not supported for heterogeneous models" << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.osr_params_present)
+        {
+          cerr << "ERROR: The 'osr_params' command is not supported for heterogeneous models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.optim_weights_present)
+        {
+          cerr << "ERROR: The 'optim_weights' block is not supported for heterogeneous models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.ramsey_model_present)
+        {
+          cerr << "ERROR: The 'ramsey_model' command is not supported for heterogeneous models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.discretionary_policy_present)
+        {
+          cerr << "ERROR: The 'discretionary_policy' command is not supported for heterogeneous "
+                  "models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.planner_objective_present)
+        {
+          cerr << "ERROR: The 'planner_objective' command is not supported for heterogeneous models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.extended_path_present)
+        {
+          cerr << "ERROR: The 'extended_path' command is not supported for heterogeneous models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.identification_present)
+        {
+          cerr << "ERROR: The 'identification' command is not supported for heterogeneous models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.sensitivity_present)
+        {
+          cerr << "ERROR: The 'sensitivity' command is not supported for heterogeneous models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.mom_estimation_present)
+        {
+          cerr
+              << "ERROR: The 'methods_of_moments' command is not supported for heterogeneous models"
+              << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.occbin_constraints_present)
+        {
+          cerr << "ERROR: The 'occbin_constraints' block is not supported for heterogeneous models"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
 }
 
 void
@@ -529,9 +666,12 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       */
       if (linear)
         orig_ramsey_dynamic_model = dynamic_model;
-      DynamicModel ramsey_FOC_equations_dynamic_model {
-          symbol_table, num_constants, external_functions_table, trend_component_model_table,
-          var_model_table};
+      DynamicModel ramsey_FOC_equations_dynamic_model {symbol_table,
+                                                       num_constants,
+                                                       external_functions_table,
+                                                       heterogeneity_table,
+                                                       trend_component_model_table,
+                                                       var_model_table};
       ramsey_FOC_equations_dynamic_model = dynamic_model;
       auto clone_if_not_null
           = [&](expr_t e) { return e ? e->clone(ramsey_FOC_equations_dynamic_model) : nullptr; };
@@ -549,6 +689,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
 
   // Must come after detrending of variables and Ramsey policy transformation
   dynamic_model.substituteLogTransform();
+
+  if (!heterogeneity_table.empty())
+    dynamic_model.substituteAggregationOperators();
 
   /* Create auxiliary vars for leads and lags greater than 2, on both endos and
      exos. The transformation is not exactly the same on stochastic and
@@ -702,6 +845,16 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
           exit(EXIT_FAILURE);
         }
     }
+
+  for (int dim {0}; dim < heterogeneity_table.size(); dim++)
+    if (heterogeneous_models.at(dim).equation_number() != symbol_table.het_endo_nbr(dim))
+      {
+        cerr << "ERROR: There are " << heterogeneous_models.at(dim).equation_number()
+             << " equations but " << symbol_table.het_endo_nbr(dim)
+             << " endogenous variables in the model for heterogeneity dimension '"
+             << heterogeneity_table.getName(dim) << "'!" << endl;
+        exit(EXIT_FAILURE);
+      }
 }
 
 void
@@ -822,6 +975,9 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
   // Those matrices can only be filled here, because we use derivatives
   dynamic_model.fillVarModelTableMatrices();
 
+  for (auto& hm : heterogeneous_models)
+    hm.computingPass(mod_file_struct.order_option, no_tmp_terms, use_dll);
+
   for (auto& statement : statements)
     statement->computingPass(mod_file_struct);
 
@@ -864,6 +1020,11 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
 
   auto plusfolder {DataTree::packageDir(basename)};
 
+  if (check_model_changes && !heterogeneity_table.empty())
+    {
+      cerr << "ERROR: the 'fast' option is not supported for heterogeneous models" << endl;
+      exit(EXIT_FAILURE);
+    }
   bool hasModelChanged = !dynamic_model.isChecksumMatching(basename) || !check_model_changes;
   if (hasModelChanged)
     {
@@ -939,6 +1100,7 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
     mOutputFile << "M_.parameter_used_with_lead_lag = true;" << endl;
 
   symbol_table.writeOutput(mOutputFile);
+  heterogeneity_table.writeOutput(mOutputFile);
 
   var_model_table.writeOutput(basename, mOutputFile);
   trend_component_model_table.writeOutput(basename, mOutputFile);
@@ -950,6 +1112,10 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
               << ");" << endl
               << "M_.Correlation_matrix = eye(" << symbol_table.exo_nbr() << ", "
               << symbol_table.exo_nbr() << ");" << endl;
+  for (int hd {0}; hd < heterogeneity_table.size(); hd++)
+    mOutputFile << "M_.heterogeneity(" << hd + 1 << ").Sigma_e = zeros("
+                << symbol_table.het_exo_nbr(hd) << ", " << symbol_table.het_exo_nbr(hd) << ");"
+                << endl;
 
   if (mod_file_struct.calibrated_measurement_errors)
     mOutputFile << "M_.H = zeros(" << symbol_table.observedVariablesNbr() << ", "
@@ -1037,6 +1203,9 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
             static_model.writeDriverRamseyMultipliersDerivativesSparseIndices(mOutputFile);
         }
     }
+
+  for (const auto& hm : heterogeneous_models)
+    hm.writeDriverOutput(mOutputFile);
 
   if (onlymodel || gui)
     for (const auto& statement : statements)
@@ -1186,6 +1355,9 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
       epilogue.writeEpilogueFile(basename);
 
       pac_model_table.writeTargetCoefficientsFile(basename);
+
+      for (const auto& hm : heterogeneous_models)
+        hm.writeModelFiles(basename, false);
     }
 }
 
@@ -1263,6 +1435,11 @@ ModFile::writeJsonOutputParsingCheck(const string& basename, JsonFileOutputType 
 
   symbol_table.writeJsonOutput(output);
   output << ", ";
+  if (!heterogeneity_table.empty())
+    {
+      heterogeneity_table.writeJsonOutput(output);
+      output << ", ";
+    }
   dynamic_model.writeJsonOutput(output);
   output << ", ";
   static_model.writeJsonOutput(output);

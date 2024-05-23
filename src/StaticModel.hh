@@ -121,7 +121,8 @@ protected:
 
 public:
   StaticModel(SymbolTable& symbol_table_arg, NumericalConstants& num_constants,
-              ExternalFunctionsTable& external_functions_table_arg);
+              ExternalFunctionsTable& external_functions_table_arg,
+              HeterogeneityTable& heterogeneity_table_arg);
 
   StaticModel(const StaticModel& m);
   StaticModel& operator=(const StaticModel& m);

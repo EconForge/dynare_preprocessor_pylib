@@ -72,6 +72,7 @@ ParsingDriver::set_current_data_tree(DataTree* data_tree_arg)
   data_tree = data_tree_arg;
   model_tree = dynamic_cast<ModelTree*>(data_tree_arg);
   dynamic_model = dynamic_cast<DynamicModel*>(data_tree_arg);
+  heterogeneous_model = dynamic_cast<HeterogeneousModel*>(data_tree_arg);
 }
 
 void
@@ -184,12 +185,14 @@ ParsingDriver::warning(const string& m)
 
 int
 ParsingDriver::declare_symbol(const string& name, SymbolType type, const string& tex_name,
-                              const vector<pair<string, string>>& partition_value)
+                              const vector<pair<string, string>>& partition_value,
+                              const optional<int>& heterogeneity_dimension)
 {
   int symb_id;
   try
     {
-      symb_id = mod_file->symbol_table.addSymbol(name, type, tex_name, partition_value);
+      symb_id = mod_file->symbol_table.addSymbol(name, type, tex_name, partition_value,
+                                                 heterogeneity_dimension);
     }
   catch (SymbolTable::AlreadyDeclaredException& e)
     {
@@ -208,16 +211,30 @@ int
 ParsingDriver::declare_endogenous(const string& name, const string& tex_name,
                                   const vector<pair<string, string>>& partition_value)
 {
-  return declare_symbol(name, SymbolType::endogenous, tex_name, partition_value);
+  return declare_symbol(name, SymbolType::endogenous, tex_name, partition_value, {});
 }
 
 void
 ParsingDriver::var(const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list,
-                   bool log_option)
+                   const optional<string>& heterogeneity_dimension, bool log_option)
 {
   for (auto& [name, tex_name, partition] : symbol_list)
     {
-      int symb_id = declare_endogenous(name, tex_name, partition);
+      int symb_id {[&] {
+        if (heterogeneity_dimension)
+          try
+            {
+              return declare_symbol(name, SymbolType::heterogeneousEndogenous, tex_name, partition,
+                                    mod_file->heterogeneity_table.getID(*heterogeneity_dimension));
+            }
+          catch (HeterogeneityTable::UnknownDimensionNameException&)
+            {
+              error("Unknown heterogeneity dimension: " + *heterogeneity_dimension);
+            }
+        else
+          return declare_endogenous(name, tex_name, partition);
+      }()};
+
       if (log_option)
         mod_file->symbol_table.markWithLogTransform(symb_id);
     }
@@ -227,15 +244,27 @@ int
 ParsingDriver::declare_exogenous(const string& name, const string& tex_name,
                                  const vector<pair<string, string>>& partition_value)
 {
-  return declare_symbol(name, SymbolType::exogenous, tex_name, partition_value);
+  return declare_symbol(name, SymbolType::exogenous, tex_name, partition_value, {});
 }
 
 void
 ParsingDriver::varexo(
-    const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list)
+    const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list,
+    const optional<string>& heterogeneity_dimension)
 {
   for (auto& [name, tex_name, partition] : symbol_list)
-    declare_exogenous(name, tex_name, partition);
+    if (heterogeneity_dimension)
+      try
+        {
+          declare_symbol(name, SymbolType::heterogeneousExogenous, tex_name, partition,
+                         mod_file->heterogeneity_table.getID(*heterogeneity_dimension));
+        }
+      catch (HeterogeneityTable::UnknownDimensionNameException&)
+        {
+          error("Unknown heterogeneity dimension: " + *heterogeneity_dimension);
+        }
+    else
+      declare_exogenous(name, tex_name, partition);
 }
 
 void
@@ -243,22 +272,34 @@ ParsingDriver::varexo_det(
     const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list)
 {
   for (auto& [name, tex_name, partition] : symbol_list)
-    declare_symbol(name, SymbolType::exogenousDet, tex_name, partition);
+    declare_symbol(name, SymbolType::exogenousDet, tex_name, partition, {});
 }
 
 int
 ParsingDriver::declare_parameter(const string& name, const string& tex_name,
                                  const vector<pair<string, string>>& partition_value)
 {
-  return declare_symbol(name, SymbolType::parameter, tex_name, partition_value);
+  return declare_symbol(name, SymbolType::parameter, tex_name, partition_value, {});
 }
 
 void
 ParsingDriver::parameters(
-    const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list)
+    const vector<tuple<string, string, vector<pair<string, string>>>>& symbol_list,
+    const optional<string>& heterogeneity_dimension)
 {
   for (auto& [name, tex_name, partition] : symbol_list)
-    declare_parameter(name, tex_name, partition);
+    if (heterogeneity_dimension)
+      try
+        {
+          declare_symbol(name, SymbolType::heterogeneousParameter, tex_name, partition,
+                         mod_file->heterogeneity_table.getID(*heterogeneity_dimension));
+        }
+      catch (HeterogeneityTable::UnknownDimensionNameException&)
+        {
+          error("Unknown heterogeneity dimension: " + *heterogeneity_dimension);
+        }
+    else
+      declare_parameter(name, tex_name, partition);
 }
 
 void
@@ -267,7 +308,7 @@ ParsingDriver::declare_statement_local_variable(const string& name)
   if (mod_file->symbol_table.exists(name))
     error("Symbol " + name + " cannot be assigned within a statement "
           + "while being assigned elsewhere in the modfile");
-  declare_symbol(name, SymbolType::statementDeclaredVariable, "", {});
+  declare_symbol(name, SymbolType::statementDeclaredVariable, "", {}, {});
 }
 
 void
@@ -294,7 +335,7 @@ ParsingDriver::end_trend_var(bool log_trend, expr_t growth_factor,
   for (auto& [name, tex_name] : symbol_list)
     {
       int symb_id = declare_symbol(name, log_trend ? SymbolType::logTrend : SymbolType::trend,
-                                   tex_name, {});
+                                   tex_name, {}, {});
       declared_trend_vars.push_back(symb_id);
     }
 
@@ -837,7 +878,7 @@ ParsingDriver::end_epilogue()
 void
 ParsingDriver::add_epilogue_variable(const string& name)
 {
-  declare_symbol(name, SymbolType::epilogue, "", {});
+  declare_symbol(name, SymbolType::epilogue, "", {}, {});
 }
 
 void
@@ -850,6 +891,22 @@ void
 ParsingDriver::begin_model()
 {
   set_current_data_tree(&mod_file->dynamic_model);
+}
+
+void
+ParsingDriver::begin_heterogeneous_model(const string& heterogeneity_dimension)
+{
+  int het_dim_id {[&] {
+    try
+      {
+        return mod_file->heterogeneity_table.getID(heterogeneity_dimension);
+      }
+    catch (HeterogeneityTable::UnknownDimensionNameException&)
+      {
+        error("Unknown heterogeneity dimension: " + heterogeneity_dimension);
+      }
+  }()};
+  set_current_data_tree(&mod_file->heterogeneous_models.at(het_dim_id));
 }
 
 void
@@ -895,6 +952,28 @@ ParsingDriver::end_shocks(bool overwrite)
   if (!learnt_shocks_multiply.empty())
     error(
         "shocks: 'multiply' keyword not allowed unless 'learnt_in' option with value >1 is passed");
+  var_shocks.clear();
+  std_shocks.clear();
+  covar_shocks.clear();
+  corr_shocks.clear();
+}
+
+void
+ParsingDriver::end_heterogeneous_shocks(const string& heterogeneity_dimension, bool overwrite)
+{
+  int het_dim_id {[&] {
+    try
+      {
+        return mod_file->heterogeneity_table.getID(heterogeneity_dimension);
+      }
+    catch (HeterogeneityTable::UnknownDimensionNameException&)
+      {
+        error("Unknown heterogeneity dimension: " + heterogeneity_dimension);
+      }
+  }()};
+  mod_file->addStatement(make_unique<HeterogeneousShocksStatement>(
+      het_dim_id, overwrite, move(var_shocks), move(std_shocks), move(covar_shocks),
+      move(corr_shocks), mod_file->symbol_table, mod_file->heterogeneity_table));
   var_shocks.clear();
   std_shocks.clear();
   covar_shocks.clear();
@@ -2221,7 +2300,8 @@ void
 ParsingDriver::begin_planner_objective()
 {
   planner_objective = make_unique<PlannerObjective>(mod_file->symbol_table, mod_file->num_constants,
-                                                    mod_file->external_functions_table);
+                                                    mod_file->external_functions_table,
+                                                    mod_file->heterogeneity_table);
   set_current_data_tree(planner_objective.get());
 }
 
@@ -2798,7 +2878,7 @@ void
 ParsingDriver::model_local_variable(const vector<pair<string, string>>& symbol_list)
 {
   for (auto& [name, tex_name] : symbol_list)
-    declare_symbol(name, SymbolType::modelLocalVariable, tex_name, {});
+    declare_symbol(name, SymbolType::modelLocalVariable, tex_name, {}, {});
 }
 
 void
@@ -3217,6 +3297,23 @@ ParsingDriver::add_steady_state(expr_t arg1)
   return data_tree->AddSteadyState(arg1);
 }
 
+expr_t
+ParsingDriver::add_sum(expr_t arg)
+{
+  if (heterogeneous_model)
+    error("The SUM() operator cannot be used inside a model(heterogeneity=...) block");
+
+  VariableNode* varg {dynamic_cast<VariableNode*>(arg)};
+  if (!varg)
+    error("The argument to the SUM() operator must be a single variable");
+  if (varg->lag != 0)
+    error("The argument to the SUM() operator must not have a lead or lag");
+  if (mod_file->symbol_table.getType(varg->symb_id) != SymbolType::heterogeneousEndogenous)
+    error("The argument to the SUM() operator must be a heterogeneous endogenous variable");
+
+  return data_tree->AddSum(arg);
+}
+
 void
 ParsingDriver::external_function_option(const string& name_option, const string& opt)
 {
@@ -3225,7 +3322,7 @@ ParsingDriver::external_function_option(const string& name_option, const string&
       if (opt.empty())
         error("An argument must be passed to the 'name' option of the external_function() "
               "statement.");
-      declare_symbol(opt, SymbolType::externalFunction, "", {});
+      declare_symbol(opt, SymbolType::externalFunction, "", {}, {});
       current_external_function_id = mod_file->symbol_table.getID(opt);
     }
   else if (name_option == "first_deriv_provided")
@@ -3235,7 +3332,7 @@ ParsingDriver::external_function_option(const string& name_option, const string&
             = ExternalFunctionsTable::IDSetButNoNameProvided;
       else
         {
-          int symb_id = declare_symbol(opt, SymbolType::externalFunction, "", {});
+          int symb_id = declare_symbol(opt, SymbolType::externalFunction, "", {}, {});
           current_external_function_options.firstDerivSymbID = symb_id;
         }
     }
@@ -3246,7 +3343,7 @@ ParsingDriver::external_function_option(const string& name_option, const string&
             = ExternalFunctionsTable::IDSetButNoNameProvided;
       else
         {
-          int symb_id = declare_symbol(opt, SymbolType::externalFunction, "", {});
+          int symb_id = declare_symbol(opt, SymbolType::externalFunction, "", {}, {});
           current_external_function_options.secondDerivSymbID = symb_id;
         }
     }
@@ -3412,7 +3509,7 @@ ParsingDriver::add_model_var_or_external_function(const string& function_name, b
                   + ") within the model block, you must first declare it via the "
                     "external_function() statement.");
         }
-      int symb_id = declare_symbol(function_name, SymbolType::externalFunction, "", {});
+      int symb_id = declare_symbol(function_name, SymbolType::externalFunction, "", {}, {});
       current_external_function_options.nargs = stack_external_function_args.top().size();
       mod_file->external_functions_table.addExternalFunction(
           symb_id, current_external_function_options, in_model_block);
@@ -3838,7 +3935,8 @@ ParsingDriver::begin_occbin_constraints()
      if added to the main DynamicModel tree. It also simplifies the
      enforcement of various constraints at parsing time. */
   occbin_constraints_tree = make_unique<DataTree>(mod_file->symbol_table, mod_file->num_constants,
-                                                  mod_file->external_functions_table, false);
+                                                  mod_file->external_functions_table,
+                                                  mod_file->heterogeneity_table, false);
   set_current_data_tree(occbin_constraints_tree.get());
 }
 
@@ -3972,4 +4070,27 @@ ParsingDriver::matched_irfs_weights(MatchedIrfsWeightsStatement::matched_irfs_we
                                     bool overwrite)
 {
   mod_file->addStatement(make_unique<MatchedIrfsWeightsStatement>(move(weights), overwrite));
+}
+
+void
+ParsingDriver::heterogeneity_dimension(const vector<string>& dims)
+{
+  for (const auto& dim : dims)
+    {
+      int het_dim_id {[&] {
+        try
+          {
+            return mod_file->heterogeneity_table.addDimension(dim);
+          }
+        catch (HeterogeneityTable::AlreadyDeclaredDimensionException&)
+          {
+            error("Heterogeneity dimension '" + dim + "' already declared");
+          }
+      }()};
+
+      assert(static_cast<int>(mod_file->heterogeneous_models.size()) == het_dim_id);
+      mod_file->heterogeneous_models.emplace_back(mod_file->symbol_table, mod_file->num_constants,
+                                                  mod_file->external_functions_table,
+                                                  mod_file->heterogeneity_table, het_dim_id);
+    }
 }

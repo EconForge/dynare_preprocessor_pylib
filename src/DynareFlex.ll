@@ -111,6 +111,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <INITIAL>predetermined_variables {BEGIN DYNARE_STATEMENT; return token::PREDETERMINED_VARIABLES;}
 <INITIAL>parameters {BEGIN DYNARE_STATEMENT; return token::PARAMETERS;}
 <INITIAL>model_local_variable {BEGIN DYNARE_STATEMENT; return token::MODEL_LOCAL_VARIABLE;}
+<INITIAL>heterogeneity_dimension {BEGIN DYNARE_STATEMENT; return token::HETEROGENEITY_DIMENSION;}
 <INITIAL>model_info {BEGIN DYNARE_STATEMENT; return token::MODEL_INFO;}
 <INITIAL>estimation {BEGIN DYNARE_STATEMENT; return token::ESTIMATION;}
 <INITIAL>set_time {BEGIN DYNARE_STATEMENT; return token::SET_TIME;}
@@ -811,6 +812,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 }
 <DYNARE_STATEMENT,DYNARE_BLOCK>static_mfs {return token::STATIC_MFS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>balanced_growth_test_tol {return token::BALANCED_GROWTH_TEST_TOL;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>heterogeneity {return token::HETEROGENEITY;}
 <DYNARE_BLOCK>gamma_pdf {return token::GAMMA_PDF;}
 <DYNARE_BLOCK>beta_pdf {return token::BETA_PDF;}
 <DYNARE_BLOCK>normal_pdf {return token::NORMAL_PDF;}
@@ -1011,6 +1013,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>var_expectation {return token::VAR_EXPECTATION;}
 <DYNARE_BLOCK>pac_expectation {return token::PAC_EXPECTATION;}
 <DYNARE_BLOCK>pac_target_nonstationary {return token::PAC_TARGET_NONSTATIONARY;}
+<DYNARE_BLOCK>sum {return token::SUM;}
 <DYNARE_STATEMENT>discount {return token::DISCOUNT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varobs {return token::VAROBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varexobs {return token::VAREXOBS;}

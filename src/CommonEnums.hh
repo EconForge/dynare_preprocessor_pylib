@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2023 Dynare Team
+ * Copyright © 2007-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -25,14 +25,17 @@
  * command */
 enum class SymbolType
 {
-  endogenous = 0,            //!< Endogenous
-  exogenous = 1,             //!< Exogenous
-  exogenousDet = 2,          //!< Exogenous deterministic
-  parameter = 4,             //!< Parameter
-  modelLocalVariable = 10,   //!< Local variable whose scope is model (pound expression)
-  modFileLocalVariable = 11, //!< Local variable whose scope is mod file (model excluded)
-  externalFunction = 12,     //!< External (user-defined) function
-  trend = 13,                //!< Trend variable
+  endogenous = 0,              // Endogenous (non-heterogeneous)
+  exogenous = 1,               // Exogenous (non-heterogeneous)
+  exogenousDet = 2,            // Exogenous deterministic (non-heterogeneous)
+  parameter = 4,               // Parameter (non-heterogeneous)
+  heterogeneousEndogenous = 5, // Endogenous that is heterogeneous across some dimension
+  heterogeneousExogenous = 6,  // Exogenous that is heterogeneous across some dimension
+  heterogeneousParameter = 7,  // Parameter that is heterogeneous across some dimension
+  modelLocalVariable = 10,     // Local variable whose scope is model (pound expression)
+  modFileLocalVariable = 11,   // Local variable whose scope is mod file (model excluded)
+  externalFunction = 12,       // External (user-defined) function
+  trend = 13,                  // Trend variable
   statementDeclaredVariable
   = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
   logTrend = 15, //!< Log-trend variable
@@ -44,6 +47,13 @@ enum class SymbolType
   epilogue = 18,        //!< Variables created in epilogue block
   excludedVariable = 19 //!< Variable excluded via model_remove/var_remove/include_eqs/exclude_eqs
 };
+
+constexpr bool
+isHeterogeneous(SymbolType type)
+{
+  return type == SymbolType::heterogeneousEndogenous || type == SymbolType::heterogeneousExogenous
+         || type == SymbolType::heterogeneousParameter;
+}
 
 enum class UnaryOpcode
 {
@@ -75,7 +85,8 @@ enum class UnaryOpcode
   erf,
   erfc,
   diff,
-  adl
+  adl,
+  sum
 };
 
 enum class BinaryOpcode

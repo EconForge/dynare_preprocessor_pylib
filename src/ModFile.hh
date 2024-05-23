@@ -30,6 +30,8 @@
 #include "DynamicModel.hh"
 #include "ExtendedPreprocessorTypes.hh"
 #include "ExternalFunctionsTable.hh"
+#include "HeterogeneityTable.hh"
+#include "HeterogeneousModel.hh"
 #include "ModelEquationBlock.hh"
 #include "NumericalConstants.hh"
 #include "NumericalInitialization.hh"
@@ -46,6 +48,8 @@ class ModFile
 {
 public:
   explicit ModFile(WarningConsolidation& warnings_arg);
+  // For heterogeneity dimensions
+  HeterogeneityTable heterogeneity_table;
   //! Symbol table
   SymbolTable symbol_table;
   //! External Functions table
@@ -76,6 +80,8 @@ public:
   StaticModel static_model;
   //! Static model, as declared in the "steady_state_model" block if present
   SteadyStateModel steady_state_model;
+  // Heterogeneous model blocks, ordered per heterogeneity dimension ID
+  vector<HeterogeneousModel> heterogeneous_models;
 
   //! Option linear
   bool linear {false};

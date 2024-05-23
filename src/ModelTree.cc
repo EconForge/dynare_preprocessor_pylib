@@ -144,8 +144,10 @@ ModelTree::copyHelper(const ModelTree& m)
 }
 
 ModelTree::ModelTree(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
-                     ExternalFunctionsTable& external_functions_table_arg, bool is_dynamic_arg) :
-    DataTree {symbol_table_arg, num_constants_arg, external_functions_table_arg, is_dynamic_arg},
+                     ExternalFunctionsTable& external_functions_table_arg,
+                     HeterogeneityTable& heterogeneity_table_arg, bool is_dynamic_arg) :
+    DataTree {symbol_table_arg, num_constants_arg, external_functions_table_arg,
+              heterogeneity_table_arg, is_dynamic_arg},
     derivatives(4),
     NNZDerivatives(4, 0),
     temporary_terms_derivatives(4)
@@ -2072,6 +2074,8 @@ ModelTree::waitForMEXCompilationWorkers()
 void
 ModelTree::computingPassBlock(const eval_context_t& eval_context, bool no_tmp_terms)
 {
+  if (!heterogeneity_table.empty())
+    return;
   if (!computeNonSingularNormalization(eval_context))
     return;
   auto [prologue, epilogue] = computePrologueAndEpilogue();
@@ -2147,4 +2151,34 @@ ModelTree::computeMCPEquationsReordering()
         assert(it != mcp_equations_reordering.end());
         swap(mcp_equations_reordering[endo_id], *it);
       }
+}
+
+void
+ModelTree::writeDriverSparseIndicesHelper(const string& prefix, ostream& output) const
+{
+  // Write indices for the sparse Jacobian (both naive and CSC storage)
+  output << "M_." << prefix << "_g1_sparse_rowval = int32([";
+  for (const auto& [indices, d1] : jacobian_sparse_column_major_order)
+    output << indices.first + 1 << ' ';
+  output << "]);" << endl << "M_." << prefix << "_g1_sparse_colval = int32([";
+  for (const auto& [indices, d1] : jacobian_sparse_column_major_order)
+    output << indices.second + 1 << ' ';
+  output << "]);" << endl << "M_." << prefix << "_g1_sparse_colptr = int32([";
+  for (int it : jacobian_sparse_colptr)
+    output << it + 1 << ' ';
+  output << "]);" << endl;
+
+  // Write indices for the sparse higher-order derivatives
+  for (int i {2}; i <= computed_derivs_order; i++)
+    {
+      output << "M_." << prefix << "_g" << i << "_sparse_indices = int32([";
+      for (const auto& [vidx, d] : derivatives[i])
+        {
+          for (bool row_number {true}; // First element of vidx is row number
+               int it : vidx)
+            output << (exchange(row_number, false) ? it : getJacobianCol(it, true)) + 1 << ' ';
+          output << ';' << endl;
+        }
+      output << "]);" << endl;
+    }
 }

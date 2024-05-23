@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "ExprNode.hh"
+#include "HeterogeneityTable.hh"
 #include "Statement.hh"
 #include "SymbolTable.hh"
 
@@ -150,6 +151,47 @@ private:
 public:
   ShocksLearntInStatement(int learnt_in_period_arg, bool overwrite_arg,
                           learnt_shocks_t learnt_shocks_arg, const SymbolTable& symbol_table_arg);
+  void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
+  void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream& output) const override;
+};
+
+class HeterogeneousShocksStatement : public Statement
+{
+public:
+  const int heterogeneity_dimension;
+  const bool overwrite;
+
+  using var_and_std_shocks_t = map<int, expr_t>;
+  using covar_and_corr_shocks_t = map<pair<int, int>, expr_t>;
+
+  const var_and_std_shocks_t var_shocks, std_shocks;
+  const covar_and_corr_shocks_t covar_shocks, corr_shocks;
+
+private:
+  const SymbolTable& symbol_table;
+  const HeterogeneityTable& heterogeneity_table;
+
+  void writeVarOrStdShock(ostream& output, const pair<int, expr_t>& it, bool stddev) const;
+  void writeVarAndStdShocks(ostream& output) const;
+  void writeCovarOrCorrShock(ostream& output, const pair<pair<int, int>, expr_t>& it,
+                             bool corr) const;
+  void writeCovarAndCorrShocks(ostream& output) const;
+
+  string
+  sigmaeName() const
+  {
+    return "M_.heterogeneity("s + to_string(heterogeneity_dimension + 1) + ").Sigma_e"s;
+  }
+
+public:
+  HeterogeneousShocksStatement(int heterogeneity_dimension_arg, bool overwrite_arg,
+                               var_and_std_shocks_t var_shocks_arg,
+                               var_and_std_shocks_t std_shocks_arg,
+                               covar_and_corr_shocks_t covar_shocks_arg,
+                               covar_and_corr_shocks_t corr_shocks_arg,
+                               const SymbolTable& symbol_table_arg,
+                               const HeterogeneityTable& heterogeneity_table_arg);
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;

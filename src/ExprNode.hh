@@ -572,38 +572,35 @@ public:
   {
   };
 
-  //! Returns the maximum lead of endogenous in this expression
+  //! Returns the maximum lead of endogenous in this expression (not incl. heterogeneous endo)
   /*! Always returns a non-negative value */
   [[nodiscard]] virtual int maxEndoLead() const = 0;
 
-  //! Returns the maximum lead of exogenous in this expression
+  //! Returns the maximum lead of exogenous in this expression (not incl. heterogeneous exo)
   /*! Always returns a non-negative value */
   [[nodiscard]] virtual int maxExoLead() const = 0;
 
-  //! Returns the maximum lag of endogenous in this expression
+  //! Returns the maximum lag of endogenous in this expression (not incl. heterogeneous endo)
   /*! Always returns a non-negative value */
   [[nodiscard]] virtual int maxEndoLag() const = 0;
 
-  //! Returns the maximum lag of exogenous in this expression
+  //! Returns the maximum lag of exogenous in this expression (not incl. heterogeneous exo)
   /*! Always returns a non-negative value */
   [[nodiscard]] virtual int maxExoLag() const = 0;
 
-  //! Returns the maximum lead of endo/exo/exodet in this expression
-  /*! A negative value means that the expression contains only lagged
-    variables. A value of numeric_limits<int>::min() means that there is
-    no variable. */
+  /* Returns the maximum lead of endo/exo/exodet in this expression (including heterogeneous
+     endo/exo). A negative value means that the expression contains only lagged variables. A value
+     of numeric_limits<int>::min() means that there is no variable. */
   [[nodiscard]] virtual int maxLead() const = 0;
 
-  //! Returns the maximum lag of endo/exo/exodet in this expression
-  /*! A negative value means that the expression contains only leaded
-    variables. A value of numeric_limits<int>::min() means that there is
-    no variable. */
+  /* Returns the maximum lag of endo/exo/exodet in this expression (including heterogeneous
+     endo/exo). A negative value means that the expression contains only leaded variables. A value
+     of numeric_limits<int>::min() means that there is no variable. */
   [[nodiscard]] virtual int maxLag() const = 0;
 
-  //! Returns the maximum lag of endo/exo/exodet, as if diffs were expanded
-  /*! This function behaves as maxLag(), except that it treats diff()
-    differently. For e.g., on diff(diff(x(-1))), maxLag() returns 1 while
-    maxLagWithDiffsExpanded() returns 3. */
+  /* Returns the maximum lag of endo/exo/exodet (including heterogeneous endo/exo), as if diffs were
+     expanded. This function behaves as maxLag(), except that it treats diff() differently. For
+     e.g., on diff(diff(x(-1))), maxLag() returns 1 while maxLagWithDiffsExpanded() returns 3. */
   [[nodiscard]] virtual int maxLagWithDiffsExpanded() const = 0;
 
   [[nodiscard]] virtual expr_t undiff() const = 0;
@@ -947,6 +944,13 @@ public:
      If successful, returns a triplet (endo_symb_id, lower_bound, upper_bound).
      Otherwise, throws a MatchFailureException. */
   [[nodiscard]] virtual tuple<int, expr_t, expr_t> matchComplementarityCondition() const;
+
+  /* Replaces aggregation operators (e.g. SUM()) by new auxiliary variables.
+     Also declares those aggregation operators in the HeterogeneityTable, so as to
+     compute their index in the dedicated vector in argument of the dynamic/static files. */
+  [[nodiscard]] virtual expr_t substituteAggregationOperators(subst_table_t& subst_table,
+                                                              vector<BinaryOpNode*>& neweqs) const
+      = 0;
 };
 
 //! Object used to compare two nodes (using their indexes)
@@ -1058,6 +1062,8 @@ public:
                                                     = "") const override;
   [[nodiscard]] bool isParamTimesEndogExpr() const override;
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
+  [[nodiscard]] expr_t substituteAggregationOperators(subst_table_t& subst_table,
+                                                      vector<BinaryOpNode*>& neweqs) const override;
 };
 
 //! Symbol or variable node
@@ -1165,6 +1171,8 @@ public:
                           vector<int>& powers) const override;
   [[nodiscard]] pair<int, expr_t> matchEndogenousTimesConstant() const override;
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
+  [[nodiscard]] expr_t substituteAggregationOperators(subst_table_t& subst_table,
+                                                      vector<BinaryOpNode*>& neweqs) const override;
 };
 
 //! Unary operator node
@@ -1312,6 +1320,8 @@ public:
   [[nodiscard]] bool isParamTimesEndogExpr() const override;
   void decomposeAdditiveTerms(vector<pair<expr_t, int>>& terms, int current_sign) const override;
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
+  [[nodiscard]] expr_t substituteAggregationOperators(subst_table_t& subst_table,
+                                                      vector<BinaryOpNode*>& neweqs) const override;
 };
 
 //! Binary operator node
@@ -1507,6 +1517,8 @@ public:
                           vector<int>& powers) const override;
   [[nodiscard]] pair<int, expr_t> matchEndogenousTimesConstant() const override;
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
+  [[nodiscard]] expr_t substituteAggregationOperators(subst_table_t& subst_table,
+                                                      vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] tuple<int, expr_t, expr_t> matchComplementarityCondition() const override;
 };
 
@@ -1651,6 +1663,8 @@ public:
   [[nodiscard]] bool containsPacTargetNonstationary(const string& pac_model_name
                                                     = "") const override;
   [[nodiscard]] bool isParamTimesEndogExpr() const override;
+  [[nodiscard]] expr_t substituteAggregationOperators(subst_table_t& subst_table,
+                                                      vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
 };
 
@@ -1826,6 +1840,8 @@ public:
                                                     = "") const override;
   [[nodiscard]] bool isParamTimesEndogExpr() const override;
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
+  [[nodiscard]] expr_t substituteAggregationOperators(subst_table_t& subst_table,
+                                                      vector<BinaryOpNode*>& neweqs) const override;
 };
 
 class ExternalFunctionNode : public AbstractExternalFunctionNode
@@ -2028,6 +2044,8 @@ public:
   expr_t detrend(int symb_id, bool log_trend, expr_t trend) const override;
   [[nodiscard]] expr_t removeTrendLeadLag(const map<int, expr_t>& trend_symbols_map) const override;
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
+  [[nodiscard]] expr_t substituteAggregationOperators(subst_table_t& subst_table,
+                                                      vector<BinaryOpNode*>& neweqs) const override;
 
 protected:
   void prepareForDerivation() override;

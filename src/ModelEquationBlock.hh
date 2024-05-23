@@ -30,7 +30,8 @@ class PlannerObjective : public StaticModel
 {
 public:
   PlannerObjective(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
-                   ExternalFunctionsTable& external_functions_table_arg);
+                   ExternalFunctionsTable& external_functions_table_arg,
+                   HeterogeneityTable& heterogeneity_table_arg);
   // NB: masks the method with the same name in StaticModel (not in a virtual fashion)
   void writeDriverOutput(ostream& output) const;
 
@@ -50,6 +51,7 @@ class OrigRamseyDynamicModel : public DynamicModel
 public:
   OrigRamseyDynamicModel(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                          ExternalFunctionsTable& external_functions_table_arg,
+                         HeterogeneityTable& heterogeneity_table_arg,
                          TrendComponentModelTable& trend_component_model_table_arg,
                          VarModelTable& var_model_table_arg);
   OrigRamseyDynamicModel& operator=(const DynamicModel& m);
@@ -75,6 +77,7 @@ private:
 public:
   SteadyStateModel(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                    ExternalFunctionsTable& external_functions_table_arg,
+                   HeterogeneityTable& heterogeneity_table_arg,
                    const StaticModel& static_model_arg);
 
   SteadyStateModel(const SteadyStateModel& m);
@@ -108,6 +111,7 @@ private:
 public:
   Epilogue(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
            ExternalFunctionsTable& external_functions_table_arg,
+           HeterogeneityTable& heterogeneity_table_arg,
            TrendComponentModelTable& trend_component_model_table_arg,
            VarModelTable& var_model_table_arg);
 

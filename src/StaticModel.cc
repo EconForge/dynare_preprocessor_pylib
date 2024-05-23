@@ -31,8 +31,10 @@
 #include "StaticModel.hh"
 
 StaticModel::StaticModel(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
-                         ExternalFunctionsTable& external_functions_table_arg) :
-    ModelTree {symbol_table_arg, num_constants_arg, external_functions_table_arg}
+                         ExternalFunctionsTable& external_functions_table_arg,
+                         HeterogeneityTable& heterogeneity_table_arg) :
+    ModelTree {symbol_table_arg, num_constants_arg, external_functions_table_arg,
+               heterogeneity_table_arg}
 {
 }
 
@@ -72,7 +74,7 @@ StaticModel::operator=(const StaticModel& m)
 }
 
 StaticModel::StaticModel(const DynamicModel& m) :
-    ModelTree {m.symbol_table, m.num_constants, m.external_functions_table}
+    ModelTree {m.symbol_table, m.num_constants, m.external_functions_table, m.heterogeneity_table}
 {
   // Convert model local variables (need to be done first)
   for (int it : m.local_variables_vector)
@@ -335,7 +337,7 @@ StaticModel::writeDriverOutput(ostream& output) const
   if (block_decomposed)
     writeBlockDriverOutput(output);
 
-  writeDriverSparseIndicesHelper<false, false>(output);
+  writeDriverSparseIndicesHelper("static", output);
 
   output << "M_.static_mcp_equations_reordering = [";
   for (auto i : mcp_equations_reordering)
