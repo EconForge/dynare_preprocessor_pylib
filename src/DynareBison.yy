@@ -100,7 +100,7 @@ str_tolower(string s)
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION REALTIME VINTAGE
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
 %token COMMA CONSIDER_ALL_ENDOGENOUS CONSIDER_ALL_ENDOGENOUS_AND_AUXILIARY CONSIDER_ONLY_OBSERVED INITIAL_CONDITION_DECOMPOSITION
-%token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
+%token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_CYCLE_REDUCTION_MAXITER DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR EXPRESSION
 %token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS FIRST_SIMULATION_PERIOD LAST_SIMULATION_PERIOD LAST_OBS
 %token SET_TIME OSR_PARAMS_BOUNDS KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED
@@ -1602,6 +1602,7 @@ method_of_moments_option : o_add_tiny_number_to_cholesky
                          | o_datafile
                          | o_dirname
                          | o_dr
+                         | o_dr_cycle_reduction_maxiter
                          | o_dr_cycle_reduction_tol
                          | o_dr_logarithmic_reduction_maxiter
                          | o_dr_logarithmic_reduction_tol
@@ -1779,6 +1780,7 @@ stoch_simul_primary_options : o_solve_algo
                             | o_pruning
                             | o_dr
                             | o_dr_cycle_reduction_tol
+                            | o_dr_cycle_reduction_maxiter
                             | o_dr_logarithmic_reduction_tol
                             | o_dr_logarithmic_reduction_maxiter
                             | o_irf_plot_threshold
@@ -2315,6 +2317,7 @@ estimation_options : o_datafile
                    | o_lyapunov_doubling_tol
                    | o_dr
                    | o_dr_cycle_reduction_tol
+                   | o_dr_cycle_reduction_maxiter
                    | o_dr_logarithmic_reduction_tol
                    | o_dr_logarithmic_reduction_maxiter
                    | o_analytic_derivation
@@ -3949,6 +3952,7 @@ o_dr : DR EQUAL CYCLE_REDUCTION { driver.option_num("dr_cycle_reduction", "true"
        | DR EQUAL LOGARITHMIC_REDUCTION { driver.option_num("dr_logarithmic_reduction", "true"); }
        | DR EQUAL DEFAULT { driver.option_num("dr_cycle_reduction", "false"); driver.option_num("dr_logarithmic_reduction", "false"); };
 o_dr_cycle_reduction_tol : DR_CYCLE_REDUCTION_TOL EQUAL non_negative_number { driver.option_num("dr_cycle_reduction_tol", $3); };
+o_dr_cycle_reduction_maxiter : DR_CYCLE_REDUCTION_MAXITER EQUAL INT_NUMBER { driver.option_num("dr_cycle_reduction_maxiter", $3); };
 o_dr_logarithmic_reduction_tol : DR_LOGARITHMIC_REDUCTION_TOL EQUAL non_negative_number { driver.option_num("dr_logarithmic_reduction_tol", $3); };
 o_dr_logarithmic_reduction_maxiter : DR_LOGARITHMIC_REDUCTION_MAXITER EQUAL INT_NUMBER { driver.option_num("dr_logarithmic_reduction_maxiter", $3); };
 o_psd_detail_plot : DETAIL_PLOT { driver.option_num("plot_shock_decomp.detail_plot", "true"); };
