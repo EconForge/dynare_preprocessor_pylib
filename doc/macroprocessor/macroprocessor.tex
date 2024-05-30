@@ -15,7 +15,7 @@
 \pgfdeclareimage[height=0.8cm]{logo}{dlogo}
 \institute[Dynare Team]{\pgfuseimage{logo}}
 
-\date{23 May 2023}
+\date{31 May 2024}
 
 \AtBeginSection[]
 {
@@ -156,9 +156,9 @@
     \item comparison operators: \texttt{< > <= >= == !=}
     \item logical operators: \verb+&& || !+
     \item range with unit increment: \texttt{1:4} is equivalent to
-      real array \texttt{[1, 2, 3, 4]}. (NB: \texttt{[1:4]} is equivalent to an
+      real array \texttt{[1, 2, 3, 4]} \\ (NB: \texttt{[1:4]} is equivalent to an
       array containing an array of reals, \textit{i.e.} \texttt{[[1, 2, 3, 4]]})
-    \item range with user-defined increment: \texttt{4:-1.1:-1} is equivalent to real array \texttt{[4, 2.9, 1.8, 0.7, -0.4]}.
+    \item range with user-defined increment: \\ \texttt{4:-1.1:-1} is equivalent to real array \texttt{[4, 2.9, 1.8, 0.7, -0.4]}
     \end{itemize}
   \end{block}
 
@@ -314,7 +314,7 @@ Then \texttt{distance(3, 4)} will be equivalent to \texttt{5}.
 \end{frame}
 
 \begin{frame}[fragile=singleslide]
-  \frametitle{Defining macro-variables}
+  \frametitle{Defining macro-variables (1/2)}
 
   The value of a macro-variable can be defined with the \verb+@#define+
   directive.
@@ -335,8 +335,30 @@ Then \texttt{distance(3, 4)} will be equivalent to \texttt{5}.
 @#define t = ("US" in w)    // Equals true
 \end{verbatim}
   \end{block}
-  NB: You can define macro variables on the Dynare command line by using the \texttt{-D} option
 \end{frame}
+
+\begin{frame}[fragile=singleslide]
+  \frametitle{Defining macro-variables (2/2)}
+  Macro variables can also be defined on the Dynare command line by using the
+  \texttt{-D} option, for easily switching between different flavours of a model.
+
+  \begin{block}{Example 1}
+\begin{verbatim}
+dynare myfile.mod -Dx=5
+\end{verbatim}
+The macro-variable \texttt{x} will be equal to \texttt{5} when running \texttt{myfile.mod}.
+\end{block}
+
+\begin{block}{Example 2}
+  Use single quotes around the \texttt{-D} option when there are spaces or
+  special characters in the variable definition.
+\begin{verbatim}
+dynare myfile.mod '-DA=[ i in [1,2,3] when i > 1 ]'
+\end{verbatim}
+The macro-variable \texttt{A} will be equal to \texttt{[2,3]} when running \texttt{myfile.mod}.
+\end{block}
+\end{frame}
+
 
 \begin{frame}[fragile=singleslide]
   \frametitle{Expression substitution}
@@ -866,7 +888,7 @@ rhos = [ 0.8, 0.9, 1];
     \ccbysa
     \column{0.71\textwidth}
     \tiny
-    Copyright © 2008-2023 Dynare Team \\
+    Copyright © 2008-2024 Dynare Team \\
     License: \href{http://creativecommons.org/licenses/by-sa/4.0/}{Creative
       Commons Attribution-ShareAlike 4.0}
   \end{columns}
