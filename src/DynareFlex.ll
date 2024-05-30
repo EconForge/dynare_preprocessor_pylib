@@ -882,6 +882,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>lyapunov_fixed_point_tol {return token::LYAPUNOV_FIXED_POINT_TOL;}
 <DYNARE_STATEMENT>lyapunov_doubling_tol {return token::LYAPUNOV_DOUBLING_TOL;}
 <DYNARE_STATEMENT>dr_cycle_reduction_tol {return token::DR_CYCLE_REDUCTION_TOL;}
+<DYNARE_STATEMENT>dr_cycle_reduction_maxiter {return token::DR_CYCLE_REDUCTION_MAXITER;}
 <DYNARE_STATEMENT>dr_logarithmic_reduction_tol {return token::DR_LOGARITHMIC_REDUCTION_TOL;}
 <DYNARE_STATEMENT>dr_logarithmic_reduction_maxiter {return token::DR_LOGARITHMIC_REDUCTION_MAXITER;}
 <DYNARE_STATEMENT>replic {return token::REPLIC;}
