@@ -41,7 +41,7 @@ macroExpandModFile(const filesystem::path& filename, const istream& modfile, boo
   if (save_macro)
     {
       if (save_macro_file.empty())
-        save_macro_file = filename.stem().string() + "-macroexp.mod";
+        save_macro_file = filename.stem().string() + "_macroexp.mod";
       ofstream macro_output_file {save_macro_file};
       if (macro_output_file.fail())
         {
