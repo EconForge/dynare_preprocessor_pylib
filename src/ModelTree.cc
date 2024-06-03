@@ -1637,7 +1637,7 @@ ModelTree::findCompilerOnMacos(const string& mexext)
      Apple’s clang is located both in /usr/bin/gcc and /usr/bin/clang, it
      automatically selects x86_64 or arm64 depending on the compile-time
      environment. */
-  const string macos_gcc_version {"13"};
+  const string macos_gcc_version {"14"};
 
   if (filesystem::path global_gcc_path {"/usr/local/bin/gcc-" + macos_gcc_version};
       exists(global_gcc_path) && mexext == "mexmaci64")
@@ -1649,14 +1649,14 @@ ModelTree::findCompilerOnMacos(const string& mexext)
     return {global_clang_path, true};
   else
     {
-      cerr << "ERROR: You must install gcc-" << macos_gcc_version
+      cerr << "ERROR: You must install gcc@" << macos_gcc_version
            << " on your system before using the `use_dll` option of Dynare. "
            << "You should install Homebrew";
       if (mexext == "mexmaca64")
         cerr << " for arm64";
       else if (mexext == "mexmaci64")
         cerr << " for x86_64";
-      cerr << " and run `brew install gcc-" << macos_gcc_version << "` in a terminal." << endl;
+      cerr << " and run `brew install gcc@" << macos_gcc_version << "` in a terminal." << endl;
       exit(EXIT_FAILURE);
     }
 }
