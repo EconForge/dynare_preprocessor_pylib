@@ -1585,12 +1585,12 @@ VariableNode::computeXrefs(EquationInfo& ei) const
     case SymbolType::parameter:
       ei.param.emplace(symb_id, 0);
       break;
-    case SymbolType::modFileLocalVariable:
+    case SymbolType::modelLocalVariable:
       datatree.getLocalVariable(symb_id)->computeXrefs(ei);
       break;
     case SymbolType::trend:
     case SymbolType::logTrend:
-    case SymbolType::modelLocalVariable:
+    case SymbolType::modFileLocalVariable:
     case SymbolType::statementDeclaredVariable:
     case SymbolType::unusedEndogenous:
     case SymbolType::externalFunction:
