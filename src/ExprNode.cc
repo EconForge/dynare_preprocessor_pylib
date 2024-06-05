@@ -1442,8 +1442,7 @@ VariableNode::writeBytecodeOutput(Bytecode::Writer& code_file,
                                             temporary_terms_idxs))
     return;
 
-  auto type = get_type();
-  if (type == SymbolType::modelLocalVariable || type == SymbolType::modFileLocalVariable)
+  if (auto type = get_type(); type == SymbolType::modelLocalVariable)
     datatree.getLocalVariable(symb_id)->writeBytecodeOutput(code_file, output_type, temporary_terms,
                                                             temporary_terms_idxs, tef_terms);
   else
