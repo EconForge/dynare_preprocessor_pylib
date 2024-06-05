@@ -418,10 +418,6 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
     error("Exogenous deterministic variable " + mod_file->symbol_table.getName(symb_id)
           + " cannot be given a lead or a lag.");
 
-  if (type == SymbolType::modelLocalVariable && lag != 0)
-    error("Model local variable " + mod_file->symbol_table.getName(symb_id)
-          + " cannot be given a lead or a lag.");
-
   if (data_tree == planner_objective.get())
     {
       if (lag != 0)

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -360,13 +360,13 @@ public:
   };
 
   [[nodiscard]] expr_t
-  getLocalVariable(int symb_id) const
+  getLocalVariable(int symb_id, int lead_lag) const
   {
     auto it = local_variables_table.find(symb_id);
     if (it == local_variables_table.end())
       throw UnknownLocalVariableException {symb_id};
 
-    return it->second;
+    return it->second->decreaseLeadsLags(-lead_lag);
   }
 
   static void
