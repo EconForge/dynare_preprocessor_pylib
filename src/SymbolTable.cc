@@ -827,7 +827,7 @@ void
 SymbolTable::addObservedExogenousVariable(int symb_id) noexcept(false)
 {
   validateSymbID(symb_id);
-  assert(getType(symb_id) != SymbolType::endogenous);
+  assert(getType(symb_id) == SymbolType::exogenous);
   varexobs.push_back(symb_id);
 }
 
