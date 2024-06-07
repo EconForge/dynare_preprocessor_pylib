@@ -899,7 +899,7 @@ VariableNode::prepareForDerivation()
     case SymbolType::trend:
     case SymbolType::logTrend:
       // In static models, exogenous and trends do not have deriv IDs
-      if (!datatree.isDynamic())
+      if (!datatree.is_dynamic)
         break;
       [[fallthrough]];
     case SymbolType::endogenous:
@@ -990,7 +990,7 @@ VariableNode::computeDerivative(int deriv_id)
     case SymbolType::trend:
     case SymbolType::logTrend:
       // In static models, exogenous and trends do not have deriv IDs
-      if (!datatree.isDynamic())
+      if (!datatree.is_dynamic)
         return datatree.Zero;
       [[fallthrough]];
     case SymbolType::endogenous:
@@ -1525,7 +1525,7 @@ VariableNode::computeChainRuleDerivative(
     case SymbolType::trend:
     case SymbolType::logTrend:
       // In static models, exogenous and trends do not have deriv IDs
-      if (!datatree.isDynamic())
+      if (!datatree.is_dynamic)
         return datatree.Zero;
       [[fallthrough]];
     case SymbolType::endogenous:
@@ -2263,7 +2263,7 @@ UnaryOpNode::prepareForDerivation()
      all the parameters) */
   if ((op_code == UnaryOpcode::steadyState || op_code == UnaryOpcode::steadyStateParamDeriv
        || op_code == UnaryOpcode::steadyStateParam2ndDeriv)
-      && datatree.isDynamic())
+      && datatree.is_dynamic)
     datatree.addAllParamDerivId(non_null_derivatives);
   else
     {
@@ -2286,7 +2286,7 @@ UnaryOpNode::prepareForChainRuleDerivation(
   set<int>& nnd {non_null_chain_rule_derivatives[const_cast<UnaryOpNode*>(this)]};
   if ((op_code == UnaryOpcode::steadyState || op_code == UnaryOpcode::steadyStateParamDeriv
        || op_code == UnaryOpcode::steadyStateParam2ndDeriv)
-      && datatree.isDynamic())
+      && datatree.is_dynamic)
     datatree.addAllParamDerivId(nnd);
   else
     {
@@ -2368,7 +2368,7 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
     case UnaryOpcode::sign:
       return datatree.Zero;
     case UnaryOpcode::steadyState:
-      if (datatree.isDynamic())
+      if (datatree.is_dynamic)
         {
           if (datatree.getTypeByDerivID(deriv_id) == SymbolType::parameter)
             {
@@ -2393,7 +2393,7 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
       else
         return darg;
     case UnaryOpcode::steadyStateParamDeriv:
-      assert(datatree.isDynamic());
+      assert(datatree.is_dynamic);
       if (datatree.getTypeByDerivID(deriv_id) == SymbolType::parameter)
         {
           auto varg = dynamic_cast<VariableNode*>(arg);
@@ -2405,7 +2405,7 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
       else
         return datatree.Zero;
     case UnaryOpcode::steadyStateParam2ndDeriv:
-      assert(datatree.isDynamic());
+      assert(datatree.is_dynamic);
       if (datatree.getTypeByDerivID(deriv_id) == SymbolType::parameter)
         {
           cerr << "3rd derivative of STEADY_STATE node w.r.t. three parameters not implemented"

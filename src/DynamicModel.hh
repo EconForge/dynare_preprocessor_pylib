@@ -539,13 +539,6 @@ public:
 
   void addAllParamDerivId(set<int>& deriv_id_set) override;
 
-  //! Returns true indicating that this is a dynamic model
-  bool
-  isDynamic() const override
-  {
-    return true;
-  };
-
   //! Drive test of detrended equations
   void runTrendTest(const eval_context_t& eval_context);
 

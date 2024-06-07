@@ -49,6 +49,8 @@ public:
   //! A reference to the external functions table
   ExternalFunctionsTable& external_functions_table;
   //! Is it possible to use leads/lags on variable nodes?
+  /* NB: This data member cannot be replaced by a virtual method, because this information is needed
+     in AddVariable(), which itself can be called from the copy constructor. */
   const bool is_dynamic;
 
 private:
@@ -137,7 +139,7 @@ private:
 
 public:
   DataTree(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
-           ExternalFunctionsTable& external_functions_table_arg, bool is_static_args = false);
+           ExternalFunctionsTable& external_functions_table_arg, bool is_dynamic_arg = false);
 
   virtual ~DataTree() = default;
 
@@ -344,14 +346,6 @@ public:
 
   //! Adds to the set all the deriv IDs corresponding to parameters
   virtual void addAllParamDerivId(set<int>& deriv_id_set);
-
-  //! Returns bool indicating whether DataTree represents a Dynamic Model (returns true in
-  //! DynamicModel.hh)
-  [[nodiscard]] virtual bool
-  isDynamic() const
-  {
-    return false;
-  };
 
   struct UnknownLocalVariableException
   {
