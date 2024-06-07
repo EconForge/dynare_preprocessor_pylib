@@ -1,6 +1,5 @@
 variables:
   TERM: linux
-  MINGW32_BOOST_VERSION: 1.84.0-1
   MINGW64_BOOST_VERSION: 1.84.0-1
   WGET_OPTIONS: '--no-verbose --no-use-server-timestamps --retry-connrefused --retry-on-host-error'
   # To ensure that "false && true" fails, see https://gitlab.com/gitlab-org/gitlab-runner/-/issues/25394#note_412609647
