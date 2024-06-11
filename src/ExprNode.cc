@@ -1168,12 +1168,18 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case SymbolType::endogenous:
       switch (int tsid {getTypeSpecificID()}; output_type)
         {
-        case ExprNodeOutputType::juliaDynamicModel:
         case ExprNodeOutputType::juliaSparseDynamicModel:
-        case ExprNodeOutputType::matlabDynamicModel:
         case ExprNodeOutputType::matlabSparseDynamicModel:
-        case ExprNodeOutputType::CDynamicModel:
         case ExprNodeOutputType::CSparseDynamicModel:
+          assert(lag >= -1 && lag <= 1);
+          i = tsid + (lag + 1) * datatree.symbol_table.endo_nbr()
+              + ARRAY_SUBSCRIPT_OFFSET(output_type);
+          output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
+          break;
+        case ExprNodeOutputType::juliaDynamicModel:
+        case ExprNodeOutputType::matlabDynamicModel:
+        case ExprNodeOutputType::CDynamicModel:
           i = datatree.getJacobianCol(getDerivID(), isSparseModelOutput(output_type))
               + ARRAY_SUBSCRIPT_OFFSET(output_type);
           output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
