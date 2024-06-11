@@ -804,10 +804,7 @@ NumConstNode::differentiateForwardVars([[maybe_unused]] const vector<string>& su
 bool
 NumConstNode::isNumConstNodeEqualTo(double value) const
 {
-  if (datatree.num_constants.getDouble(id) == value)
-    return true;
-  else
-    return false;
+  return datatree.num_constants.getDouble(id) == value;
 }
 
 bool
