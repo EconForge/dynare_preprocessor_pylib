@@ -314,9 +314,9 @@ public:
   expr_t var_expectation_model_discount {nullptr};
 
   //! Error handler with explicit location
-  void error(const Dynare::parser::location_type& l, const string& m) __attribute__((noreturn));
+  [[noreturn]] void error(const Dynare::parser::location_type& l, const string& m);
   //! Error handler using saved location
-  void error(const string& m) __attribute__((noreturn));
+  [[noreturn]] void error(const string& m);
   //! Warning handler using saved location
   void warning(const string& m);
 
