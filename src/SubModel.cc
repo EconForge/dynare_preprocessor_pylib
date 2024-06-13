@@ -803,9 +803,8 @@ VarExpectationModelTable::writeOutput(ostream& output) const
              << mstruct << ".expr.constants = [ " << constants_list.str() << " ];" << endl;
 
       if (auto disc_var = dynamic_cast<const VariableNode*>(discount.at(name)); disc_var)
-        output << mstruct
-               << ".discount_index = " << symbol_table.getTypeSpecificID(disc_var->symb_id) + 1
-               << ';' << endl;
+        output << mstruct << ".discount_index = " << disc_var->getTypeSpecificID() + 1 << ';'
+               << endl;
       else
         {
           output << mstruct << ".discount_value = ";
@@ -1687,9 +1686,8 @@ PacModelTable::writeOutput(ostream& output) const
         string fieldname = "M_.pac." + name + ".components(" + to_string(component_idx) + ")";
         output << fieldname << ".aux_id = " << symbol_table.getTypeSpecificID(auxname) + 1 << ";"
                << endl
-               << fieldname << ".endo_var = "
-               << symbol_table.getTypeSpecificID(dynamic_cast<VariableNode*>(component)->symb_id)
-                      + 1
+               << fieldname
+               << ".endo_var = " << dynamic_cast<VariableNode*>(component)->getTypeSpecificID() + 1
                << ";" << endl
                << fieldname << ".kind = '" << kindToString(kind) << "';" << endl
                << fieldname << ".h_param_indices = [";

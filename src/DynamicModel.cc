@@ -3013,8 +3013,8 @@ DynamicModel::expandEqTags()
     if (!existing_tags.contains(eq))
       {
         if (auto lhs_expr = dynamic_cast<VariableNode*>(equations[eq]->arg1);
-            lhs_expr && !equation_tags.exists("name", symbol_table.getName(lhs_expr->symb_id)))
-          equation_tags.add(eq, "name", symbol_table.getName(lhs_expr->symb_id));
+            lhs_expr && !equation_tags.exists("name", lhs_expr->getName()))
+          equation_tags.add(eq, "name", lhs_expr->getName());
         else if (!equation_tags.exists("name", to_string(eq + 1)))
           equation_tags.add(eq, "name", to_string(eq + 1));
         else

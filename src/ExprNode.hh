@@ -1090,6 +1090,10 @@ protected:
 
 public:
   VariableNode(DataTree& datatree_arg, int idx_arg, int symb_id_arg, int lag_arg);
+  [[nodiscard]] SymbolType get_type() const;
+  [[nodiscard]] string getName() const;
+  [[nodiscard]] int getDerivID() const;
+  [[nodiscard]] int getTypeSpecificID() const;
   void writeOutput(ostream& output, ExprNodeOutputType output_type,
                    const temporary_terms_t& temporary_terms,
                    const temporary_terms_idxs_t& temporary_terms_idxs,
@@ -1107,7 +1111,6 @@ public:
                            const deriv_node_temp_terms_t& tef_terms) const override;
   expr_t toStatic(DataTree& static_datatree) const override;
   void computeXrefs(EquationInfo& ei) const override;
-  [[nodiscard]] SymbolType get_type() const;
   BinaryOpNode* normalizeEquationHelper(const set<expr_t>& contain_var, expr_t rhs) const override;
   [[nodiscard]] int maxEndoLead() const override;
   [[nodiscard]] int maxExoLead() const override;
@@ -1720,6 +1723,7 @@ protected:
 public:
   AbstractExternalFunctionNode(DataTree& datatree_arg, int idx_arg, int symb_id_arg,
                                vector<expr_t> arguments_arg);
+  [[nodiscard]] string getName() const;
   void computeTemporaryTerms(const pair<int, int>& derivOrder,
                              map<pair<int, int>, unordered_set<expr_t>>& temp_terms_map,
                              unordered_map<expr_t, pair<int, pair<int, int>>>& reference_count,

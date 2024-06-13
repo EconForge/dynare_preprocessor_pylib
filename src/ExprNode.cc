@@ -901,7 +901,7 @@ VariableNode::prepareForDerivation()
       [[fallthrough]];
     case SymbolType::endogenous:
     case SymbolType::parameter:
-      non_null_derivatives.insert(datatree.getDerivID(symb_id, lag));
+      non_null_derivatives.insert(getDerivID());
       break;
     case SymbolType::modelLocalVariable:
       datatree.getLocalVariable(symb_id, lag)->prepareForDerivation();
@@ -921,7 +921,7 @@ VariableNode::prepareForDerivation()
       cerr << "VariableNode::prepareForDerivation: impossible case: "
            << "You are trying to derive a variable that has been excluded via "
               "model_remove/var_remove/include_eqs/exclude_eqs: "
-           << datatree.symbol_table.getName(symb_id) << endl;
+           << getName() << endl;
       exit(EXIT_FAILURE);
     }
 }
@@ -939,14 +939,13 @@ VariableNode::prepareForChainRuleDerivation(
     case SymbolType::endogenous:
       {
         set<int>& nnd {non_null_chain_rule_derivatives[const_cast<VariableNode*>(this)]};
-        int my_deriv_id {datatree.getDerivID(symb_id, lag)};
-        if (auto it = recursive_variables.find(my_deriv_id); it != recursive_variables.end())
+        if (auto it = recursive_variables.find(getDerivID()); it != recursive_variables.end())
           {
             it->second->arg2->prepareForChainRuleDerivation(recursive_variables,
                                                             non_null_chain_rule_derivatives);
             nnd = non_null_chain_rule_derivatives.at(it->second->arg2);
           }
-        nnd.insert(my_deriv_id);
+        nnd.insert(getDerivID());
       }
       break;
     case SymbolType::exogenous:
@@ -992,7 +991,7 @@ VariableNode::computeDerivative(int deriv_id)
       [[fallthrough]];
     case SymbolType::endogenous:
     case SymbolType::parameter:
-      if (deriv_id == datatree.getDerivID(symb_id, lag))
+      if (deriv_id == getDerivID())
         return datatree.One;
       else
         return datatree.Zero;
@@ -1029,7 +1028,7 @@ void
 VariableNode::writeJsonAST(ostream& output) const
 {
   output << R"({"node_type" : "VariableNode", )"
-         << R"("name" : ")" << datatree.symbol_table.getName(symb_id) << R"(", "type" : ")";
+         << R"("name" : ")" << getName() << R"(", "type" : ")";
   switch (get_type())
     {
     case SymbolType::endogenous:
@@ -1086,7 +1085,7 @@ VariableNode::writeJsonOutput(ostream& output, const temporary_terms_t& temporar
       return;
     }
 
-  output << datatree.symbol_table.getName(symb_id);
+  output << getName();
   if (isdynamic && lag != 0)
     output << "(" << lag << ")";
 }
@@ -1126,7 +1125,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
   auto juliaTimeDataFrameHelper = [&] {
     if (lag != 0)
       output << "lag(";
-    output << "ds." << datatree.symbol_table.getName(symb_id);
+    output << "ds." << getName();
     if (lag != 0)
       {
         if (lag != -1)
@@ -1139,13 +1138,13 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
   switch (type)
     {
     case SymbolType::parameter:
-      if (int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
-          output_type == ExprNodeOutputType::matlabOutsideModel)
+      if (output_type == ExprNodeOutputType::matlabOutsideModel)
         output << "M_.params"
-               << "(" << tsid + 1 << ")";
+               << "(" << getTypeSpecificID() + 1 << ")";
       else
         output << "params" << LEFT_ARRAY_SUBSCRIPT(output_type)
-               << tsid + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type);
+               << getTypeSpecificID() + ARRAY_SUBSCRIPT_OFFSET(output_type)
+               << RIGHT_ARRAY_SUBSCRIPT(output_type);
       break;
 
     case SymbolType::modelLocalVariable:
@@ -1160,15 +1159,15 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
       else
         /* We append underscores to avoid name clashes with "g1" or "oo_".
            But we probably never arrive here because MLV are temporary terms… */
-        output << datatree.symbol_table.getName(symb_id) << "__";
+        output << getName() << "__";
       break;
 
     case SymbolType::modFileLocalVariable:
-      output << datatree.symbol_table.getName(symb_id);
+      output << getName();
       break;
 
     case SymbolType::endogenous:
-      switch (int tsid = datatree.symbol_table.getTypeSpecificID(symb_id); output_type)
+      switch (int tsid {getTypeSpecificID()}; output_type)
         {
         case ExprNodeOutputType::juliaDynamicModel:
         case ExprNodeOutputType::juliaSparseDynamicModel:
@@ -1176,8 +1175,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::matlabSparseDynamicModel:
         case ExprNodeOutputType::CDynamicModel:
         case ExprNodeOutputType::CSparseDynamicModel:
-          i = datatree.getJacobianCol(datatree.getDerivID(symb_id, lag),
-                                      isSparseModelOutput(output_type))
+          i = datatree.getJacobianCol(getDerivID(), isSparseModelOutput(output_type))
               + ARRAY_SUBSCRIPT_OFFSET(output_type);
           output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -1209,7 +1207,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case ExprNodeOutputType::matlabDseries:
-          output << "ds." << datatree.symbol_table.getName(symb_id);
+          output << "ds." << getName();
           if (lag != 0)
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag
                    << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -1218,7 +1216,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           juliaTimeDataFrameHelper();
           break;
         case ExprNodeOutputType::epilogueFile:
-          output << "ds." << datatree.symbol_table.getName(symb_id);
+          output << "ds." << getName();
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
             output << lag;
@@ -1234,7 +1232,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
       break;
 
     case SymbolType::exogenous:
-      i = datatree.symbol_table.getTypeSpecificID(symb_id) + ARRAY_SUBSCRIPT_OFFSET(output_type);
+      i = getTypeSpecificID() + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch (output_type)
         {
         case ExprNodeOutputType::juliaDynamicModel:
@@ -1284,7 +1282,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case ExprNodeOutputType::matlabDseries:
-          output << "ds." << datatree.symbol_table.getName(symb_id);
+          output << "ds." << getName();
           if (lag != 0)
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag
                    << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -1293,7 +1291,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           juliaTimeDataFrameHelper();
           break;
         case ExprNodeOutputType::epilogueFile:
-          output << "ds." << datatree.symbol_table.getName(symb_id);
+          output << "ds." << getName();
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
             output << lag;
@@ -1306,7 +1304,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
       break;
 
     case SymbolType::exogenousDet:
-      i = datatree.symbol_table.getTypeSpecificID(symb_id) + datatree.symbol_table.exo_nbr()
+      i = getTypeSpecificID() + datatree.symbol_table.exo_nbr()
           + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch (output_type)
         {
@@ -1346,12 +1344,10 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           break;
         case ExprNodeOutputType::matlabOutsideModel:
           assert(lag == 0);
-          output << "oo_.exo_det_steady_state("
-                 << datatree.symbol_table.getTypeSpecificID(symb_id) + 1 << ")";
+          output << "oo_.exo_det_steady_state(" << getTypeSpecificID() + 1 << ")";
           break;
         case ExprNodeOutputType::matlabDynamicSteadyStateOperator:
-          output << "oo_.exo_det_steady_state("
-                 << datatree.symbol_table.getTypeSpecificID(symb_id) + 1 << ")";
+          output << "oo_.exo_det_steady_state(" << getTypeSpecificID() + 1 << ")";
           break;
         case ExprNodeOutputType::juliaSteadyStateFile:
         case ExprNodeOutputType::steadyStateFile:
@@ -1359,7 +1355,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         case ExprNodeOutputType::matlabDseries:
-          output << "ds." << datatree.symbol_table.getName(symb_id);
+          output << "ds." << getName();
           if (lag != 0)
             output << LEFT_ARRAY_SUBSCRIPT(output_type) << lag
                    << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -1368,7 +1364,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           juliaTimeDataFrameHelper();
           break;
         case ExprNodeOutputType::epilogueFile:
-          output << "ds." << datatree.symbol_table.getName(symb_id);
+          output << "ds." << getName();
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
             output << lag;
@@ -1382,7 +1378,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case SymbolType::epilogue:
       if (output_type == ExprNodeOutputType::epilogueFile)
         {
-          output << "ds." << datatree.symbol_table.getName(symb_id);
+          output << "ds." << getName();
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
             output << lag;
@@ -1391,7 +1387,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
       else if (output_type == ExprNodeOutputType::matlabDseries
                || output_type == ExprNodeOutputType::juliaTimeDataFrame)
         // Only writing dseries for epilogue_static, hence no need to check lag
-        output << "ds." << datatree.symbol_table.getName(symb_id);
+        output << "ds." << getName();
       else
         {
           cerr << "VariableNode::writeOutput: Impossible case" << endl;
@@ -1442,27 +1438,24 @@ VariableNode::writeBytecodeOutput(Bytecode::Writer& code_file,
         ->writeBytecodeOutput(code_file, output_type, temporary_terms, temporary_terms_idxs,
                               tef_terms);
   else
-    {
-      int tsid = datatree.symbol_table.getTypeSpecificID(symb_id);
-      switch (output_type)
-        {
-        case ExprNodeBytecodeOutputType::dynamicModel:
-          code_file << Bytecode::FLDV {type, tsid, lag};
-          break;
-        case ExprNodeBytecodeOutputType::staticModel:
-          code_file << Bytecode::FLDSV {type, tsid};
-          break;
-        case ExprNodeBytecodeOutputType::dynamicSteadyStateOperator:
-          code_file << Bytecode::FLDVS {type, tsid};
-          break;
-        case ExprNodeBytecodeOutputType::dynamicAssignmentLHS:
-          code_file << Bytecode::FSTPV {type, tsid, lag};
-          break;
-        case ExprNodeBytecodeOutputType::staticAssignmentLHS:
-          code_file << Bytecode::FSTPSV {type, tsid};
-          break;
-        }
-    }
+    switch (output_type)
+      {
+      case ExprNodeBytecodeOutputType::dynamicModel:
+        code_file << Bytecode::FLDV {type, getTypeSpecificID(), lag};
+        break;
+      case ExprNodeBytecodeOutputType::staticModel:
+        code_file << Bytecode::FLDSV {type, getTypeSpecificID()};
+        break;
+      case ExprNodeBytecodeOutputType::dynamicSteadyStateOperator:
+        code_file << Bytecode::FLDVS {type, getTypeSpecificID()};
+        break;
+      case ExprNodeBytecodeOutputType::dynamicAssignmentLHS:
+        code_file << Bytecode::FSTPV {type, getTypeSpecificID(), lag};
+        break;
+      case ExprNodeBytecodeOutputType::staticAssignmentLHS:
+        code_file << Bytecode::FSTPSV {type, getTypeSpecificID()};
+        break;
+      }
 }
 
 void
@@ -1527,10 +1520,10 @@ VariableNode::computeChainRuleDerivative(
       [[fallthrough]];
     case SymbolType::endogenous:
     case SymbolType::parameter:
-      if (int my_deriv_id {datatree.getDerivID(symb_id, lag)}; deriv_id == my_deriv_id)
+      if (deriv_id == getDerivID())
         return datatree.One;
       // If there is in the equation a recursive variable we could use a chaine rule derivation
-      else if (auto it = recursive_variables.find(my_deriv_id); it != recursive_variables.end())
+      else if (auto it = recursive_variables.find(getDerivID()); it != recursive_variables.end())
         return it->second->arg2->getChainRuleDerivative(deriv_id, recursive_variables,
                                                         non_null_chain_rule_derivatives, cache);
       else
@@ -1600,6 +1593,24 @@ SymbolType
 VariableNode::get_type() const
 {
   return datatree.symbol_table.getType(symb_id);
+}
+
+string
+VariableNode::getName() const
+{
+  return datatree.symbol_table.getName(symb_id);
+}
+
+int
+VariableNode::getDerivID() const
+{
+  return datatree.getDerivID(symb_id, lag);
+}
+
+int
+VariableNode::getTypeSpecificID() const
+{
+  return datatree.symbol_table.getTypeSpecificID(symb_id);
 }
 
 expr_t
@@ -2008,9 +2019,7 @@ VariableNode::differentiateForwardVars(const vector<string>& subset, subst_table
     case SymbolType::endogenous:
       assert(lag <= 1);
       if (lag <= 0
-          || (subset.size() > 0
-              && find(subset.begin(), subset.end(), datatree.symbol_table.getName(symb_id))
-                     == subset.end()))
+          || (subset.size() > 0 && find(subset.begin(), subset.end(), getName()) == subset.end()))
         return const_cast<VariableNode*>(this);
       else
         {
@@ -2048,11 +2057,7 @@ VariableNode::isNumConstNodeEqualTo([[maybe_unused]] double value) const
 bool
 VariableNode::isVariableNodeEqualTo(SymbolType type_arg, int variable_id, int lag_arg) const
 {
-  if (get_type() == type_arg && datatree.symbol_table.getTypeSpecificID(symb_id) == variable_id
-      && lag == lag_arg)
-    return true;
-  else
-    return false;
+  return get_type() == type_arg && getTypeSpecificID() == variable_id && lag == lag_arg;
 }
 
 bool
@@ -2211,8 +2216,7 @@ VariableNode::matchMatchedMoment(vector<int>& symb_ids, vector<int>& lags,
      model local variables */
 
   if (get_type() != SymbolType::endogenous)
-    throw MatchFailureException {"Variable " + datatree.symbol_table.getName(symb_id)
-                                 + " is not an endogenous"};
+    throw MatchFailureException {"Variable " + getName() + " is not an endogenous"};
 
   symb_ids.push_back(symb_id);
   lags.push_back(lag);
@@ -6866,6 +6870,12 @@ AbstractExternalFunctionNode::AbstractExternalFunctionNode(DataTree& datatree_ar
 {
 }
 
+string
+AbstractExternalFunctionNode::getName() const
+{
+  return datatree.symbol_table.getName(symb_id);
+}
+
 void
 AbstractExternalFunctionNode::prepareForDerivation()
 {
@@ -7505,7 +7515,7 @@ ExternalFunctionNode::writeBytecodeExternalFunctionOutput(
         }
 
       code_file << Bytecode::FCALL {nb_output_arguments, static_cast<int>(arguments.size()),
-                                    datatree.symbol_table.getName(symb_id), indx, call_type}
+                                    getName(), indx, call_type}
                 << Bytecode::FSTPTEF {indx};
     }
 }
@@ -7514,7 +7524,7 @@ void
 ExternalFunctionNode::writeJsonAST(ostream& output) const
 {
   output << R"({"node_type" : "ExternalFunctionNode", )"
-         << R"("name" : ")" << datatree.symbol_table.getName(symb_id) << R"(", "args" : [)";
+         << R"("name" : ")" << getName() << R"(", "args" : [)";
   writeJsonASTExternalFunctionArguments(output);
   output << "]}";
 }
@@ -7538,7 +7548,7 @@ ExternalFunctionNode::writeJsonOutput(ostream& output, const temporary_terms_t& 
   catch (UnknownFunctionNameAndArgs&)
     {
       // When writing the JSON output at parsing pass, we don’t use TEF terms
-      output << datatree.symbol_table.getName(symb_id) << "(";
+      output << getName() << "(";
       writeJsonExternalFunctionArguments(output, temporary_terms, tef_terms, isdynamic);
       output << ")";
     }
@@ -7556,8 +7566,8 @@ ExternalFunctionNode::writeOutput(ostream& output, ExprNodeOutputType output_typ
       || output_type == ExprNodeOutputType::epilogueFile
       || output_type == ExprNodeOutputType::occbinDifferenceFile || isLatexOutput(output_type))
     {
-      string name = isLatexOutput(output_type) ? datatree.symbol_table.getTeXName(symb_id)
-                                               : datatree.symbol_table.getName(symb_id);
+      string name
+          = isLatexOutput(output_type) ? datatree.symbol_table.getTeXName(symb_id) : getName();
       output << name << "(";
       writeExternalFunctionArguments(output, output_type, temporary_terms, temporary_terms_idxs,
                                      tef_terms);
@@ -7620,7 +7630,7 @@ ExternalFunctionNode::writeExternalFunctionOutput(
           writePrhs(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
           output << "  mexCallMATLAB(" << nlhs << ", plhs, " << arguments.size() << ", prhs, "
-                 << R"(")" << datatree.symbol_table.getName(symb_id) << R"(");)" << endl;
+                 << R"(")" << getName() << R"(");)" << endl;
 
           output << "  TEF_" << indx << " = mxGetPr(plhs[0]);" << endl;
           if (symb_id == first_deriv_symb_id)
@@ -7641,7 +7651,7 @@ ExternalFunctionNode::writeExternalFunctionOutput(
           else
             output << "TEF_" << indx << " = ";
 
-          output << datatree.symbol_table.getName(symb_id) << "(";
+          output << getName() << "(";
           writeExternalFunctionArguments(output, output_type, temporary_terms, temporary_terms_idxs,
                                          tef_terms);
           output << ");" << endl;
@@ -7678,7 +7688,7 @@ ExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string>& efout,
       if (symb_id == second_deriv_symb_id)
         ef << R"(, "external_function_term_dd": "TEFDD_)" << indx << R"(")";
 
-      ef << R"(, "value": ")" << datatree.symbol_table.getName(symb_id) << "(";
+      ef << R"(, "value": ")" << getName() << "(";
       writeJsonExternalFunctionArguments(ef, temporary_terms, tef_terms, isdynamic);
       ef << R"lit()"}})lit";
       efout.push_back(ef.str());
@@ -7734,7 +7744,7 @@ void
 FirstDerivExternalFunctionNode::writeJsonAST(ostream& output) const
 {
   output << R"({"node_type" : "FirstDerivExternalFunctionNode", )"
-         << R"("name" : ")" << datatree.symbol_table.getName(symb_id) << R"(", "args" : [)";
+         << R"("name" : ")" << getName() << R"(", "args" : [)";
   writeJsonASTExternalFunctionArguments(output);
   output << "]}";
 }
@@ -7872,8 +7882,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(
                << "{" << endl
                << "  const mwSize dims[2] = {1, " << arguments.size() << "};" << endl
                << "  mxArray *plhs[1], *prhs[3];" << endl
-               << R"(  prhs[0] = mxCreateString(")" << datatree.symbol_table.getName(symb_id)
-               << R"(");)" << endl
+               << R"(  prhs[0] = mxCreateString(")" << getName() << R"(");)" << endl
                << "  prhs[1] = mxCreateDoubleScalar(" << inputIndex << ");" << endl
                << "  prhs[2] = mxCreateCellArray(2, dims);" << endl;
 
@@ -7911,8 +7920,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(
     {
       if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
         output << "TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex
-               << " = jacob_element('" << datatree.symbol_table.getName(symb_id) << "',"
-               << inputIndex << ",{";
+               << " = jacob_element('" << getName() << "'," << inputIndex << ",{";
       else
         {
           tef_terms[{first_deriv_symb_id, arguments}] = static_cast<int>(tef_terms.size());
@@ -7955,8 +7963,7 @@ FirstDerivExternalFunctionNode::writeJsonExternalFunctionOutput(
        << R"("external_function_term": "TEFD_fdd_)" << getIndxInTefTerms(symb_id, tef_terms) << "_"
        << inputIndex << R"(")"
        << R"(, "analytic_derivative": false)"
-       << R"(, "wrt": )" << inputIndex << R"(, "value": ")"
-       << datatree.symbol_table.getName(symb_id) << "(";
+       << R"(, "wrt": )" << inputIndex << R"(, "value": ")" << getName() << "(";
   else
     {
       tef_terms[{first_deriv_symb_id, arguments}] = static_cast<int>(tef_terms.size());
@@ -8004,7 +8011,7 @@ FirstDerivExternalFunctionNode::writeBytecodeExternalFunctionOutput(
       int nb_output_arguments {1};
       Bytecode::FCALL fcall {nb_output_arguments, nb_input_arguments, "jacob_element", indx,
                              Bytecode::ExternalFunctionCallType::numericalFirstDerivative};
-      fcall.set_arg_func_name(datatree.symbol_table.getName(symb_id));
+      fcall.set_arg_func_name(getName());
       fcall.set_row(inputIndex);
       fcall.set_nb_add_input_arguments(static_cast<int>(arguments.size()));
       code_file << fcall << Bytecode::FSTPTEFD {indx, inputIndex};
@@ -8076,7 +8083,7 @@ void
 SecondDerivExternalFunctionNode::writeJsonAST(ostream& output) const
 {
   output << R"({"node_type" : "SecondDerivExternalFunctionNode", )"
-         << R"("name" : ")" << datatree.symbol_table.getName(symb_id) << R"(", "args" : [)";
+         << R"("name" : ")" << getName() << R"(", "args" : [)";
   writeJsonASTExternalFunctionArguments(output);
   output << "]}";
 }
@@ -8204,8 +8211,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(
                << "{" << endl
                << "  const mwSize dims[2]= {1, " << arguments.size() << "};" << endl
                << "  mxArray *plhs[1], *prhs[4];" << endl
-               << R"(  prhs[0] = mxCreateString(")" << datatree.symbol_table.getName(symb_id)
-               << R"(");)" << endl
+               << R"(  prhs[0] = mxCreateString(")" << getName() << R"(");)" << endl
                << "  prhs[1] = mxCreateDoubleScalar(" << inputIndex1 << ");" << endl
                << "  prhs[2] = mxCreateDoubleScalar(" << inputIndex2 << ");" << endl
                << "  prhs[3] = mxCreateCellArray(2, dims);" << endl;
@@ -8244,8 +8250,8 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(
     {
       if (second_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
         output << "TEFDD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex1 << "_"
-               << inputIndex2 << " = hess_element('" << datatree.symbol_table.getName(symb_id)
-               << "'," << inputIndex1 << "," << inputIndex2 << ",{";
+               << inputIndex2 << " = hess_element('" << getName() << "'," << inputIndex1 << ","
+               << inputIndex2 << ",{";
       else
         {
           tef_terms[{second_deriv_symb_id, arguments}] = static_cast<int>(tef_terms.size());
@@ -8289,7 +8295,7 @@ SecondDerivExternalFunctionNode::writeJsonExternalFunctionOutput(
        << inputIndex1 << "_" << inputIndex2 << R"(")"
        << R"(, "analytic_derivative": false)"
        << R"(, "wrt1": )" << inputIndex1 << R"(, "wrt2": )" << inputIndex2 << R"(, "value": ")"
-       << datatree.symbol_table.getName(symb_id) << "(";
+       << getName() << "(";
   else
     {
       tef_terms[{second_deriv_symb_id, arguments}] = static_cast<int>(tef_terms.size());
@@ -8379,7 +8385,7 @@ SecondDerivExternalFunctionNode::writeBytecodeExternalFunctionOutput(
     {
       Bytecode::FCALL fcall {1, 0, "hess_element", indx,
                              Bytecode::ExternalFunctionCallType::numericalSecondDerivative};
-      fcall.set_arg_func_name(datatree.symbol_table.getName(symb_id));
+      fcall.set_arg_func_name(getName());
       fcall.set_row(inputIndex1);
       fcall.set_col(inputIndex2);
       fcall.set_nb_add_input_arguments(static_cast<int>(arguments.size()));
@@ -9160,8 +9166,7 @@ VariableNode::matchVTCTPHelper(optional<int>& var_id, int& lag, optional<int>& p
       param_id = symb_id;
     }
   else
-    throw MatchFailureException {"Symbol " + datatree.symbol_table.getName(symb_id)
-                                 + " not allowed here"};
+    throw MatchFailureException {"Symbol " + getName() + " not allowed here"};
 }
 
 void

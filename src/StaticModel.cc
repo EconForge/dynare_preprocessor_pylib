@@ -644,7 +644,7 @@ StaticModel::computeRamseyMultipliersDerivatives(int ramsey_orig_endo_nbr, bool 
          Lagrange multiplier. We use the guarantee given by SymbolTable that
          symbol IDs are increasing. */
       if (varexpr->symb_id > *mult_symb_ids.crbegin())
-        recursive_variables.emplace(getDerivID(varexpr->symb_id, 0), aux_eq);
+        recursive_variables.emplace(varexpr->getDerivID(), aux_eq);
     }
 
   // Compute the chain rule derivatives w.r.t. multipliers
