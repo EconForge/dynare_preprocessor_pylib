@@ -17,7 +17,9 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <cassert>
+#include <ranges>
 
 #include "Environment.hh"
 #include "Expressions.hh"
@@ -107,9 +109,21 @@ Environment::print(ostream& output, const vector<string>& vars, const optional<i
   if (!save && !variables.empty())
     output << "Macro Variables:" << endl;
 
+  // For sorting the symbols in a case-insensitive way, see #128
+  auto case_insensitive_string_less = [](const string& a, const string& b) {
+    return lexicographical_compare(
+        begin(a), end(a), begin(b), end(b),
+        [](const char& c1, const char& c2) { return tolower(c1) < tolower(c2); });
+  };
+
   if (vars.empty())
-    for (const auto& it : variables)
-      printVariable(output, it.first, line, save);
+    {
+      vector<string> variables_sorted;
+      ranges::copy(views::keys(variables), back_inserter(variables_sorted));
+      ranges::sort(variables_sorted, case_insensitive_string_less);
+      for (const auto& it : variables_sorted)
+        printVariable(output, it, line, save);
+    }
   else
     for (const auto& it : vars)
       if (isVariableDefined(it))
@@ -119,8 +133,13 @@ Environment::print(ostream& output, const vector<string>& vars, const optional<i
     output << "Macro Functions:" << endl;
 
   if (vars.empty())
-    for (const auto& it : functions)
-      printFunction(output, it.first, line, save);
+    {
+      vector<string> functions_sorted;
+      ranges::copy(views::keys(functions), back_inserter(functions_sorted));
+      ranges::sort(functions_sorted, case_insensitive_string_less);
+      for (const auto& it : functions_sorted)
+        printFunction(output, it, line, save);
+    }
   else
     for (const auto& it : vars)
       if (isFunctionDefined(it))
