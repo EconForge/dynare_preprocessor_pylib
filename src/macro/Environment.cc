@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2023 Dynare Team
+ * Copyright © 2019-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -54,7 +54,7 @@ Environment::getVariable(const string& name) const
   return getGlobalEnv()->getVariable(name);
 }
 
-tuple<FunctionPtr, ExpressionPtr>
+pair<FunctionPtr, ExpressionPtr>
 Environment::getFunction(const string& name) const
 {
   if (auto it = functions.find(name); it != functions.end())
@@ -120,11 +120,11 @@ Environment::print(ostream& output, const vector<string>& vars, const optional<i
 
   if (vars.empty())
     for (const auto& it : functions)
-      printFunction(output, it.second, line, save);
+      printFunction(output, it.first, line, save);
   else
     for (const auto& it : vars)
       if (isFunctionDefined(it))
-        printFunction(output, functions.at(it), line, save);
+        printFunction(output, it, line, save);
 
   if (parent)
     parent->print(output, vars, line, save);
@@ -143,20 +143,21 @@ Environment::printVariable(ostream& output, const string& name, const optional<i
 }
 
 void
-Environment::printFunction(ostream& output, const tuple<FunctionPtr, ExpressionPtr>& function,
-                           const optional<int>& line, bool save) const
+Environment::printFunction(ostream& output, const string& name, const optional<int>& line,
+                           bool save) const
 {
   assert(!save || line);
+  auto [func_signature, func_body] = getFunction(name);
   output << (save ? "options_.macrovars_line_" + to_string(*line) + ".function." : "  ");
   if (save)
     {
-      get<0>(function)->printName(output);
+      func_signature->printName(output);
       output << " = '";
     }
 
-  get<0>(function)->print(output);
+  func_signature->print(output);
   output << " = ";
-  get<1>(function)->print(output);
+  func_body->print(output);
 
   if (save)
     output << "';";

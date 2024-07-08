@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2023 Dynare Team
+ * Copyright © 2019-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -33,7 +33,7 @@ class Environment
 private:
   const Environment* parent {nullptr};
   map<string, ExpressionPtr> variables;
-  map<string, tuple<FunctionPtr, ExpressionPtr>> functions;
+  map<string, pair<FunctionPtr, ExpressionPtr>> functions;
 
 public:
   Environment() = default;
@@ -45,7 +45,7 @@ public:
   /* The following two functions are not marked [[nodiscard]], because they are used without output
      to check whether they return an exception or not. */
   ExpressionPtr getVariable(const string& name) const; // NOLINT(modernize-use-nodiscard)
-  tuple<FunctionPtr, ExpressionPtr>                    // NOLINT(modernize-use-nodiscard)
+  pair<FunctionPtr, ExpressionPtr>                     // NOLINT(modernize-use-nodiscard)
   getFunction(const string& name) const;
   [[nodiscard]] codes::BaseType getType(const string& name) const;
   [[nodiscard]] bool isVariableDefined(const string& name) const noexcept;
@@ -59,8 +59,8 @@ public:
              bool save = false) const;
   void printVariable(ostream& output, const string& name, const optional<int>& line,
                      bool save) const;
-  void printFunction(ostream& output, const tuple<FunctionPtr, ExpressionPtr>& function,
-                     const optional<int>& line, bool save) const;
+  void printFunction(ostream& output, const string& name, const optional<int>& line,
+                     bool save) const;
   [[nodiscard]] size_t
   size() const noexcept
   {
