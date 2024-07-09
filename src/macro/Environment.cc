@@ -103,11 +103,10 @@ Environment::isFunctionDefined(const string& name) const noexcept
 }
 
 void
-Environment::print(ostream& output, const vector<string>& vars, const optional<int>& line,
-                   bool save) const
+Environment::print(ostream& output, const vector<string>& vars, int line, bool save) const
 {
   if (!save && !variables.empty())
-    output << "Macro Variables:" << endl;
+    output << "Macro Variables (at line " << line << "):" << endl;
 
   // For sorting the symbols in a case-insensitive way, see #128
   auto case_insensitive_string_less = [](const string& a, const string& b) {
@@ -130,7 +129,7 @@ Environment::print(ostream& output, const vector<string>& vars, const optional<i
         printVariable(output, it, line, save);
 
   if (!save && !functions.empty())
-    output << "Macro Functions:" << endl;
+    output << "Macro Functions (at line " << line << "):" << endl;
 
   if (vars.empty())
     {
@@ -150,11 +149,9 @@ Environment::print(ostream& output, const vector<string>& vars, const optional<i
 }
 
 void
-Environment::printVariable(ostream& output, const string& name, const optional<int>& line,
-                           bool save) const
+Environment::printVariable(ostream& output, const string& name, int line, bool save) const
 {
-  assert(!save || line);
-  output << (save ? "options_.macrovars_line_" + to_string(*line) + "." : "  ") << name << " = ";
+  output << (save ? "options_.macrovars_line_" + to_string(line) + "." : "  ") << name << " = ";
   getVariable(name)->eval(const_cast<Environment&>(*this))->print(output, save);
   if (save)
     output << ";";
@@ -162,12 +159,10 @@ Environment::printVariable(ostream& output, const string& name, const optional<i
 }
 
 void
-Environment::printFunction(ostream& output, const string& name, const optional<int>& line,
-                           bool save) const
+Environment::printFunction(ostream& output, const string& name, int line, bool save) const
 {
-  assert(!save || line);
   auto [func_signature, func_body] = getFunction(name);
-  output << (save ? "options_.macrovars_line_" + to_string(*line) + ".function." : "  ");
+  output << (save ? "options_.macrovars_line_" + to_string(line) + ".function." : "  ");
   if (save)
     {
       func_signature->printName(output);

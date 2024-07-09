@@ -189,10 +189,7 @@ void
 EchoMacroVars::interpret(ostream& output, Environment& env,
                          [[maybe_unused]] vector<filesystem::path>& paths)
 {
-  if (save)
-    env.print(output, vars, location.begin.line, true);
-  else
-    env.print(cout, vars);
+  env.print(save ? output : cout, vars, location.begin.line, save);
   printEndLineInfo(output);
 }
 

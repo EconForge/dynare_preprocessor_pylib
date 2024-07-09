@@ -55,12 +55,9 @@ public:
   {
     return isVariableDefined(name) || isFunctionDefined(name);
   }
-  void print(ostream& output, const vector<string>& vars, const optional<int>& line = nullopt,
-             bool save = false) const;
-  void printVariable(ostream& output, const string& name, const optional<int>& line,
-                     bool save) const;
-  void printFunction(ostream& output, const string& name, const optional<int>& line,
-                     bool save) const;
+  void print(ostream& output, const vector<string>& vars, int line, bool save) const;
+  void printVariable(ostream& output, const string& name, int line, bool save) const;
+  void printFunction(ostream& output, const string& name, int line, bool save) const;
   [[nodiscard]] size_t
   size() const noexcept
   {
