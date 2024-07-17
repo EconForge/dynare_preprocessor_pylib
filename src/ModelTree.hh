@@ -776,7 +776,7 @@ ModelTree::writeModelEquations(ostream& output, const temporary_terms_t& tempora
       BinaryOpNode* eq_node {equations[eq]};
       expr_t lhs {eq_node->arg1}, rhs {eq_node->arg2};
 
-      // Test if the right hand side of the equation is empty.
+      // Test if the right-hand side of the equation is empty.
       double vrhs {1.0};
       try
         {
@@ -786,7 +786,7 @@ ModelTree::writeModelEquations(ostream& output, const temporary_terms_t& tempora
         {
         }
 
-      if (vrhs != 0) // The right hand side of the equation is not empty ==> residual=lhs-rhs;
+      if (vrhs != 0) // The right-hand side of the equation is not empty ==> residual=lhs-rhs;
         {
           output << "    residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
                  << eq + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type)
@@ -796,7 +796,7 @@ ModelTree::writeModelEquations(ostream& output, const temporary_terms_t& tempora
           rhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
           output << ");" << endl;
         }
-      else // The right hand side of the equation is empty ==> residual=lhs;
+      else // The right-hand side of the equation is empty ==> residual=lhs;
         {
           output << "residual" << LEFT_ARRAY_SUBSCRIPT(output_type)
                  << eq + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type)
@@ -1557,7 +1557,7 @@ ModelTree::writeBytecodeModelEquations(Bytecode::Writer& code_file,
       BinaryOpNode* eq_node {equations[eq]};
       expr_t lhs {eq_node->arg1}, rhs {eq_node->arg2};
       code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::ModelEquation, eq};
-      // Test if the right hand side of the equation is empty.
+      // Test if the right-hand side of the equation is empty.
       double vrhs {1.0};
       try
         {
@@ -1567,7 +1567,7 @@ ModelTree::writeBytecodeModelEquations(Bytecode::Writer& code_file,
         {
         }
 
-      if (vrhs != 0) // The right hand side of the equation is not empty ⇒ residual=lhs-rhs
+      if (vrhs != 0) // The right-hand side of the equation is not empty ⇒ residual=lhs-rhs
         {
           lhs->writeBytecodeOutput(code_file, output_type, temporary_terms, temporary_terms_idxs,
                                    tef_terms);
@@ -1576,7 +1576,7 @@ ModelTree::writeBytecodeModelEquations(Bytecode::Writer& code_file,
 
           code_file << Bytecode::FBINARY {BinaryOpcode::minus} << Bytecode::FSTPR {eq};
         }
-      else // The right hand side of the equation is empty ⇒ residual=lhs
+      else // The right-hand side of the equation is empty ⇒ residual=lhs
         {
           lhs->writeBytecodeOutput(code_file, output_type, temporary_terms, temporary_terms_idxs,
                                    tef_terms);

@@ -1462,7 +1462,7 @@ public:
   [[nodiscard]] expr_t unpackPowerDeriv() const;
   //! Returns MULT_i*(lhs-rhs) = 0, creating multiplier MULT_i
   expr_t addMultipliersToConstraints(int i);
-  //! Returns the non-zero hand-side of an equation (that must have a hand side equal to zero)
+  //! Returns the non-zero hand side of an equation (that must have a hand side equal to zero)
   [[nodiscard]] expr_t getNonZeroPartofEquation() const;
   [[nodiscard]] bool isInStaticForm() const override;
   void fillAutoregressiveRow(int eqn, const vector<int>& lhs,

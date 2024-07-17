@@ -1288,7 +1288,7 @@ void
 ParsingDriver::add_positive_restriction_element(expr_t value, const string& variable,
                                                 const string& lag)
 {
-  // if the expression is not on the left handside, change its sign
+  // if the expression is not on the left-hand side, change its sign
   if (!svar_left_handside)
     value = add_uminus(value);
 
@@ -1300,7 +1300,7 @@ ParsingDriver::add_positive_restriction_element(const string& variable, const st
 {
   expr_t value(data_tree->One);
 
-  // if the expression is not on the left handside, change its sign
+  // if the expression is not on the left-hand side, change its sign
   if (!svar_left_handside)
     value = add_uminus(value);
 
@@ -1311,7 +1311,7 @@ void
 ParsingDriver::add_negative_restriction_element(expr_t value, const string& variable,
                                                 const string& lag)
 {
-  // if the expression is on the left handside, change its sign
+  // if the expression is on the left-hand side, change its sign
   if (svar_left_handside)
     value = add_uminus(value);
 
@@ -1323,7 +1323,7 @@ ParsingDriver::add_negative_restriction_element(const string& variable, const st
 {
   expr_t value(data_tree->One);
 
-  // if the expression is on the left handside, change its sign
+  // if the expression is on the left-hand side, change its sign
   if (svar_left_handside)
     value = add_uminus(value);
 
@@ -2666,18 +2666,18 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
           }
         catch (SymbolTable::UnknownSymbolNameException&)
           {
-            error("Left hand-side of expression in 'mcp' tag is not a variable");
+            error("Left-hand side of expression in 'mcp' tag is not a variable");
           }
       }()};
 
       if (mod_file->symbol_table.getType(symb_id) != SymbolType::endogenous)
-        error("Left hand-side of expression in 'mcp' tag is not an endogenous variable");
+        error("Left-hand side of expression in 'mcp' tag is not an endogenous variable");
 
       expr_t matched_constant {[&] {
         char* str_end;
         double d = strtod(constant.c_str(), &str_end);
         if (str_end == constant.c_str())
-          error("Right hand-side of expression in 'mcp' tag should be a constant");
+          error("Right-hand side of expression in 'mcp' tag should be a constant");
         return data_tree->AddPossiblyNegativeConstant(d);
       }()};
 
