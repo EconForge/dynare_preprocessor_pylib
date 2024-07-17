@@ -7302,7 +7302,7 @@ AbstractExternalFunctionNode::removeTrendLeadLag(const map<int, expr_t>& trend_s
 bool
 AbstractExternalFunctionNode::isInStaticForm() const
 {
-  return all_of(arguments.begin(), arguments.end(), [](expr_t e) { return e->isInStaticForm(); });
+  return ranges::all_of(arguments, [](expr_t e) { return e->isInStaticForm(); });
 }
 
 bool
