@@ -7270,15 +7270,15 @@ AbstractExternalFunctionNode::isVariableNodeEqualTo([[maybe_unused]] SymbolType 
 bool
 AbstractExternalFunctionNode::containsPacExpectation(const string& pac_model_name) const
 {
-  return any_of(arguments.begin(), arguments.end(),
-                [&](expr_t e) { return e->containsPacExpectation(pac_model_name); });
+  return ranges::any_of(arguments,
+                        [&](expr_t e) { return e->containsPacExpectation(pac_model_name); });
 }
 
 bool
 AbstractExternalFunctionNode::containsPacTargetNonstationary(const string& pac_model_name) const
 {
-  return any_of(arguments.begin(), arguments.end(),
-                [&](expr_t e) { return e->containsPacTargetNonstationary(pac_model_name); });
+  return ranges::any_of(
+      arguments, [&](expr_t e) { return e->containsPacTargetNonstationary(pac_model_name); });
 }
 
 expr_t

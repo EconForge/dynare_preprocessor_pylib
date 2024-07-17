@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -895,14 +895,13 @@ SymbolTable::getEndogenous() const
 bool
 SymbolTable::isAuxiliaryVariable(int symb_id) const
 {
-  return any_of(aux_vars.begin(), aux_vars.end(),
-                [=](const auto& av) { return av.symb_id == symb_id; });
+  return ranges::any_of(aux_vars, [=](const auto& av) { return av.symb_id == symb_id; });
 }
 
 bool
 SymbolTable::isDiffAuxiliaryVariable(int symb_id) const
 {
-  return any_of(aux_vars.begin(), aux_vars.end(), [=](const auto& av) {
+  return ranges::any_of(aux_vars, [=](const auto& av) {
     return av.symb_id == symb_id
            && (av.type == AuxVarType::diff || av.type == AuxVarType::diffLag
                || av.type == AuxVarType::diffLead);
