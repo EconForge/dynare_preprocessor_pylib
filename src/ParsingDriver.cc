@@ -2653,6 +2653,12 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
           error("'mcp' tag does not contain an inequality");
       }()};
 
+      // Trim whitespace
+      var_name.erase(var_name.find_last_not_of(" \n\t") + 1);
+      var_name.erase(0, var_name.find_first_not_of(" \n\t"));
+      constant.erase(constant.find_last_not_of(" \n\t") + 1);
+      constant.erase(0, constant.find_first_not_of(" \n\t"));
+
       int symb_id {[&] {
         try
           {
