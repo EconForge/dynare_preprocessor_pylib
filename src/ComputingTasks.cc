@@ -1185,7 +1185,7 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
       vector<int> intersect;
       set_intersection(declared_params.begin(), declared_params.end(), used_params.begin(),
                        used_params.end(), back_inserter(intersect));
-      if (intersect.size() > 0)
+      if (!intersect.empty())
         {
           cerr << "ERROR: in `" << blockName() << "' block, the value of estimated parameter "
                << symbol_table.getName(intersect[0]) << " is used in the declaration for ";
@@ -1766,21 +1766,16 @@ DeterministicTrendsStatement::writeOutput(ostream& output, [[maybe_unused]] cons
                                           [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_.trend_coeff = {};" << endl;
-  for (const auto& trend_element : trend_elements)
-    {
-      SymbolType type = symbol_table.getType(trend_element.first);
-      if (type == SymbolType::endogenous)
-        {
-          output << "tmp1 = strmatch('" << trend_element.first << "',M_.endogenous_names,'exact');"
-                 << endl;
-          output << "options_.deterministic_trend_coeffs{tmp1} = '";
-          trend_element.second->writeOutput(output);
-          output << "';" << endl;
-        }
-      else
-        cerr << "Warning : Non-variable symbol used in deterministic_trends: "
-             << trend_element.first << endl;
-    }
+  for (const auto& [name, val] : trend_elements)
+    if (symbol_table.getType(name) == SymbolType::endogenous)
+      {
+        output << "tmp1 = strmatch('" << name << "',M_.endogenous_names,'exact');" << endl
+               << "options_.deterministic_trend_coeffs{tmp1} = '";
+        val->writeOutput(output);
+        output << "';" << endl;
+      }
+    else
+      cerr << "Warning: Non-variable symbol used in deterministic_trends: " << name << endl;
 }
 
 void
@@ -1788,20 +1783,17 @@ DeterministicTrendsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "deterministic_trends", )"
          << R"("trends" : {)";
-  for (bool printed_something {false}; const auto& trend_element : trend_elements)
-    {
-      if (symbol_table.getType(trend_element.first) == SymbolType::endogenous)
-        {
-          if (exchange(printed_something, true))
-            output << ", ";
-          output << R"(")" << trend_element.first << R"(": ")";
-          trend_element.second->writeJsonOutput(output, {}, {});
-          output << R"(")" << endl;
-        }
-      else
-        cerr << "Warning : Non-variable symbol used in deterministic_trends: "
-             << trend_element.first << endl;
-    }
+  for (bool printed_something {false}; const auto& [name, val] : trend_elements)
+    if (symbol_table.getType(name) == SymbolType::endogenous)
+      {
+        if (exchange(printed_something, true))
+          output << ", ";
+        output << R"(")" << name << R"(": ")";
+        val->writeJsonOutput(output, {}, {});
+        output << R"(")" << endl;
+      }
+    else
+      cerr << "Warning: Non-variable symbol used in deterministic_trends: " << name << endl;
   output << "}"
          << "}";
 }
@@ -1817,21 +1809,16 @@ ObservationTrendsStatement::writeOutput(ostream& output, [[maybe_unused]] const 
                                         [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_.trend_coeff = {};" << endl;
-  for (const auto& trend_element : trend_elements)
-    {
-      SymbolType type = symbol_table.getType(trend_element.first);
-      if (type == SymbolType::endogenous)
-        {
-          output << "tmp1 = strmatch('" << trend_element.first << "',options_.varobs,'exact');"
-                 << endl;
-          output << "options_.trend_coeffs{tmp1} = '";
-          trend_element.second->writeOutput(output);
-          output << "';" << endl;
-        }
-      else
-        cerr << "Warning : Non-variable symbol used in observation_trends: " << trend_element.first
-             << endl;
-    }
+  for (const auto& [name, val] : trend_elements)
+    if (symbol_table.getType(name) == SymbolType::endogenous)
+      {
+        output << "tmp1 = strmatch('" << name << "',options_.varobs,'exact');" << endl
+               << "options_.trend_coeffs{tmp1} = '";
+        val->writeOutput(output);
+        output << "';" << endl;
+      }
+    else
+      cerr << "Warning: Non-variable symbol used in observation_trends: " << name << endl;
 }
 
 void
@@ -1839,20 +1826,17 @@ ObservationTrendsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "observation_trends", )"
          << R"("trends" : {)";
-  for (bool printed_something {false}; const auto& trend_element : trend_elements)
-    {
-      if (symbol_table.getType(trend_element.first) == SymbolType::endogenous)
-        {
-          if (exchange(printed_something, true))
-            output << ", ";
-          output << R"(")" << trend_element.first << R"(": ")";
-          trend_element.second->writeJsonOutput(output, {}, {});
-          output << R"(")" << endl;
-        }
-      else
-        cerr << "Warning : Non-variable symbol used in observation_trends: " << trend_element.first
-             << endl;
-    }
+  for (bool printed_something {false}; const auto& [name, val] : trend_elements)
+    if (symbol_table.getType(name) == SymbolType::endogenous)
+      {
+        if (exchange(printed_something, true))
+          output << ", ";
+        output << R"(")" << name << R"(": ")";
+        val->writeJsonOutput(output, {}, {});
+        output << R"(")" << endl;
+      }
+    else
+      cerr << "Warning: Non-variable symbol used in observation_trends: " << name << endl;
   output << "}"
          << "}";
 }
@@ -4231,18 +4215,13 @@ BasicPriorStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struc
 bool
 BasicPriorStatement::is_structural_innovation(const SymbolType symb_type) const
 {
-  if (symb_type == SymbolType::exogenous)
-    return true;
-  return false;
+  return symb_type == SymbolType::exogenous;
 }
 
 void
 BasicPriorStatement::get_base_name(const SymbolType symb_type, string& lhs_field) const
 {
-  if (symb_type == SymbolType::exogenous)
-    lhs_field = "structural_innovation";
-  else
-    lhs_field = "measurement_error";
+  lhs_field = (symb_type == SymbolType::exogenous ? "structural_innovation" : "measurement_error");
 }
 
 void
@@ -4601,10 +4580,7 @@ BasicOptionsStatement::is_structural_innovation(const SymbolType symb_type) cons
 void
 BasicOptionsStatement::get_base_name(const SymbolType symb_type, string& lhs_field) const
 {
-  if (symb_type == SymbolType::exogenous)
-    lhs_field = "structural_innovation";
-  else
-    lhs_field = "measurement_error";
+  lhs_field = (symb_type == SymbolType::exogenous ? "structural_innovation" : "measurement_error");
 }
 
 void
@@ -4812,10 +4788,7 @@ OptionsEqualStatement::writeJsonOutput(ostream& output) const
 void
 OptionsEqualStatement::get_base_name(const SymbolType symb_type, string& lhs_field) const
 {
-  if (symb_type == SymbolType::exogenous)
-    lhs_field = "structural_innovation";
-  else
-    lhs_field = "measurement_error";
+  lhs_field = (symb_type == SymbolType::exogenous ? "structural_innovation" : "measurement_error");
 }
 
 void
