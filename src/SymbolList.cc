@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2022 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -57,8 +57,8 @@ SymbolList::checkPass(WarningConsolidation& warnings, const vector<SymbolType>& 
             throw SymbolListException {"Variable " + symbol + " was not declared."};
         }
 
-      if (none_of(types.begin(), types.end(),
-                  [&](SymbolType type) { return symbol_table.getType(symbol) == type; }))
+      if (ranges::none_of(types,
+                          [&](SymbolType type) { return symbol_table.getType(symbol) == type; }))
         {
           string valid_types;
           for (auto type : types)
