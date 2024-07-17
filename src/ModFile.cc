@@ -355,11 +355,9 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   // Test if some estimated parameters are used within the values of shocks
   // statements (see issue #469)
   set<int> parameters_intersect;
-  set_intersection(mod_file_struct.parameters_within_shocks_values.begin(),
-                   mod_file_struct.parameters_within_shocks_values.end(),
-                   mod_file_struct.estimated_parameters.begin(),
-                   mod_file_struct.estimated_parameters.end(),
-                   inserter(parameters_intersect, parameters_intersect.begin()));
+  ranges::set_intersection(mod_file_struct.parameters_within_shocks_values,
+                           mod_file_struct.estimated_parameters,
+                           inserter(parameters_intersect, parameters_intersect.begin()));
   if (parameters_intersect.size() > 0)
     {
       cerr << "ERROR: some estimated parameters (";

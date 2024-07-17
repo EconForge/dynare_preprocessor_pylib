@@ -920,11 +920,9 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
   /* Check that we are not trying to estimate a parameter appearing in the
      planner discount factor (see dynare#1173) */
   vector<int> estimated_params_in_planner_discount;
-  set_intersection(mod_file_struct.estimated_parameters.begin(),
-                   mod_file_struct.estimated_parameters.end(),
-                   mod_file_struct.parameters_in_planner_discount.begin(),
-                   mod_file_struct.parameters_in_planner_discount.end(),
-                   back_inserter(estimated_params_in_planner_discount));
+  ranges::set_intersection(mod_file_struct.estimated_parameters,
+                           mod_file_struct.parameters_in_planner_discount,
+                           back_inserter(estimated_params_in_planner_discount));
   if (!estimated_params_in_planner_discount.empty())
     {
       cerr << "ERROR: It is not possible to estimate a parameter ("
@@ -1183,8 +1181,7 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
       it.p4->collectVariables(SymbolType::parameter, used_params);
       it.jscale->collectVariables(SymbolType::parameter, used_params);
       vector<int> intersect;
-      set_intersection(declared_params.begin(), declared_params.end(), used_params.begin(),
-                       used_params.end(), back_inserter(intersect));
+      ranges::set_intersection(declared_params, used_params, back_inserter(intersect));
       if (!intersect.empty())
         {
           cerr << "ERROR: in `" << blockName() << "' block, the value of estimated parameter "

@@ -3715,8 +3715,7 @@ DynamicModel::checkNoWithLogTransform(const set<int>& eqnumbers)
   const set<int>& with_log_transform = symbol_table.getVariablesWithLogTransform();
 
   vector<int> intersect;
-  set_intersection(endos.begin(), endos.end(), with_log_transform.begin(), with_log_transform.end(),
-                   back_inserter(intersect));
+  ranges::set_intersection(endos, with_log_transform, back_inserter(intersect));
   if (!intersect.empty())
     {
       cerr << "ERROR: the following variables are declared with var(log) and therefore cannot "
