@@ -2830,11 +2830,12 @@ DynamicModel::writeDynamicFile(const string& basename, bool use_dll, const strin
 
   writeSetAuxiliaryVariablesFile<true>(basename, julia);
 
-  writeComplementarityConditionsFile<true>(basename);
-
-  // Support for model debugging
   if (!julia)
-    writeDebugModelMFiles<true>(basename);
+    {
+      writeComplementarityConditionsFile<true>(basename);
+      // Support for model debugging
+      writeDebugModelMFiles<true>(basename);
+    }
 }
 
 void

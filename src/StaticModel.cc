@@ -308,11 +308,12 @@ StaticModel::writeStaticFile(const string& basename, bool use_dll, const string&
 
   writeSetAuxiliaryVariablesFile<false>(basename, julia);
 
-  writeComplementarityConditionsFile<false>(basename);
-
-  // Support for model debugging
   if (!julia)
-    writeDebugModelMFiles<false>(basename);
+    {
+      writeComplementarityConditionsFile<false>(basename);
+      // Support for model debugging
+      writeDebugModelMFiles<false>(basename);
+    }
 }
 
 bool
