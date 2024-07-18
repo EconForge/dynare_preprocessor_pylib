@@ -7224,7 +7224,7 @@ AbstractExternalFunctionNode::computeTemporaryTerms(
 
   expr_t this2 = const_cast<AbstractExternalFunctionNode*>(this);
   for (auto& tt : temp_terms_map)
-    if (find_if(tt.second.cbegin(), tt.second.cend(), sameTefTermPredicate()) != tt.second.cend())
+    if (ranges::find_if(tt.second, sameTefTermPredicate()) != tt.second.cend())
       {
         tt.second.insert(this2);
         return;
@@ -7242,7 +7242,7 @@ AbstractExternalFunctionNode::computeBlockTemporaryTerms(
   expr_t this2 = const_cast<AbstractExternalFunctionNode*>(this);
   for (auto& btt : blocks_temporary_terms)
     for (auto& tt : btt)
-      if (find_if(tt.cbegin(), tt.cend(), sameTefTermPredicate()) != tt.cend())
+      if (ranges::find_if(tt, sameTefTermPredicate()) != tt.cend())
         {
           tt.insert(this2);
           return;
