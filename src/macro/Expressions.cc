@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2023 Dynare Team
+ * Copyright © 2019-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -316,10 +316,10 @@ String::cast_bool([[maybe_unused]] Environment& env) const
 {
   auto f = [](const char& a, const char& b) { return (tolower(a) == tolower(b)); };
 
-  if (string tf = "true"; equal(value.begin(), value.end(), tf.begin(), tf.end(), f))
+  if (ranges::equal(value, "true"s, f))
     return make_shared<Bool>(true);
 
-  if (string tf = "false"; equal(value.begin(), value.end(), tf.begin(), tf.end(), f))
+  if (ranges::equal(value, "false"s, f))
     return make_shared<Bool>(false);
 
   try

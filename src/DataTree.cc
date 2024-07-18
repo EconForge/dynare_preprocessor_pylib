@@ -959,8 +959,8 @@ DataTree::writeToFileIfModified(stringstream& new_contents, const filesystem::pa
 {
   ifstream old_file {filename, ios::in | ios::binary};
   if (old_file.is_open()
-      && equal(istreambuf_iterator<char> {old_file}, istreambuf_iterator<char> {},
-               istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {}))
+      && ranges::equal(istreambuf_iterator<char> {old_file}, istreambuf_iterator<char> {},
+                       istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {}))
     return;
   old_file.close();
 
