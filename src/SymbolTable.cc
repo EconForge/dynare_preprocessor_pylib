@@ -812,13 +812,13 @@ SymbolTable::observedVariablesNbr() const
 bool
 SymbolTable::isObservedVariable(int symb_id) const
 {
-  return find(varobs.begin(), varobs.end(), symb_id) != varobs.end();
+  return ranges::find(varobs, symb_id) != varobs.end();
 }
 
 int
 SymbolTable::getObservedVariableIndex(int symb_id) const
 {
-  auto it = find(varobs.begin(), varobs.end(), symb_id);
+  auto it = ranges::find(varobs, symb_id);
   assert(it != varobs.end());
   return static_cast<int>(it - varobs.begin());
 }
@@ -840,13 +840,13 @@ SymbolTable::observedExogenousVariablesNbr() const
 bool
 SymbolTable::isObservedExogenousVariable(int symb_id) const
 {
-  return find(varexobs.begin(), varexobs.end(), symb_id) != varexobs.end();
+  return ranges::find(varexobs, symb_id) != varexobs.end();
 }
 
 int
 SymbolTable::getObservedExogenousVariableIndex(int symb_id) const
 {
-  auto it = find(varexobs.begin(), varexobs.end(), symb_id);
+  auto it = ranges::find(varexobs, symb_id);
   assert(it != varexobs.end());
   return static_cast<int>(it - varexobs.begin());
 }

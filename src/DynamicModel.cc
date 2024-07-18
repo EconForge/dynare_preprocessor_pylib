@@ -1060,8 +1060,7 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
       try
         {
           getDerivID(symbol_table.getID(SymbolType::endogenous, endo_idx_block2orig[endoID]), lag);
-          if (find(state_var.begin(), state_var.end(), endo_idx_block2orig[endoID])
-              == state_var.end())
+          if (ranges::find(state_var, endo_idx_block2orig[endoID]) == state_var.end())
             state_var.push_back(endo_idx_block2orig[endoID]);
         }
       catch (UnknownDerivIDException& e)
@@ -1221,8 +1220,7 @@ DynamicModel::updateVarAndTrendModel() const
                         catch (...)
                           {
                           }
-                      if (find(trend_lhs.begin(), trend_lhs.end(), *trend_var_symb_id)
-                          == trend_lhs.end())
+                      if (ranges::find(trend_lhs, *trend_var_symb_id) == trend_lhs.end())
                         {
                           cerr << "ERROR: trend found in trend_component equation #" << eqn << " ("
                                << symbol_table.getName(*trend_var_symb_id)
@@ -1650,13 +1648,13 @@ DynamicModel::computeErrorComponentMatrices(const ExprNode::subst_table_t& diff_
 
       for (int i {0}; auto eqn : eqns)
         {
-          if (find(nontarget_eqnums.begin(), nontarget_eqnums.end(), eqn) != nontarget_eqnums.end())
+          if (ranges::find(nontarget_eqnums, eqn) != nontarget_eqnums.end())
             parsed_undiff_nontarget_lhs.push_back(undiff_nontarget_lhs.at(i));
           i++;
         }
 
       for (int i {0}; auto eqn : eqns)
-        if (find(nontarget_eqnums.begin(), nontarget_eqnums.end(), eqn) != nontarget_eqnums.end())
+        if (ranges::find(nontarget_eqnums, eqn) != nontarget_eqnums.end())
           equations[eqn]->arg2->fillErrorCorrectionRow(i++, parsed_undiff_nontarget_lhs, target_lhs,
                                                        A0, A0star);
       A0r[model_name] = A0;
@@ -1774,7 +1772,7 @@ DynamicModel::getUndiffLHSForPac(const string& aux_model_name,
 
   for (auto eqn : nontrend_eqnums)
     {
-      auto i = distance(eqnumber.begin(), find(eqnumber.begin(), eqnumber.end(), eqn));
+      auto i = distance(eqnumber.begin(), ranges::find(eqnumber, eqn));
 
       if (eqnumber[i] != eqn)
         {

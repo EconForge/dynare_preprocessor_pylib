@@ -395,9 +395,8 @@ ExprNode::fillErrorCorrectionRow(int eqn, const vector<int>& nontarget_lhs,
         {
           auto [orig_var_id, orig_lag] = datatree.symbol_table.unrollDiffLeadLagChain(var_id, lag);
           not_ec = not_ec
-                   || (find(target_lhs.begin(), target_lhs.end(), orig_var_id) == target_lhs.end()
-                       && find(nontarget_lhs.begin(), nontarget_lhs.end(), orig_var_id)
-                              == nontarget_lhs.end());
+                   || (ranges::find(target_lhs, orig_var_id) == target_lhs.end()
+                       && ranges::find(nontarget_lhs, orig_var_id) == nontarget_lhs.end());
         }
       if (not_ec)
         continue;
@@ -405,7 +404,7 @@ ExprNode::fillErrorCorrectionRow(int eqn, const vector<int>& nontarget_lhs,
       // Now fill the matrices
       for (const auto& [var_id, lag, param_id, constant] : error_linear_combination)
         if (auto [orig_vid, orig_lag] = datatree.symbol_table.unrollDiffLeadLagChain(var_id, lag);
-            find(target_lhs.begin(), target_lhs.end(), orig_vid) == target_lhs.end())
+            ranges::find(target_lhs, orig_vid) == target_lhs.end())
           {
             if (orig_lag != -1)
               {
@@ -429,8 +428,8 @@ ExprNode::fillErrorCorrectionRow(int eqn, const vector<int>& nontarget_lhs,
                     << endl;
                 exit(EXIT_FAILURE);
               }
-            int colidx = static_cast<int>(distance(
-                nontarget_lhs.begin(), find(nontarget_lhs.begin(), nontarget_lhs.end(), orig_vid)));
+            int colidx = static_cast<int>(
+                distance(nontarget_lhs.begin(), ranges::find(nontarget_lhs, orig_vid)));
             if (A0.contains({eqn, colidx}))
               {
                 cerr << "ExprNode::fillErrorCorrection: Error filling A0 matrix: "
@@ -443,7 +442,7 @@ ExprNode::fillErrorCorrectionRow(int eqn, const vector<int>& nontarget_lhs,
           {
             // This is a target, so fill A0star
             int colidx = static_cast<int>(
-                distance(target_lhs.begin(), find(target_lhs.begin(), target_lhs.end(), orig_vid)));
+                distance(target_lhs.begin(), ranges::find(target_lhs, orig_vid)));
             expr_t e = datatree.AddTimes(datatree.AddVariable(speed_of_adjustment_param),
                                          datatree.AddPossiblyNegativeConstant(-constant));
             if (param_id)
@@ -2018,8 +2017,7 @@ VariableNode::differentiateForwardVars(const vector<string>& subset, subst_table
     {
     case SymbolType::endogenous:
       assert(lag <= 1);
-      if (lag <= 0
-          || (subset.size() > 0 && find(subset.begin(), subset.end(), getName()) == subset.end()))
+      if (lag <= 0 || (subset.size() > 0 && ranges::find(subset, getName()) == subset.end()))
         return const_cast<VariableNode*>(this);
       else
         {
@@ -5940,7 +5938,7 @@ BinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int>& lhs,
 
       tie(vid, lag) = datatree.symbol_table.unrollDiffLeadLagChain(*vid, lag);
 
-      if (find(lhs.begin(), lhs.end(), *vid) == lhs.end())
+      if (ranges::find(lhs, *vid) == lhs.end())
         continue;
 
       if (AR.contains({eqn, -lag, *vid}))
