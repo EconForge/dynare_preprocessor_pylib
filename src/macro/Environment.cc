@@ -110,9 +110,8 @@ Environment::print(ostream& output, const vector<string>& vars, int line, bool s
 
   // For sorting the symbols in a case-insensitive way, see #128
   auto case_insensitive_string_less = [](const string& a, const string& b) {
-    return lexicographical_compare(
-        begin(a), end(a), begin(b), end(b),
-        [](const char& c1, const char& c2) { return tolower(c1) < tolower(c2); });
+    return ranges::lexicographical_compare(
+        a, b, [](char c1, char c2) { return tolower(c1) < tolower(c2); });
   };
 
   if (vars.empty())
