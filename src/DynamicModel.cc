@@ -184,9 +184,10 @@ DynamicModel::writeDynamicBytecode(const string& basename) const
   iota(exo.begin(), exo.end(), 0);
   iota(exo_det.begin(), exo_det.end(), 0);
 
-  int jacobian_ncols_endo {static_cast<int>(count_if(
-      dyn_jacobian_cols_table.begin(), dyn_jacobian_cols_table.end(),
-      [this](const auto& v) { return getTypeByDerivID(v.first) == SymbolType::endogenous; }))};
+  int jacobian_ncols_endo {
+      static_cast<int>(ranges::count_if(dyn_jacobian_cols_table, [this](const auto& v) {
+        return getTypeByDerivID(v.first) == SymbolType::endogenous;
+      }))};
   vector<int> eq_idx(equations.size());
   iota(eq_idx.begin(), eq_idx.end(), 0);
   vector<int> endo_idx(symbol_table.endo_nbr());
