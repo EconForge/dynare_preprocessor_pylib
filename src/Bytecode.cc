@@ -97,8 +97,8 @@ operator<<(Writer& code_file, const FBEGINBLOCK& instr)
   write_member(instr.det_exo_size);
   write_member(instr.exo_size);
 
-  for_each_n(instr.det_exogenous.begin(), instr.det_exo_size, write_member);
-  for_each_n(instr.exogenous.begin(), instr.exo_size, write_member);
+  ranges::for_each_n(instr.det_exogenous.begin(), instr.det_exo_size, write_member);
+  ranges::for_each_n(instr.exogenous.begin(), instr.exo_size, write_member);
 
   return code_file;
 }
