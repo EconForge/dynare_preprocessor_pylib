@@ -24,6 +24,7 @@
 #include <limits>
 #include <numbers>
 #include <numeric>
+#include <ranges>
 #include <utility>
 
 #include "DataTree.hh"
@@ -194,8 +195,7 @@ ExprNode::collectVariables(SymbolType type, set<int>& result) const
 {
   set<pair<int, int>> symbs_lags;
   collectDynamicVariables(type, symbs_lags);
-  transform(symbs_lags.begin(), symbs_lags.end(), inserter(result, result.begin()),
-            [](const auto& x) { return x.first; });
+  ranges::copy(views::keys(symbs_lags), inserter(result, result.begin()));
 }
 
 void
