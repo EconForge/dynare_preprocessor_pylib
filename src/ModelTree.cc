@@ -1819,8 +1819,8 @@ ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_b
 
   // The prerequisites are the object files among the input files
   set<filesystem::path> prerequisites;
-  copy_if(input_files.begin(), input_files.end(), inserter(prerequisites, prerequisites.end()),
-          [](const auto& p) { return p.extension() == ".o"; });
+  ranges::copy_if(input_files, inserter(prerequisites, prerequisites.end()),
+                  [](const auto& p) { return p.extension() == ".o"; });
 
   unique_lock<mutex> lk {mex_compilation_mut};
   mex_compilation_queue.emplace_back(output_filename, prerequisites, cmd.str());
