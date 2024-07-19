@@ -4397,8 +4397,7 @@ DynamicModel::OccbinRegimeTracker::checkAllRegimesPresent() const
       if (it == r.end())
         break;
       *it = true;
-      if (it != r.begin())
-        fill(r.begin(), prev(it), false);
+      fill(r.begin(), it, false);
     }
   while (true);
 }
