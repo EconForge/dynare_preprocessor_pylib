@@ -4397,6 +4397,8 @@ DynamicModel::OccbinRegimeTracker::checkAllRegimesPresent() const
       if (it == r.end())
         break;
       *it = true;
+      /* NB: cannot use ranges::fill since vector<bool>::iterator does not satisfy
+         indirectly_writable concept. Should be fixed in C++23: https://wg21.link/p2321 */
       fill(r.begin(), it, false);
     }
   while (true);
