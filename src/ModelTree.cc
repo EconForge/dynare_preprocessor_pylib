@@ -275,8 +275,8 @@ ModelTree::computeNormalization(const jacob_map_t& contemporaneous_jacobian)
   // Create the resulting map, by copying the n first elements of mate_map, and substracting n to
   // them
   endo2eq.resize(equations.size());
-  transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(),
-            [=](vertex_descriptor_t i) { return i - n; });
+  ranges::transform(mate_map.begin(), mate_map.begin() + n, endo2eq.begin(),
+                    [=](vertex_descriptor_t i) { return i - n; });
 }
 
 bool

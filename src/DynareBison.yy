@@ -87,7 +87,7 @@ string
 str_tolower(string s)
 {
   // Converting to unsigned char is needed, see https://en.cppreference.com/w/cpp/string/byte/tolower
-  transform(s.begin(), s.end(), s.begin(), [](unsigned char c){ return std::tolower(c); });
+  ranges::transform(s, s.begin(), [](unsigned char c){ return std::tolower(c); });
   return s;
 }
 }
