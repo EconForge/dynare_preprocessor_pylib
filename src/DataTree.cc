@@ -972,7 +972,7 @@ DataTree::writeToFileIfModified(stringstream& new_contents, const filesystem::pa
       cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
       exit(EXIT_FAILURE);
     }
-  copy(istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {},
-       ostreambuf_iterator<char> {new_file});
+  ranges::copy(istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {},
+               ostreambuf_iterator<char> {new_file});
   new_file.close();
 }

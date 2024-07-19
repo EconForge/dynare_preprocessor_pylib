@@ -983,9 +983,9 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
   temporary_terms_derivatives.clear();
   temporary_terms_derivatives.resize(derivatives.size());
   for (int order = 0; order < static_cast<int>(derivatives.size()); order++)
-    copy(temp_terms_map[{order, 0}].begin(), temp_terms_map[{order, 0}].end(),
-         inserter(temporary_terms_derivatives.at(order),
-                  temporary_terms_derivatives.at(order).begin()));
+    ranges::copy(temp_terms_map[{order, 0}],
+                 inserter(temporary_terms_derivatives.at(order),
+                          temporary_terms_derivatives.at(order).begin()));
 
   // Compute indices in MATLAB/Julia vector
   for (int order {0}, idx {0}; order < static_cast<int>(derivatives.size()); order++)
@@ -1038,9 +1038,9 @@ ModelTree::computeBlockTemporaryTerms(bool no_tmp_terms)
     {
       blocks_temporary_terms.at(blk).resize(temp_terms.at(blk).size());
       for (size_t i {0}; i < temp_terms.at(blk).size(); i++)
-        copy(temp_terms.at(blk).at(i).begin(), temp_terms.at(blk).at(i).end(),
-             inserter(blocks_temporary_terms.at(blk).at(i),
-                      blocks_temporary_terms.at(blk).at(i).begin()));
+        ranges::copy(temp_terms.at(blk).at(i),
+                     inserter(blocks_temporary_terms.at(blk).at(i),
+                              blocks_temporary_terms.at(blk).at(i).begin()));
     }
 
   // Compute indices in the temporary terms vector
@@ -1544,9 +1544,8 @@ ModelTree::computeParamsDerivativesTemporaryTerms()
       d->computeTemporaryTerms(order, temp_terms_map, reference_count, true);
 
   for (const auto& [order, tts] : temp_terms_map)
-    copy(temp_terms_map[order].begin(), temp_terms_map[order].end(),
-         inserter(params_derivs_temporary_terms[order],
-                  params_derivs_temporary_terms[order].begin()));
+    ranges::copy(temp_terms_map[order], inserter(params_derivs_temporary_terms[order],
+                                                 params_derivs_temporary_terms[order].begin()));
 
   for (int idx {0}; const auto& [order, tts] : params_derivs_temporary_terms)
     for (const auto& tt : tts)

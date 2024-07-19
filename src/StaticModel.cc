@@ -669,9 +669,9 @@ StaticModel::computeRamseyMultipliersDerivatives(int ramsey_orig_endo_nbr, bool 
   if (no_tmp_terms)
     for (auto& it : temp_terms_map)
       erase_if(it.second, [](expr_t e) { return !dynamic_cast<AbstractExternalFunctionNode*>(e); });
-  copy(temp_terms_map[{1, 0}].begin(), temp_terms_map[{1, 0}].end(),
-       inserter(ramsey_multipliers_derivatives_temporary_terms,
-                ramsey_multipliers_derivatives_temporary_terms.begin()));
+  ranges::copy(temp_terms_map[{1, 0}],
+               inserter(ramsey_multipliers_derivatives_temporary_terms,
+                        ramsey_multipliers_derivatives_temporary_terms.begin()));
   for (int idx {0}; auto it : ramsey_multipliers_derivatives_temporary_terms)
     ramsey_multipliers_derivatives_temporary_terms_idxs[it] = idx++;
 
