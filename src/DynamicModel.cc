@@ -3040,8 +3040,7 @@ DynamicModel::findUnusedEndogenous()
   for (auto& equation : static_only_equations)
     equation->collectVariables(SymbolType::endogenous, usedEndo);
   set<int> allEndo = symbol_table.getEndogenous();
-  set_difference(allEndo.begin(), allEndo.end(), usedEndo.begin(), usedEndo.end(),
-                 inserter(unusedEndo, unusedEndo.begin()));
+  ranges::set_difference(allEndo, usedEndo, inserter(unusedEndo, unusedEndo.begin()));
   return unusedEndo;
 }
 
@@ -3055,10 +3054,8 @@ DynamicModel::findUnusedExogenous()
     equation->collectVariables(SymbolType::exogenous, usedExo);
   set<int> observedExo = symbol_table.getObservedExogenous();
   set<int> allExo = symbol_table.getExogenous();
-  set_difference(allExo.begin(), allExo.end(), observedExo.begin(), observedExo.end(),
-                 inserter(unobservedExo, unobservedExo.begin()));
-  set_difference(unobservedExo.begin(), unobservedExo.end(), usedExo.begin(), usedExo.end(),
-                 inserter(unusedExo, unusedExo.begin()));
+  ranges::set_difference(allExo, observedExo, inserter(unobservedExo, unobservedExo.begin()));
+  ranges::set_difference(unobservedExo, usedExo, inserter(unusedExo, unusedExo.begin()));
   return unusedExo;
 }
 

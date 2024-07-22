@@ -376,8 +376,8 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   // Check if some exogenous is not used in the model block, Issue #841
   set<int> unusedExo0 = dynamic_model.findUnusedExogenous();
   set<int> unusedExo;
-  set_difference(unusedExo0.begin(), unusedExo0.end(), mod_file_struct.pac_params.begin(),
-                 mod_file_struct.pac_params.end(), inserter(unusedExo, unusedExo.begin()));
+  ranges::set_difference(unusedExo0, mod_file_struct.pac_params,
+                         inserter(unusedExo, unusedExo.begin()));
   if (unusedExo.size() > 0)
     {
       ostringstream unused_exos;
