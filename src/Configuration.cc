@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2023 Dynare Team
+ * Copyright © 2010-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -666,15 +666,14 @@ Configuration::transformPass()
       }
 #endif
 
-  auto cluster_it
-      = cluster_name.empty() ? clusters.find(firstClusterName) : clusters.find(cluster_name);
+  auto& cluster = cluster_name.empty() ? clusters.at(firstClusterName) : clusters.at(cluster_name);
 
   double weight_denominator {0.0};
-  for (const auto& it : cluster_it->second.member_nodes)
-    weight_denominator += it.second;
+  for (const auto& [name, weight] : cluster.member_nodes)
+    weight_denominator += weight;
 
-  for (auto& member_node : cluster_it->second.member_nodes)
-    member_node.second /= weight_denominator;
+  for (auto& [name, weight] : cluster.member_nodes)
+    weight /= weight_denominator;
 }
 
 vector<filesystem::path>
@@ -701,51 +700,35 @@ Configuration::writeCluster(ostream& output) const
   if (!parallel && !parallel_test)
     return;
 
-  auto cluster_it
-      = cluster_name.empty() ? clusters.find(firstClusterName) : clusters.find(cluster_name);
+  const auto& cluster
+      = cluster_name.empty() ? clusters.at(firstClusterName) : clusters.at(cluster_name);
 
-  for (int i {1}; const auto& follower_node : follower_nodes)
+  for (int i {1}; const auto& [name, node] : follower_nodes)
     {
-      bool follower_node_in_member_nodes = false;
-      for (const auto& itmn : cluster_it->second.member_nodes)
-        if (follower_node.first == itmn.first)
-          follower_node_in_member_nodes = true;
-
-      if (!follower_node_in_member_nodes)
-        continue;
+      if (!cluster.member_nodes.contains(name))
+        continue; // Skip nodes not in the selected cluster
 
       output << "options_.parallel";
       if (i > 1)
         output << "(" << i << ")";
       i++;
-      output << " = struct('Local', ";
-      if (follower_node.second.computerName == "localhost")
-        output << "1, ";
-      else
-        output << "0, ";
-
-      output << "'ComputerName', '" << follower_node.second.computerName << "', "
-             << "'Port', '" << follower_node.second.port << "', "
-             << "'CPUnbr', [" << follower_node.second.minCpuNbr << ":"
-             << follower_node.second.maxCpuNbr << "], "
-             << "'UserName', '" << follower_node.second.userName << "', "
-             << "'Password', '" << follower_node.second.password << "', "
-             << "'RemoteDrive', '" << follower_node.second.remoteDrive << "', "
-             << "'RemoteDirectory', '" << follower_node.second.remoteDirectory
+      output << " = struct('Local', " << noboolalpha << (node.computerName == "localhost") << ", "
+             << "'ComputerName', '" << node.computerName << "', "
+             << "'Port', '" << node.port << "', "
+             << "'CPUnbr', [" << node.minCpuNbr << ":" << node.maxCpuNbr << "], "
+             << "'UserName', '" << node.userName << "', "
+             << "'Password', '" << node.password << "', "
+             << "'RemoteDrive', '" << node.remoteDrive << "', "
+             << "'RemoteDirectory', '" << node.remoteDirectory
              << "', "
              // The following should be switched back to “ProgramPath” once we move to Dragonfly
-             << "'DynarePath', '" << follower_node.second.programPath << "', "
-             << "'ProgramConfig', '" << follower_node.second.programConfig << "', "
-             << "'MatlabOctavePath', '" << follower_node.second.matlabOctavePath << "', "
-             << "'OperatingSystem', '" << follower_node.second.operatingSystem << "', "
-             << "'NodeWeight', '" << cluster_it->second.member_nodes.at(follower_node.first)
-             << "', "
-             << "'NumberOfThreadsPerJob', " << follower_node.second.numberOfThreadsPerJob << ", ";
-
-      if (follower_node.second.singleCompThread)
-        output << "'SingleCompThread', 'true');" << endl;
-      else
-        output << "'SingleCompThread', 'false');" << endl;
+             << "'DynarePath', '" << node.programPath << "', "
+             << "'ProgramConfig', '" << node.programConfig << "', "
+             << "'MatlabOctavePath', '" << node.matlabOctavePath << "', "
+             << "'OperatingSystem', '" << node.operatingSystem << "', "
+             << "'NodeWeight', '" << cluster.member_nodes.at(name) << "', "
+             << "'NumberOfThreadsPerJob', " << node.numberOfThreadsPerJob << ", "
+             << "'SingleCompThread', '" << boolalpha << node.singleCompThread << "');" << endl;
     }
 
   // Default values for the following two are both in DynareMain.cc and
