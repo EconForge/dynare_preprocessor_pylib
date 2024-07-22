@@ -1980,8 +1980,7 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
       auto pick_job = [&cmd, &output] {
         for (auto it {mex_compilation_queue.begin()}; it != mex_compilation_queue.end(); ++it)
           if (const auto& prerequisites {get<1>(*it)}; // Will become dangling after erase
-              includes(mex_compilation_done.begin(), mex_compilation_done.end(),
-                       prerequisites.begin(), prerequisites.end()))
+              ranges::includes(mex_compilation_done, prerequisites))
             {
               output = get<0>(*it);
               cmd = get<2>(*it);
