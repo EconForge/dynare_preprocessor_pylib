@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <numeric>
+#include <ranges>
 #include <sstream>
 #include <unordered_map>
 
@@ -133,10 +134,8 @@ StaticModel::writeStaticBytecode(const string& basename) const
   int u_count_int {writeBytecodeBinFile(basename + "/model/bytecode/static.bin", false)};
 
   Bytecode::Writer code_file {basename + "/model/bytecode/static.cod"};
-  vector<int> eq_idx(equations.size());
-  iota(eq_idx.begin(), eq_idx.end(), 0);
-  vector<int> endo_idx(symbol_table.endo_nbr());
-  iota(endo_idx.begin(), endo_idx.end(), 0);
+  auto eq_idx = views::iota(0, static_cast<int>(equations.size()));
+  auto endo_idx = views::iota(0, symbol_table.endo_nbr());
 
   // Declare temporary terms and the (single) block
   code_file << Bytecode::FDIMST {static_cast<int>(temporary_terms_derivatives[0].size()
@@ -145,8 +144,8 @@ StaticModel::writeStaticBytecode(const string& basename) const
                                       BlockSimulationType::solveForwardComplete,
                                       0,
                                       symbol_table.endo_nbr(),
-                                      endo_idx,
-                                      eq_idx,
+                                      {endo_idx.begin(), endo_idx.end()},
+                                      {eq_idx.begin(), eq_idx.end()},
                                       false,
                                       u_count_int,
                                       symbol_table.endo_nbr()};

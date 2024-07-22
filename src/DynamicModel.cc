@@ -180,32 +180,29 @@ DynamicModel::writeDynamicBytecode(const string& basename) const
                                                  + temporary_terms_derivatives[1].size())};
 
   // Declare the (single) block
-  vector<int> exo(symbol_table.exo_nbr()), exo_det(symbol_table.exo_det_nbr());
-  iota(exo.begin(), exo.end(), 0);
-  iota(exo_det.begin(), exo_det.end(), 0);
+  auto exo = views::iota(0, symbol_table.exo_nbr());
+  auto exo_det = views::iota(0, symbol_table.exo_det_nbr());
+  auto eq_idx = views::iota(0, static_cast<int>(equations.size()));
+  auto endo_idx = views::iota(0, symbol_table.endo_nbr());
 
   int jacobian_ncols_endo {
       static_cast<int>(ranges::count_if(dyn_jacobian_cols_table, [this](const auto& v) {
         return getTypeByDerivID(v.first) == SymbolType::endogenous;
       }))};
-  vector<int> eq_idx(equations.size());
-  iota(eq_idx.begin(), eq_idx.end(), 0);
-  vector<int> endo_idx(symbol_table.endo_nbr());
-  iota(endo_idx.begin(), endo_idx.end(), 0);
 
   code_file << Bytecode::FBEGINBLOCK {symbol_table.endo_nbr(),
                                       simulation_type,
                                       0,
                                       symbol_table.endo_nbr(),
-                                      endo_idx,
-                                      eq_idx,
+                                      {endo_idx.begin(), endo_idx.end()},
+                                      {eq_idx.begin(), eq_idx.end()},
                                       false,
                                       u_count_int,
                                       jacobian_ncols_endo,
                                       symbol_table.exo_det_nbr(),
                                       symbol_table.exo_nbr(),
-                                      exo_det,
-                                      exo};
+                                      {exo_det.begin(), exo_det.end()},
+                                      {exo.begin(), exo.end()}};
 
   writeBytecodeHelper<true>(code_file);
 }
@@ -3495,10 +3492,8 @@ pair<lag_equivalence_table_t, ExprNode::subst_table_t>
 DynamicModel::substituteUnaryOps(VarExpectationModelTable& var_expectation_model_table,
                                  PacModelTable& pac_model_table)
 {
-  vector<int> eqnumbers(equations.size());
-  iota(eqnumbers.begin(), eqnumbers.end(), 0);
-  return substituteUnaryOps({eqnumbers.begin(), eqnumbers.end()}, var_expectation_model_table,
-                            pac_model_table);
+  auto v = views::iota(0, static_cast<int>(equations.size()));
+  return substituteUnaryOps({v.begin(), v.end()}, var_expectation_model_table, pac_model_table);
 }
 
 pair<lag_equivalence_table_t, ExprNode::subst_table_t>

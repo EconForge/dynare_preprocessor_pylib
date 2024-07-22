@@ -22,6 +22,7 @@
 #include <fstream>
 #include <iostream>
 #include <numeric>
+#include <ranges>
 #include <sstream>
 
 #include "ExprNode.hh"
@@ -3034,9 +3035,8 @@ ParsingDriver::add_diff(expr_t arg1)
 expr_t
 ParsingDriver::add_adl(expr_t arg1, const string& name, const string& lag)
 {
-  vector<int> lags(stoi(lag));
-  iota(lags.begin(), lags.end(), 1);
-  return add_adl(arg1, name, lags);
+  auto lags = views::iota(1, stoi(lag) + 1);
+  return add_adl(arg1, name, vector<int> {lags.begin(), lags.end()});
 }
 
 expr_t
