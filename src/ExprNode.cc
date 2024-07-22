@@ -4114,9 +4114,8 @@ BinaryOpNode::prepareForDerivation()
 
   // Non-null derivatives are the union of those of the arguments
   // Compute set union of arg1->non_null_derivatives and arg2->non_null_derivatives
-  set_union(arg1->non_null_derivatives.begin(), arg1->non_null_derivatives.end(),
-            arg2->non_null_derivatives.begin(), arg2->non_null_derivatives.end(),
-            inserter(non_null_derivatives, non_null_derivatives.begin()));
+  ranges::set_union(arg1->non_null_derivatives, arg2->non_null_derivatives,
+                    inserter(non_null_derivatives, non_null_derivatives.begin()));
 }
 
 void
@@ -4131,10 +4130,8 @@ BinaryOpNode::prepareForChainRuleDerivation(
   arg2->prepareForChainRuleDerivation(recursive_variables, non_null_chain_rule_derivatives);
 
   set<int>& nnd {non_null_chain_rule_derivatives[const_cast<BinaryOpNode*>(this)]};
-  set_union(non_null_chain_rule_derivatives.at(arg1).begin(),
-            non_null_chain_rule_derivatives.at(arg1).end(),
-            non_null_chain_rule_derivatives.at(arg2).begin(),
-            non_null_chain_rule_derivatives.at(arg2).end(), inserter(nnd, nnd.begin()));
+  ranges::set_union(non_null_chain_rule_derivatives.at(arg1),
+                    non_null_chain_rule_derivatives.at(arg2), inserter(nnd, nnd.begin()));
 }
 
 expr_t
@@ -6043,12 +6040,10 @@ TrinaryOpNode::prepareForDerivation()
   // Non-null derivatives are the union of those of the arguments
   // Compute set union of arg{1,2,3}->non_null_derivatives
   set<int> non_null_derivatives_tmp;
-  set_union(arg1->non_null_derivatives.begin(), arg1->non_null_derivatives.end(),
-            arg2->non_null_derivatives.begin(), arg2->non_null_derivatives.end(),
-            inserter(non_null_derivatives_tmp, non_null_derivatives_tmp.begin()));
-  set_union(non_null_derivatives_tmp.begin(), non_null_derivatives_tmp.end(),
-            arg3->non_null_derivatives.begin(), arg3->non_null_derivatives.end(),
-            inserter(non_null_derivatives, non_null_derivatives.begin()));
+  ranges::set_union(arg1->non_null_derivatives, arg2->non_null_derivatives,
+                    inserter(non_null_derivatives_tmp, non_null_derivatives_tmp.begin()));
+  ranges::set_union(non_null_derivatives_tmp, arg3->non_null_derivatives,
+                    inserter(non_null_derivatives, non_null_derivatives.begin()));
 }
 
 void
@@ -6065,12 +6060,9 @@ TrinaryOpNode::prepareForChainRuleDerivation(
 
   set<int>& nnd {non_null_chain_rule_derivatives[const_cast<TrinaryOpNode*>(this)]};
   set<int> nnd_tmp;
-  set_union(non_null_chain_rule_derivatives.at(arg1).begin(),
-            non_null_chain_rule_derivatives.at(arg1).end(),
-            non_null_chain_rule_derivatives.at(arg2).begin(),
-            non_null_chain_rule_derivatives.at(arg2).end(), inserter(nnd_tmp, nnd_tmp.begin()));
-  set_union(nnd_tmp.begin(), nnd_tmp.end(), non_null_chain_rule_derivatives.at(arg3).begin(),
-            non_null_chain_rule_derivatives.at(arg3).end(), inserter(nnd, nnd.begin()));
+  ranges::set_union(non_null_chain_rule_derivatives.at(arg1),
+                    non_null_chain_rule_derivatives.at(arg2), inserter(nnd_tmp, nnd_tmp.begin()));
+  ranges::set_union(nnd_tmp, non_null_chain_rule_derivatives.at(arg3), inserter(nnd, nnd.begin()));
 }
 
 expr_t
@@ -6887,10 +6879,8 @@ AbstractExternalFunctionNode::prepareForDerivation()
   for (int i = 1; i < static_cast<int>(arguments.size()); i++)
     {
       set<int> non_null_derivatives_tmp;
-      set_union(non_null_derivatives.begin(), non_null_derivatives.end(),
-                arguments.at(i)->non_null_derivatives.begin(),
-                arguments.at(i)->non_null_derivatives.end(),
-                inserter(non_null_derivatives_tmp, non_null_derivatives_tmp.begin()));
+      ranges::set_union(non_null_derivatives, arguments.at(i)->non_null_derivatives,
+                        inserter(non_null_derivatives_tmp, non_null_derivatives_tmp.begin()));
       non_null_derivatives = move(non_null_derivatives_tmp);
     }
 
@@ -6915,9 +6905,8 @@ AbstractExternalFunctionNode::prepareForChainRuleDerivation(
   for (int i {1}; i < static_cast<int>(arguments.size()); i++)
     {
       set<int> nnd_tmp;
-      set_union(nnd.begin(), nnd.end(), non_null_chain_rule_derivatives.at(arguments.at(i)).begin(),
-                non_null_chain_rule_derivatives.at(arguments.at(i)).end(),
-                inserter(nnd_tmp, nnd_tmp.begin()));
+      ranges::set_union(nnd, non_null_chain_rule_derivatives.at(arguments.at(i)),
+                        inserter(nnd_tmp, nnd_tmp.begin()));
       nnd = move(nnd_tmp);
     }
 }
