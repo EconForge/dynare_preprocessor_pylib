@@ -7685,7 +7685,6 @@ ExternalFunctionNode::writeJsonExternalFunctionOutput(vector<string>& efout,
 void
 ExternalFunctionNode::computeXrefs(EquationInfo& ei) const
 {
-  vector<expr_t> dynamic_arguments;
   for (auto argument : arguments)
     argument->computeXrefs(ei);
 }
@@ -8029,7 +8028,6 @@ FirstDerivExternalFunctionNode::buildSimilarExternalFunctionNode(vector<expr_t>&
 void
 FirstDerivExternalFunctionNode::computeXrefs(EquationInfo& ei) const
 {
-  vector<expr_t> dynamic_arguments;
   for (auto argument : arguments)
     argument->computeXrefs(ei);
 }
@@ -8308,7 +8306,6 @@ SecondDerivExternalFunctionNode::buildSimilarExternalFunctionNode(vector<expr_t>
 void
 SecondDerivExternalFunctionNode::computeXrefs(EquationInfo& ei) const
 {
-  vector<expr_t> dynamic_arguments;
   for (auto argument : arguments)
     argument->computeXrefs(ei);
 }
