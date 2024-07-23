@@ -6980,43 +6980,43 @@ AbstractExternalFunctionNode::maxHelper(const function<int(expr_t)>& f) const
 int
 AbstractExternalFunctionNode::maxEndoLead() const
 {
-  return maxHelper([](expr_t e) { return e->maxEndoLead(); });
+  return maxHelper(&ExprNode::maxEndoLead);
 }
 
 int
 AbstractExternalFunctionNode::maxExoLead() const
 {
-  return maxHelper([](expr_t e) { return e->maxExoLead(); });
+  return maxHelper(&ExprNode::maxExoLead);
 }
 
 int
 AbstractExternalFunctionNode::maxEndoLag() const
 {
-  return maxHelper([](expr_t e) { return e->maxEndoLag(); });
+  return maxHelper(&ExprNode::maxEndoLag);
 }
 
 int
 AbstractExternalFunctionNode::maxExoLag() const
 {
-  return maxHelper([](expr_t e) { return e->maxExoLag(); });
+  return maxHelper(&ExprNode::maxExoLag);
 }
 
 int
 AbstractExternalFunctionNode::maxLead() const
 {
-  return maxHelper([](expr_t e) { return e->maxLead(); });
+  return maxHelper(&ExprNode::maxLead);
 }
 
 int
 AbstractExternalFunctionNode::maxLag() const
 {
-  return maxHelper([](expr_t e) { return e->maxLag(); });
+  return maxHelper(&ExprNode::maxLag);
 }
 
 int
 AbstractExternalFunctionNode::maxLagWithDiffsExpanded() const
 {
-  return maxHelper([](expr_t e) { return e->maxLagWithDiffsExpanded(); });
+  return maxHelper(&ExprNode::maxLagWithDiffsExpanded);
 }
 
 expr_t
@@ -7154,7 +7154,7 @@ AbstractExternalFunctionNode::substituteUnaryOpNodes(const lag_equivalence_table
 int
 AbstractExternalFunctionNode::countDiffs() const
 {
-  return maxHelper([](expr_t e) { return e->countDiffs(); });
+  return maxHelper(&ExprNode::countDiffs);
 }
 
 expr_t
@@ -7289,7 +7289,7 @@ AbstractExternalFunctionNode::removeTrendLeadLag(const map<int, expr_t>& trend_s
 bool
 AbstractExternalFunctionNode::isInStaticForm() const
 {
-  return ranges::all_of(arguments, [](expr_t e) { return e->isInStaticForm(); });
+  return ranges::all_of(arguments, &ExprNode::isInStaticForm);
 }
 
 bool
