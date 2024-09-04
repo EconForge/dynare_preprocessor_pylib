@@ -1465,6 +1465,7 @@ steady_options : o_solve_algo
                | o_markowitz
                | o_steady_maxit
                | o_nocheck
+               | o_noprint
                | o_steady_tolf
                | o_steady_tolx
                | o_fsolve_options
