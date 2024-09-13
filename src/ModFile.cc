@@ -1065,9 +1065,9 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
     mOutputFile << "clearvars -global" << endl
                 << "clear_persistent_variables(fileparts(which('dynare')), false)" << endl;
   else if (clear_global)
-    mOutputFile
-        << "clear M_ options_ oo_ estim_params_ bayestopt_ dataset_ dataset_info estimation_info;"
-        << endl;
+    mOutputFile << "clearvars -global M_ options_ oo_ estim_params_ bayestopt_ dataset_ "
+                   "dataset_info estimation_info;"
+                << endl;
 
   if (!notime)
     mOutputFile << "tic0 = tic;" << endl;
