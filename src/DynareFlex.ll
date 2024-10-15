@@ -258,6 +258,9 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 
  /* Inside  of a Dynare statement */
 <DYNARE_STATEMENT>{DATE} {
+                           /* If a date is found within a statement, substitute it with a call to
+                              the dates() constructor in the input character stream. Then it will
+                              be handled by the rule that follows the present one. */
                            char* yycopy = strdup(yytext);
                            char* uput = yycopy + yyleng;
                            unput(')');

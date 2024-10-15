@@ -50,6 +50,11 @@ NativeStatement::writeOutput(ostream& output, [[maybe_unused]] const string& bas
      boost::xpressive does not look for the longest match in an alternation, but stops at the first
      match from left to right. */
   string date_regex = R"((-?\d+([YyAa]|[Mm](1[0-2]|[1-9])|[Qq][1-4]|[SsHh][1-2])))";
+  /* NB: the following dance around the dollar sign (exclude it from lookbehind, then use it in a
+     temporary string after the first replace, then remove it in the second replace) has a purpose:
+     it allows the user to disable the substitution mechanism. For example, if the user writes
+     “$2024Q4” in a native statement, it will be transformed into “2024Q4” and not
+     “$dates('2024Q4')”. */
   sregex regex_lookbehind = sregex::compile(R"((?<!\$|\d|[a-zA-Z_]|-|'))" + date_regex);
   sregex regex_dollar = sregex::compile(R"((\$))" + date_regex);
 
