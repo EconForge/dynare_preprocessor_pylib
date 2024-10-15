@@ -273,13 +273,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
                            unput('d');
                            free( yycopy );
                          }
-<DYNARE_STATEMENT>${DATE} { yylloc->step();
-#if (YY_FLEX_MAJOR_VERSION > 2) || (YY_FLEX_MAJOR_VERSION == 2 && YY_FLEX_MINOR_VERSION >= 6)
-                            yyout << yytext + 1;
-#else
-                            *yyout << yytext + 1;
-#endif
-                          }
 <DYNARE_STATEMENT>dates  {dates_parens_nb=0; BEGIN DATES_STATEMENT; yylval->build<string>("dates");}
 <DYNARE_STATEMENT>file                  {return token::FILE;}
 <DYNARE_STATEMENT>datafile 		{return token::DATAFILE;}
