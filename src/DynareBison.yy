@@ -222,7 +222,7 @@ str_tolower(string s)
 
 %type <expr_t> expression expression_or_empty
 %type <expr_t> equation hand_side
-%type <string> non_negative_number signed_number signed_integer date_str
+%type <string> non_negative_number signed_number signed_integer
 %type <string> filename symbol namespace_qualified_filename namespace_qualified_symbol
 %type <string> date_expr signed_inf signed_number_w_inf range
 %type <string> integer_range signed_integer_range boolean
@@ -2093,9 +2093,7 @@ prior_pdf : BETA_PDF
             { $$ = PriorDistributions::weibull; }
           ;
 
-date_str : DATES
-
-date_expr : date_str
+date_expr : DATES
           | date_expr PLUS INT_NUMBER
             { $$ = $1 + '+' + $3; }
           ;
