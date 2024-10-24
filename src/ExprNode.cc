@@ -1785,6 +1785,7 @@ VariableNode::maxLead() const
     case SymbolType::endogenous:
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
+    case SymbolType::epilogue:
     case SymbolType::heterogeneousEndogenous:
     case SymbolType::heterogeneousExogenous:
       return lag;
@@ -1803,6 +1804,7 @@ VariableNode::maxLag() const
     case SymbolType::endogenous:
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
+    case SymbolType::epilogue:
     case SymbolType::heterogeneousEndogenous:
     case SymbolType::heterogeneousExogenous:
       return -lag;
@@ -1945,6 +1947,7 @@ VariableNode::decreaseLeadsLags(int n) const
     case SymbolType::endogenous:
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
+    case SymbolType::epilogue:
     case SymbolType::trend:
     case SymbolType::logTrend:
     case SymbolType::heterogeneousEndogenous:
