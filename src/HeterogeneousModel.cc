@@ -220,6 +220,25 @@ HeterogeneousModel::getDerivID(int symb_id, int lead_lag) const noexcept(false)
 void
 HeterogeneousModel::writeDriverOutput(ostream& output) const
 {
+  std::vector<int> state_var;
+  for (int endoID = 0; endoID < symbol_table.het_endo_nbr(heterogeneity_dimension); endoID++)
+    try
+      {
+        getDerivID(symbol_table.getID(SymbolType::heterogeneousEndogenous, endoID,
+                                      heterogeneity_dimension),
+                   -1);
+        if (ranges::find(state_var, endoID) == state_var.end())
+          state_var.push_back(endoID);
+      }
+    catch (UnknownDerivIDException& e)
+      {
+      }
+
+  output << "M_.heterogeneity(" << heterogeneity_dimension + 1 << ").state_var = [";
+  for (int it : state_var)
+    output << it + 1 << " ";
+  output << "];" << endl;
+
   output << "M_.heterogeneity(" << heterogeneity_dimension + 1 << ").dynamic_tmp_nbr = [";
   for (const auto& it : temporary_terms_derivatives)
     output << it.size() << "; ";
