@@ -287,10 +287,6 @@ StaticModel::writeStaticFile(const string& basename, bool use_dll, const string&
     }
   create_directories(model_dir / "bytecode" / "block");
 
-  // Legacy representation
-  if (use_dll)
-    writeModelCFile<false>(basename, mexext, matlabroot);
-
   /* PlannerObjective subclass or discretionary optimal policy models don’t
      have as many variables as equations; bytecode does not support that
      case */
