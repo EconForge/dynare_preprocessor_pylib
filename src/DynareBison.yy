@@ -796,9 +796,7 @@ h_options: o_filename
           | o_first_obs
           | o_data_first_obs
           | o_first_simulation_period
-          | o_date_first_simulation_period
           | o_last_simulation_period
-          | o_date_last_simulation_period
           | o_last_obs
           | o_data_last_obs
           | o_nobs
@@ -3788,13 +3786,15 @@ o_est_first_obs : FIRST_OBS EQUAL vec_int
 o_posterior_sampling_method : POSTERIOR_SAMPLING_METHOD EQUAL QUOTED_STRING
                               { driver.option_str("posterior_sampler_options.posterior_sampling_method", $3); } ;
 o_first_obs : FIRST_OBS EQUAL INT_NUMBER { driver.option_num("first_obs", $3); };
-o_data_first_obs : FIRST_OBS EQUAL date_expr { driver.option_date("firstobs", $3); } ;
-o_first_simulation_period : FIRST_SIMULATION_PERIOD EQUAL INT_NUMBER { driver.option_num("first_simulation_period", $3); };
-o_date_first_simulation_period : FIRST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("firstsimulationperiod", $3); } ;
-o_last_simulation_period : LAST_SIMULATION_PERIOD EQUAL INT_NUMBER { driver.option_num("last_simulation_period", $3); };
-o_date_last_simulation_period : LAST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("lastsimulationperiod", $3); } ;
+o_data_first_obs : FIRST_OBS EQUAL date_expr { driver.option_date("first_obs", $3); } ;
+o_first_simulation_period : FIRST_SIMULATION_PERIOD EQUAL INT_NUMBER { driver.option_num("first_simulation_period", $3); }
+                          | FIRST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("first_simulation_period", $3); }
+                          ;
+o_last_simulation_period : LAST_SIMULATION_PERIOD EQUAL INT_NUMBER { driver.option_num("last_simulation_period", $3); }
+                         | LAST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("last_simulation_period", $3); }
+                         ;
 o_last_obs : LAST_OBS EQUAL INT_NUMBER { driver.option_num("last_obs", $3); };
-o_data_last_obs : LAST_OBS EQUAL date_expr { driver.option_date("lastobs", $3); } ;
+o_data_last_obs : LAST_OBS EQUAL date_expr { driver.option_date("last_obs", $3); } ;
 o_keep_kalman_algo_if_singularity_is_detected : KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED { driver.option_num("kalman.keep_kalman_algo_if_singularity_is_detected", "true"); } ;
 o_data_nobs : NOBS EQUAL INT_NUMBER { driver.option_num("nobs", $3); };
 o_shift : SHIFT EQUAL signed_number { driver.option_num("shift", $3); };
