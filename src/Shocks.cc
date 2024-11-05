@@ -37,8 +37,6 @@ AbstractShocksStatement::AbstractShocksStatement(bool overwrite_arg, ShockType t
 void
 AbstractShocksStatement::writeDetShocks(ostream& output) const
 {
-  int exo_det_length = 0;
-
   for (const auto& [id, shock_vec] : det_shocks)
     for (bool exo_det = (symbol_table.getType(id) == SymbolType::exogenousDet);
          const auto& [period1, period2, value] : shock_vec)
@@ -49,11 +47,7 @@ AbstractShocksStatement::writeDetShocks(ostream& output) const
                << ",'periods'," << period1 << ":" << period2 << ",'value',";
         value->writeOutput(output);
         output << ") ];" << endl;
-
-        if (exo_det && period2 > exo_det_length)
-          exo_det_length = period2;
       }
-  output << "M_.exo_det_length = " << exo_det_length << ";\n";
 }
 
 void
