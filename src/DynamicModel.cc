@@ -1359,8 +1359,7 @@ DynamicModel::fillVarModelTableFromOrigModel() const
           // save lhs variables
           equations[eqn]->arg1->collectVARLHSVariable(lhs);
 
-          equations[eqn]->arg1->countDiffs() > 0 ? diff_vec.push_back(true)
-                                                 : diff_vec.push_back(false);
+          diff_vec.push_back(equations[eqn]->arg1->countDiffs() > 0);
           if (diff_vec.back())
             {
               set<pair<int, int>> diff_set;
@@ -1704,10 +1703,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
           // save lhs variables
           equations[eqn]->arg1->collectVARLHSVariable(lhs);
 
-          if (equations[eqn]->arg1->countDiffs() > 0)
-            diff_vec.push_back(true);
-          else
-            diff_vec.push_back(false);
+          diff_vec.push_back(equations[eqn]->arg1->countDiffs() > 0);
           if (diff_vec.back())
             {
               set<pair<int, int>> diff_set;
@@ -1780,7 +1776,7 @@ DynamicModel::getUndiffLHSForPac(const string& aux_model_name,
           exit(EXIT_FAILURE);
         }
 
-      if (diff.at(i) != true)
+      if (!diff.at(i))
         {
           cerr << "ERROR: the variable on the LHS of equation #" << eqn
                << " does not have the diff operator applied to it yet you are trying to undiff it."
