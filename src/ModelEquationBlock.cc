@@ -410,10 +410,10 @@ void
 Epilogue::detrend(const map<int, expr_t>& trend_symbols_map,
                   const nonstationary_symbols_map_t& nonstationary_symbols_map)
 {
-  for (const auto& it : ranges::reverse_view(nonstationary_symbols_map))
+  for (const auto& [symb_id, deflator] : ranges::reverse_view(nonstationary_symbols_map))
     for (auto& [symb_id, expr] : dynamic_def_table)
       {
-        expr = expr->detrend(it.first, it.second.first, it.second.second);
+        expr = expr->detrend(symb_id, deflator.first, deflator.second);
         assert(expr);
       }
 

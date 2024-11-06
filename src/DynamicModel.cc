@@ -3751,18 +3751,18 @@ void
 DynamicModel::detrendEquations()
 {
   // We go backwards in the list of trend_vars, to deal correctly with I(2) processes
-  for (const auto& it : std::ranges::reverse_view(nonstationary_symbols_map))
+  for (const auto& [symb_id, deflator] : std::ranges::reverse_view(nonstationary_symbols_map))
     {
       for (auto& equation : equations)
         {
           equation = dynamic_cast<BinaryOpNode*>(
-              equation->detrend(it.first, it.second.first, it.second.second));
+              equation->detrend(symb_id, deflator.first, deflator.second));
           assert(equation);
         }
       for (auto& equation : static_only_equations)
         {
           equation = dynamic_cast<BinaryOpNode*>(
-              equation->detrend(it.first, it.second.first, it.second.second));
+              equation->detrend(symb_id, deflator.first, deflator.second));
           assert(equation);
         }
     }

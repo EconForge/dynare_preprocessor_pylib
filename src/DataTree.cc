@@ -860,10 +860,10 @@ bool
 DataTree::isUnaryOpUsedOnType(SymbolType type, UnaryOpcode opcode) const
 {
   set<int> var;
-  for (const auto& it : unary_op_node_map)
-    if (get<1>(it.first) == opcode)
+  for (const auto& [key, value] : unary_op_node_map)
+    if (get<1>(key) == opcode)
       {
-        it.second->collectVariables(type, var);
+        value->collectVariables(type, var);
         if (!var.empty())
           return true;
       }
@@ -881,10 +881,10 @@ bool
 DataTree::isBinaryOpUsedOnType(SymbolType type, BinaryOpcode opcode) const
 {
   set<int> var;
-  for (const auto& it : binary_op_node_map)
-    if (get<2>(it.first) == opcode)
+  for (const auto& [key, value] : binary_op_node_map)
+    if (get<2>(key) == opcode)
       {
-        it.second->collectVariables(type, var);
+        value->collectVariables(type, var);
         if (!var.empty())
           return true;
       }
