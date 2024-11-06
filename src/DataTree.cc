@@ -24,6 +24,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <ranges>
 
 #include "DataTree.hh"
 
@@ -804,9 +805,9 @@ DataTree::AddSum(expr_t arg)
 bool
 DataTree::isSymbolUsed(int symb_id) const
 {
-  for (const auto& [symb_lag, expr] : variable_node_map)
-    if (symb_lag.first == symb_id)
-      return true;
+  if (ranges::any_of(views::keys(variable_node_map),
+                     [=](const auto& symb_lag) { return symb_lag.first == symb_id; }))
+    return true;
 
   if (local_variables_table.contains(symb_id))
     return true;
@@ -852,8 +853,8 @@ DataTree::addAllParamDerivId([[maybe_unused]] set<int>& deriv_id_set)
 bool
 DataTree::isUnaryOpUsed(UnaryOpcode opcode) const
 {
-  return ranges::any_of(unary_op_node_map,
-                        [=](const auto& it) { return get<1>(it.first) == opcode; });
+  return ranges::any_of(views::keys(unary_op_node_map),
+                        [=](const auto& key) { return get<1>(key) == opcode; });
 }
 
 bool
@@ -873,8 +874,8 @@ DataTree::isUnaryOpUsedOnType(SymbolType type, UnaryOpcode opcode) const
 bool
 DataTree::isBinaryOpUsed(BinaryOpcode opcode) const
 {
-  return ranges::any_of(binary_op_node_map,
-                        [=](const auto& it) { return get<2>(it.first) == opcode; });
+  return ranges::any_of(views::keys(binary_op_node_map),
+                        [=](const auto& key) { return get<2>(key) == opcode; });
 }
 
 bool

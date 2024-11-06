@@ -39,6 +39,7 @@ class ParsingDriver;
 #include <utility>
 #include <tuple>
 #include <variant>
+#include <ranges>
 
 #include "CommonEnums.hh"
 #include "ExprNode.hh"
@@ -4470,9 +4471,8 @@ vec_int_number : INT_NUMBER
 vec_int_elem : vec_int_number
              | INT_NUMBER ':' INT_NUMBER
                {
-                 $$ = {};
-                 for (int i = stoi($1); i <= stoi($3); i++)
-                   $$.push_back(i);
+                 auto v = views::iota(stoi($1), stoi($3) + 1);
+                 $$ = {v.begin(), v.end()};
                }
              ;
 

@@ -1043,14 +1043,8 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
          << (static_only_equations.size() > 0) << ";" << endl;
 
   // Say if model contains an external function call
-  bool has_external_function = false;
-  for (auto equation : equations)
-    if (equation->containsExternalFunction())
-      {
-        has_external_function = true;
-        break;
-      }
-  output << "M_.has_external_function = " << boolalpha << has_external_function << ';' << endl;
+  output << "M_.has_external_function = " << boolalpha
+         << ranges::any_of(equations, &ExprNode::containsExternalFunction) << ';' << endl;
 
   // Compute list of state variables, ordered in block-order
   vector<int> state_var;
