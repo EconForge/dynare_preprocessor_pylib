@@ -1784,7 +1784,6 @@ DynamicModel::getUndiffLHSForPac(const string& aux_model_name,
           exit(EXIT_FAILURE);
         }
 
-      bool printerr = false;
       expr_t node = nullptr;
       expr_t aux_var = lhs_expr_t.at(i);
       for (const auto& it : diff_subst_table)
@@ -1801,11 +1800,8 @@ DynamicModel::getUndiffLHSForPac(const string& aux_model_name,
         }
 
       node = node->undiff();
-      auto it1 = diff_subst_table.find(node);
-      if (it1 == diff_subst_table.end())
-        printerr = true;
 
-      if (printerr)
+      if (auto it1 = diff_subst_table.find(node); it1 == diff_subst_table.end())
         { // we have undiffed something like diff(x), hence x is not in diff_subst_table
           lhs_expr_t.at(i) = node;
           lhs.at(i) = dynamic_cast<VariableNode*>(node)->symb_id;
