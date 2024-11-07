@@ -1543,6 +1543,8 @@ perfect_foresight_setup_options_list : perfect_foresight_setup_options_list COMM
 perfect_foresight_setup_options : o_periods
                                 | o_datafile
                                 | o_endval_steady
+                                | o_pf_first_simulation_period
+                                | o_pf_last_simulation_period
                                 ;
 
 perfect_foresight_solver : PERFECT_FORESIGHT_SOLVER ';'
@@ -1595,6 +1597,8 @@ perfect_foresight_with_expectation_errors_setup_options_list : perfect_foresight
 
 perfect_foresight_with_expectation_errors_setup_options : o_periods
                                                         | o_datafile
+                                                        | o_pf_first_simulation_period
+                                                        | o_pf_last_simulation_period
                                                         ;
 
 perfect_foresight_with_expectation_errors_solver : PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SOLVER ';'
@@ -3797,6 +3801,8 @@ o_first_simulation_period : FIRST_SIMULATION_PERIOD EQUAL INT_NUMBER { driver.op
 o_last_simulation_period : LAST_SIMULATION_PERIOD EQUAL INT_NUMBER { driver.option_num("last_simulation_period", $3); }
                          | LAST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("last_simulation_period", $3); }
                          ;
+o_pf_first_simulation_period : FIRST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("simul.first_simulation_period", $3); };
+o_pf_last_simulation_period : LAST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("simul.last_simulation_period", $3); };
 o_last_obs : LAST_OBS EQUAL INT_NUMBER { driver.option_num("last_obs", $3); };
 o_data_last_obs : LAST_OBS EQUAL date_expr { driver.option_date("last_obs", $3); } ;
 o_keep_kalman_algo_if_singularity_is_detected : KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED { driver.option_num("kalman.keep_kalman_algo_if_singularity_is_detected", "true"); } ;
