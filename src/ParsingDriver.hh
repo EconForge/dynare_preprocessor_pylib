@@ -481,10 +481,12 @@ public:
     multiply, // for “multiply” in “shocks(learnt_in)”
     conditional_forecast
   };
-  void add_det_shock(const string& var, const vector<pair<int, int>>& periods,
+  void add_det_shock(const string& var,
+                     const vector<AbstractShocksStatement::period_range_t>& periods,
                      const vector<expr_t>& values, DetShockType type);
   //! Adds a heteroskedastic shock (either values or scales)
-  void add_heteroskedastic_shock(const string& var, const vector<pair<int, int>>& periods,
+  void add_heteroskedastic_shock(const string& var,
+                                 const vector<AbstractShocksStatement::period_range_t>& periods,
                                  const vector<expr_t>& values, bool scales);
   //! Adds a std error shock
   void add_stderr_shock(const string& var, expr_t value);

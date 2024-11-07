@@ -256,11 +256,12 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <INITIAL>prior_function {BEGIN DYNARE_STATEMENT; return token::PRIOR_FUNCTION;}
 <INITIAL>posterior_function {BEGIN DYNARE_STATEMENT; return token::POSTERIOR_FUNCTION;}
 
- /* Inside  of a Dynare statement */
-<DYNARE_STATEMENT>{DATE} {
+<DYNARE_STATEMENT,DYNARE_BLOCK>{DATE} {
   yylval->emplace<string>(yytext);
   return token::DATE;
 }
+
+ /* Inside a Dynare statement */
 <DYNARE_STATEMENT>file                  {return token::FILE;}
 <DYNARE_STATEMENT>datafile 		{return token::DATAFILE;}
 <DYNARE_STATEMENT>dirname       {return token::DIRNAME;}

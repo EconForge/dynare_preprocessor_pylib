@@ -30,6 +30,10 @@
 #include "SymbolList.hh"
 #include "WarningConsolidation.hh"
 
+// Helper constant for visitors
+template<class>
+inline constexpr bool always_false_v {false};
+
 struct ModFileStructure
 {
   //! Whether check is present
@@ -333,9 +337,6 @@ public:
 private:
   map<string, OptionValue> options;
   void writeOutputCommon(ostream& output, const string& option_group) const;
-  // Helper constant for visitors
-  template<class>
-  static constexpr bool always_false_v {false};
 };
 
 #endif

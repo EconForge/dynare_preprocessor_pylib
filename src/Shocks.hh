@@ -22,6 +22,7 @@
 
 #include <map>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "ExprNode.hh"
@@ -34,8 +35,10 @@ using namespace std;
 class AbstractShocksStatement : public Statement
 {
 public:
-  // The tuple is (period1, period2, value)
-  using det_shocks_t = map<int, vector<tuple<int, int, expr_t>>>;
+  // A period range is either two indices (1-based), or two dates (from dseries)
+  using period_range_t = variant<pair<int, int>, pair<string, string>>;
+  // The pair is (period range, value)
+  using det_shocks_t = map<int, vector<pair<period_range_t, expr_t>>>;
   enum class ShockType
   {
     level, // The value is the level of the exogenous (“values” statement in “shocks”)
@@ -140,8 +143,9 @@ public:
                                // state as anticipated in the same informational period (“values”
                                // statement in “mshocks(learnt_in=…, relative_to_initval)”)
   };
-  // The tuple is (type, period1, period2, value)
-  using learnt_shocks_t = map<int, vector<tuple<LearntShockType, int, int, expr_t>>>;
+  // The tuple is (type, period range, value)
+  using learnt_shocks_t
+      = map<int, vector<tuple<LearntShockType, AbstractShocksStatement::period_range_t, expr_t>>>;
   const learnt_shocks_t learnt_shocks;
 
 private:

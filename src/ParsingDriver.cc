@@ -948,6 +948,11 @@ ParsingDriver::end_mshocks(bool overwrite, bool relative_to_initval)
 void
 ParsingDriver::end_shocks_surprise(bool overwrite)
 {
+  if (ranges::any_of(views::values(det_shocks), [](auto& v) {
+        return ranges::any_of(views::keys(v),
+                              [](auto& p) { return !holds_alternative<pair<int, int>>(p); });
+      }))
+    error("shocks(surprise): dates are not allowed in the 'periods' keyword");
   mod_file->addStatement(
       make_unique<ShocksSurpriseStatement>(overwrite, move(det_shocks), mod_file->symbol_table));
   det_shocks.clear();
@@ -970,35 +975,41 @@ ParsingDriver::end_shocks_learnt_in(const string& learnt_in_period, bool overwri
     }
   for (auto& storage : {det_shocks, learnt_shocks_add, learnt_shocks_multiply})
     for (auto& [symb_id, vals] : storage)
-      for (auto [period1, period2, expr] : vals)
-        if (period1 < learnt_in_period_int)
-          error("shocks: for variable " + mod_file->symbol_table.getName(symb_id)
-                + ", shock period (" + to_string(period1)
-                + ") is earlier than the period in which the shock is learnt (" + learnt_in_period
-                + ")");
+      for (const auto& [period_range, expr] : vals)
+        if (holds_alternative<pair<int, int>>(period_range))
+          if (int period1 = get<pair<int, int>>(period_range).first; period1 < learnt_in_period_int)
+            error("shocks: for variable " + mod_file->symbol_table.getName(symb_id)
+                  + ", shock period (" + to_string(period1)
+                  + ") is earlier than the period in which the shock is learnt (" + learnt_in_period
+                  + ")");
 
   // Aggregate the three types of shocks
   ShocksLearntInStatement::learnt_shocks_t learnt_shocks;
   for (const auto& [id, v] : det_shocks)
     {
-      vector<tuple<ShocksLearntInStatement::LearntShockType, int, int, expr_t>> v2;
-      for (auto [period1, period2, value] : v)
-        v2.emplace_back(ShocksLearntInStatement::LearntShockType::level, period1, period2, value);
+      vector<tuple<ShocksLearntInStatement::LearntShockType,
+                   AbstractShocksStatement::period_range_t, expr_t>>
+          v2;
+      for (const auto& [period_range, value] : v)
+        v2.emplace_back(ShocksLearntInStatement::LearntShockType::level, period_range, value);
       learnt_shocks[id] = v2;
     }
   for (const auto& [id, v] : learnt_shocks_add)
     {
-      vector<tuple<ShocksLearntInStatement::LearntShockType, int, int, expr_t>> v2;
-      for (auto [period1, period2, value] : v)
-        v2.emplace_back(ShocksLearntInStatement::LearntShockType::add, period1, period2, value);
+      vector<tuple<ShocksLearntInStatement::LearntShockType,
+                   AbstractShocksStatement::period_range_t, expr_t>>
+          v2;
+      for (const auto& [period_range, value] : v)
+        v2.emplace_back(ShocksLearntInStatement::LearntShockType::add, period_range, value);
       learnt_shocks[id] = v2;
     }
   for (const auto& [id, v] : learnt_shocks_multiply)
     {
-      vector<tuple<ShocksLearntInStatement::LearntShockType, int, int, expr_t>> v2;
-      for (auto [period1, period2, value] : v)
-        v2.emplace_back(ShocksLearntInStatement::LearntShockType::multiply, period1, period2,
-                        value);
+      vector<tuple<ShocksLearntInStatement::LearntShockType,
+                   AbstractShocksStatement::period_range_t, expr_t>>
+          v2;
+      for (const auto& [period_range, value] : v)
+        v2.emplace_back(ShocksLearntInStatement::LearntShockType::multiply, period_range, value);
       learnt_shocks[id] = v2;
     }
 
@@ -1023,12 +1034,13 @@ ParsingDriver::end_mshocks_learnt_in(const string& learnt_in_period, bool overwr
     }
 
   for (auto& [symb_id, vals] : det_shocks)
-    for (auto [period1, period2, expr] : vals)
-      if (period1 < learnt_in_period_int)
-        error("mshocks: for variable " + mod_file->symbol_table.getName(symb_id)
-              + ", shock period (" + to_string(period1)
-              + ") is earlier than the period in which the shock is learnt (" + learnt_in_period
-              + ")");
+    for (const auto& [period_range, expr] : vals)
+      if (holds_alternative<pair<int, int>>(period_range))
+        if (int period1 = get<pair<int, int>>(period_range).first; period1 < learnt_in_period_int)
+          error("mshocks: for variable " + mod_file->symbol_table.getName(symb_id)
+                + ", shock period (" + to_string(period1)
+                + ") is earlier than the period in which the shock is learnt (" + learnt_in_period
+                + ")");
 
   ShocksLearntInStatement::learnt_shocks_t learnt_shocks;
   const auto type {relative_to_initval
@@ -1036,9 +1048,11 @@ ParsingDriver::end_mshocks_learnt_in(const string& learnt_in_period, bool overwr
                        : ShocksLearntInStatement::LearntShockType::multiplySteadyState};
   for (const auto& [id, v] : det_shocks)
     {
-      vector<tuple<ShocksLearntInStatement::LearntShockType, int, int, expr_t>> v2;
-      for (auto [period1, period2, value] : v)
-        v2.emplace_back(type, period1, period2, value);
+      vector<tuple<ShocksLearntInStatement::LearntShockType,
+                   AbstractShocksStatement::period_range_t, expr_t>>
+          v2;
+      for (const auto& [period_range, value] : v)
+        v2.emplace_back(type, period_range, value);
       learnt_shocks[id] = v2;
     }
 
@@ -1062,7 +1076,8 @@ ParsingDriver::end_heteroskedastic_shocks(bool overwrite)
 }
 
 void
-ParsingDriver::add_det_shock(const string& var, const vector<pair<int, int>>& periods,
+ParsingDriver::add_det_shock(const string& var,
+                             const vector<AbstractShocksStatement::period_range_t>& periods,
                              const vector<expr_t>& values, DetShockType type)
 {
   switch (type)
@@ -1090,10 +1105,10 @@ ParsingDriver::add_det_shock(const string& var, const vector<pair<int, int>>& pe
     error("shocks/conditional_forecast_paths: variable " + var
           + ": number of periods is different from number of shock values");
 
-  vector<tuple<int, int, expr_t>> v;
+  vector<pair<AbstractShocksStatement::period_range_t, expr_t>> v;
 
   for (size_t i = 0; i < periods.size(); i++)
-    v.emplace_back(periods[i].first, periods[i].second, values[i]);
+    v.emplace_back(periods[i], values[i]);
 
   switch (type)
     {
@@ -1111,10 +1126,14 @@ ParsingDriver::add_det_shock(const string& var, const vector<pair<int, int>>& pe
 }
 
 void
-ParsingDriver::add_heteroskedastic_shock(const string& var, const vector<pair<int, int>>& periods,
-                                         const vector<expr_t>& values, bool scales)
+ParsingDriver::add_heteroskedastic_shock(
+    const string& var, const vector<AbstractShocksStatement::period_range_t>& periods,
+    const vector<expr_t>& values, bool scales)
 {
   check_symbol_is_exogenous(var, false);
+
+  if (ranges::any_of(periods, [](auto& p) { return !holds_alternative<pair<int, int>>(p); }))
+    error("heteroskedastic_shocks: dates are not allowed in the 'periods' keyword");
 
   int symb_id = mod_file->symbol_table.getID(var);
 
@@ -1128,7 +1147,10 @@ ParsingDriver::add_heteroskedastic_shock(const string& var, const vector<pair<in
 
   vector<tuple<int, int, expr_t>> v;
   for (size_t i = 0; i < periods.size(); i++)
-    v.emplace_back(periods[i].first, periods[i].second, values[i]);
+    {
+      auto [period1, period2] = get<pair<int, int>>(periods[i]);
+      v.emplace_back(period1, period2, values[i]);
+    }
 
   if (scales)
     heteroskedastic_shocks_scales[symb_id] = v;
@@ -2629,6 +2651,11 @@ ParsingDriver::plot_conditional_forecast(const optional<string>& periods,
 void
 ParsingDriver::conditional_forecast_paths()
 {
+  if (ranges::any_of(views::values(det_shocks), [](auto& v) {
+        return ranges::any_of(views::keys(v),
+                              [](auto& p) { return !holds_alternative<pair<int, int>>(p); });
+      }))
+    error("conditional_forecast_paths: dates are not allowed in the 'periods' keyword");
   mod_file->addStatement(
       make_unique<ConditionalForecastPathsStatement>(move(det_shocks), mod_file->symbol_table));
   det_shocks.clear();

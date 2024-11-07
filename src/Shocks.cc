@@ -19,10 +19,31 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 #include <utility>
 
 #include "Shocks.hh"
+
+static auto print_matlab_period_range = []<class T>(ostream& output, const T& arg) {
+  if constexpr (is_same_v<T, pair<int, int>>)
+    output << arg.first << ":" << arg.second;
+  else if constexpr (is_same_v<T, pair<string, string>>)
+    output << "(" << arg.first << "):(" << arg.second << ")";
+  else
+    static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+};
+
+static auto print_json_period_range = []<class T>(ostream& output, const T& arg) {
+  if constexpr (is_same_v<T, pair<int, int>>)
+    output << R"("period1": )" << arg.first << ", "
+           << R"("period2": )" << arg.second;
+  else if constexpr (is_same_v<T, pair<string, string>>)
+    output << R"("period1": ")" << arg.first << R"(", )"
+           << R"("period2": ")" << arg.second << '"';
+  else
+    static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+};
 
 AbstractShocksStatement::AbstractShocksStatement(bool overwrite_arg, ShockType type_arg,
                                                  det_shocks_t det_shocks_arg,
@@ -39,12 +60,14 @@ AbstractShocksStatement::writeDetShocks(ostream& output) const
 {
   for (const auto& [id, shock_vec] : det_shocks)
     for (bool exo_det = (symbol_table.getType(id) == SymbolType::exogenousDet);
-         const auto& [period1, period2, value] : shock_vec)
+         const auto& [period_range, value] : shock_vec)
       {
         output << "M_.det_shocks = [ M_.det_shocks;" << endl
                << boolalpha << "struct('exo_det'," << exo_det << ",'exo_id',"
                << symbol_table.getTypeSpecificID(id) + 1 << ",'type','" << typeToString(type) << "'"
-               << ",'periods'," << period1 << ":" << period2 << ",'value',";
+               << ",'periods',";
+        visit(bind(print_matlab_period_range, ref(output), placeholders::_1), period_range);
+        output << ",'value',";
         value->writeOutput(output);
         output << ") ];" << endl;
       }
@@ -60,13 +83,13 @@ AbstractShocksStatement::writeJsonDetShocks(ostream& output) const
         output << ", ";
       output << R"({"var": ")" << symbol_table.getName(id) << R"(", )"
              << R"("values": [)";
-      for (bool printed_something2 {false}; const auto& [period1, period2, value] : shock_vec)
+      for (bool printed_something2 {false}; const auto& [period_range, value] : shock_vec)
         {
           if (exchange(printed_something2, true))
             output << ", ";
-          output << R"({"period1": )" << period1 << ", "
-                 << R"("period2": )" << period2 << ", "
-                 << R"("value": ")";
+          output << "{";
+          visit(bind(print_json_period_range, ref(output), placeholders::_1), period_range);
+          output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
         }
@@ -461,8 +484,9 @@ ShocksSurpriseStatement::writeOutput(ostream& output, [[maybe_unused]] const str
   else
     output << "M_.surprise_shocks = [ M_.surprise_shocks;" << endl;
   for (const auto& [id, shock_vec] : surprise_shocks)
-    for (const auto& [period1, period2, value] : shock_vec)
+    for (const auto& [period_range, value] : shock_vec)
       {
+        auto [period1, period2] = get<pair<int, int>>(period_range);
         output << "struct('exo_id'," << symbol_table.getTypeSpecificID(id) + 1 << ",'periods',"
                << period1 << ":" << period2 << ",'value',";
         value->writeOutput(output);
@@ -483,8 +507,9 @@ ShocksSurpriseStatement::writeJsonOutput(ostream& output) const
         output << ", ";
       output << R"({"var": ")" << symbol_table.getName(id) << R"(", )"
              << R"("values": [)";
-      for (bool printed_something2 {false}; const auto& [period1, period2, value] : shock_vec)
+      for (bool printed_something2 {false}; const auto& [period_range, value] : shock_vec)
         {
+          auto [period1, period2] = get<pair<int, int>>(period_range);
           if (exchange(printed_something2, true))
             output << ", ";
           output << R"({"period1": )" << period1 << ", "
@@ -546,11 +571,12 @@ ShocksLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
 
   output << "M_.learnt_shocks = [ M_.learnt_shocks;" << endl;
   for (const auto& [id, shock_vec] : learnt_shocks)
-    for (const auto& [type, period1, period2, value] : shock_vec)
+    for (const auto& [type, period_range, value] : shock_vec)
       {
         output << "struct('learnt_in'," << learnt_in_period << ",'exo_id',"
-               << symbol_table.getTypeSpecificID(id) + 1 << ",'periods'," << period1 << ":"
-               << period2 << ",'type','" << typeToString(type) << "'"
+               << symbol_table.getTypeSpecificID(id) + 1 << ",'periods',";
+        visit(bind(print_matlab_period_range, ref(output), placeholders::_1), period_range);
+        output << ",'type','" << typeToString(type) << "'"
                << ",'value',";
         value->writeOutput(output);
         output << ");" << endl;
@@ -570,13 +596,13 @@ ShocksLearntInStatement::writeJsonOutput(ostream& output) const
         output << ", ";
       output << R"({"var": ")" << symbol_table.getName(id) << R"(", )"
              << R"("values": [)";
-      for (bool printed_something2 {false}; const auto& [type, period1, period2, value] : shock_vec)
+      for (bool printed_something2 {false}; const auto& [type, period_range, value] : shock_vec)
         {
           if (exchange(printed_something2, true))
             output << ", ";
-          output << R"({"period1": )" << period1 << ", "
-                 << R"("period2": )" << period2 << ", "
-                 << R"("type": ")" << typeToString(type) << R"(", )"
+          output << "{";
+          visit(bind(print_json_period_range, ref(output), placeholders::_1), period_range);
+          output << R"(, "type": ")" << typeToString(type) << R"(", )"
                  << R"("value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
@@ -805,9 +831,12 @@ ConditionalForecastPathsStatement::computePathLength(
 {
   int length {0};
   for (const auto& [ignore, elems] : paths)
-    for (auto& [period1, period2, value] : elems)
-      // Period1 < Period2, as enforced in ParsingDriver::add_period()
-      length = max(length, period2);
+    for (auto& [period_range, value] : elems)
+      {
+        auto [period1, period2] = get<pair<int, int>>(period_range);
+        // Period1 < Period2, as enforced in ParsingDriver::add_period()
+        length = max(length, period2);
+      }
   return length;
 }
 
@@ -827,13 +856,16 @@ ConditionalForecastPathsStatement::writeOutput(ostream& output,
       else
         output << "constrained_vars_ = [constrained_vars_; "
                << symbol_table.getTypeSpecificID(id) + 1 << "];" << endl;
-      for (const auto& [period1, period2, value] : elems)
-        for (int j = period1; j <= period2; j++)
-          {
-            output << "constrained_paths_(" << k << "," << j << ")=";
-            value->writeOutput(output);
-            output << ";" << endl;
-          }
+      for (const auto& [period_range, value] : elems)
+        {
+          auto [period1, period2] = get<pair<int, int>>(period_range);
+          for (int j = period1; j <= period2; j++)
+            {
+              output << "constrained_paths_(" << k << "," << j << ")=";
+              value->writeOutput(output);
+              output << ";" << endl;
+            }
+        }
       k++;
     }
 }
@@ -849,13 +881,13 @@ ConditionalForecastPathsStatement::writeJsonOutput(ostream& output) const
         output << ", ";
       output << R"({"var": ")" << symbol_table.getName(id) << R"(", )"
              << R"("values": [)";
-      for (bool printed_something2 {false}; const auto& [period1, period2, value] : elems)
+      for (bool printed_something2 {false}; const auto& [period_range, value] : elems)
         {
           if (exchange(printed_something2, true))
             output << ", ";
-          output << R"({"period1": )" << period1 << ", "
-                 << R"("period2": )" << period2 << ", "
-                 << R"("value": ")";
+          output << "{";
+          visit(bind(print_json_period_range, ref(output), placeholders::_1), period_range);
+          output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
         }

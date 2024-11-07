@@ -39,6 +39,7 @@
 
 #include "CommonEnums.hh"
 #include "ExprNode.hh"
+#include "Shocks.hh"
 
 class ParsingDriver;
 }
@@ -244,7 +245,8 @@ str_tolower(string s)
 %type <vector<map<string, string>>> tag_pair_list_for_selection
 %type <map<string, string>> tag_pair_list
 %type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
-%type <vector<pair<int, int>>> period_list
+%type <AbstractShocksStatement::period_range_t> period_range
+%type <vector<AbstractShocksStatement::period_range_t>> period_list
 %type <vector<expr_t>> matched_moments_list value_list ramsey_constraints_list
 %type <tuple<string, BinaryOpNode*, BinaryOpNode*, expr_t, expr_t>> occbin_constraints_regime
 %type <vector<tuple<string, BinaryOpNode*, BinaryOpNode*, expr_t, expr_t>>> occbin_constraints_regimes_list
@@ -1401,47 +1403,37 @@ mshock_list : mshock_list det_shock_elem
             | det_shock_elem
             ;
 
-period_list : period_list COMMA INT_NUMBER
+period_list : period_range
+              { $$ = { $1 }; }
+            | period_list period_range
               {
                 $$ = $1;
-                int p = stoi($3);
-                $$.emplace_back(p, p);
+                $$.emplace_back($2);
               }
-            | period_list INT_NUMBER
+            | period_list COMMA period_range
               {
                 $$ = $1;
-                int p = stoi($2);
-                $$.emplace_back(p, p);
-              }
-            | period_list COMMA INT_NUMBER ':' INT_NUMBER
-              {
-                $$ = $1;
-                int p1 = stoi($3), p2 = stoi($5);
-                if (p1 > p2)
-                  driver.error("Can't have first period index greater than second index in range specification");
-                $$.emplace_back(p1, p2);
-              }
-            | period_list INT_NUMBER ':' INT_NUMBER
-              {
-                $$ = $1;
-                int p1 = stoi($2), p2 = stoi($4);
-                if (p1 > p2)
-                  driver.error("Can't have first period index greater than second index in range specification");
-                $$.emplace_back(p1, p2);
-              }
-            | INT_NUMBER ':' INT_NUMBER
-              {
-                int p1 = stoi($1), p2 = stoi($3);
-                if (p1 > p2)
-                  driver.error("Can't have first period index greater than second index in range specification");
-                $$ = {{p1, p2}};
-              }
-            | INT_NUMBER
-              {
-                int p = stoi($1);
-                $$ = {{p, p}};
+                $$.emplace_back($3);
               }
             ;
+
+period_range : INT_NUMBER
+               {
+                 int p = stoi($1);
+                 $$.emplace<pair<int, int>>(p, p);
+               }
+             | INT_NUMBER ':' INT_NUMBER
+               {
+                 int p1 = stoi($1), p2 = stoi($3);
+                 if (p1 > p2)
+                   driver.error("Can't have first period index greater than second index in range specification");
+                 $$.emplace<pair<int, int>>(p1, p2);
+               }
+             | date_expr
+               { $$.emplace<pair<string, string>>($1, $1); }
+             | date_expr ':' date_expr
+               { $$.emplace<pair<string, string>>($1, $3); }
+             ;
 
 value_list : value_list COMMA '(' expression ')'
              {
@@ -3627,7 +3619,15 @@ matched_irfs_elem : matched_irfs_elem_var_varexo
                       vector<tuple<int, int, expr_t, expr_t>> v;
                       v.reserve($3.size());
                       for (size_t i {0}; i < $3.size(); i++)
-                        v.emplace_back($3[i].first, $3[i].second, $5.first[i], $5.second[i]);
+                        try
+                          {
+                            auto [p1, p2] = get<pair<int, int>>($3[i]);
+                            v.emplace_back(p1, p2, $5.first[i], $5.second[i]);
+                          }
+                        catch (bad_variant_access&)
+                          {
+                            driver.error("matched_irfs: dates are not allowed in the 'periods' keyword");
+                          }
                       $$ = {$1, v};
                     }
                   ;
