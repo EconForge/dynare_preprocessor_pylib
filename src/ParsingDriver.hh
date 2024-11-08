@@ -272,7 +272,6 @@ private:
 
   bool nostrict;
 
-  vector<pair<string, string>> model_errors;
   vector<pair<string, string>> undeclared_model_variable_errors;
 
   //! True when parsing the epilogue block
@@ -327,14 +326,7 @@ public:
 
   //! Error handler with explicit location (used in model block, accumulating error messages to be
   //! printed later)
-  void model_error(const string& m, const string& var);
   void undeclared_model_variable_error(const string& m, const string& var);
-
-  //! Code shared between model_error() and error()
-  void create_error_string(const Dynare::parser::location_type& l, const string& m,
-                           const string& var);
-  void create_error_string(const Dynare::parser::location_type& l, const string& m,
-                           ostream& stream);
 
   //! Check if a given symbol exists in the parsing context, and is not a mod file local variable
   bool symbol_exists_and_is_not_modfile_local_or_external_function(const string& s);

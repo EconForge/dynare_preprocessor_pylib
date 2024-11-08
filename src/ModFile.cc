@@ -1311,8 +1311,8 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
 
       if (!no_warn)
         {
-          if (warnings.countWarnings() > 0)
-            mOutputFile << "disp('Note: " << warnings.countWarnings()
+          if (int num_warnings {warnings.numWarnings()}; num_warnings > 0)
+            mOutputFile << "disp('Note: " << num_warnings
                         << " warning(s) encountered in the preprocessor')" << endl;
 
           mOutputFile << "if ~isempty(lastwarn)" << endl

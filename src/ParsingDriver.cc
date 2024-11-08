@@ -28,6 +28,8 @@
 #include "ExprNode.hh"
 #include "ParsingDriver.hh"
 #include "Statement.hh"
+/* NB: the following also imports our specialization of operator<< for location class,
+   used below in error() and undeclared_model_variable_error() */
 #include "WarningConsolidation.hh"
 
 bool
@@ -113,7 +115,7 @@ ParsingDriver::parse(istream& in, bool debug)
 void
 ParsingDriver::error(const Dynare::parser::location_type& l, const string& m)
 {
-  create_error_string(l, m, cerr);
+  cerr << "ERROR: " << l << ": " << m << endl;
   exit(EXIT_FAILURE);
 }
 
@@ -124,53 +126,11 @@ ParsingDriver::error(const string& m)
 }
 
 void
-ParsingDriver::create_error_string(const Dynare::parser::location_type& l, const string& m,
-                                   ostream& stream)
-{
-  stream << "ERROR: " << *l.begin.filename << ": line " << l.begin.line;
-  if (l.begin.line == l.end.line)
-    if (l.begin.column == l.end.column - 1)
-      stream << ", col " << l.begin.column;
-    else
-      stream << ", cols " << l.begin.column << "-" << l.end.column - 1;
-  else
-    stream << ", col " << l.begin.column << " -"
-           << " line " << l.end.line << ", col " << l.end.column - 1;
-  stream << ": " << m << endl;
-}
-
-void
-ParsingDriver::create_error_string(const Dynare::parser::location_type& l, const string& m,
-                                   const string& var)
-{
-  ostringstream stream;
-  create_error_string(l, m, stream);
-  model_errors.emplace_back(var, stream.str());
-}
-
-void
-ParsingDriver::model_error(const string& m, const string& var)
-{
-  create_error_string(location, m, var);
-}
-
-void
 ParsingDriver::undeclared_model_variable_error(const string& m, const string& var)
 {
   ostringstream stream;
   if (!nostrict)
-    {
-      stream << "ERROR: " << *location.begin.filename << ": line " << location.begin.line;
-      if (location.begin.line == location.end.line)
-        if (location.begin.column == location.end.column - 1)
-          stream << ", col " << location.begin.column;
-        else
-          stream << ", cols " << location.begin.column << "-" << location.end.column - 1;
-      else
-        stream << ", col " << location.begin.column << " -"
-               << " line " << location.end.line << ", col " << location.end.column - 1;
-      stream << ": ";
-    }
+    stream << "ERROR: " << location << ": ";
   stream << m;
   if (nostrict)
     stream << " automatically declared exogenous.";
@@ -913,13 +873,6 @@ void
 ParsingDriver::end_model()
 {
   bool exit_after_write = false;
-  if (model_errors.size() > 0)
-    for (auto& it : model_errors)
-      {
-        if (it.first.empty())
-          exit_after_write = true;
-        cerr << it.second;
-      }
 
   if (undeclared_model_variable_errors.size() > 0)
     for (auto& it : undeclared_model_variable_errors)

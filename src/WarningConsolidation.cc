@@ -1,5 +1,5 @@
 /*
- * Copyright © 2012-2022 Dynare Team
+ * Copyright © 2012-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -18,39 +18,33 @@
  */
 
 #include "WarningConsolidation.hh"
-#include <ostream>
 
-WarningConsolidation&
-operator<<(WarningConsolidation& wcc, const string& warning)
+ostream&
+operator<<(ostream& stream, const Dynare::location& l)
 {
-  if (wcc.no_warn)
-    return wcc;
+  stream << *l.begin.filename << ": line " << l.begin.line;
+  if (l.begin.line == l.end.line)
+    if (l.begin.column == l.end.column - 1)
+      stream << ", col " << l.begin.column;
+    else
+      stream << ", cols " << l.begin.column << "-" << l.end.column - 1;
+  else
+    stream << ", col " << l.begin.column << " -"
+           << " line " << l.end.line << ", col " << l.end.column - 1;
 
-  cerr << warning;
-  wcc.addWarning(warning);
-  return wcc;
-};
+  return stream;
+}
 
-WarningConsolidation&
-operator<<(WarningConsolidation& wcc, const Dynare::location& loc)
+void
+WarningConsolidation::incrementWarnings(const string& msg)
 {
-  if (wcc.no_warn)
-    return wcc;
-
-  stringstream ostr;
-  Dynare::position last = loc.end - 1;
-  ostr << loc.begin;
-  if (last.filename && (!loc.begin.filename || *loc.begin.filename != *last.filename))
-    ostr << '-' << last;
-  else if (loc.begin.line != last.line)
-    ostr << '-' << last.line << '.' << last.column;
-  else if (loc.begin.column != last.column)
-    ostr << '-' << last.column;
-
-  cerr << ostr.str();
-  wcc.addWarning(ostr.str());
-  return wcc;
-};
+  size_t p {0};
+  while ((p = msg.find('\n', p)) != string::npos)
+    {
+      p++;
+      num_warnings++;
+    }
+}
 
 WarningConsolidation&
 operator<<(WarningConsolidation& wcc, ostream& (*pf)(ostream&))
@@ -58,49 +52,12 @@ operator<<(WarningConsolidation& wcc, ostream& (*pf)(ostream&))
   if (wcc.no_warn)
     return wcc;
 
-  cerr << pf;
-  wcc.addWarning(pf);
+  ostringstream ostr;
+  ostr << pf;
+
+  cerr << ostr.str();
+
+  wcc.incrementWarnings(ostr.str());
+
   return wcc;
-}
-
-void
-WarningConsolidation::writeOutput(ostream& output) const
-{
-  if (warnings.str().empty())
-    return;
-
-  output << "disp([char(10) 'Dynare Preprocessor Warning(s) Encountered:']);" << endl;
-
-  bool writedisp = true;
-  string warningsstr = warnings.str();
-  for (size_t i = 0; i < warningsstr.length(); i++)
-    {
-      if (writedisp)
-        {
-          output << "disp('     ";
-          writedisp = false;
-        }
-
-      if (warningsstr[i] != '\n')
-        output << warningsstr[i];
-      else
-        {
-          output << "');" << endl;
-          if (i + 1 < warningsstr.length())
-            writedisp = true;
-        }
-    }
-}
-
-int
-WarningConsolidation::countWarnings() const
-{
-  size_t p = 0;
-  int n = 0;
-  while ((p = warnings.str().find('\n', p)) != string::npos)
-    {
-      p++;
-      n++;
-    }
-  return n;
 }

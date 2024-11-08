@@ -1,5 +1,5 @@
 /*
- * Copyright © 2012-2023 Dynare Team
+ * Copyright © 2012-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -21,45 +21,64 @@
 #define WARNING_CONSOLIDATION_HH
 
 #include "DynareBisonLocation.hh"
+
+#include <iostream>
+#include <ostream>
 #include <sstream>
 #include <string>
 
 using namespace std;
 
-//! Stores Warnings issued by the Preprocessor
+/* Provide our implementation of operator<< with locations in DynareBison.hh. Note that the
+   following is a template specialization of the version provided in DynareBisonLocation.hh.
+
+   Ideally it should go into DynareBisonLocation.hh, but there does not seem to be a way to achieve
+   that. */
+ostream& operator<<(ostream& stream, const Dynare::location& l);
+
 class WarningConsolidation
 {
 private:
-  stringstream warnings;
-  bool no_warn;
+  const bool no_warn;
+  int num_warnings {0};
+
+  // Increases the warning counter by as many newlines as there are in the message
+  void incrementWarnings(const string& msg);
 
 public:
   explicit WarningConsolidation(bool no_warn_arg) : no_warn {no_warn_arg}
   {
   }
 
-  //! Add A Warning to the StringStream
-  friend WarningConsolidation& operator<<(WarningConsolidation& wcc, const string& warning);
-  friend WarningConsolidation& operator<<(WarningConsolidation& wcc, const Dynare::location& loc);
+  // Generic function to print something to the warning stream
+  friend WarningConsolidation& operator<<(WarningConsolidation& wcc, auto&& warning);
+
+  /* Print std::endl to the warning stream. Unfortunately, since std::endl is a template of
+     functions, it cannot be bound to the universal reference of the generic function, hence the
+     need for this specialization. */
   friend WarningConsolidation& operator<<(WarningConsolidation& wcc, ostream& (*pf)(ostream&));
 
-  void
-  addWarning(const string& w)
+  int
+  numWarnings() const
   {
-    warnings << w;
+    return num_warnings;
   };
-  void
-  addWarning(ostream& (*pf)(ostream&))
-  {
-    warnings << pf;
-  };
-
-  //! Write Warnings to m file
-  void writeOutput(ostream& output) const;
-  //! Count warnings
-  /*! This is done in a very lousy way, by counting newlines in the
-    stringstream... */
-  int countWarnings() const;
 };
+
+WarningConsolidation&
+operator<<(WarningConsolidation& wcc, auto&& warning)
+{
+  if (wcc.no_warn)
+    return wcc;
+
+  ostringstream ostr;
+  ostr << warning;
+
+  cerr << ostr.str();
+
+  wcc.incrementWarnings(ostr.str());
+
+  return wcc;
+}
 
 #endif
