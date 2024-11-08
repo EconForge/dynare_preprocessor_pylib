@@ -3291,10 +3291,9 @@ ParsingDriver::add_model_var_or_external_function(const string& function_name, b
 
           optional<int> rv {is_there_one_integer_argument()};
           if (!rv)
-            model_error("Symbol " + function_name
-                            + " is being treated as if it were a function (i.e., takes an argument "
-                              "that is not an integer).",
-                        "");
+            error("Symbol " + function_name
+                  + " is being treated as if it were a function (i.e., takes an argument that is "
+                    "not an integer).");
 
           nid = add_model_variable(mod_file->symbol_table.getID(function_name), *rv);
           stack_external_function_args.pop();
