@@ -34,7 +34,6 @@
 #include "ModFile.hh"
 #include "SymbolList.hh"
 
-class ParsingDriver;
 #include "DynareBison.hh"
 #include "ExprNode.hh"
 

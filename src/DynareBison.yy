@@ -28,21 +28,19 @@
 %define parse.error verbose
 %define parse.trace
 
-%code top {
-class ParsingDriver;
-}
-
 %code requires {
+// Only headers needed for the value and location types go here
+// Headers needed by the Bison file itself go in the unqualified %code section
 #include <string>
 #include <vector>
 #include <map>
-#include <utility>
 #include <tuple>
 #include <variant>
-#include <ranges>
 
 #include "CommonEnums.hh"
 #include "ExprNode.hh"
+
+class ParsingDriver;
 }
 
 %param { ParsingDriver &driver }
@@ -55,6 +53,9 @@ class ParsingDriver;
 }
 
 %code {
+#include <ranges>
+#include <utility>
+
 /* Little hack: we redefine the macro which computes the locations, because
    we need to access the location from within the parsing driver for error
    and warning messages. */
@@ -245,8 +246,8 @@ str_tolower(string s)
 %type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
 %type <vector<pair<int, int>>> period_list
 %type <vector<expr_t>> matched_moments_list value_list ramsey_constraints_list
-%type <tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>> occbin_constraints_regime
-%type <vector<tuple<string, BinaryOpNode *, BinaryOpNode *, expr_t, expr_t>>> occbin_constraints_regimes_list
+%type <tuple<string, BinaryOpNode*, BinaryOpNode*, expr_t, expr_t>> occbin_constraints_regime
+%type <vector<tuple<string, BinaryOpNode*, BinaryOpNode*, expr_t, expr_t>>> occbin_constraints_regimes_list
 %type <map<string, expr_t>> occbin_constraints_regime_options_list
 %type <pair<string, expr_t>> occbin_constraints_regime_option
 %type <PacTargetKind> pac_target_kind
