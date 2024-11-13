@@ -1366,7 +1366,7 @@ mshocks : MSHOCKS ';' mshock_list END ';'
           { driver.end_mshocks(false, false); }
         | MSHOCKS '(' mshocks_options_list ')' ';' mshock_list END ';'
           {
-            /* NB: the following relies of the fact that bool is the first
+            /* NB: the following relies on the fact that bool is the first
                alternative in the variant, so that default initialization of the
                variant by the [] operator will give false */
             if ($3.contains("learnt_in"))
