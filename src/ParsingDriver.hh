@@ -559,8 +559,8 @@ public:
   void osr_params_bounds();
   //! Add a line in an osr params block
   void add_osr_params_element();
-  //! Sets the frequency of the data
-  void set_time(const string& arg);
+  // Sets the initial period for estimation
+  void set_time(string period);
   //! Estimation Data
   void estimation_data();
   //! Sets the prior for a parameter

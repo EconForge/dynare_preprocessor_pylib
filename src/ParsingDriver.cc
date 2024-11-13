@@ -1739,11 +1739,9 @@ ParsingDriver::set_unit_root_vars()
 }
 
 void
-ParsingDriver::set_time(const string& arg)
+ParsingDriver::set_time(string period)
 {
-  option_date("initial_period", arg);
-  mod_file->addStatement(make_unique<SetTimeStatement>(move(options_list)));
-  options_list.clear();
+  mod_file->addStatement(make_unique<SetTimeStatement>(move(period)));
 }
 
 void

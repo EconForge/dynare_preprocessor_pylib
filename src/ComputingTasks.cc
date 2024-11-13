@@ -3713,8 +3713,7 @@ SvarGlobalIdentificationCheckStatement::writeJsonOutput(ostream& output) const
   output << R"({"statementName": "svar_global_identification"})";
 }
 
-SetTimeStatement::SetTimeStatement(OptionsList options_list_arg) :
-    options_list {move(options_list_arg)}
+SetTimeStatement::SetTimeStatement(string period_arg) : period {move(period_arg)}
 {
 }
 
@@ -3722,19 +3721,13 @@ void
 SetTimeStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                               [[maybe_unused]] bool minimal_workspace) const
 {
-  options_list.writeOutput(output);
+  output << "options_.initial_period = " << period << endl;
 }
 
 void
 SetTimeStatement::writeJsonOutput(ostream& output) const
 {
-  output << R"({"statementName": "set_time")";
-  if (!options_list.empty())
-    {
-      output << ", ";
-      options_list.writeJsonOutput(output);
-    }
-  output << "}";
+  output << R"({"statementName": "set_time", "period": ")" << period << R"("})";
 }
 
 EstimationDataStatement::EstimationDataStatement(OptionsList options_list_arg) :

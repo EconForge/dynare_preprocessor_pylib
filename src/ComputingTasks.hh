@@ -1007,10 +1007,10 @@ public:
 class SetTimeStatement : public Statement
 {
 private:
-  const OptionsList options_list;
+  const string period;
 
 public:
-  explicit SetTimeStatement(OptionsList options_list_arg);
+  explicit SetTimeStatement(string period_arg);
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
 };
