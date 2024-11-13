@@ -254,8 +254,9 @@ str_tolower(string s)
 %type <pair<string, expr_t>> occbin_constraints_regime_option
 %type <PacTargetKind> pac_target_kind
 %type <vector<tuple<string, string, vector<pair<string, string>>>>> symbol_list_with_tex_and_partition
-%type <map<string, variant<bool, string>>> mshocks_options_list
-%type <pair<string, variant<bool, string>>> mshocks_option
+%type <variant<int, string>> integer_or_date
+%type <map<string, variant<bool, variant<int, string>>>> mshocks_options_list
+%type <pair<string, variant<bool, variant<int, string>>>> mshocks_option
 %type <pair<vector<expr_t>, vector<expr_t>>> matched_irfs_elem_values_weights
 %type <pair<pair<string, string>, vector<tuple<int, int, expr_t, expr_t>>>> matched_irfs_elem
 %type <map<pair<string, string>, vector<tuple<int, int, expr_t, expr_t>>>> matched_irfs_list
@@ -807,11 +808,17 @@ h_options: o_filename
           | o_series
           ;
 
+integer_or_date : INT_NUMBER
+                  { $$.emplace<int>(stoi($1)); }
+                | date_expr
+                  { $$.emplace<string>($1); }
+                ;
+
 endval : ENDVAL ';' endval_list END ';'
          { driver.end_endval(false); }
        | ENDVAL '(' ALL_VALUES_REQUIRED ')' ';' endval_list END ';'
          { driver.end_endval(true); }
-       | ENDVAL '(' LEARNT_IN EQUAL INT_NUMBER ')' ';' endval_list END ';'
+       | ENDVAL '(' LEARNT_IN EQUAL integer_or_date ')' ';' endval_list END ';'
          { driver.end_endval_learnt_in($5); }
        ;
 
@@ -1220,9 +1227,9 @@ shocks : SHOCKS ';' shock_list END ';' { driver.end_shocks(false); }
        | SHOCKS '(' SURPRISE ')' ';' det_shock_list END ';' { driver.end_shocks_surprise(false); }
        | SHOCKS '(' SURPRISE COMMA OVERWRITE ')' ';' det_shock_list END ';' { driver.end_shocks_surprise(true); }
        | SHOCKS '(' OVERWRITE COMMA SURPRISE ')' ';' det_shock_list END ';' { driver.end_shocks_surprise(true); }
-       | SHOCKS '(' LEARNT_IN EQUAL INT_NUMBER ')' ';' det_shock_list END ';' { driver.end_shocks_learnt_in($5, false); }
-       | SHOCKS '(' LEARNT_IN EQUAL INT_NUMBER COMMA OVERWRITE ')' ';' det_shock_list END ';' { driver.end_shocks_learnt_in($5, true); }
-       | SHOCKS '(' OVERWRITE COMMA LEARNT_IN EQUAL INT_NUMBER ')' ';' det_shock_list END ';' { driver.end_shocks_learnt_in($7, true); }
+       | SHOCKS '(' LEARNT_IN EQUAL integer_or_date ')' ';' det_shock_list END ';' { driver.end_shocks_learnt_in($5, false); }
+       | SHOCKS '(' LEARNT_IN EQUAL integer_or_date COMMA OVERWRITE ')' ';' det_shock_list END ';' { driver.end_shocks_learnt_in($5, true); }
+       | SHOCKS '(' OVERWRITE COMMA LEARNT_IN EQUAL integer_or_date ')' ';' det_shock_list END ';' { driver.end_shocks_learnt_in($7, true); }
        | SHOCKS '(' HETEROGENEITY EQUAL symbol ')' ';' stoch_shock_list END ';'
          { driver.end_heterogeneous_shocks($5, false); }
        | SHOCKS '(' HETEROGENEITY EQUAL symbol COMMA OVERWRITE ')' ';' stoch_shock_list END ';'
@@ -1372,7 +1379,7 @@ mshocks : MSHOCKS ';' mshock_list END ';'
                alternative in the variant, so that default initialization of the
                variant by the [] operator will give false */
             if ($3.contains("learnt_in"))
-              driver.end_mshocks_learnt_in(get<string>($3.at("learnt_in")),
+              driver.end_mshocks_learnt_in(get<variant<int, string>>($3.at("learnt_in")),
                                            get<bool>($3["overwrite"]),
                                            get<bool>($3["relative_to_initval"]));
             else
@@ -1393,7 +1400,7 @@ mshocks_options_list : mshocks_option
 
 mshocks_option : OVERWRITE
                  { $$ = {"overwrite", true}; }
-               | LEARNT_IN EQUAL INT_NUMBER
+               | LEARNT_IN EQUAL integer_or_date
                  { $$ = {"learnt_in", $3}; }
                | RELATIVE_TO_INITVAL
                  { $$ = {"relative_to_initval", true}; }

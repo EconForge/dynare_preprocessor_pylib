@@ -29,6 +29,7 @@
 #include <stack>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 #include "ModFile.hh"
@@ -437,7 +438,7 @@ public:
   //! Writes end of an endval block
   void end_endval(bool all_values_required);
   //! Writes end of an endval(learnt_in=…) block
-  void end_endval_learnt_in(const string& learnt_in_period);
+  void end_endval_learnt_in(variant<int, string> learnt_in_period);
   //! Writes end of an histval block
   void end_histval(bool all_values_required);
   //! Writes end of an homotopy_setup block
@@ -464,11 +465,11 @@ public:
   //! Writes a shocks(surprise) statement
   void end_shocks_surprise(bool overwrite);
   //! Writes a shocks(learnt_in=…) block
-  void end_shocks_learnt_in(const string& learnt_in_period, bool overwrite);
+  void end_shocks_learnt_in(variant<int, string> learnt_in_period, bool overwrite);
   // For a shocks(heterogeneity=…) block
   void end_heterogeneous_shocks(const string& heterogeneity_dimension, bool overwrite);
   //! Writes a mshocks(learnt_in=…) block
-  void end_mshocks_learnt_in(const string& learnt_in_period, bool overwrite,
+  void end_mshocks_learnt_in(variant<int, string> learnt_in_period, bool overwrite,
                              bool relative_to_initval);
   //! Writes a heteroskedastic_shocks statement
   void end_heteroskedastic_shocks(bool overwrite);

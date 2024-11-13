@@ -523,10 +523,11 @@ ShocksSurpriseStatement::writeJsonOutput(ostream& output) const
   output << "]}";
 }
 
-ShocksLearntInStatement::ShocksLearntInStatement(int learnt_in_period_arg, bool overwrite_arg,
+ShocksLearntInStatement::ShocksLearntInStatement(variant<int, string> learnt_in_period_arg,
+                                                 bool overwrite_arg,
                                                  learnt_shocks_t learnt_shocks_arg,
                                                  const SymbolTable& symbol_table_arg) :
-    learnt_in_period {learnt_in_period_arg},
+    learnt_in_period {move(learnt_in_period_arg)},
     overwrite {overwrite_arg},
     learnt_shocks {move(learnt_shocks_arg)},
     symbol_table {symbol_table_arg}
@@ -563,18 +564,29 @@ void
 ShocksLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                      [[maybe_unused]] bool minimal_workspace) const
 {
+  auto print_matlab_learnt_in = [&](const auto& p) { output << p; };
   if (overwrite)
-    output << "if ~isempty(M_.learnt_shocks)" << endl
-           << "  M_.learnt_shocks = M_.learnt_shocks([M_.learnt_shocks.learnt_in] ~= "
-           << learnt_in_period << ");" << endl
-           << "end" << endl;
+    {
+      output << "if ~isempty(M_.learnt_shocks)" << endl
+             << "  M_.learnt_shocks = M_.learnt_shocks(cellfun(@(x) ~isa(x, '";
+      if (holds_alternative<int>(learnt_in_period))
+        output << "numeric";
+      else
+        output << "dates";
+      output << "') || x ~= ";
+      /* NB: date expression not parenthesized since it can only contain a + operator, which has
+         higher precedence than ~= and || */
+      visit(print_matlab_learnt_in, learnt_in_period);
+      output << ", {M_.learnt_shocks.learnt_in}));" << endl << "end" << endl;
+    }
 
   output << "M_.learnt_shocks = [ M_.learnt_shocks;" << endl;
   for (const auto& [id, shock_vec] : learnt_shocks)
     for (const auto& [type, period_range, value] : shock_vec)
       {
-        output << "struct('learnt_in'," << learnt_in_period << ",'exo_id',"
-               << symbol_table.getTypeSpecificID(id) + 1 << ",'periods',";
+        output << "struct('learnt_in',";
+        visit(print_matlab_learnt_in, learnt_in_period);
+        output << ",'exo_id'," << symbol_table.getTypeSpecificID(id) + 1 << ",'periods',";
         visit(bind(print_matlab_period_range, ref(output), placeholders::_1), period_range);
         output << ",'type','" << typeToString(type) << "'"
                << ",'value',";
@@ -588,8 +600,18 @@ void
 ShocksLearntInStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "shocks")"
-         << R"(, "learnt_in": )" << learnt_in_period << R"(, "overwrite": )" << boolalpha
-         << overwrite << R"(, "learnt_shocks": [)";
+         << R"(, "learnt_in": )";
+  visit(
+      [&]<class T>(const T& p) {
+        if constexpr (is_same_v<T, int>)
+          output << p;
+        else if constexpr (is_same_v<T, string>)
+          output << '"' << p << '"';
+        else
+          static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+      },
+      learnt_in_period);
+  output << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "learnt_shocks": [)";
   for (bool printed_something {false}; const auto& [id, shock_vec] : learnt_shocks)
     {
       if (exchange(printed_something, true))

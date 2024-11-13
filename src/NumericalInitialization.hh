@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -23,6 +23,7 @@
 #include <filesystem>
 #include <map>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "ExprNode.hh"
@@ -101,7 +102,7 @@ public:
 class EndValLearntInStatement : public Statement
 {
 public:
-  const int learnt_in_period;
+  const variant<int, string> learnt_in_period;
   enum class LearntEndValType
   {
     level,
@@ -117,7 +118,8 @@ private:
   static string typeToString(LearntEndValType type);
 
 public:
-  EndValLearntInStatement(int learnt_in_period_arg, learnt_end_values_t learnt_end_values_arg,
+  EndValLearntInStatement(variant<int, string> learnt_in_period_arg,
+                          learnt_end_values_t learnt_end_values_arg,
                           const SymbolTable& symbol_table_arg);
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;

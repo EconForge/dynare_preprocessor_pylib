@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2024 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -303,10 +303,10 @@ EndValStatement::writeJsonOutput(ostream& output) const
   output << "]}";
 }
 
-EndValLearntInStatement::EndValLearntInStatement(int learnt_in_period_arg,
+EndValLearntInStatement::EndValLearntInStatement(variant<int, string> learnt_in_period_arg,
                                                  learnt_end_values_t learnt_end_values_arg,
                                                  const SymbolTable& symbol_table_arg) :
-    learnt_in_period {learnt_in_period_arg},
+    learnt_in_period {move(learnt_in_period_arg)},
     learnt_end_values {move(learnt_end_values_arg)},
     symbol_table {symbol_table_arg}
 {
@@ -343,9 +343,10 @@ EndValLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
     {
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
         continue;
-      output << "struct('learnt_in'," << learnt_in_period << ",'exo_id',"
-             << symbol_table.getTypeSpecificID(symb_id) + 1 << ",'type','" << typeToString(type)
-             << "'"
+      output << "struct('learnt_in',";
+      visit([&](const auto& p) { output << p; }, learnt_in_period);
+      output << ",'exo_id'," << symbol_table.getTypeSpecificID(symb_id) + 1 << ",'type','"
+             << typeToString(type) << "'"
              << ",'value',";
       value->writeOutput(output);
       output << ");" << endl;
@@ -356,7 +357,18 @@ EndValLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
 void
 EndValLearntInStatement::writeJsonOutput(ostream& output) const
 {
-  output << R"({"statementName": "endval", "learnt_in": )" << learnt_in_period << R"(, "vals": [)";
+  output << R"({"statementName": "endval", "learnt_in": )";
+  visit(
+      [&]<class T>(const T& p) {
+        if constexpr (is_same_v<T, int>)
+          output << p;
+        else if constexpr (is_same_v<T, string>)
+          output << '"' << p << '"';
+        else
+          static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+      },
+      learnt_in_period);
+  output << R"(, "vals": [)";
   for (bool printed_something {false}; auto& [type, symb_id, value] : learnt_end_values)
     {
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82

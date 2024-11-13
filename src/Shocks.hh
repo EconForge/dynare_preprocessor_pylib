@@ -126,7 +126,7 @@ public:
 class ShocksLearntInStatement : public Statement
 {
 public:
-  const int learnt_in_period;
+  const variant<int, string> learnt_in_period;
   //! Does this “shocks(learnt_in=…)” or “mshocks(learnt_in=…)” block replace the previous ones?
   const bool overwrite;
   enum class LearntShockType
@@ -153,7 +153,7 @@ private:
   static string typeToString(LearntShockType type);
 
 public:
-  ShocksLearntInStatement(int learnt_in_period_arg, bool overwrite_arg,
+  ShocksLearntInStatement(variant<int, string> learnt_in_period_arg, bool overwrite_arg,
                           learnt_shocks_t learnt_shocks_arg, const SymbolTable& symbol_table_arg);
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;

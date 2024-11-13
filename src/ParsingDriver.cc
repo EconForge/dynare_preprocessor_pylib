@@ -786,22 +786,26 @@ ParsingDriver::end_endval(bool all_values_required)
 }
 
 void
-ParsingDriver::end_endval_learnt_in(const string& learnt_in_period)
+ParsingDriver::end_endval_learnt_in(variant<int, string> learnt_in_period)
 {
-  int learnt_in_period_int = stoi(learnt_in_period);
-  if (learnt_in_period_int < 1)
-    error("endval: value '" + learnt_in_period + "' is not allowed for 'learnt_in' option");
-  if (learnt_in_period_int == 1)
+  if (holds_alternative<int>(learnt_in_period))
     {
-      end_endval(false);
-      return;
+      int learnt_in_period_int = get<int>(learnt_in_period);
+      if (learnt_in_period_int < 1)
+        error("endval: value '" + to_string(learnt_in_period_int)
+              + "' is not allowed for 'learnt_in' option");
+      if (learnt_in_period_int == 1)
+        {
+          end_endval(false);
+          return;
+        }
     }
   for (auto [type, symb_id, value] : end_values)
     if (mod_file->symbol_table.getType(symb_id) != SymbolType::exogenous)
       error("endval(learnt_in=...): " + mod_file->symbol_table.getName(symb_id)
             + " is not an exogenous variable");
   mod_file->addStatement(make_unique<EndValLearntInStatement>(
-      learnt_in_period_int, move(end_values), mod_file->symbol_table));
+      move(learnt_in_period), move(end_values), mod_file->symbol_table));
   end_values.clear();
 }
 
@@ -963,25 +967,30 @@ ParsingDriver::end_shocks_surprise(bool overwrite)
 }
 
 void
-ParsingDriver::end_shocks_learnt_in(const string& learnt_in_period, bool overwrite)
+ParsingDriver::end_shocks_learnt_in(variant<int, string> learnt_in_period, bool overwrite)
 {
-  int learnt_in_period_int = stoi(learnt_in_period);
-  if (learnt_in_period_int < 1)
-    error("shocks: value '" + learnt_in_period + "' is not allowed for 'learnt_in' option");
-  if (learnt_in_period_int == 1)
+  if (holds_alternative<int>(learnt_in_period))
     {
-      end_shocks(overwrite);
-      return;
+      int learnt_in_period_int = get<int>(learnt_in_period);
+      if (learnt_in_period_int < 1)
+        error("shocks: value '" + to_string(learnt_in_period_int)
+              + "' is not allowed for 'learnt_in' option");
+      if (learnt_in_period_int == 1)
+        {
+          end_shocks(overwrite);
+          return;
+        }
+      for (auto& storage : {det_shocks, learnt_shocks_add, learnt_shocks_multiply})
+        for (auto& [symb_id, vals] : storage)
+          for (const auto& [period_range, expr] : vals)
+            if (holds_alternative<pair<int, int>>(period_range))
+              if (int period1 = get<pair<int, int>>(period_range).first;
+                  period1 < learnt_in_period_int)
+                error("shocks: for variable " + mod_file->symbol_table.getName(symb_id)
+                      + ", shock period (" + to_string(period1)
+                      + ") is earlier than the period in which the shock is learnt ("
+                      + to_string(learnt_in_period_int) + ")");
     }
-  for (auto& storage : {det_shocks, learnt_shocks_add, learnt_shocks_multiply})
-    for (auto& [symb_id, vals] : storage)
-      for (const auto& [period_range, expr] : vals)
-        if (holds_alternative<pair<int, int>>(period_range))
-          if (int period1 = get<pair<int, int>>(period_range).first; period1 < learnt_in_period_int)
-            error("shocks: for variable " + mod_file->symbol_table.getName(symb_id)
-                  + ", shock period (" + to_string(period1)
-                  + ") is earlier than the period in which the shock is learnt (" + learnt_in_period
-                  + ")");
 
   // Aggregate the three types of shocks
   ShocksLearntInStatement::learnt_shocks_t learnt_shocks;
@@ -1014,33 +1023,37 @@ ParsingDriver::end_shocks_learnt_in(const string& learnt_in_period, bool overwri
     }
 
   mod_file->addStatement(make_unique<ShocksLearntInStatement>(
-      learnt_in_period_int, overwrite, move(learnt_shocks), mod_file->symbol_table));
+      move(learnt_in_period), overwrite, move(learnt_shocks), mod_file->symbol_table));
   det_shocks.clear();
   learnt_shocks_add.clear();
   learnt_shocks_multiply.clear();
 }
 
 void
-ParsingDriver::end_mshocks_learnt_in(const string& learnt_in_period, bool overwrite,
+ParsingDriver::end_mshocks_learnt_in(variant<int, string> learnt_in_period, bool overwrite,
                                      bool relative_to_initval)
 {
-  int learnt_in_period_int = stoi(learnt_in_period);
-  if (learnt_in_period_int < 1)
-    error("mshocks: value '" + learnt_in_period + "' is not allowed for 'learnt_in' option");
-  if (learnt_in_period_int == 1)
+  if (holds_alternative<int>(learnt_in_period))
     {
-      end_mshocks(overwrite, relative_to_initval);
-      return;
+      int learnt_in_period_int = get<int>(learnt_in_period);
+      if (learnt_in_period_int < 1)
+        error("mshocks: value '" + to_string(learnt_in_period_int)
+              + "' is not allowed for 'learnt_in' option");
+      if (learnt_in_period_int == 1)
+        {
+          end_mshocks(overwrite, relative_to_initval);
+          return;
+        }
+      for (auto& [symb_id, vals] : det_shocks)
+        for (const auto& [period_range, expr] : vals)
+          if (holds_alternative<pair<int, int>>(period_range))
+            if (int period1 = get<pair<int, int>>(period_range).first;
+                period1 < learnt_in_period_int)
+              error("mshocks: for variable " + mod_file->symbol_table.getName(symb_id)
+                    + ", shock period (" + to_string(period1)
+                    + ") is earlier than the period in which the shock is learnt ("
+                    + to_string(learnt_in_period_int) + ")");
     }
-
-  for (auto& [symb_id, vals] : det_shocks)
-    for (const auto& [period_range, expr] : vals)
-      if (holds_alternative<pair<int, int>>(period_range))
-        if (int period1 = get<pair<int, int>>(period_range).first; period1 < learnt_in_period_int)
-          error("mshocks: for variable " + mod_file->symbol_table.getName(symb_id)
-                + ", shock period (" + to_string(period1)
-                + ") is earlier than the period in which the shock is learnt (" + learnt_in_period
-                + ")");
 
   ShocksLearntInStatement::learnt_shocks_t learnt_shocks;
   const auto type {relative_to_initval
@@ -1057,7 +1070,7 @@ ParsingDriver::end_mshocks_learnt_in(const string& learnt_in_period, bool overwr
     }
 
   mod_file->addStatement(make_unique<ShocksLearntInStatement>(
-      learnt_in_period_int, overwrite, move(learnt_shocks), mod_file->symbol_table));
+      move(learnt_in_period), overwrite, move(learnt_shocks), mod_file->symbol_table));
   det_shocks.clear();
   if (!learnt_shocks_add.empty())
     error("mshocks: 'add' keyword not allowed");
