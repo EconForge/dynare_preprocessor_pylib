@@ -245,7 +245,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>subsamples {return token::SUBSAMPLES;}
 <DYNARE_STATEMENT>options {return token::OPTIONS;}
 <DYNARE_STATEMENT>prior {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::PRIOR;
 }
 <INITIAL>std {BEGIN DYNARE_STATEMENT; return token::STD;}
@@ -292,10 +292,10 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>posterior_nograph   		{return token::POSTERIOR_NOGRAPH;}
 <DYNARE_STATEMENT>nodisplay     {return token::NODISPLAY;}
 <DYNARE_STATEMENT>graph_format  {return token::GRAPH_FORMAT;}
-<DYNARE_STATEMENT>eps  {yylval->build<string>(yytext); return token::EPS;}
-<DYNARE_STATEMENT>pdf  {yylval->build<string>(yytext); return token::PDF;}
-<DYNARE_STATEMENT>fig  {yylval->build<string>(yytext); return token::FIG;}
-<DYNARE_STATEMENT>none  {yylval->build<string>(yytext); return token::NONE;}
+<DYNARE_STATEMENT>eps  {yylval->emplace<string>(yytext); return token::EPS;}
+<DYNARE_STATEMENT>pdf  {yylval->emplace<string>(yytext); return token::PDF;}
+<DYNARE_STATEMENT>fig  {yylval->emplace<string>(yytext); return token::FIG;}
+<DYNARE_STATEMENT>none  {yylval->emplace<string>(yytext); return token::NONE;}
 <DYNARE_STATEMENT>print   		{return token::PRINT;}
 <DYNARE_STATEMENT>noprint   		{return token::NOPRINT;}
 <DYNARE_STATEMENT>conf_sig  		{return token::CONF_SIG;}
@@ -436,43 +436,43 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>fsolve_options {return token::FSOLVE_OPTIONS;}
 
 <DYNARE_STATEMENT>alpha {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::ALPHA;
 }
 <DYNARE_STATEMENT>beta {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::BETA;
 }
 <DYNARE_STATEMENT>gamma {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::GAMMA;
 }
 <DYNARE_STATEMENT>inv_gamma {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::INV_GAMMA;
 }
 <DYNARE_STATEMENT>inv_gamma1 {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::INV_GAMMA1;
 }
 <DYNARE_STATEMENT>inv_gamma2 {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::INV_GAMMA2;
 }
 <DYNARE_STATEMENT>dirichlet {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::DIRICHLET;
 }
 <DYNARE_STATEMENT>weibull {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::WEIBULL;
 }
 <DYNARE_STATEMENT>normal {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::NORMAL;
 }
 <DYNARE_STATEMENT>uniform {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::UNIFORM;
 }
 <DYNARE_STATEMENT>gsig2_lmdm {return token::GSIG2_LMDM;}
@@ -483,13 +483,13 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>ncsk {return token::NCSK;}
 <DYNARE_STATEMENT>nstd {return token::NSTD;}
 <DYNARE_STATEMENT>ninv {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::NINV;
 }
 <DYNARE_STATEMENT>indxparr {return token::INDXPARR;}
 <DYNARE_STATEMENT>indxovr {return token::INDXOVR;}
 <DYNARE_STATEMENT>aband {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::ABAND;
 }
 <DYNARE_STATEMENT>write_equation_tags {return token::WRITE_EQUATION_TAGS;}
@@ -506,18 +506,18 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>indxgdls {return token::INDXGDLS;}
 <DYNARE_STATEMENT>eq_ms {return token::EQ_MS;}
 <DYNARE_STATEMENT>cms {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::CMS;
 }
 <DYNARE_STATEMENT>ncms {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::NCMS;
 }
 <DYNARE_STATEMENT>eq_cms {return token::EQ_CMS;}
 <DYNARE_STATEMENT>tlindx {return token::TLINDX;}
 <DYNARE_STATEMENT>tlnumber {return token::TLNUMBER;}
 <DYNARE_STATEMENT>cnum {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::CNUM;
 }
 <DYNARE_STATEMENT>nodecomposition {return token::NODECOMPOSITION;};
@@ -600,15 +600,15 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>compiler {return token::COMPILER;}
 <DYNARE_STATEMENT>instruments {return token::INSTRUMENTS;}
 <DYNARE_STATEMENT>hessian  {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::HESSIAN;
 }
 <DYNARE_STATEMENT>prior_variance  {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::PRIOR_VARIANCE;
 }
 <DYNARE_STATEMENT>identity_matrix  {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::IDENTITY_MATRIX;
 }
 <DYNARE_STATEMENT>mcmc_jumping_covariance {return token::MCMC_JUMPING_COVARIANCE;}
@@ -711,11 +711,11 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>additional_optimizer_steps	{return token::ADDITIONAL_OPTIMIZER_STEPS;}
 <DYNARE_STATEMENT>bartlett_kernel_lag {return token::BARTLETT_KERNEL_LAG; }
 <DYNARE_STATEMENT>optimal {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::OPTIMAL;
 }
 <DYNARE_STATEMENT>diagonal  {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::DIAGONAL;
 }
 <DYNARE_STATEMENT>gmm {return token::GMM;}
@@ -764,7 +764,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 
 <DYNARE_STATEMENT>\$[^$]*\$ {
   strtok(yytext + 1, "$");
-  yylval->build<string>(yytext + 1);
+  yylval->emplace<string>(yytext + 1);
   return token::TEX_NAME;
 }
 
@@ -777,16 +777,16 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>periods {return token::PERIODS;}
 <DYNARE_BLOCK>scales {return token::SCALES;}
 <DYNARE_BLOCK>add {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::ADD;
 }
 <DYNARE_BLOCK>multiply {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::MULTIPLY;
 }
 <DYNARE_STATEMENT,DYNARE_BLOCK>cutoff {return token::CUTOFF;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>mfs {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::MFS;
 }
 <DYNARE_STATEMENT,DYNARE_BLOCK>static_mfs {return token::STATIC_MFS;}
@@ -803,19 +803,19 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>dsge_prior_weight {return token::DSGE_PRIOR_WEIGHT;}
 <DYNARE_BLOCK>surprise {return token::SURPRISE;}
 <DYNARE_BLOCK>bind {
-    yylval->build<string>(yytext);
+    yylval->emplace<string>(yytext);
     return token::BIND;
 }
 <DYNARE_BLOCK>relax {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::RELAX;
 }
 <DYNARE_BLOCK>error_bind {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::ERROR_BIND;
 }
 <DYNARE_BLOCK>error_relax {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::ERROR_RELAX;
 }
 <DYNARE_BLOCK>relative_to_initval {return token::RELATIVE_TO_INITVAL;}
@@ -829,19 +829,19 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK,DYNARE_STATEMENT>auxname {return token::AUXNAME;}
 <DYNARE_BLOCK>auxname_target_nonstationary {return token::AUXNAME_TARGET_NONSTATIONARY;}
 <DYNARE_BLOCK,DYNARE_STATEMENT>kind {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::KIND;
 }
 <DYNARE_BLOCK,DYNARE_STATEMENT>ll {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::LL;
 }
 <DYNARE_BLOCK,DYNARE_STATEMENT>dl {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::DL;
 }
 <DYNARE_BLOCK,DYNARE_STATEMENT>dd {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::DD;
 }
 <DYNARE_BLOCK>weights {return token::WEIGHTS;}
@@ -856,7 +856,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>order {return token::ORDER;}
 <DYNARE_STATEMENT>lyapunov {return token::LYAPUNOV;}
 <DYNARE_STATEMENT>dr {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::DR;
  }
 <DYNARE_STATEMENT>lyapunov_complex_threshold {return token::LYAPUNOV_COMPLEX_THRESHOLD;}
@@ -920,11 +920,11 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>time_shift {return token::TIME_SHIFT;}
 <DYNARE_STATEMENT>structural {return token::STRUCTURAL;}
 <DYNARE_STATEMENT>true {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::TRUE;
 }
 <DYNARE_STATEMENT>false {
-    yylval->build<string>(yytext);
+    yylval->emplace<string>(yytext);
     return token::FALSE;
 }
 
@@ -1049,17 +1049,17 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>colormap {return token::COLORMAP;}
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>[a-z_][a-z0-9_]* {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::NAME;
 }
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>((([0-9]*\.[0-9]+)|([0-9]+\.))([ed][-+]?[0-9]+)?)|([0-9]+[ed][-+]?[0-9]+) {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::FLOAT_NUMBER;
 }
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>[0-9]+ {
-  yylval->build<string>(yytext);
+  yylval->emplace<string>(yytext);
   return token::INT_NUMBER;
 }
 
@@ -1068,7 +1068,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_BLOCK>\|p { return token::PIPE_P; }
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>\'[^\']*\' {
-  yylval->build<string>(yytext + 1).pop_back();
+  yylval->emplace<string>(yytext + 1).pop_back();
   return token::QUOTED_STRING;
 }
 
@@ -1104,7 +1104,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
   if (driver.symbol_exists_and_is_not_modfile_local_or_external_function(yytext))
     {
       BEGIN DYNARE_STATEMENT;
-      yylval->build<string>(yytext);
+      yylval->emplace<string>(yytext);
       return token::NAME;
     }
   else
@@ -1149,7 +1149,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
   if (dynare_statement)
     {
       BEGIN DYNARE_STATEMENT;
-      yylval->build<vector<string>>(val);
+      yylval->emplace<vector<string>>(val);
       return token::SYMBOL_VEC;
     }
 }
