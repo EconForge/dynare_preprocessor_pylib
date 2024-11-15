@@ -60,7 +60,6 @@ string eofbuff;
 %x VERBATIM_BLOCK
 %x NATIVE
 %x NATIVE_COMMENT
-%x DATES_STATEMENT
 %x LINE1
 %x LINE2
 %x LINE3
@@ -92,12 +91,12 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
                 }
 
  /* spaces, tabs and carriage returns are ignored */
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,DATES_STATEMENT,LINE1,LINE2,LINE3>[[:space:]]+  { yylloc->step(); }
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,LINE1,LINE2,LINE3>[[:space:]]+  { yylloc->step(); }
 
  /* Comments */
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,DATES_STATEMENT>%.*
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,DATES_STATEMENT>"//".*
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,DATES_STATEMENT>"/*"   {comment_caller = YY_START; BEGIN COMMENT;}
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>%.*
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>"//".*
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>"/*"   {comment_caller = YY_START; BEGIN COMMENT;}
 
 <COMMENT>"*/"        {BEGIN comment_caller;}
 <COMMENT>.
@@ -258,25 +257,9 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 
  /* Inside  of a Dynare statement */
 <DYNARE_STATEMENT>{DATE} {
-                           /* If a date is found within a statement, substitute it with a call to
-                              the dates() constructor in the input character stream. Then it will
-                              be handled by the rule that follows the present one. */
-                           char* yycopy = strdup(yytext);
-                           char* uput = yycopy + yyleng;
-                           unput(')');
-                           unput('\'');
-                           while (uput > yycopy)
-                             unput(*--uput);
-                           unput('\'');
-                           unput('(');
-                           unput('s');
-                           unput('e');
-                           unput('t');
-                           unput('a');
-                           unput('d');
-                           free( yycopy );
-                         }
-<DYNARE_STATEMENT>dates  {dates_parens_nb=0; BEGIN DATES_STATEMENT; yylval->build<string>("dates");}
+  yylval->emplace<string>(yytext);
+  return token::DATE;
+}
 <DYNARE_STATEMENT>file                  {return token::FILE;}
 <DYNARE_STATEMENT>datafile 		{return token::DATAFILE;}
 <DYNARE_STATEMENT>dirname       {return token::DIRNAME;}
@@ -1080,17 +1063,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
   return token::INT_NUMBER;
 }
 
-<DATES_STATEMENT>\( { yylval->as<string>().append(yytext); dates_parens_nb++; }
-<DATES_STATEMENT>\) {
-                      yylval->as<string>().append(yytext);
-                      if (--dates_parens_nb == 0)
-                      {
-                        BEGIN DYNARE_STATEMENT;
-                        return token::DATES;
-                      }
-                    }
-<DATES_STATEMENT>.  { yylval->as<string>().append(yytext); }
-
 <DYNARE_BLOCK>\|e { return token::PIPE_E; }
 <DYNARE_BLOCK>\|x { return token::PIPE_X; }
 <DYNARE_BLOCK>\|p { return token::PIPE_P; }
@@ -1222,7 +1194,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <NATIVE_COMMENT>"*/"[[:space:]]*\n   { BEGIN NATIVE; }
 <NATIVE_COMMENT>.
 
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,DATES_STATEMENT,LINE1,LINE2,LINE3,NATIVE_COMMENT><<EOF>> { yyterminate(); }
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,LINE1,LINE2,LINE3,NATIVE_COMMENT><<EOF>> { yyterminate(); }
 
 <*>.      { driver.error(*yylloc, "character unrecognized by lexer"); }
 %%

@@ -73,9 +73,6 @@ public:
 
   //! Increment the location counter given a token
   static void location_increment(Dynare::parser::location_type* yylloc, const char* yytext);
-
-  //! Count parens in dates statement
-  int dates_parens_nb;
 };
 
 //! Drives the scanning and parsing of the .mod file, and constructs its abstract representation
