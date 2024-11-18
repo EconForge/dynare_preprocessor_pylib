@@ -20,7 +20,6 @@
 
 
 %{
-#include <cstring>
 #include "ParsingDriver.hh"
 
 using namespace std;
@@ -765,8 +764,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>non_zero {return token::NON_ZERO;}
 
 <DYNARE_STATEMENT>\$[^$]*\$ {
-  strtok(yytext + 1, "$");
-  yylval->emplace<string>(yytext + 1);
+  yylval->emplace<string>(yytext + 1).pop_back();
   return token::TEX_NAME;
 }
 
