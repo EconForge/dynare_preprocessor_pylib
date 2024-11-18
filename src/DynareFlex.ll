@@ -69,6 +69,8 @@ string eofbuff;
 #define YY_USER_ACTION location_increment(yylloc, yytext);
 %}
 
+NAME [a-z_][a-z0-9_]*
+FLOAT_NUMBER ((([0-9]*\.[0-9]+)|([0-9]+\.))([ed][-+]?[0-9]+)?)|([0-9]+[ed][-+]?[0-9]+)
 DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 
 %%
@@ -1048,12 +1050,12 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
 <DYNARE_STATEMENT>use_shock_groups {return token::USE_SHOCK_GROUPS;}
 <DYNARE_STATEMENT>colormap {return token::COLORMAP;}
 
-<DYNARE_STATEMENT,DYNARE_BLOCK>[a-z_][a-z0-9_]* {
+<DYNARE_STATEMENT,DYNARE_BLOCK>{NAME} {
   yylval->emplace<string>(yytext);
   return token::NAME;
 }
 
-<DYNARE_STATEMENT,DYNARE_BLOCK>((([0-9]*\.[0-9]+)|([0-9]+\.))([ed][-+]?[0-9]+)?)|([0-9]+[ed][-+]?[0-9]+) {
+<DYNARE_STATEMENT,DYNARE_BLOCK>{FLOAT_NUMBER} {
   yylval->emplace<string>(yytext);
   return token::FLOAT_NUMBER;
 }
@@ -1100,7 +1102,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
     element in initval (in which case Dynare recognizes the matrix name as an external
     function symbol), and may want to modify the matrix later with Matlab statements.
  */
-<INITIAL>[a-z_][a-z0-9_]* {
+<INITIAL>{NAME} {
   if (driver.symbol_exists_and_is_not_modfile_local_or_external_function(yytext))
     {
       BEGIN DYNARE_STATEMENT;
@@ -1125,7 +1127,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
     be able to back out of the statement if we realize it's a native statement
     and move to the NATIVE context
  */
-<INITIAL>\[([[:space:]]*[a-z_][a-z0-9_]*[[:space:]]*,{1}[[:space:]]*)*([[:space:]]*[a-z_][a-z0-9_]*[[:space:]]*){1}\] {
+<INITIAL>\[([[:space:]]*{NAME}[[:space:]]*,{1}[[:space:]]*)*([[:space:]]*{NAME}[[:space:]]*){1}\] {
   string yytextcpy{yytext};
   yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), '['), yytextcpy.end());
   yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), ']'), yytextcpy.end());
