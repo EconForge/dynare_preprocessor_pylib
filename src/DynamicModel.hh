@@ -713,7 +713,7 @@ public:
   {
     return tuple {static_only_equations, static_only_equations_lineno,
                   static_only_complementarity_conditions, static_only_equations_equation_tags};
-  };
+  }
 
   //! Returns true if a parameter was used in the model block with a lead or lag
   bool ParamUsedWithLeadLag() const;

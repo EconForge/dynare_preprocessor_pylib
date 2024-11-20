@@ -62,7 +62,7 @@ public:
   numWarnings() const
   {
     return num_warnings;
-  };
+  }
 };
 
 WarningConsolidation&

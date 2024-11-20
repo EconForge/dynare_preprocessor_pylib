@@ -315,7 +315,8 @@ public:
   /* Applies a variant visitor to the value of the option with that name.
      Throws UnknownOptionException if there is no option with that name. */
   template<class Visitor>
-    requires invocable<Visitor, OptionValue> decltype(auto)
+    requires invocable<Visitor, OptionValue>
+  decltype(auto)
   visit(const string& name, Visitor&& vis) const
   {
     auto it = options.find(name);

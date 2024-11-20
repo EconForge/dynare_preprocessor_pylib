@@ -283,7 +283,7 @@ protected:
   min_cost(bool is_matlab)
   {
     return is_matlab ? min_cost_matlab : min_cost_c;
-  };
+  }
 
   //! Initializes data member non_null_derivatives
   virtual void prepareForDerivation() = 0;

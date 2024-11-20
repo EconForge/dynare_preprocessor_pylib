@@ -352,7 +352,7 @@ public:
   AuxVarsSize() const
   {
     return aux_vars.size();
-  };
+  }
   //! Tests if symbol already exists
   [[nodiscard]] inline bool exists(const string& name) const;
   //! Get symbol name (by ID)

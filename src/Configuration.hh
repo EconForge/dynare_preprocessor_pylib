@@ -47,7 +47,7 @@ private:
     get_paths() const
     {
       return paths;
-    };
+    }
 
   private:
     map<string, vector<string>> paths;
