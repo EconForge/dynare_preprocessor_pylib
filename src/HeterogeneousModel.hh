@@ -35,7 +35,7 @@ public:
                      ExternalFunctionsTable& external_functions_table_arg,
                      HeterogeneityTable& heterogeneity_table_arg, int heterogeneity_dimension_arg);
 
-  HeterogeneousModel(const HeterogeneousModel& m);
+  HeterogeneousModel(const HeterogeneousModel& m) = default;
   HeterogeneousModel& operator=(const HeterogeneousModel& m);
 
   void computingPass(int derivsOrder, bool no_tmp_terms, bool use_dll);

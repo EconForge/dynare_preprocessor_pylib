@@ -33,14 +33,6 @@ HeterogeneousModel::HeterogeneousModel(SymbolTable& symbol_table_arg,
 {
 }
 
-HeterogeneousModel::HeterogeneousModel(const HeterogeneousModel& m) :
-    ModelTree {m},
-    heterogeneity_dimension {m.heterogeneity_dimension},
-    deriv_id_table {m.deriv_id_table},
-    inv_deriv_id_table {m.inv_deriv_id_table}
-{
-}
-
 HeterogeneousModel&
 HeterogeneousModel::operator=(const HeterogeneousModel& m)
 {
