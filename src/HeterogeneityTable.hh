@@ -90,7 +90,7 @@ public:
   };
 
   void addSummedHeterogeneousEndogenous(int symb_id);
-  int getSummedHeterogenousEndogenousIndex(int symb_id) const;
+  [[nodiscard]] int getSummedHeterogenousEndogenousIndex(int symb_id) const;
   [[nodiscard]] int aggregateEndoSize() const;
 
   void writeOutput(ostream& output) const;

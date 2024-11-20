@@ -73,7 +73,8 @@ public:
     void checkAllRegimesPresent() const noexcept(false);
 
   private:
-    pair<vector<string>, vector<string>> convertBitVectorToRegimes(const vector<bool>& r) const;
+    [[nodiscard]] pair<vector<string>, vector<string>>
+    convertBitVectorToRegimes(const vector<bool>& r) const;
   };
 
 private:
