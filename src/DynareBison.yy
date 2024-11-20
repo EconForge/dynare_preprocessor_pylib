@@ -1498,6 +1498,7 @@ steady_options : o_solve_algo
                | o_steady_tolf
                | o_steady_tolx
                | o_fsolve_options
+               | o_non_zero
                ;
 
 check : CHECK ';'
@@ -4383,7 +4384,7 @@ o_emas_girf : EMAS_GIRF { driver.option_num("irf_opt.ergodic_mean_irf", "true");
 o_emas_drop : EMAS_DROP EQUAL INT_NUMBER { driver.option_num("irf_opt.EM.drop", $3); };
 o_emas_tolf : EMAS_TOLF EQUAL non_negative_number { driver.option_num("irf_opt.EM.tolf", $3); };
 o_emas_max_iter : EMAS_MAX_ITER EQUAL INT_NUMBER { driver.option_num("irf_opt.EM.iter", $3); };
-o_non_zero : NON_ZERO { driver.option_num("non_zero", "true"); };
+o_non_zero : NON_ZERO { driver.option_num("steady.non_zero", "true"); };
 
 // Some options to "identification"
 o_no_identification_strength : NO_IDENTIFICATION_STRENGTH { driver.option_num("no_identification_strength", "true"); };
