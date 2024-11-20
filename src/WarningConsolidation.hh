@@ -47,12 +47,12 @@ public:
   addWarning(const string& w)
   {
     warnings << w;
-  };
+  }
   void
   addWarning(ostream& (*pf)(ostream&))
   {
     warnings << pf;
-  };
+  }
 
   //! Write Warnings to m file
   void writeOutput(ostream& output) const;

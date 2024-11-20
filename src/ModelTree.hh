@@ -208,7 +208,7 @@ protected:
     getRecursiveSize() const
     {
       return size - mfs_size;
-    };
+    }
   };
 
   // Whether block decomposition has been successfully computed
@@ -541,7 +541,7 @@ protected:
   {
     return equation_type_and_normalized_equation[eq_idx_block2orig[blocks[blk].first_equation + eq]]
         .first;
-  };
+  }
   //! Return true if the equation has been normalized
   bool
   isBlockEquationRenormalized(int blk, int eq) const
@@ -549,44 +549,44 @@ protected:
     return equation_type_and_normalized_equation[eq_idx_block2orig[blocks[blk].first_equation + eq]]
                .first
            == EquationType::evaluateRenormalized;
-  };
+  }
   //! Return the expr_t of equation belonging to the block
   BinaryOpNode*
   getBlockEquationExpr(int blk, int eq) const
   {
     return equations[eq_idx_block2orig[blocks[blk].first_equation + eq]];
-  };
+  }
   //! Return the expr_t of renormalized equation belonging to the block
   BinaryOpNode*
   getBlockEquationRenormalizedExpr(int blk, int eq) const
   {
     return equation_type_and_normalized_equation[eq_idx_block2orig[blocks[blk].first_equation + eq]]
         .second;
-  };
+  }
   //! Return the original number of equation belonging to the block
   int
   getBlockEquationID(int blk, int eq) const
   {
     return eq_idx_block2orig[blocks[blk].first_equation + eq];
-  };
+  }
   //! Return the original number of variable belonging to the block
   int
   getBlockVariableID(int blk, int var) const
   {
     return endo_idx_block2orig[blocks[blk].first_equation + var];
-  };
+  }
   //! Return the position of an equation (given by its original index) inside its block
   int
   getBlockInitialEquationID(int blk, int eq) const
   {
     return eq_idx_orig2block[eq] - blocks[blk].first_equation;
-  };
+  }
   //! Return the position of a variable (given by its original index) inside its block
   int
   getBlockInitialVariableID(int blk, int var) const
   {
     return endo_idx_orig2block[var] - blocks[blk].first_equation;
-  };
+  }
   //! Initialize equation_reordered & variable_reordered
   void initializeVariablesAndEquations();
 

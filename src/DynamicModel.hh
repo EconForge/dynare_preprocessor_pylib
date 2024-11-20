@@ -538,7 +538,7 @@ public:
   isDynamic() const override
   {
     return true;
-  };
+  }
 
   //! Drive test of detrended equations
   void runTrendTest(const eval_context_t& eval_context);
@@ -697,7 +697,7 @@ public:
   {
     return tuple {static_only_equations, static_only_equations_lineno,
                   static_only_equations_equation_tags};
-  };
+  }
 
   //! Returns true if a parameter was used in the model block with a lead or lag
   bool ParamUsedWithLeadLag() const;

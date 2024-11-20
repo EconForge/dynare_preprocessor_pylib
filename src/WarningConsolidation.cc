@@ -29,7 +29,7 @@ operator<<(WarningConsolidation& wcc, const string& warning)
   cerr << warning;
   wcc.addWarning(warning);
   return wcc;
-};
+}
 
 WarningConsolidation&
 operator<<(WarningConsolidation& wcc, const Dynare::location& loc)
@@ -50,7 +50,7 @@ operator<<(WarningConsolidation& wcc, const Dynare::location& loc)
   cerr << ostr.str();
   wcc.addWarning(ostr.str());
   return wcc;
-};
+}
 
 WarningConsolidation&
 operator<<(WarningConsolidation& wcc, ostream& (*pf)(ostream&))

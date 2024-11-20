@@ -351,7 +351,7 @@ public:
   isDynamic() const
   {
     return false;
-  };
+  }
 
   struct UnknownLocalVariableException
   {

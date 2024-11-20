@@ -63,7 +63,7 @@ public:
   empty() const
   {
     return symbols.empty();
-  };
+  }
   //! Return the list of symbols
   [[nodiscard]] vector<string> getSymbols() const;
 };

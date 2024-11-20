@@ -546,7 +546,7 @@ public:
   blockName() const override
   {
     return "estimated_params";
-  };
+  }
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
@@ -564,7 +564,7 @@ public:
   blockName() const override
   {
     return "estimated_params_init";
-  };
+  }
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
@@ -579,7 +579,7 @@ public:
   blockName() const override
   {
     return "estimated_params_bounds";
-  };
+  }
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
