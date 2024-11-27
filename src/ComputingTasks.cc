@@ -283,7 +283,9 @@ PerfectForesightWithExpectationErrorsSolverStatement::writeOutput(
     [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "oo_ = perfect_foresight_with_expectation_errors_solver(M_, options_, oo_);" << endl;
+  output << "[oo_, Simulated_time_series] = perfect_foresight_with_expectation_errors_solver(M_, "
+            "options_, oo_);"
+         << endl;
 }
 
 void
