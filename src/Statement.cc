@@ -49,7 +49,7 @@ NativeStatement::writeOutput(ostream& output, [[maybe_unused]] const string& bas
      otherwise 2023M12 will be matched as 2023M1 (see dynare#1918). Technically, it seems that
      boost::xpressive does not look for the longest match in an alternation, but stops at the first
      match from left to right. */
-  string date_regex = R"((-?\d+([YyAa]|[Mm](1[0-2]|[1-9])|[Qq][1-4]|[SsHh][1-2])))";
+  string date_regex = R"((-?\d+([YyAa]|[Mm](1[0-2]|[1-9])|[Qq][1-4]|[SsHh][12])))";
   /* NB: the following dance around the dollar sign (exclude it from lookbehind, then use it in a
      temporary string after the first replace, then remove it in the second replace) has a purpose:
      it allows the user to disable the substitution mechanism. For example, if the user writes
