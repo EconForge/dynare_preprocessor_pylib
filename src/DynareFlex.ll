@@ -70,7 +70,7 @@ string eofbuff;
 
 NAME [a-z_][a-z0-9_]*
 FLOAT_NUMBER ((([0-9]*\.[0-9]+)|([0-9]+\.))([ed][-+]?[0-9]+)?)|([0-9]+[ed][-+]?[0-9]+)
-DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4])
+DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 
 %%
  /* Code put at the beginning of yylex() */
