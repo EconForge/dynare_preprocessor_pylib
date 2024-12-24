@@ -367,7 +367,13 @@ public:
     if (it == local_variables_table.end())
       throw UnknownLocalVariableException {symb_id};
 
-    return it->second->decreaseLeadsLags(-lead_lag);
+    /* In the following, the case without lead/lag is optimized. It makes a difference on models
+       with many nested model-local variables, see e.g.
+       https://forum.dynare.org/t/pre-processing-takes-very-long/26865 */
+    if (lead_lag == 0)
+      return it->second;
+    else
+      return it->second->decreaseLeadsLags(-lead_lag);
   }
 
   static void
