@@ -82,7 +82,7 @@ test_clang_tidy:
   stage: test
   script:
     # Hack needed for meson < 1.6.0 which only looks for unversioned clang-tidy
-    - mkdir -p ~/.local/bin && ln -s /usr/bin/clang-tidy-16 ~/.local/bin/clang-tidy
+    - mkdir -p ~/.local/bin && ln -s /usr/bin/clang-tidy-19 ~/.local/bin/clang-tidy
     - export PATH="$HOME/.local/bin:$PATH"
     - meson setup build-clang-tidy
     # Generate Flex and Bison files
