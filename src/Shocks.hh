@@ -37,7 +37,7 @@ public:
   using det_shocks_t = map<int, vector<tuple<int, int, expr_t>>>;
   enum class ShockType
   {
-    level, // The value is the level of the exogenous (“values” statement in “shocks”)
+    level,               // The value is the level of the exogenous (“values” statement in “shocks”)
     multiplySteadyState, // The value is the ratio of the exogenous over its (terminal) steady state
                          // (“values” statement in “mshocks”)
     multiplyInitialSteadyState // The value is the ratio of the exogenous over its initial steady
@@ -128,8 +128,8 @@ public:
   enum class LearntShockType
   {
     level, // The value is the level of the exogenous (“values” statement in “shocks(learnt_in=…)”)
-    add,      // The value is the additive change of the exogenous compared to previous information
-              // period (“add” statement in “shocks(learnt_in=…)”)
+    add,   // The value is the additive change of the exogenous compared to previous information
+           // period (“add” statement in “shocks(learnt_in=…)”)
     multiply, // The value is the multiplicative change of the exogenous compared to previous
               // information period (“multiply” statement in “shocks(learnt_in=…)”)
     multiplySteadyState, // The value is the ratio of the exogenous over its (terminal) steady state

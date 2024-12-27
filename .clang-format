@@ -15,7 +15,6 @@ InsertNewlineAtEOF: true
 PackConstructorInitializers: NextLine
 PPIndentWidth: 1
 PointerAlignment: Left
-RemoveSemicolon: true
 SpaceAfterTemplateKeyword: false
 SpaceBeforeParens: ControlStatements
 SpaceBeforeCpp11BracedList: true

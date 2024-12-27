@@ -1385,8 +1385,7 @@ ModelTree::writeLatexModelFile(const string& mod_basename, const string& latex_b
       content_output << endl << R"(\end{dmath})" << endl;
     }
 
-  output << R"(\include{)" << latex_basename + "_content"
-         << "}" << endl
+  output << R"(\include{)" << latex_basename + "_content" << "}" << endl
          << R"(\end{document})" << endl;
 
   output.close();
