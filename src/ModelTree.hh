@@ -1004,9 +1004,8 @@ ModelTree::writeModelCFile(const string& basename, const string& mexext,
 
   const filesystem::path model_src_dir {filesystem::path {basename} / "model" / "src"};
 
-  auto [d_output, tt_output] = writeModelFileHelper < dynamic
-                                   ? ExprNodeOutputType::CDynamicModel
-                                   : ExprNodeOutputType::CStaticModel > ();
+  auto [d_output, tt_output] = writeModelFileHelper<dynamic ? ExprNodeOutputType::CDynamicModel
+                                                            : ExprNodeOutputType::CStaticModel>();
   vector<filesystem::path> header_files, object_files;
 
   // TODO: when C++20 support is complete, mark the following strings constexpr
@@ -2376,9 +2375,9 @@ ModelTree::writeSparseModelJuliaFiles(const string& basename) const
 {
   assert(heterogeneity_table.empty());
 
-  auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper < dynamic
-                                                 ? ExprNodeOutputType::juliaSparseDynamicModel
-                                                 : ExprNodeOutputType::juliaSparseStaticModel > ();
+  auto [d_sparse_output, tt_sparse_output]
+      = writeModelFileHelper<dynamic ? ExprNodeOutputType::juliaSparseDynamicModel
+                                     : ExprNodeOutputType::juliaSparseStaticModel>();
 
   filesystem::path julia_dir {filesystem::path {basename} / "model" / "julia"};
   // TODO: when C++20 support is complete, mark the following strings constexpr
