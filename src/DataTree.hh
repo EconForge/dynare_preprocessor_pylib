@@ -402,7 +402,7 @@ DataTree::AddPossiblyNegativeConstant(double v)
   if (isnan(v))
     return NaN;
   if (isinf(v))
-    return (v < 0 ? MinusInfinity : Infinity);
+    return v < 0 ? MinusInfinity : Infinity;
 
   bool neg = false;
   if (v < 0)

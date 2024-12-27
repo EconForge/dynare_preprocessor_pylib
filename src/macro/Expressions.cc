@@ -241,9 +241,9 @@ Real::normpdf(const BaseTypePtr& btp1, const BaseTypePtr& btp2) const
   auto btp22 = dynamic_pointer_cast<Real>(btp2);
   if (!btp12 || !btp22)
     throw StackTrace("Type mismatch for operands of `normpdf` operator");
-  return make_shared<Real>((1
-                            / (btp22->value * std::sqrt(2 * numbers::pi)
-                               * std::exp(pow((value - btp12->value) / btp22->value, 2) / 2))));
+  return make_shared<Real>(1
+                           / (btp22->value * std::sqrt(2 * numbers::pi)
+                              * std::exp(pow((value - btp12->value) / btp22->value, 2) / 2)));
 }
 
 RealPtr
@@ -254,7 +254,7 @@ Real::normcdf(const BaseTypePtr& btp1, const BaseTypePtr& btp2) const
   if (!btp12 || !btp22)
     throw StackTrace("Type mismatch for operands of `normpdf` operator");
   return make_shared<Real>(
-      (0.5 * (1 + std::erf((value - btp12->value) / btp22->value / numbers::sqrt2))));
+      0.5 * (1 + std::erf((value - btp12->value) / btp22->value / numbers::sqrt2)));
 }
 
 BaseTypePtr
@@ -314,7 +314,7 @@ String::is_equal(const BaseTypePtr& btp) const
 BoolPtr
 String::cast_bool([[maybe_unused]] Environment& env) const
 {
-  auto f = [](const char& a, const char& b) { return (tolower(a) == tolower(b)); };
+  auto f = [](const char& a, const char& b) { return tolower(a) == tolower(b); };
 
   if (ranges::equal(value, "true"s, f))
     return make_shared<Bool>(true);

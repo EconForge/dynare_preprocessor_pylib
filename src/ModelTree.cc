@@ -895,7 +895,7 @@ ModelTree::determineLinearBlocks()
 int
 ModelTree::equation_number() const
 {
-  return (equations.size());
+  return equations.size();
 }
 
 void

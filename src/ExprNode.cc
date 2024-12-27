@@ -6458,9 +6458,9 @@ TrinaryOpNode::eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v
   switch (op_code)
     {
     case TrinaryOpcode::normcdf:
-      return (0.5 * (1 + erf((v1 - v2) / v3 / numbers::sqrt2)));
+      return 0.5 * (1 + erf((v1 - v2) / v3 / numbers::sqrt2));
     case TrinaryOpcode::normpdf:
-      return (1 / (v3 * sqrt(2 * numbers::pi) * exp(pow((v1 - v2) / v3, 2) / 2)));
+      return 1 / (v3 * sqrt(2 * numbers::pi) * exp(pow((v1 - v2) / v3, 2) / 2));
     }
   __builtin_unreachable(); // Silence GCC warning
 }
@@ -6989,9 +6989,9 @@ TrinaryOpNode::isVariableNodeEqualTo([[maybe_unused]] SymbolType type_arg,
 bool
 TrinaryOpNode::containsPacExpectation(const string& pac_model_name) const
 {
-  return (arg1->containsPacExpectation(pac_model_name)
-          || arg2->containsPacExpectation(pac_model_name)
-          || arg3->containsPacExpectation(pac_model_name));
+  return arg1->containsPacExpectation(pac_model_name)
+         || arg2->containsPacExpectation(pac_model_name)
+         || arg3->containsPacExpectation(pac_model_name);
 }
 
 bool
@@ -7907,7 +7907,7 @@ ExternalFunctionNode::sameTefTermPredicate() const
 {
   return [this](expr_t e) {
     auto e2 = dynamic_cast<ExternalFunctionNode*>(e);
-    return (e2 != nullptr && e2->symb_id == symb_id && e2->arguments == arguments);
+    return e2 != nullptr && e2->symb_id == symb_id && e2->arguments == arguments;
   };
 }
 
@@ -8245,12 +8245,12 @@ FirstDerivExternalFunctionNode::sameTefTermPredicate() const
   if (first_deriv_symb_id == symb_id)
     return [this](expr_t e) {
       auto e2 = dynamic_cast<ExternalFunctionNode*>(e);
-      return (e2 && e2->symb_id == symb_id && e2->arguments == arguments);
+      return e2 && e2->symb_id == symb_id && e2->arguments == arguments;
     };
   else
     return [this](expr_t e) {
       auto e2 = dynamic_cast<FirstDerivExternalFunctionNode*>(e);
-      return (e2 && e2->symb_id == symb_id && e2->arguments == arguments);
+      return e2 && e2->symb_id == symb_id && e2->arguments == arguments;
     };
 }
 
@@ -8600,12 +8600,12 @@ SecondDerivExternalFunctionNode::sameTefTermPredicate() const
   if (second_deriv_symb_id == symb_id)
     return [this](expr_t e) {
       auto e2 = dynamic_cast<ExternalFunctionNode*>(e);
-      return (e2 && e2->symb_id == symb_id && e2->arguments == arguments);
+      return e2 && e2->symb_id == symb_id && e2->arguments == arguments;
     };
   else
     return [this](expr_t e) {
       auto e2 = dynamic_cast<SecondDerivExternalFunctionNode*>(e);
-      return (e2 && e2->symb_id == symb_id && e2->arguments == arguments);
+      return e2 && e2->symb_id == symb_id && e2->arguments == arguments;
     };
 }
 
@@ -9491,9 +9491,9 @@ ExprNode::matchParamTimesTargetMinusVariable(int symb_id) const
         auto& avi = datatree.symbol_table.getAuxVarInfo(target->symb_id);
         if (avi.type == AuxVarType::pacTargetNonstationary && target->lag == -1)
           return true;
-        return (avi.type == AuxVarType::unaryOp && avi.unary_op == "log" && avi.orig_symb_id
-                && !datatree.symbol_table.isAuxiliaryVariable(*avi.orig_symb_id)
-                && target->lag + avi.orig_lead_lag.value() == -1);
+        return avi.type == AuxVarType::unaryOp && avi.unary_op == "log" && avi.orig_symb_id
+               && !datatree.symbol_table.isAuxiliaryVariable(*avi.orig_symb_id)
+               && target->lag + avi.orig_lead_lag.value() == -1;
       }
     else
       return target->lag == -1;
