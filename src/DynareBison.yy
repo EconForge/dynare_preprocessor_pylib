@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -111,7 +111,7 @@ str_tolower(string s)
 %token DEFAULT FIXED_POINT FLIP OPT_ALGO COMPILATION_SETUP COMPILER ADD_FLAGS SUBSTITUTE_FLAGS ADD_LIBS SUBSTITUTE_LIBS
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
-%token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID FILTERED_THEORETICAL_MOMENTS_GRID HYBRID ONE_SIDED_HP_FILTER
+%token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID FILTERED_THEORETICAL_MOMENTS_GRID HYBRID USE_FIRST_ORDER_SOLUTION ONE_SIDED_HP_FILTER
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INFILE INVARS
 %token <string> INT_NUMBER
 %token CONDITIONAL_LIKELIHOOD
@@ -3498,7 +3498,8 @@ extended_path_option : o_periods
                      | o_solver_periods
                      | o_extended_path_order
                      | o_hybrid
-		     | o_lmmcp
+                     | o_use_first_order_solution
+                     | o_lmmcp
                      ;
 
 model_diagnostics : MODEL_DIAGNOSTICS ';'
@@ -3733,6 +3734,7 @@ o_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("periods", $3); };
 o_solver_periods : SOLVER_PERIODS EQUAL INT_NUMBER { driver.option_num("ep.periods", $3); };
 o_extended_path_order : ORDER EQUAL INT_NUMBER { driver.option_num("ep.stochastic.order", $3); };
 o_hybrid : HYBRID { driver.option_num("ep.stochastic.hybrid_order", "2"); };
+o_use_first_order_solution : USE_FIRST_ORDER_SOLUTION { driver.option_num("ep.use_first_order_solution_as_initial_guess", "true"); };
 o_steady_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("steady.maxit", $3); };
 o_simul_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("simul.maxit", $3); };
 o_bandpass_filter : BANDPASS_FILTER { driver.option_num("bandpass.indicator", "true"); }

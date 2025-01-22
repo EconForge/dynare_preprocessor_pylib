@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -405,6 +405,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>logarithmic_reduction {return token::LOGARITHMIC_REDUCTION;}
 <DYNARE_STATEMENT>use_univariate_filters_if_singularity_is_detected {return token::USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED;}
 <DYNARE_STATEMENT>hybrid {return token::HYBRID;}
+<DYNARE_STATEMENT>use_first_order_solution {return token::USE_FIRST_ORDER_SOLUTION;}
 <DYNARE_STATEMENT>default {return token::DEFAULT;}
 <DYNARE_STATEMENT>init2shocks {return token::INIT2SHOCKS;}
 
