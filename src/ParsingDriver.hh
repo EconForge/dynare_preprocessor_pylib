@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -921,6 +921,10 @@ public:
   void perfect_foresight_solver();
   void perfect_foresight_with_expectation_errors_setup();
   void perfect_foresight_with_expectation_errors_solver();
+  void perfect_foresight_controlled_paths(
+      const vector<tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>,
+                         string>>& paths,
+      variant<int, string> learnt_in_period);
   void prior_posterior_function(bool prior_func);
   //! Method of Moments estimation statement
   void method_of_moments();

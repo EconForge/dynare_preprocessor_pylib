@@ -45,6 +45,17 @@ static auto print_json_period_range = []<class T>(ostream& output, const T& arg)
     static_assert(always_false_v<T>, "Non-exhaustive visitor!");
 };
 
+static auto print_matlab_learnt_in = [](ostream& output, const auto& p) { output << p; };
+
+static auto print_json_learnt_in = []<class T>(ostream& output, const T& p) {
+  if constexpr (is_same_v<T, int>)
+    output << p;
+  else if constexpr (is_same_v<T, string>)
+    output << '"' << p << '"';
+  else
+    static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+};
+
 AbstractShocksStatement::AbstractShocksStatement(bool overwrite_arg, ShockType type_arg,
                                                  det_shocks_t det_shocks_arg,
                                                  const SymbolTable& symbol_table_arg) :
@@ -564,7 +575,6 @@ void
 ShocksLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                      [[maybe_unused]] bool minimal_workspace) const
 {
-  auto print_matlab_learnt_in = [&](const auto& p) { output << p; };
   if (overwrite)
     {
       output << "if ~isempty(M_.learnt_shocks)" << endl
@@ -576,7 +586,7 @@ ShocksLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
       output << "') || x ~= ";
       /* NB: date expression not parenthesized since it can only contain a + operator, which has
          higher precedence than ~= and || */
-      visit(print_matlab_learnt_in, learnt_in_period);
+      visit(bind(print_matlab_learnt_in, ref(output), placeholders::_1), learnt_in_period);
       output << ", {M_.learnt_shocks.learnt_in}));" << endl << "end" << endl;
     }
 
@@ -585,7 +595,7 @@ ShocksLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
     for (const auto& [type, period_range, value] : shock_vec)
       {
         output << "struct('learnt_in',";
-        visit(print_matlab_learnt_in, learnt_in_period);
+        visit(bind(print_matlab_learnt_in, ref(output), placeholders::_1), learnt_in_period);
         output << ",'exo_id'," << symbol_table.getTypeSpecificID(id) + 1 << ",'periods',";
         visit(bind(print_matlab_period_range, ref(output), placeholders::_1), period_range);
         output << ",'type','" << typeToString(type) << "'"
@@ -601,16 +611,7 @@ ShocksLearntInStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "shocks")"
          << R"(, "learnt_in": )";
-  visit(
-      [&]<class T>(const T& p) {
-        if constexpr (is_same_v<T, int>)
-          output << p;
-        else if constexpr (is_same_v<T, string>)
-          output << '"' << p << '"';
-        else
-          static_assert(always_false_v<T>, "Non-exhaustive visitor!");
-      },
-      learnt_in_period);
+  visit(bind(print_json_learnt_in, ref(output), placeholders::_1), learnt_in_period);
   output << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "learnt_shocks": [)";
   for (bool printed_something {false}; const auto& [id, shock_vec] : learnt_shocks)
     {
@@ -911,6 +912,65 @@ ConditionalForecastPathsStatement::writeJsonOutput(ostream& output) const
           output << R"("})";
         }
       output << "]}";
+    }
+  output << "]}";
+}
+
+PerfectForesightControlledPathsStatement::PerfectForesightControlledPathsStatement(
+    paths_t paths_arg, variant<int, string> learnt_in_period_arg,
+    const SymbolTable& symbol_table_arg) :
+    paths {move(paths_arg)},
+    learnt_in_period {move(learnt_in_period_arg)},
+    symbol_table {symbol_table_arg}
+{
+}
+
+void
+PerfectForesightControlledPathsStatement::writeOutput(ostream& output,
+                                                      [[maybe_unused]] const string& basename,
+                                                      [[maybe_unused]] bool minimal_workspace) const
+{
+  for (const auto& [exogenize_id, constraints, endogenize_id] : paths)
+    for (const auto& [period_range, value] : constraints)
+      {
+        output << "M_.perfect_foresight_controlled_paths = [ "
+                  "M_.perfect_foresight_controlled_paths;"
+               << endl
+               << "struct('exogenize_id'," << symbol_table.getTypeSpecificID(exogenize_id) + 1
+               << ",'periods',";
+        visit(bind(print_matlab_period_range, ref(output), placeholders::_1), period_range);
+        output << ",'value',";
+        value->writeOutput(output);
+        output << ",'endogenize_id'," << symbol_table.getTypeSpecificID(endogenize_id) + 1
+               << ",'learnt_in',";
+        visit(bind(print_matlab_learnt_in, ref(output), placeholders::_1), learnt_in_period);
+        output << ") ];" << endl;
+      }
+}
+
+void
+PerfectForesightControlledPathsStatement::writeJsonOutput(ostream& output) const
+{
+  output << R"({"statementName": "perfect_foresight_controlled_paths")"
+         << R"(, "paths": [)";
+  for (bool printed_something {false};
+       const auto& [exogenize_id, constraints, endogenize_id] : paths)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << R"({"exogenize": ")" << symbol_table.getName(exogenize_id) << R"(", )"
+             << R"("values": [)";
+      for (bool printed_something2 {false}; const auto& [period_range, value] : constraints)
+        {
+          if (exchange(printed_something2, true))
+            output << ", ";
+          output << "{";
+          visit(bind(print_json_period_range, ref(output), placeholders::_1), period_range);
+          output << R"(, "value": ")";
+          value->writeJsonOutput(output, {}, {});
+          output << R"("})";
+        }
+      output << R"(], "endogenize": ")" << symbol_table.getName(endogenize_id) << R"("})";
     }
   output << "]}";
 }

@@ -236,6 +236,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <INITIAL>pac_target_info {BEGIN DYNARE_BLOCK; return token::PAC_TARGET_INFO;}
 <INITIAL>matched_irfs {BEGIN DYNARE_BLOCK; return token::MATCHED_IRFS;}
 <INITIAL>matched_irfs_weights {BEGIN DYNARE_BLOCK; return token::MATCHED_IRFS_WEIGHTS;}
+<INITIAL>perfect_foresight_controlled_paths {BEGIN DYNARE_BLOCK; return token::PERFECT_FORESIGHT_CONTROLLED_PATHS;}
 
  /* For the semicolon after an "end" keyword */
 <INITIAL>; {return Dynare::parser::token_type (yytext[0]);}
@@ -847,6 +848,8 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
   return token::DD;
 }
 <DYNARE_BLOCK>weights {return token::WEIGHTS;}
+<DYNARE_BLOCK>exogenize {return token::EXOGENIZE;}
+<DYNARE_BLOCK>endogenize {return token::ENDOGENIZE;}
 
  /* Inside Dynare statement */
 <DYNARE_STATEMENT>solve_algo {return token::SOLVE_ALGO;}

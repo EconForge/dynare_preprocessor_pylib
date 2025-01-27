@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -3745,6 +3745,29 @@ ParsingDriver::perfect_foresight_with_expectation_errors_solver()
   mod_file->addStatement(
       make_unique<PerfectForesightWithExpectationErrorsSolverStatement>(move(options_list)));
   options_list.clear();
+}
+
+void
+ParsingDriver::perfect_foresight_controlled_paths(
+    const vector<tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>,
+                       string>>& paths,
+    variant<int, string> learnt_in_period)
+{
+  PerfectForesightControlledPathsStatement::paths_t paths_transformed;
+  for (const auto& [exogenize, periods, values, endogenize] : paths)
+    {
+      int exogenize_id = mod_file->symbol_table.getID(exogenize);
+      int endogenize_id = mod_file->symbol_table.getID(endogenize);
+
+      vector<pair<AbstractShocksStatement::period_range_t, expr_t>> v;
+
+      for (size_t i = 0; i < periods.size(); i++)
+        v.emplace_back(periods[i], values[i]);
+
+      paths_transformed.emplace_back(exogenize_id, move(v), endogenize_id);
+    }
+  mod_file->addStatement(make_unique<PerfectForesightControlledPathsStatement>(
+      move(paths_transformed), move(learnt_in_period), mod_file->symbol_table));
 }
 
 void

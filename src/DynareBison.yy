@@ -219,7 +219,7 @@ str_tolower(string s)
 %token HOMOTOPY_MAX_COMPLETION_SHARE HOMOTOPY_MIN_STEP_SIZE HOMOTOPY_INITIAL_STEP_SIZE HOMOTOPY_STEP_SIZE_INCREASE_SUCCESS_COUNT
 %token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK HOMOTOPY_EXCLUDE_VAREXO FROM_INITVAL_TO_ENDVAL
 %token STATIC_MFS RELATIVE_TO_INITVAL MATCHED_IRFS MATCHED_IRFS_WEIGHTS WEIGHTS PERPENDICULAR
-%token HETEROGENEITY HETEROGENEITY_DIMENSION SUM
+%token HETEROGENEITY HETEROGENEITY_DIMENSION SUM PERFECT_FORESIGHT_CONTROLLED_PATHS EXOGENIZE ENDOGENIZE
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -263,6 +263,8 @@ str_tolower(string s)
 %type <tuple<string, string, string>> matched_irfs_weights_elem_var_varexo
 %type <pair<tuple<string, string, string, string, string, string>, expr_t>> matched_irfs_weights_elem
 %type <map<tuple<string, string, string, string, string, string>, expr_t>> matched_irfs_weights_list
+%type <tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>, string>> perfect_foresight_controlled_paths_elem
+%type <vector<tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>, string>>> perfect_foresight_controlled_paths_list
 %%
 
 %start statement_list;
@@ -384,6 +386,7 @@ statement : parameters
           | perfect_foresight_solver
           | perfect_foresight_with_expectation_errors_setup
           | perfect_foresight_with_expectation_errors_solver
+          | perfect_foresight_controlled_paths
           | prior_function
           | posterior_function
           | method_of_moments
@@ -1613,6 +1616,31 @@ perfect_foresight_with_expectation_errors_solver_options_list : perfect_foresigh
 perfect_foresight_with_expectation_errors_solver_options : o_pfwee_constant_simulation_length
                                                          | perfect_foresight_solver_options
                                                          ;
+
+perfect_foresight_controlled_paths : PERFECT_FORESIGHT_CONTROLLED_PATHS ';' perfect_foresight_controlled_paths_list END ';'
+                                     { driver.perfect_foresight_controlled_paths($3, 1); }
+| PERFECT_FORESIGHT_CONTROLLED_PATHS '(' LEARNT_IN EQUAL integer_or_date ')' ';' perfect_foresight_controlled_paths_list END ';'
+                                     { driver.perfect_foresight_controlled_paths($8, $5); }
+                                   ;
+
+perfect_foresight_controlled_paths_list : perfect_foresight_controlled_paths_list perfect_foresight_controlled_paths_elem
+                                          {
+                                            $$ = $1;
+                                            $$.push_back($2);
+                                          }
+                                        | perfect_foresight_controlled_paths_elem
+                                          { $$ = { $1 }; }
+                                        ;
+
+perfect_foresight_controlled_paths_elem : EXOGENIZE symbol ';' PERIODS period_list ';' VALUES value_list ';' ENDOGENIZE symbol ';'
+                                          {
+                                            driver.check_symbol_is_endogenous($2);
+                                            driver.check_symbol_is_exogenous($11, false);
+                                            if ($5.size() != $8.size())
+                                              driver.error("The number of periods is different from the number of values");
+                                            $$ = { $2, $5, $8, $11};
+                                          }
+                                        ;
 
 method_of_moments : METHOD_OF_MOMENTS ';'
                     { driver.method_of_moments(); }

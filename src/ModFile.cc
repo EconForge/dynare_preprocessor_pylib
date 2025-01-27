@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2024 Dynare Team
+ * Copyright © 2006-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1137,7 +1137,8 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
               << "M_.heteroskedastic_shocks.Qvalue_orig = [];" << endl
               << "M_.heteroskedastic_shocks.Qscale_orig = [];" << endl
               << "M_.matched_irfs = {};" << endl
-              << "M_.matched_irfs_weights = {};" << endl;
+              << "M_.matched_irfs_weights = {};" << endl
+              << "M_.perfect_foresight_controlled_paths = [];" << endl;
 
   // NB: options_.{ramsey,discretionary}_policy should rather be fields of M_
   mOutputFile << boolalpha << "options_.linear = " << linear << ";" << endl

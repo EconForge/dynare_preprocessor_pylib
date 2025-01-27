@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -214,6 +214,26 @@ public:
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
   static int computePathLength(const AbstractShocksStatement::det_shocks_t& paths);
+};
+
+class PerfectForesightControlledPathsStatement : public Statement
+{
+public:
+  // (exogenize_id, vector of (period range, value), endogenize_id)
+  using paths_t
+      = vector<tuple<int, vector<pair<AbstractShocksStatement::period_range_t, expr_t>>, int>>;
+
+private:
+  const paths_t paths;
+  const variant<int, string> learnt_in_period;
+  const SymbolTable& symbol_table;
+
+public:
+  PerfectForesightControlledPathsStatement(paths_t paths_arg,
+                                           variant<int, string> learnt_in_period_arg,
+                                           const SymbolTable& symbol_table_arg);
+  void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream& output) const override;
 };
 
 class MomentCalibration : public Statement
