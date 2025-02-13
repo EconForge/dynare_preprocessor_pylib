@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -881,12 +881,9 @@ ConditionalForecastPathsStatement::writeOutput(ostream& output,
       for (const auto& [period_range, value] : elems)
         {
           auto [period1, period2] = get<pair<int, int>>(period_range);
-          for (int j = period1; j <= period2; j++)
-            {
-              output << "constrained_paths_(" << k << "," << j << ")=";
-              value->writeOutput(output);
-              output << ";" << endl;
-            }
+          output << "constrained_paths_(" << k << "," << period1 << ":" << period2 << ")=";
+          value->writeOutput(output);
+          output << ";" << endl;
         }
       k++;
     }
