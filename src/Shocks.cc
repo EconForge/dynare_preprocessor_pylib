@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -627,12 +627,11 @@ ConditionalForecastPathsStatement::writeOutput(ostream& output,
         output << "constrained_vars_ = [constrained_vars_; "
                << symbol_table.getTypeSpecificID(id) + 1 << "];" << endl;
       for (const auto& [period1, period2, value] : elems)
-        for (int j = period1; j <= period2; j++)
-          {
-            output << "constrained_paths_(" << k << "," << j << ")=";
-            value->writeOutput(output);
-            output << ";" << endl;
-          }
+        {
+          output << "constrained_paths_(" << k << "," << period1 << ":" << period2 << ")=";
+          value->writeOutput(output);
+          output << ";" << endl;
+        }
       k++;
     }
 }
