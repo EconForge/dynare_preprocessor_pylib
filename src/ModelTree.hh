@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -296,7 +296,7 @@ protected:
 
   /* Computes the mcp_equations_reordering vector.
      Also checks that a variable does not appear as constrained in two different equations. */
-  void computeMCPEquationsReordering();
+  void computeMCPEquationsReordering(const optional<int>& heterogeneous_dimension = nullopt);
 
   //! Writes temporary terms
   template<ExprNodeOutputType output_type>
@@ -439,7 +439,9 @@ protected:
   void writeSetAuxiliaryVariablesFile(const string& basename, bool julia) const;
 
   template<bool dynamic>
-  void writeComplementarityConditionsFile(const string& basename) const;
+  void writeComplementarityConditionsFile(const string& basename,
+                                          const optional<int>& heterogeneous_dimension
+                                          = nullopt) const;
 
 private:
   //! Sparse matrix of double to store the values of the static Jacobian
@@ -3153,10 +3155,13 @@ ModelTree::writeSetAuxiliaryVariablesFile(const string& basename, bool julia) co
 
 template<bool dynamic>
 void
-ModelTree::writeComplementarityConditionsFile(const string& basename) const
+ModelTree::writeComplementarityConditionsFile(const string& basename,
+                                              const optional<int>& heterogeneous_dimension) const
 {
-  // TODO: when C++20 support is complete, mark the following string constexpr
-  const string funcname {(dynamic ? "dynamic"s : "static"s) + "_complementarity_conditions"};
+  const string funcname {
+      (dynamic ? "dynamic"s : "static"s)
+      + (heterogeneous_dimension ? "_het"s + to_string(*heterogeneous_dimension + 1) : ""s)
+      + "_complementarity_conditions"};
   const filesystem::path filename {packageDir(basename) / (funcname + ".m")};
   /* Can’t use matlabOutsideModel for output type, since it uses M_.
      Static is ok even for the dynamic model, since there are no leads/lags. */

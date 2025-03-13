@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -2118,11 +2118,13 @@ ModelTree::writeAuxVarRecursiveDefinitions(ostream& output, ExprNodeOutputType o
 }
 
 void
-ModelTree::computeMCPEquationsReordering()
+ModelTree::computeMCPEquationsReordering(const optional<int>& heterogeneous_dimension)
 {
   /* Optimal policy models (discretionary, or Ramsey before computing FOCs) do not have as many
      equations as variables. Do not even try to compute the reordering. */
-  if (static_cast<int>(equations.size()) != symbol_table.endo_nbr())
+  if (static_cast<int>(equations.size())
+      != (heterogeneous_dimension ? symbol_table.het_endo_nbr(*heterogeneous_dimension)
+                                  : symbol_table.endo_nbr()))
     return;
 
   assert(equations.size() == complementarity_conditions.size());

@@ -9572,13 +9572,14 @@ ExprNode::toString() const
 }
 
 tuple<int, expr_t, expr_t>
-ExprNode::matchComplementarityCondition() const
+ExprNode::matchComplementarityCondition(
+    [[maybe_unused]] const optional<int>& heterogeneity_dimension) const
 {
   throw MatchFailureException {"This expression is not an inequality"};
 }
 
 tuple<int, expr_t, expr_t>
-BinaryOpNode::matchComplementarityCondition() const
+BinaryOpNode::matchComplementarityCondition(const optional<int>& heterogeneity_dimension) const
 {
   bool is_greater {[&] {
     switch (op_code)
@@ -9596,7 +9597,13 @@ BinaryOpNode::matchComplementarityCondition() const
 
   auto match_contemporaneous_endogenous = [&](expr_t e) -> optional<int> {
     auto* ve = dynamic_cast<VariableNode*>(e);
-    if (ve && ve->lag == 0 && datatree.symbol_table.getType(ve->symb_id) == SymbolType::endogenous)
+    if (ve && ve->lag == 0
+        && ((!heterogeneity_dimension
+             && datatree.symbol_table.getType(ve->symb_id) == SymbolType::endogenous)
+            || (heterogeneity_dimension
+                && datatree.symbol_table.getType(ve->symb_id) == SymbolType::heterogeneousEndogenous
+                && datatree.symbol_table.getHeterogeneityDimension(ve->symb_id)
+                       == *heterogeneity_dimension)))
       return ve->symb_id;
     else
       return nullopt;

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 Dynare Team
+ * Copyright © 2024-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -115,14 +115,7 @@ HeterogeneousModel::computingPass(int derivsOrder, bool no_tmp_terms, bool use_d
 
   computeTemporaryTerms(!use_dll, no_tmp_terms);
 
-  if (ranges::any_of(complementarity_conditions, [](const auto& x) { return x.has_value(); }))
-    {
-      // Implementing it requires modifications in ModelTree::computeMCPEquationsReordering()
-      cerr << "ERROR: Complementarity conditions are not yet implemented in "
-              "model(heterogeneity=...) blocks"
-           << endl;
-      exit(EXIT_FAILURE);
-    }
+  computeMCPEquationsReordering(heterogeneity_dimension);
 }
 
 void
@@ -130,6 +123,7 @@ HeterogeneousModel::writeModelFiles(const string& basename, bool julia) const
 {
   assert(!julia); // Not yet implemented
   writeSparseModelMFiles<true>(basename, heterogeneity_dimension);
+  writeComplementarityConditionsFile<true>(basename, heterogeneity_dimension);
 }
 
 int
@@ -237,4 +231,9 @@ HeterogeneousModel::writeDriverOutput(ostream& output) const
   output << "];" << endl;
   writeDriverSparseIndicesHelper(
       "heterogeneity("s + to_string(heterogeneity_dimension + 1) + ").dynamic", output);
+  output << "M_.heterogeneity(" << heterogeneity_dimension + 1
+         << ").dynamic_mcp_equations_reordering = [";
+  for (auto i : mcp_equations_reordering)
+    output << i + 1 << "; ";
+  output << "];" << endl;
 }

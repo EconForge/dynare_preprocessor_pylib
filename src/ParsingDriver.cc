@@ -2742,6 +2742,9 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
           }
       }()};
 
+      if (heterogeneous_model)
+        error("'mcp' tags are not allowed in heterogeneous model blocks");
+
       if (mod_file->symbol_table.getType(symb_id) != SymbolType::endogenous)
         error("Left-hand side of expression in 'mcp' tag is not an endogenous variable");
 
@@ -2761,7 +2764,9 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
     try
       {
         matched_complementarity_condition
-            = complementarity_condition->matchComplementarityCondition();
+            = heterogeneous_model ? complementarity_condition->matchComplementarityCondition(
+                                        heterogeneous_model->heterogeneity_dimension)
+                                  : complementarity_condition->matchComplementarityCondition();
       }
     catch (ExprNode::MatchFailureException& e)
       {

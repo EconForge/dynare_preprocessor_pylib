@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2024 Dynare Team
+ * Copyright © 2007-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -943,7 +943,8 @@ public:
   /* Matches an expression that constitutes a complementarity condition.
      If successful, returns a triplet (endo_symb_id, lower_bound, upper_bound).
      Otherwise, throws a MatchFailureException. */
-  [[nodiscard]] virtual tuple<int, expr_t, expr_t> matchComplementarityCondition() const;
+  [[nodiscard]] virtual tuple<int, expr_t, expr_t>
+  matchComplementarityCondition(const optional<int>& heterogeneity_dimension = nullopt) const;
 
   /* Replaces aggregation operators (e.g. SUM()) by new auxiliary variables.
      Also declares those aggregation operators in the HeterogeneityTable, so as to
@@ -1519,7 +1520,9 @@ public:
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
   [[nodiscard]] expr_t substituteAggregationOperators(subst_table_t& subst_table,
                                                       vector<BinaryOpNode*>& neweqs) const override;
-  [[nodiscard]] tuple<int, expr_t, expr_t> matchComplementarityCondition() const override;
+  [[nodiscard]] tuple<int, expr_t, expr_t>
+  matchComplementarityCondition(const optional<int>& heterogeneity_dimension
+                                = nullopt) const override;
 };
 
 //! Trinary operator node
