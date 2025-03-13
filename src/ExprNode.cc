@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2024 Dynare Team
+ * Copyright © 2007-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -9640,11 +9640,11 @@ BinaryOpNode::matchComplementarityCondition(const optional<int>& heterogeneity_d
             || (!is_greater
                 && (barg1->op_code == BinaryOpcode::less
                     || barg1->op_code == BinaryOpcode::lessEqual)))))
-    throw MatchFailureException {"Complementarity condition does not have the right form"};
+    throw MatchFailureException {};
 
   auto id = match_contemporaneous_endogenous(barg1->arg2);
   if (!id)
-    throw MatchFailureException {"Complementarity condition does not have the right form"};
+    throw MatchFailureException {};
   check_bound_constant(barg1->arg1);
   check_bound_constant(arg2);
 

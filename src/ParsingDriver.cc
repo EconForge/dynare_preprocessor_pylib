@@ -2770,7 +2770,8 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
       }
     catch (ExprNode::MatchFailureException& e)
       {
-        error("Complementarity condition has an incorrect form: " + e.message);
+        error("Complementarity condition has an incorrect form"s
+              + (e.message.empty() ? ""s : ": "s + e.message));
       }
 
   if (eq_tags.contains("static"))
