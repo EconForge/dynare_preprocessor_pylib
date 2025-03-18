@@ -2978,10 +2978,8 @@ UnaryOpNode::writeJsonOutput(ostream& output, const temporary_terms_t& temporary
       output << "])";
       return;
     case UnaryOpcode::steadyState:
-      output << "(";
-      arg->writeJsonOutput(output, temporary_terms, tef_terms, isdynamic);
-      output << ")";
-      return;
+      output << "STEADY_STATE";
+      break;
     case UnaryOpcode::steadyStateParamDeriv:
       {
         auto varg = dynamic_cast<VariableNode*>(arg);
