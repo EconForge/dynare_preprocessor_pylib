@@ -70,13 +70,14 @@ DataTree::DataTree(const DataTree& d) :
   // Constants must be initialized first because they are used in some Add* methods
   initConstants();
 
+  // See commment in DataTree::operator=() for the rationale
+  for (int symb_id : d.local_variables_vector)
+    local_variables_table[symb_id] = d.local_variables_table.at(symb_id)->clone(*this);
+
   for (const auto& it : d.node_list)
     it->clone(*this);
 
   assert(node_list.size() == d.node_list.size());
-
-  for (const auto& [symb_id, value] : d.local_variables_table)
-    local_variables_table[symb_id] = value->clone(*this);
 }
 
 DataTree&
