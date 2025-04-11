@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1816,7 +1816,7 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
   for (auto& equation : equations)
     if (equation->containsPacExpectation(name))
       {
-        if (!pac_eq_name[name].empty())
+        if (pac_eq_name.contains(name))
           {
             cerr << "It is not possible to use 'pac_expectation(" << name
                  << ")' in several equations." << endl;
@@ -1915,6 +1915,13 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
                                    move(additive_vars_params_and_constants),
                                    move(optim_additive_vars_params_and_constants)};
       }
+
+  if (!pac_eq_name.contains(name))
+    {
+      cerr << "ERROR: the model does not contain the 'pac_expectation(" << name << ")' operator."
+           << endl;
+      exit(EXIT_FAILURE);
+    }
 }
 
 int
