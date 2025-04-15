@@ -221,6 +221,7 @@ str_tolower(string s)
 %token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK HOMOTOPY_EXCLUDE_VAREXO FROM_INITVAL_TO_ENDVAL
 %token STATIC_MFS RELATIVE_TO_INITVAL MATCHED_IRFS MATCHED_IRFS_WEIGHTS WEIGHTS PERPENDICULAR
 %token HETEROGENEITY HETEROGENEITY_DIMENSION SUM PERFECT_FORESIGHT_CONTROLLED_PATHS EXOGENIZE ENDOGENIZE
+%token PRECONDITIONER UMFITER ITERSTACK ILU ITER_TOL ITER_MAXIT GMRES_RESTART ITERSTACK_MAXLU ITERSTACK_NPERIODS ITERSTACK_NLU ITERSTACK_RELU
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -1586,6 +1587,14 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_homotopy_linearization_fallback
                                  | o_homotopy_marginal_linearization_fallback
                                  | o_homotopy_exclude_varexo
+                                 | o_preconditioner
+                                 | o_iter_tol
+                                 | o_iter_maxit
+                                 | o_gmres_restart
+                                 | o_iterstack_maxlu
+                                 | o_iterstack_nperiods
+                                 | o_iterstack_nlu
+                                 | o_iterstack_relu
                                  ;
 
 perfect_foresight_with_expectation_errors_setup : PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SETUP ';'
@@ -4141,6 +4150,20 @@ o_max_dim_cova_group : MAX_DIM_COVA_GROUP EQUAL INT_NUMBER { driver.option_num("
 o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER { driver.option_num("homotopy_mode", $3); };
 o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER { driver.option_num("homotopy_steps", $3); };
 o_homotopy_force_continue: HOMOTOPY_FORCE_CONTINUE EQUAL INT_NUMBER { driver.option_num("homotopy_force_continue", $3); };
+o_preconditioner : PRECONDITIONER EQUAL UMFITER
+                   { driver.option_str("simul.preconditioner", "umfiter"); }
+                 | PRECONDITIONER EQUAL ITERSTACK
+                   { driver.option_str("simul.preconditioner", "iterstack"); }
+                 | PRECONDITIONER EQUAL ILU
+                   { driver.option_str("simul.preconditioner", "ilu"); };
+                 ;
+o_iter_tol : ITER_TOL EQUAL non_negative_number  { driver.option_num("simul.iter_tol", $3); };
+o_iter_maxit : ITER_MAXIT EQUAL INT_NUMBER  { driver.option_num("simul.iter_maxit", $3); };
+o_gmres_restart : GMRES_RESTART EQUAL INT_NUMBER  { driver.option_num("simul.gmres_restart", $3); };
+o_iterstack_maxlu : ITERSTACK_MAXLU EQUAL INT_NUMBER  { driver.option_num("simul.iterstack_maxlu", $3); };
+o_iterstack_nperiods : ITERSTACK_NPERIODS EQUAL INT_NUMBER  { driver.option_num("simul.iterstack_nperiods", $3); };
+o_iterstack_nlu : ITERSTACK_NLU EQUAL INT_NUMBER  { driver.option_num("simul.iterstack_nlu", $3); };
+o_iterstack_relu : ITERSTACK_RELU EQUAL non_negative_number  { driver.option_num("simul.iterstack_relu", $3); };
 o_nocheck : NOCHECK { driver.option_num("steadystate.nocheck", "true"); };
 
 o_controlled_varexo : CONTROLLED_VAREXO EQUAL '(' symbol_list ')' { driver.option_symbol_list("controlled_varexo", $4); };
