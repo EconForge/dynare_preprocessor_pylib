@@ -124,7 +124,7 @@ str_tolower(string s)
 %token POSTERIOR_MAX_SUBSAMPLE_DRAWS MIN MINIMAL_SOLVING_PERIODS
 %token MODE_CHECK MODE_CHECK_NEIGHBOURHOOD_SIZE MODE_CHECK_SYMMETRIC_PLOTS MODE_CHECK_NUMBER_OF_POINTS MODE_COMPUTE MODE_FILE MODEL MODEL_COMPARISON MODEL_INFO MSHOCKS ABS SIGN
 %token MODEL_DIAGNOSTICS MODIFIEDHARMONICMEAN MOMENTS_VARENDO CONTEMPORANEOUS_CORRELATION DIFFUSE_FILTER SUB_DRAWS TAPER_STEPS GEWEKE_INTERVAL RAFTERY_LEWIS_QRS RAFTERY_LEWIS_DIAGNOSTICS BROOKS_GELMAN_PLOTROWS MCMC_JUMPING_COVARIANCE MOMENT_CALIBRATION
-%token NUMBER_OF_PARTICLES RESAMPLING SYSTEMATIC GENERIC RESAMPLING_THRESHOLD RESAMPLING_METHOD KITAGAWA STRATIFIED SMOOTH
+%token NUMBER_OF_PARTICLES RESAMPLING SYSTEMATIC GENERIC RESAMPLING_THRESHOLD RESAMPLING_METHOD KITAGAWA STRATIFIED RESIDUAL SMOOTH
 %token CPF_WEIGHTS AMISANOTRISTANI MURRAYJONESPARSLOW WRITE_EQUATION_TAGS FILTER_INITIAL_STATE
 %token NONLINEAR_FILTER_INITIALIZATION FILTER_ALGORITHM PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
 %token <string> NAME
@@ -4080,11 +4080,12 @@ o_resampling : RESAMPLING EQUAL SYSTEMATIC
               | RESAMPLING EQUAL NONE { driver.option_num("particle.resampling.status.systematic", "false"); driver.option_num("particle.resampling.status.none", "true"); }
               | RESAMPLING EQUAL GENERIC { driver.option_num("particle.resampling.status.systematic", "false"); driver.option_num("particle.resampling.status.generic", "true"); };
 o_resampling_threshold : RESAMPLING_THRESHOLD EQUAL non_negative_number { driver.option_num("particle.resampling.threshold", $3); };
-o_resampling_method : RESAMPLING_METHOD EQUAL KITAGAWA { driver.option_num("particle.resampling.method.kitagawa", "true"); driver.option_num("particle.resampling.method.smooth", "false"); driver.option_num("particle.resampling.method.stratified", "false"); }
-              | RESAMPLING_METHOD EQUAL SMOOTH { driver.option_num("particle.resampling.method.kitagawa", "false"); driver.option_num("particle.resampling.method.smooth", "true"); driver.option_num("particle.resampling.method.stratified", "false"); }
-              | RESAMPLING_METHOD EQUAL STRATIFIED { driver.option_num("particle.resampling.method.kitagawa", "false"); driver.option_num("particle.resampling.method.smooth", "false"); driver.option_num("particle.resampling.method.stratified", "true"); };
+o_resampling_method : RESAMPLING_METHOD EQUAL KITAGAWA { driver.option_num("particle.resampling.method.kitagawa", "true"); driver.option_num("particle.resampling.method.smooth", "false"); driver.option_num("particle.resampling.method.stratified", "false"); driver.option_num("particle.resampling.method.residual", "false");}
+| RESAMPLING_METHOD EQUAL SMOOTH { driver.option_num("particle.resampling.method.kitagawa", "false"); driver.option_num("particle.resampling.method.smooth", "true"); driver.option_num("particle.resampling.method.stratified", "false"); driver.option_num("particle.resampling.method.residual", "false"); }
+| RESAMPLING_METHOD EQUAL STRATIFIED { driver.option_num("particle.resampling.method.kitagawa", "false"); driver.option_num("particle.resampling.method.smooth", "false"); driver.option_num("particle.resampling.method.stratified", "true"); driver.option_num("particle.resampling.method.residual", "false"); };
+| RESAMPLING_METHOD EQUAL RESIDUAL { driver.option_num("particle.resampling.method.kitagawa", "false"); driver.option_num("particle.resampling.method.smooth", "false"); driver.option_num("particle.resampling.method.stratified", "false"); driver.option_num("particle.resampling.method.residual", "true"); };
 o_cpf_weights : CPF_WEIGHTS EQUAL AMISANOTRISTANI { driver.option_num("particle.cpf_weights_method.amisanotristani", "true"); driver.option_num("particle.cpf_weights_method.murrayjonesparslow", "false"); }
-              | CPF_WEIGHTS EQUAL MURRAYJONESPARSLOW { driver.option_num("particle.cpf_weights_method.amisanotristani", "false"); driver.option_num("particle.cpf_weights_method.murrayjonesparslow", "true"); };
+| CPF_WEIGHTS EQUAL MURRAYJONESPARSLOW { driver.option_num("particle.cpf_weights_method.amisanotristani", "false"); driver.option_num("particle.cpf_weights_method.murrayjonesparslow", "true"); };
 o_filter_algorithm : FILTER_ALGORITHM EQUAL symbol { driver.option_str("particle.filter_algorithm", $3); };
 o_nonlinear_filter_initialization : NONLINEAR_FILTER_INITIALIZATION EQUAL INT_NUMBER { driver.option_num("particle.initialization", $3); };
 o_proposal_approximation : PROPOSAL_APPROXIMATION EQUAL CUBATURE { driver.option_num("particle.proposal_approximation.cubature", "true"); driver.option_num("particle.proposal_approximation.unscented", "false"); driver.option_num("particle.proposal_approximation.montecarlo", "false"); }
