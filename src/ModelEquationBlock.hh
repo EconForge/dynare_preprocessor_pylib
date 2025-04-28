@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2023 Dynare Team
+ * Copyright © 2010-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -57,6 +57,17 @@ protected:
   modelClassName() const override
   {
     return "original Ramsey model";
+  }
+  int
+  getJacobianCol(int deriv_id, [[maybe_unused]] bool sparse) const override
+  {
+    /* Override the DynamicModel method by returning a dummy Jacobian column number.
+       The override is necessary because the method from DynamicModel fails with
+       endos with lag/lead greater than 1 or exos with a lag/lead, while substitutions
+       are by definition not done for an original model.
+       In particular, this fixes dynare#1960 (equation derivatives are computed for models declared
+       as linear, to check whether they are truly linear). */
+    return deriv_id;
   }
 };
 
