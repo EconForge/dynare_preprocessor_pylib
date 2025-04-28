@@ -419,7 +419,10 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>kitagawa {return token::KITAGAWA;}
 <DYNARE_STATEMENT>smooth {return token::SMOOTH;}
 <DYNARE_STATEMENT>stratified {return token::STRATIFIED;}
-<DYNARE_STATEMENT>residual {return token::RESIDUAL;}
+<DYNARE_STATEMENT>residual {
+  yylval->emplace<string>(yytext);
+  return token::RESIDUAL;
+}
 <DYNARE_STATEMENT>cpf_weights {return token::CPF_WEIGHTS;}
 <DYNARE_STATEMENT>amisanotristani {return token::AMISANOTRISTANI;}
 <DYNARE_STATEMENT>murrayjonesparslow {return token::MURRAYJONESPARSLOW;}
