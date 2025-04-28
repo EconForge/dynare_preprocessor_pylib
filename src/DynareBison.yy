@@ -173,7 +173,8 @@ str_tolower(string s)
 %token VLISTLOG VLISTPER SPECTRAL_DENSITY INIT2SHOCKS
 %token RESTRICTION RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST
 %token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
-%token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX DIRICHLET DIAGONAL OPTIMAL MFS RESIDUAL
+%token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR DIRICHLET MFS RESIDUAL
+%token PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE UPDATED_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY SMOOTHER_REDUX
@@ -4354,10 +4355,11 @@ o_analytic_derivation_mode : ANALYTIC_DERIVATION_MODE EQUAL signed_number { driv
 o_endogenous_prior : ENDOGENOUS_PRIOR { driver.option_num("endogenous_prior", "true"); }
 o_use_univariate_filters_if_singularity_is_detected : USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED EQUAL INT_NUMBER { driver.option_num("use_univariate_filters_if_singularity_is_detected", $3); }
 o_mcmc_jumping_covariance : MCMC_JUMPING_COVARIANCE EQUAL HESSIAN
-                            { driver.option_str("MCMC_jumping_covariance", $3); }                                  | MCMC_JUMPING_COVARIANCE EQUAL PRIOR_VARIANCE
-                            { driver.option_str("MCMC_jumping_covariance", $3); }
+                            { driver.option_str("MCMC_jumping_covariance", "hessian"); }
+                          | MCMC_JUMPING_COVARIANCE EQUAL PRIOR_VARIANCE
+                            { driver.option_str("MCMC_jumping_covariance", "prior_variance"); }
                           | MCMC_JUMPING_COVARIANCE EQUAL IDENTITY_MATRIX
-                            { driver.option_str("MCMC_jumping_covariance", $3); }
+                            { driver.option_str("MCMC_jumping_covariance", "identity_matrix"); }
                           | MCMC_JUMPING_COVARIANCE EQUAL filename
                             { driver.option_str("MCMC_jumping_covariance", $3); }
                           ;

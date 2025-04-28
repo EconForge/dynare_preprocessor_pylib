@@ -471,10 +471,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
   yylval->emplace<string>(yytext);
   return token::DIRICHLET;
 }
-<DYNARE_STATEMENT>weibull {
-  yylval->emplace<string>(yytext);
-  return token::WEIBULL;
-}
+<DYNARE_STATEMENT>weibull {return token::WEIBULL;}
 <DYNARE_STATEMENT>normal {
   yylval->emplace<string>(yytext);
   return token::NORMAL;
@@ -607,18 +604,9 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>substitute_libs {return token::SUBSTITUTE_LIBS;}
 <DYNARE_STATEMENT>compiler {return token::COMPILER;}
 <DYNARE_STATEMENT>instruments {return token::INSTRUMENTS;}
-<DYNARE_STATEMENT>hessian  {
-  yylval->emplace<string>(yytext);
-  return token::HESSIAN;
-}
-<DYNARE_STATEMENT>prior_variance  {
-  yylval->emplace<string>(yytext);
-  return token::PRIOR_VARIANCE;
-}
-<DYNARE_STATEMENT>identity_matrix  {
-  yylval->emplace<string>(yytext);
-  return token::IDENTITY_MATRIX;
-}
+<DYNARE_STATEMENT>hessian  {return token::HESSIAN;}
+<DYNARE_STATEMENT>prior_variance  {return token::PRIOR_VARIANCE;}
+<DYNARE_STATEMENT>identity_matrix  {return token::IDENTITY_MATRIX;}
 <DYNARE_STATEMENT>mcmc_jumping_covariance {return token::MCMC_JUMPING_COVARIANCE;}
 
  /* These four (var, varexo, varexo_det, parameters) are for change_type */
@@ -718,14 +706,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>lmmcp {return token::LMMCP;}
 <DYNARE_STATEMENT>additional_optimizer_steps	{return token::ADDITIONAL_OPTIMIZER_STEPS;}
 <DYNARE_STATEMENT>bartlett_kernel_lag {return token::BARTLETT_KERNEL_LAG; }
-<DYNARE_STATEMENT>optimal {
-  yylval->emplace<string>(yytext);
-  return token::OPTIMAL;
-}
-<DYNARE_STATEMENT>diagonal  {
-  yylval->emplace<string>(yytext);
-  return token::DIAGONAL;
-}
 <DYNARE_STATEMENT>gmm {return token::GMM;}
 <DYNARE_STATEMENT>smm {return token::SMM;}
 <DYNARE_STATEMENT>irf_matching {return token::IRF_MATCHING;}
