@@ -731,9 +731,9 @@ DynamicModel::removeEquationsHelper(
       }
   int n_excl = all_equations.size() - new_equations.size();
 
-  all_equations = new_equations;
-  all_equations_lineno = new_equations_lineno;
-  all_complementarity_conditions = new_complementarity_conditions;
+  all_equations = move(new_equations);
+  all_equations_lineno = move(new_equations_lineno);
+  all_complementarity_conditions = move(new_complementarity_conditions);
 
   all_equation_tags.erase(eqs_to_delete_by_number, old_eqn_num_2_new);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2023 Dynare Team
+ * Copyright © 2020-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -74,13 +74,12 @@ EquationTags::erase(const set<int>& eqns, const map<int, int>& old_eqn_num_2_new
     eqn_tags.erase(eqn);
 
   for (const auto& [oldeqn, neweqn] : old_eqn_num_2_new)
-    for (auto& [eqn, tags] : eqn_tags)
-      if (eqn == oldeqn)
-        {
-          auto tmp = eqn_tags.extract(eqn);
-          tmp.key() = neweqn;
-          eqn_tags.insert(move(tmp));
-        }
+    if (eqn_tags.contains(oldeqn))
+      {
+        auto tmp = eqn_tags.extract(oldeqn);
+        tmp.key() = neweqn;
+        eqn_tags.insert(move(tmp));
+      }
 }
 
 void
