@@ -48,9 +48,6 @@ build_macos_x86_64:
   tags:
     - macOS
   script:
-    # Workaround for bug in Xcode 15.3 which does not include m4
-    # See https://github.com/Homebrew/homebrew-core/issues/165388 and https://trac.macports.org/ticket/69639
-    - export PATH="/usr/local/opt/m4/bin/:$PATH"
     - arch -x86_64 meson setup -D buildtype=release --native-file scripts/homebrew-native-x86_64.ini build
     - arch -x86_64 meson compile -C build -v
   artifacts:
@@ -63,9 +60,6 @@ build_macos_arm64:
     - macOS
   script:
     - export PATH="/opt/homebrew/bin:$PATH"
-    # Workaround for bug in Xcode 15.3 which does not include m4
-    # See https://github.com/Homebrew/homebrew-core/issues/165388 and https://trac.macports.org/ticket/69639
-    - export PATH="/opt/homebrew/opt/m4/bin/:$PATH"
     - arch -arm64 meson setup -D buildtype=release --native-file scripts/homebrew-native-arm64.ini build
     - arch -arm64 meson compile -C build -v
   artifacts:
