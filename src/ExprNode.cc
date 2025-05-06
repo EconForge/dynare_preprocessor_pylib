@@ -908,6 +908,7 @@ VariableNode::prepareForDerivation()
     case SymbolType::endogenous:
     case SymbolType::parameter:
     case SymbolType::heterogeneousEndogenous:
+    case SymbolType::heterogeneousExogenous:
       non_null_derivatives.insert(getDerivID());
       break;
     case SymbolType::modelLocalVariable:
@@ -915,7 +916,6 @@ VariableNode::prepareForDerivation()
       // Non null derivatives are those of the value of the local parameter
       non_null_derivatives = datatree.getLocalVariable(symb_id, lag)->non_null_derivatives;
       break;
-    case SymbolType::heterogeneousExogenous:
     case SymbolType::heterogeneousParameter:
     case SymbolType::modFileLocalVariable:
     case SymbolType::statementDeclaredVariable:
@@ -1004,11 +1004,11 @@ VariableNode::computeDerivative(int deriv_id)
     case SymbolType::endogenous:
     case SymbolType::parameter:
     case SymbolType::heterogeneousEndogenous:
+    case SymbolType::heterogeneousExogenous:
       if (deriv_id == getDerivID())
         return datatree.One;
       else
         return datatree.Zero;
-    case SymbolType::heterogeneousExogenous:
     case SymbolType::heterogeneousParameter:
       return datatree.Zero;
     case SymbolType::modelLocalVariable:
