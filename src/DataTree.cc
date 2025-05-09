@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -901,7 +901,7 @@ DataTree::writeCHelpersDefinition(ostream& output) const
            << "getPowerDeriv(double x, double p, int k)" << endl
            << "{" << endl
            << "  if (fabs(x) < " << power_deriv_near_zero
-           << " && p > 0 && k > p && fabs(p-nearbyint(p)) < " << power_deriv_near_zero << ')'
+           << " && p >= 0 && k > p && fabs(p-nearbyint(p)) < " << power_deriv_near_zero << ')'
            << endl
            << "    return 0.0;" << endl
            << "  else" << endl
