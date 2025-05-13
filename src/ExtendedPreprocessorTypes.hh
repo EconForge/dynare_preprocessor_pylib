@@ -24,6 +24,7 @@
 enum class OutputType
 {
   standard, // Default value, infer the derivation order from .mod file only
+  first,    // Output only 1st dynamic derivatives with no other computations
   second,   // Output at least 2nd dynamic derivatives
   third,    // Output at least 3rd dynamic derivatives
 };

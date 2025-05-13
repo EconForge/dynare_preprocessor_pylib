@@ -56,7 +56,7 @@ usage()
           "[conffile=path_to_config_file] [parallel_follower_open_mode] "
           "[parallel_test] [parallel_use_psexec=true|false]"
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] "
-          "[compute_xrefs] [output=second|third] [language=matlab|julia]"
+          "[compute_xrefs] [output=first|second|third] [language=matlab|julia]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops] "
           "[exclude_eqs=<equation_tag_list_or_file>] [include_eqs=<equation_tag_list_or_file>]"
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] "
@@ -320,7 +320,9 @@ main(int argc, char** argv)
 
           s.erase(0, 7);
 
-          if (s == "second")
+          if (s == "first")
+            output_mode = OutputType::first;
+          else if (s == "second")
             output_mode = OutputType::second;
           else if (s == "third")
             output_mode = OutputType::third;
