@@ -802,8 +802,12 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
                                                         no_tmp_terms, block, use_dll);
             }
         }
-      else // No computing task requested, compute derivatives up to 2nd order by default
-        dynamic_model.computingPass(2, 0, global_eval_context, no_tmp_terms, block, use_dll);
+      else // No computing task requested, compute derivatives up to 2nd order by default unless
+           // output=third was requested
+        if (output == OutputType::third)
+          dynamic_model.computingPass(3, 0, global_eval_context, no_tmp_terms, block, use_dll);
+        else
+          dynamic_model.computingPass(2, 0, global_eval_context, no_tmp_terms, block, use_dll);
 
       if (linear)
         {
