@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018-2024 Dynare Team
+ * Copyright © 2018-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -70,12 +70,12 @@ TrendComponentModelTable::setVals(map<string, vector<int>> eqnums_arg,
       vector<int> eqnumsv = getEqNums(name);
       for (int nontrend_it : getNonTargetEqNums(name))
         nontarget_lhs_vec.push_back(
-            lhsv.at(distance(eqnumsv.begin(), ranges::find(eqnumsv, nontrend_it))));
+            lhsv.at(ranges::distance(eqnumsv.begin(), ranges::find(eqnumsv, nontrend_it))));
       nontarget_lhs[name] = nontarget_lhs_vec;
 
       for (int trend_it : getTargetEqNums(name))
         target_lhs_vec.push_back(
-            lhsv.at(distance(eqnumsv.begin(), ranges::find(eqnumsv, trend_it))));
+            lhsv.at(ranges::distance(eqnumsv.begin(), ranges::find(eqnumsv, trend_it))));
       target_lhs[name] = target_lhs_vec;
     }
 }
@@ -320,7 +320,7 @@ TrendComponentModelTable::writeOutput(const string& basename, ostream& output) c
       vector<string> eqtags_vec = eqtags.at(name);
       output << "M_.trend_component." << name << ".target_eqn = [";
       for (const auto& it : target_eqtags_vec)
-        output << distance(eqtags_vec.begin(), ranges::find(eqtags_vec, it)) + 1 << " ";
+        output << ranges::distance(eqtags_vec.begin(), ranges::find(eqtags_vec, it)) + 1 << " ";
       output << "];" << endl;
 
       vector<int> target_lhs_vec = getTargetLhs(name);
@@ -333,8 +333,8 @@ TrendComponentModelTable::writeOutput(const string& basename, ostream& output) c
       for (const auto& [key, expr] : AR.at(name))
         {
           auto [eqn, lag, lhs_symb_id] = key;
-          int colidx = static_cast<int>(
-              distance(nontarget_lhs_vec.begin(), ranges::find(nontarget_lhs_vec, lhs_symb_id)));
+          int colidx = static_cast<int>(ranges::distance(
+              nontarget_lhs_vec.begin(), ranges::find(nontarget_lhs_vec, lhs_symb_id)));
           ar_ec_output << "    AR(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
           expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << endl;
@@ -483,7 +483,8 @@ VarModelTable::writeOutput(const string& basename, ostream& output) const
       for (const auto& [key, expr] : AR.at(name))
         {
           auto [eqn, lag, lhs_symb_id] = key;
-          int colidx = static_cast<int>(distance(lhs.begin(), ranges::find(lhs, lhs_symb_id)));
+          int colidx
+              = static_cast<int>(ranges::distance(lhs.begin(), ranges::find(lhs, lhs_symb_id)));
           ar_output << "    ar(" << eqn + 1 << "," << colidx + 1 << "," << lag << ") = ";
           expr->writeOutput(ar_output, ExprNodeOutputType::matlabDynamicModel);
           ar_output << ";" << endl;
@@ -492,7 +493,8 @@ VarModelTable::writeOutput(const string& basename, ostream& output) const
       for (const auto& [key, expr] : A0.at(name))
         {
           auto [eqn, lhs_symb_id] = key;
-          int colidx = static_cast<int>(distance(lhs.begin(), ranges::find(lhs, lhs_symb_id)));
+          int colidx
+              = static_cast<int>(ranges::distance(lhs.begin(), ranges::find(lhs, lhs_symb_id)));
           if (eqn != colidx)
             {
               ar_output << "        a0(" << eqn + 1 << "," << colidx + 1 << ") = ";

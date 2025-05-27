@@ -429,7 +429,7 @@ ExprNode::fillErrorCorrectionRow(int eqn, const vector<int>& nontarget_lhs,
                 exit(EXIT_FAILURE);
               }
             int colidx = static_cast<int>(
-                distance(nontarget_lhs.begin(), ranges::find(nontarget_lhs, orig_vid)));
+                ranges::distance(nontarget_lhs.begin(), ranges::find(nontarget_lhs, orig_vid)));
             if (A0.contains({eqn, colidx}))
               {
                 cerr << "ExprNode::fillErrorCorrection: Error filling A0 matrix: "
@@ -442,7 +442,7 @@ ExprNode::fillErrorCorrectionRow(int eqn, const vector<int>& nontarget_lhs,
           {
             // This is a target, so fill A0star
             int colidx = static_cast<int>(
-                distance(target_lhs.begin(), ranges::find(target_lhs, orig_vid)));
+                ranges::distance(target_lhs.begin(), ranges::find(target_lhs, orig_vid)));
             expr_t e = datatree.AddTimes(datatree.AddVariable(speed_of_adjustment_param),
                                          datatree.AddPossiblyNegativeConstant(-constant));
             if (param_id)

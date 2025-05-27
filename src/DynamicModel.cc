@@ -1762,7 +1762,7 @@ DynamicModel::getUndiffLHSForPac(const string& aux_model_name,
 
   for (auto eqn : nontrend_eqnums)
     {
-      auto i = distance(eqnumber.begin(), ranges::find(eqnumber, eqn));
+      auto i = ranges::distance(eqnumber.begin(), ranges::find(eqnumber, eqn));
 
       if (eqnumber[i] != eqn)
         {
@@ -4365,7 +4365,7 @@ DynamicModel::OccbinRegimeTracker::addRegime(const vector<string>& constraints_b
   vector<bool> new_regime_template(constraints.size(), false);
   for (const auto& c : constraints_bind)
     {
-      int i = distance(constraints.begin(), ranges::find(constraints, c));
+      int i = ranges::distance(constraints.begin(), ranges::find(constraints, c));
       new_regime_template[i] = true;
     }
   set<vector<bool>> new_regimes {new_regime_template};
@@ -4375,7 +4375,7 @@ DynamicModel::OccbinRegimeTracker::addRegime(const vector<string>& constraints_b
                          back_inserter(constraints_not_mentioned));
   for (const auto& c : constraints_not_mentioned)
     {
-      int i = distance(constraints.begin(), ranges::find(constraints, c));
+      int i = ranges::distance(constraints.begin(), ranges::find(constraints, c));
       auto new_regimes_copy = new_regimes;
       for (const auto& r : new_regimes_copy)
         {
