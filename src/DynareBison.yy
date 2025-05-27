@@ -222,6 +222,7 @@ str_tolower(string s)
 %token STATIC_MFS RELATIVE_TO_INITVAL MATCHED_IRFS MATCHED_IRFS_WEIGHTS WEIGHTS PERPENDICULAR
 %token HETEROGENEITY HETEROGENEITY_DIMENSION SUM PERFECT_FORESIGHT_CONTROLLED_PATHS EXOGENIZE ENDOGENIZE
 %token PRECONDITIONER UMFITER ITERSTACK ILU ITER_TOL ITER_MAXIT GMRES_RESTART ITERSTACK_MAXLU ITERSTACK_NPERIODS ITERSTACK_NLU ITERSTACK_RELU
+CHECK_JACOBIAN_SINGULARITY
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -1595,6 +1596,7 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_iterstack_nperiods
                                  | o_iterstack_nlu
                                  | o_iterstack_relu
+                                 | o_check_jacobian_singularity
                                  ;
 
 perfect_foresight_with_expectation_errors_setup : PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SETUP ';'
@@ -4165,6 +4167,7 @@ o_iterstack_maxlu : ITERSTACK_MAXLU EQUAL INT_NUMBER  { driver.option_num("simul
 o_iterstack_nperiods : ITERSTACK_NPERIODS EQUAL INT_NUMBER  { driver.option_num("simul.iterstack_nperiods", $3); };
 o_iterstack_nlu : ITERSTACK_NLU EQUAL INT_NUMBER  { driver.option_num("simul.iterstack_nlu", $3); };
 o_iterstack_relu : ITERSTACK_RELU EQUAL non_negative_number  { driver.option_num("simul.iterstack_relu", $3); };
+o_check_jacobian_singularity : CHECK_JACOBIAN_SINGULARITY { driver.option_num("simul.check_jacobian_singularity", "true"); };
 o_nocheck : NOCHECK { driver.option_num("steadystate.nocheck", "true"); };
 
 o_controlled_varexo : CONTROLLED_VAREXO EQUAL '(' symbol_list ')' { driver.option_symbol_list("controlled_varexo", $4); };
