@@ -761,6 +761,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>iterstack_nperiods {return token::ITERSTACK_NPERIODS;}
 <DYNARE_STATEMENT>iterstack_nlu {return token::ITERSTACK_NLU;}
 <DYNARE_STATEMENT>iterstack_relu {return token::ITERSTACK_RELU;}
+<DYNARE_STATEMENT>check_jacobian_singularity {return token::CHECK_JACOBIAN_SINGULARITY;}
 
 <DYNARE_STATEMENT>\$[^$]*\$ {
   yylval->emplace<string>(yytext + 1).pop_back();
