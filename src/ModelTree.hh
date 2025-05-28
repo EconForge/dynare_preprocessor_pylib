@@ -2959,6 +2959,32 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
           output << "#include <math.h>" << endl << R"(#include "mex.h")" << endl << endl;
           writeCHelpersDefinition(output);
           writeCHelpersDeclaration(output); // Provide external definition of helpers
+
+          // Function computing residuals and/or endogenous, and temporary terms (incl. those for
+          // derivatives)
+          output << endl
+                 << "void " << funcname
+                 << "_resid(double *restrict y, const double *restrict x, const double *restrict "
+                    "params"
+                 << extra_argin << ", double *restrict T"
+                 << (evaluate ? "" : ", double *restrict residual") << ")" << endl
+                 << "{" << endl;
+          writePerBlockHelper<output_type>(blk, output, temporary_terms_written);
+          output << "}" << endl;
+
+          // Function computing the Jacobian
+          if (!evaluate)
+            {
+              output << endl
+                     << "void " << funcname
+                     << "_g1(const double *restrict y, const double *restrict x, const double "
+                        "*restrict params"
+                     << extra_argin << ", double *restrict T, double *restrict g1_v)" << endl
+                     << "{" << endl;
+              writeSparsePerBlockJacobianHelper<output_type>(blk, output, temporary_terms_written);
+              output << "}" << endl;
+            }
+
           output << endl
                  << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])"
                  << endl
@@ -3017,8 +3043,8 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
                    << "  if (nlhs > 2)" << endl
                    << "    plhs[2] = residual_mx;" << endl;
 
-          // Write residuals and temporary terms (incl. those for derivatives)
-          writePerBlockHelper<output_type>(blk, output, temporary_terms_written);
+          output << "  " << funcname << "_resid(y, x, params" << extra_argout << ", T"
+                 << (evaluate ? "" : ", residual") << ");" << endl;
 
           if (!evaluate)
             {
@@ -3026,9 +3052,10 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
               output << "  if (nlhs > 3)" << endl << "    {" << endl;
               sparse_jacobian_create(3, blocks[blk].mfs_size, g1_ncols,
                                      blocks_jacobian_sparse_column_major_order[blk].size());
-              output << "      double *restrict g1_v = mxGetPr(plhs[3]);" << endl;
-              writeSparsePerBlockJacobianHelper<output_type>(blk, output, temporary_terms_written);
-              output << "    }" << endl;
+              output << "      double *restrict g1_v = mxGetPr(plhs[3]);" << endl
+                     << "      " << funcname << "_g1(y, x, params" << extra_argout << ", T, g1_v);"
+                     << endl
+                     << "    }" << endl;
             }
           output << "}" << endl;
           output.close();
