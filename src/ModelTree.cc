@@ -1636,7 +1636,7 @@ ModelTree::findCompilerOnMacos(const string& mexext)
      Apple’s clang is located both in /usr/bin/gcc and /usr/bin/clang, it
      automatically selects x86_64 or arm64 depending on the compile-time
      environment. */
-  const string macos_gcc_version {"14"};
+  const string macos_gcc_version {"15"};
 
   if (filesystem::path global_gcc_path {"/usr/local/bin/gcc-" + macos_gcc_version};
       exists(global_gcc_path) && mexext == "mexmaci64")
