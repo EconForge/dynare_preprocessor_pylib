@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -712,12 +712,7 @@ StaticModel::writeRamseyMultipliersDerivativesMFile(const string& basename,
 
   writeRamseyMultipliersDerivativesHelper<output_type>(output_file);
 
-  // On MATLAB < R2020a, sparse() does not accept int32 indices
-  output_file << "if ~isoctave && matlab_ver_less_than('9.8')" << endl
-              << "    sparse_rowval = double(sparse_rowval);" << endl
-              << "    sparse_colval = double(sparse_colval);" << endl
-              << "end" << endl
-              << "g1m = sparse(sparse_rowval, sparse_colval, g1m_v, " << ramsey_orig_endo_nbr
+  output_file << "g1m = sparse(sparse_rowval, sparse_colval, g1m_v, " << ramsey_orig_endo_nbr
               << ", " << symbol_table.getLagrangeMultipliers().size() << ");" << endl
               << "end" << endl;
   output_file.close();
