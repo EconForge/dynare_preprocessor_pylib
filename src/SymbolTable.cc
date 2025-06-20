@@ -398,6 +398,7 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
           case AuxVarType::pacExpectation:
           case AuxVarType::pacTargetNonstationary:
           case AuxVarType::aggregationOp:
+          case AuxVarType::heterogeneousMultiplier:
             break;
           case AuxVarType::endoLag:
           case AuxVarType::exoLag:
@@ -496,11 +497,26 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
       output << basefield << "endo_nbr = " << het_endo_nbr(het_dim) << ";" << endl;
       print_symb_names(basefield + "endo_names", het_endo_ids.at(het_dim));
 
+      output << basefield << "orig_endo_nbr = " << het_orig_endo_nbr(het_dim) << ";" << endl;
+
       output << basefield << "exo_nbr = " << het_exo_nbr(het_dim) << ";" << endl;
       print_symb_names(basefield + "exo_names", het_exo_ids.at(het_dim));
 
       output << basefield << "param_nbr = " << het_param_nbr(het_dim) << ";" << endl;
       print_symb_names(basefield + "param_names", het_param_ids.at(het_dim));
+
+      const vector<AuxVarInfo>& hav = het_aux_vars[het_dim];
+      if (hav.size() == 0)
+        output << basefield << "aux_vars = [];";
+      else
+        for (int i = 0; i < static_cast<int>(hav.size()); i++)
+          {
+            output << basefield << "aux_vars(" << i + 1
+                   << ").endo_index = " << getTypeSpecificID(hav[i].symb_id) + 1 << ";" << endl
+                   << basefield << "aux_vars(" << i + 1 << ").type = " << hav[i].get_type_id()
+                   << ";" << basefield << "aux_vars(" << i + 1
+                   << ").eq_nbr = " << hav[i].equation_number_for_multiplier + 1 << ";" << endl;
+          }
     }
 }
 
@@ -710,6 +726,27 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
   aux_vars.emplace_back(symb_id, AuxVarType::unaryOp, orig_symb_id, orig_lag, 0, 0, expr_arg,
                         move(unary_op));
 
+  return symb_id;
+}
+
+int
+SymbolTable::addHeterogeneousMultiplierAuxiliaryVar(int het_dim, int index,
+                                                    const string& varname) noexcept(false)
+{
+  int symb_id;
+  try
+    {
+      symb_id = addSymbol(varname, SymbolType::heterogeneousEndogenous, "", {}, het_dim);
+    }
+  catch (AlreadyDeclaredException& e)
+    {
+      cerr << "ERROR: you should rename your variable called " << varname
+           << ", this name is internally used by Dynare" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  het_aux_vars[het_dim].emplace_back(symb_id, AuxVarType::heterogeneousMultiplier, 0, 0, index, 0,
+                                     nullptr, "");
   return symb_id;
 }
 
@@ -1100,6 +1137,7 @@ SymbolTable::writeJsonOutput(ostream& output) const
             case AuxVarType::pacExpectation:
             case AuxVarType::pacTargetNonstationary:
             case AuxVarType::aggregationOp:
+            case AuxVarType::heterogeneousMultiplier:
               break;
             case AuxVarType::endoLag:
             case AuxVarType::exoLag:

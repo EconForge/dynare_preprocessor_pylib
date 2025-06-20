@@ -38,6 +38,8 @@ public:
   HeterogeneousModel(const HeterogeneousModel& m) = default;
   HeterogeneousModel& operator=(const HeterogeneousModel& m);
 
+  void transformPass();
+
   void computingPass(int derivsOrder, bool no_tmp_terms, bool use_dll);
 
   void writeModelFiles(const string& basename, bool julia) const;

@@ -56,7 +56,9 @@ enum class AuxVarType
   pacTargetNonstationary
   = 13, //!< Variable created for the substitution of the pac_target_nonstationary operator
   aggregationOp
-  = 14 // Substitute for an aggregation operator in a heterogeneous setup, such as SUM()
+  = 14, // Substitute for an aggregation operator in a heterogeneous setup, such as SUM()
+  heterogeneousMultiplier = 15 /* Multiplier for bound conditions of complementarity conditions in
+                                  the heterogeneous equations */
 };
 
 //! Information on some auxiliary variables
@@ -154,6 +156,9 @@ private:
 
   //! Information about auxiliary variables
   vector<AuxVarInfo> aux_vars;
+
+  //! Information about heterogeneous auxiliary variables
+  vector<vector<AuxVarInfo>> het_aux_vars;
 
   //! Stores the predetermined variables (by symbol IDs)
   set<int> predetermined_variables;
@@ -282,6 +287,14 @@ public:
     \return the symbol ID of the new symbol
   */
   int addExpectationAuxiliaryVar(int information_set, int index, expr_t arg) noexcept(false);
+  /* Adds an auxiliary variable for the bound-specific multiplier of the MCPs and returns its
+     symbolID.
+     – het_dim is the heterogeneity dimension of the model
+     – index is the equation's index
+     – varname is the multiplier name
+  */
+  int addHeterogeneousMultiplierAuxiliaryVar(int het_dim, int index,
+                                             const string& varname) noexcept(false);
   //! Adds an auxiliary variable for the multiplier for the FOCs of the Ramsey Problem
   /*!
     \param[in] index Used to construct the variable name
@@ -347,6 +360,8 @@ public:
   int addPacTargetNonstationaryAuxiliaryVar(const string& name, expr_t expr_arg);
   // An auxiliary variable for an aggregation operator (e.g. SUM(yh) where yh is heterogeneous)
   int addAggregationOpAuxiliaryVar(const string& name, expr_t expr_arg);
+  //! Set the size of het_aux_vars
+  inline void resizeHetAuxVars();
   //! Returns the number of auxiliary variables
   [[nodiscard]] int
   AuxVarsSize() const
@@ -398,6 +413,9 @@ public:
   [[nodiscard]] inline int param_nbr() const noexcept(false);
   //! Get number of heterogeneous endogenous variables along a given dimension
   [[nodiscard]] inline int het_endo_nbr(int het_dim) const noexcept(false);
+  //! Get number of user-declared heterogeneous endogenous variables (without
+  //! the auxiliary variables)
+  [[nodiscard]] inline int het_orig_endo_nbr(int het_dim) const noexcept(false);
   //! Get number of heterogeneous exogenous variables along a given dimension
   [[nodiscard]] inline int het_exo_nbr(int het_dim) const noexcept(false);
   //! Get number of heterogeneous parameters along a given dimension
@@ -475,6 +493,12 @@ SymbolTable::validateSymbID(int symb_id) const noexcept(false)
 {
   if (symb_id < 0 || symb_id > static_cast<int>(symbol_table.size()))
     throw UnknownSymbolIDException {symb_id};
+}
+
+inline void
+SymbolTable::resizeHetAuxVars()
+{
+  het_aux_vars.resize(heterogeneity_table.size());
 }
 
 inline bool
@@ -589,6 +613,15 @@ SymbolTable::het_endo_nbr(int het_dim) const noexcept(false)
     throw NotYetFrozenException();
 
   return het_endo_ids.at(het_dim).size();
+}
+
+inline int
+SymbolTable::het_orig_endo_nbr(int het_dim) const noexcept(false)
+{
+  if (!frozen)
+    throw NotYetFrozenException();
+
+  return het_endo_ids.at(het_dim).size() - het_aux_vars.at(het_dim).size();
 }
 
 inline int

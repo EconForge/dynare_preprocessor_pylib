@@ -97,6 +97,72 @@ HeterogeneousModel::computeDerivIDs()
     }
 }
 
+/*
+ * Unfold complementarity conditions: (i) declare the multipliers associated
+ * with each bound constraint μ_l and μ_u ; (ii) add or substract the
+ * multiplier into the associated condition; (iii) add the the complementarity
+ * slackness conditions into the set of equations. For example,
+ * households choose {cₜ, aₜ₊₁} to maximize expected lifetime utility:
+ *     max 𝐸ₜ [∑ₛ₌₀^∞ βˢ · u(cₜ₊ₛ)]
+ *
+ * Subject to:
+ *   1. Budget constraint:      cₜ + aₜ₊₁ = yₜ + (1 + rₜ) · aₜ
+ *   2. Borrowing constraint:   aₜ₊₁ ≥ aₘᵢₙ
+ *
+ * Let u'(cₜ) denote the marginal utility of consumption.
+ * Let μₜ ≥ 0 be the Lagrange multiplier on the borrowing constraint.
+ *
+ * Then, the Euler equation becomes:
+ *     u′(cₜ) = β · (1 + rₜ₊₁) · u′(cₜ₊₁) − μₜ
+ *
+ * Together with:
+ *     aₜ₊₁ ≥ aₘᵢₙ                 [primal feasibility]
+ *     μₜ ≥ 0                      [dual feasibility]
+ *     μₜ · (aₜ₊₁ − aₘᵢₙ) = 0      [complementarity slackness]
+ * Note that the primal feasibility and dual feasibility constraints are not
+ * introduced here, but Bhandari et al. (2023) show in Appendix B.1 that they
+ * are redundant.
+ */
+void
+HeterogeneousModel::transformPass()
+{
+  for (int i = 0; i < static_cast<int>(equations.size()); ++i)
+    {
+      if (!complementarity_conditions[i])
+        continue;
+
+      /*
+       * `const auto& [symb_id, lb, ub] = *complementarity_conditions[i];` was not used here because
+       * the call to `addEquation` may eventually lead to a resize of the
+       * `complementarity_conditions` vector, which may invalidate the reference to its element. We
+       * take a copy instead for safety.
+       */
+      auto [symb_id, lb, ub] = *complementarity_conditions[i];
+
+      VariableNode* var = getVariable(symb_id);
+      if (lb)
+        {
+          int mu_id = symbol_table.addHeterogeneousMultiplierAuxiliaryVar(
+              heterogeneity_dimension, i, "MULT_L_" + symbol_table.getName(symb_id));
+          expr_t mu_L = AddVariable(mu_id);
+          auto substeq = AddEqual(AddPlus(equations[i]->arg1, mu_L), equations[i]->arg2);
+          assert(substeq);
+          equations[i] = substeq;
+          addEquation(AddEqual(AddTimes(mu_L, AddMinus(var, lb)), Zero), nullopt);
+        }
+      if (ub)
+        {
+          int mu_id = symbol_table.addHeterogeneousMultiplierAuxiliaryVar(
+              heterogeneity_dimension, i, "MULT_U_" + symbol_table.getName(symb_id));
+          auto mu_U = AddVariable(mu_id);
+          auto substeq = AddEqual(AddMinus(equations[i]->arg1, mu_U), equations[i]->arg2);
+          assert(substeq);
+          equations[i] = substeq;
+          addEquation(AddEqual(AddTimes(mu_U, AddMinus(ub, var)), Zero), nullopt);
+        }
+    }
+}
+
 void
 HeterogeneousModel::computingPass(int derivsOrder, bool no_tmp_terms, bool use_dll)
 {
