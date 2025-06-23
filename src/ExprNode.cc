@@ -2597,10 +2597,9 @@ UnaryOpNode::cost(const vector<vector<unordered_set<expr_t>>>& blocks_temporary_
                   bool is_matlab) const
 {
   // For a temporary term, the cost is null
-  for (const auto& blk_tt : blocks_temporary_terms)
-    for (const auto& eq_tt : blk_tt)
-      if (eq_tt.contains(const_cast<UnaryOpNode*>(this)))
-        return 0;
+  if (ranges::any_of(views::join(blocks_temporary_terms),
+                     [this](auto& tt) { return tt.contains(const_cast<UnaryOpNode*>(this)); }))
+    return 0;
 
   return cost(arg->cost(blocks_temporary_terms, is_matlab), is_matlab);
 }
@@ -4548,10 +4547,9 @@ BinaryOpNode::cost(const vector<vector<unordered_set<expr_t>>>& blocks_temporary
                    bool is_matlab) const
 {
   // For a temporary term, the cost is null
-  for (const auto& blk_tt : blocks_temporary_terms)
-    for (const auto& eq_tt : blk_tt)
-      if (eq_tt.contains(const_cast<BinaryOpNode*>(this)))
-        return 0;
+  if (ranges::any_of(views::join(blocks_temporary_terms),
+                     [this](auto& tt) { return tt.contains(const_cast<BinaryOpNode*>(this)); }))
+    return 0;
 
   int arg_cost = arg1->cost(blocks_temporary_terms, is_matlab)
                  + arg2->cost(blocks_temporary_terms, is_matlab);
@@ -6368,10 +6366,9 @@ TrinaryOpNode::cost(const vector<vector<unordered_set<expr_t>>>& blocks_temporar
                     bool is_matlab) const
 {
   // For a temporary term, the cost is null
-  for (const auto& blk_tt : blocks_temporary_terms)
-    for (const auto& eq_tt : blk_tt)
-      if (eq_tt.contains(const_cast<TrinaryOpNode*>(this)))
-        return 0;
+  if (ranges::any_of(views::join(blocks_temporary_terms),
+                     [this](auto& tt) { return tt.contains(const_cast<TrinaryOpNode*>(this)); }))
+    return 0;
 
   int arg_cost = arg1->cost(blocks_temporary_terms, is_matlab)
                  + arg2->cost(blocks_temporary_terms, is_matlab)
