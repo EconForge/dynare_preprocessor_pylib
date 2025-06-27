@@ -731,6 +731,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
 
   dynamic_model.reorderAuxiliaryEquations();
 
+  symbol_table.resizeHetAuxVars();
+  for (auto& hm : heterogeneous_models)
+    hm.transformPass();
+
   // Freeze the symbol table
   symbol_table.freeze();
 
