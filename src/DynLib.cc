@@ -1,5 +1,3 @@
-
-
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -13,65 +11,95 @@
 #include <cstdlib>
 
 #include <unistd.h>
+#include <assert.h>
 
 #include "ParsingDriver.hh"
 #include "ExtendedPreprocessorTypes.hh"
 #include "ConfigFile.hh"
 #include "ModFile.hh"
 
+#include <boost/algorithm/string.hpp>
 
-// #include<bits/stdc++.h> 
-
-// using namespace std; 
-
-// extern "C" {
-
-int just_try(int a) {
-
-  return a+1;
-}
-
-
-std::string preprocess(const std::string &modfile_string) {
-
-//   dup2(STDOUT_FILENO, STDERR_FILENO);
-
-
+std::string get_json(unique_ptr<ModFile> mod_file, JsonOutputPointType json){
+    const string basename = "model";
+    JsonFileOutputType json_output_mode = JsonFileOutputType::standardout;
+    bool onlyjson = false; // hangs if set to true
     // # we capture output completely
     std::stringstream buffer;
     std::streambuf * old = std::cout.rdbuf(buffer.rdbuf());
-    // std::streambuf * old = std::cerr.rdbuf(buffer.rdbuf());
+    if(json == JsonOutputPointType::computingpass){
+        bool jsonderivsimple = true;
+        mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, jsonderivsimple);
+    } else{
+        mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
+    }
+    std::string output = buffer.str();
+    // below needed otherwide output file would be invalid json (json 513: property expected)
+    boost::replace_all(output , ", ,", ",");
+    return output;
+}
 
+std::string preprocess(const std::string &modfile_string, int mode) {
+    
+    assert(mode >= 0 && mode <= 4 && "mode must be between 0 and 4 inclusive");
+    // Allowed values for mode:
+    // 0 -> no json (useless here)
+    // 1 -> json generated after parsing
+    // 2 -> json generated after checking
+    // 3 -> json generated after transforming
+    // 4 -> json generated after computing (default)
+    
+    
+    JsonOutputPointType json = static_cast<JsonOutputPointType>(mode);
+    
 
-    const string basename = "model";
+    if(json == JsonOutputPointType::nojson) return "";
 
     stringstream modfile;
     modfile << modfile_string;
-
-
+    
+    // Do parsing and construct internal representation of mod file
     bool debug = false;
     bool no_warn = true;
     bool nostrict = true;
-    
     WarningConsolidation warnings(no_warn);
     ParsingDriver p(warnings, nostrict);
+    unique_ptr<ModFile> mod_file = p.parse(modfile, debug);    
+    
+    if(json == JsonOutputPointType::parsing){
+        return get_json(std::move(mod_file), json);
+    }
+    // Run checking pass
+    bool stochastic = true;
+    mod_file->checkPass(nostrict, stochastic);
+    if(json == JsonOutputPointType::checkpass){
+        return get_json(std::move(mod_file), json);
+    }
 
-    unique_ptr<ModFile> mod_file = p.parse(modfile, debug);
 
-    JsonOutputPointType json{JsonOutputPointType::nojson};
-    JsonFileOutputType json_output_mode{JsonFileOutputType::file};
-  
-    json = JsonOutputPointType::parsing;
-    json_output_mode = JsonFileOutputType::standardout;
-  
-    bool onlyjson = false; // remark: why would writeJsonOutput ever decide to exit ?
+    // Perform transformations on the model (creation of auxiliary vars and equations)
+    bool compute_xrefs = false;
+    bool transform_unary_ops = false;
+    std::string exclude_eqs = "";
+    std::string include_eqs = "";
+    mod_file->transformPass(nostrict, stochastic, compute_xrefs,
+                          transform_unary_ops, exclude_eqs, include_eqs);
 
-    mod_file->writeJsonOutput(basename, json, json_output_mode, false);
+    if(json == JsonOutputPointType::transformpass){
+        return get_json(std::move(mod_file), json);
+    }
+    
+    // Evaluate parameters initialization, initval, endval and pounds
+    bool warn_uninit = false;
+    mod_file->evalAllExpressions(warn_uninit);
 
-    std::string output = buffer.str(); // text will now contain "Bla\n"
-
-    return output;
-
+    // Do computations (including derivatives)
+    bool no_tmp_terms = true;
+    OutputType output_mode = OutputType::standard;
+    int params_derivs_order = 1;
+    mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order);
+    return get_json(std::move(mod_file), json);
+    
 }
 
 
@@ -81,24 +109,7 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(dynare_preprocessor, m) {
 
-    m.doc() = "pybind11 example plugin"; // optional module docstring
-    m.def("preprocess", &preprocess, "Another one");
+    m.doc() = "dynare preprocessor";
+    m.def("preprocess", &preprocess, "preprocess mod file using Dynare preprocessor");
 
 }
-
-    // m.def("preprocess", &preprocess, "Another one");
-    // m.def("preprocess",
-    //     [](const std::string &s) {
-    //         cout << "utf-8 is icing on the cake.\n";
-    //         cout << s;
-    //     }
-    // );
-
-
-//     // m.def("add", &just_try, "A function that adds two numbers");
-//     // m.def("notmain", &notmain, "Another one");
-//     // m.def("utf8_test", [](const std::string &s) {
-//     //     cout << "utf-8 is icing on the cake.\n";
-//     //     cout << s;
-//     // }
-// );
