@@ -26,13 +26,16 @@ std::string get_json(unique_ptr<ModFile> mod_file, JsonOutputPointType json){
     bool onlyjson = false; // hangs if set to true
     // # we capture output completely
     std::stringstream buffer;
-    std::streambuf * old = std::cout.rdbuf(buffer.rdbuf());
+    std::streambuf *old = std::cout.rdbuf(buffer.rdbuf()); // make cout's buffer point to buffer's and keep pointer to original
+    std::cout.clear(); // unsilence standard output
     if(json == JsonOutputPointType::computingpass){
         bool jsonderivsimple = true;
         mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, jsonderivsimple);
     } else{
         mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
     }
+    buffer << std::flush;
+    std::cout.rdbuf(old); // point back to original cout buffer (necessary for destructor)
     std::string output = buffer.str();
     // below needed otherwide output file would be invalid json (json 513: property expected)
     boost::replace_all(output , ", ,", ",");
@@ -47,13 +50,14 @@ std::string preprocess(const std::string &modfile_string, int mode) {
     // 1 -> json generated after parsing
     // 2 -> json generated after checking
     // 3 -> json generated after transforming
-    // 4 -> json generated after computing (default)
+    // 4 -> json generated after computing
     
-    
+    std::cout.setstate(std::ios_base::failbit); // silence standard output
+
     JsonOutputPointType json = static_cast<JsonOutputPointType>(mode);
     
 
-    if(json == JsonOutputPointType::nojson) return "";
+    if(json == JsonOutputPointType::nojson) return "{}";
 
     stringstream modfile;
     modfile << modfile_string;
