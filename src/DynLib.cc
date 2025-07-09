@@ -1,64 +1,161 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+using namespace std;
+namespace py = pybind11;
+
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <vector>
 #include <string>
-#include <regex>
-#include <thread>
-#include <algorithm>
-#include <filesystem>
-
-#include <cstdlib>
-
-#include <unistd.h>
-#include <assert.h>
 
 #include "ParsingDriver.hh"
 #include "ExtendedPreprocessorTypes.hh"
-#include "ConfigFile.hh"
+#include "WarningConsolidation.hh"
 #include "ModFile.hh"
 
-#include <boost/algorithm/string.hpp>
+enum class ExprNodeType{
+    NumConstNode,
+    VariableNode,
+    UnaryOpNode,
+    BinaryOpNode,
+    TrinaryOpNode
+};
 
-std::string get_json(unique_ptr<ModFile> mod_file, JsonOutputPointType json){
-    const string basename = "model";
-    JsonFileOutputType json_output_mode = JsonFileOutputType::standardout;
-    bool onlyjson = false; // hangs if set to true
-    // # we capture output completely
-    std::stringstream buffer;
-    std::streambuf *old = std::cout.rdbuf(buffer.rdbuf()); // make cout's buffer point to buffer's and keep pointer to original
-    std::cout.clear(); // unsilence standard output
-    if(json == JsonOutputPointType::computingpass){
-        bool jsonderivsimple = true;
-        mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, jsonderivsimple);
-    } else{
-        mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
-    }
-    buffer << std::flush;
-    std::cout.rdbuf(old); // point back to original cout buffer (necessary for destructor)
-    std::string output = buffer.str();
-    // below needed otherwide output file would be invalid json (json 513: property expected)
-    boost::replace_all(output , ", ,", ",");
-    return output;
+ExprNodeType expression_type(expr_t expression){
+    const type_info& type = typeid(*expression);
+    if(type == typeid(NumConstNode))
+        return ExprNodeType::NumConstNode;
+    else if(type == typeid(VariableNode))
+        return ExprNodeType::VariableNode;
+    else if(type == typeid(UnaryOpNode))
+        return ExprNodeType::UnaryOpNode;
+    else if(type == typeid(BinaryOpNode))
+        return ExprNodeType::BinaryOpNode;
+    else if(type == typeid(TrinaryOpNode))
+        return ExprNodeType::TrinaryOpNode;
+    else
+        throw py::type_error{"Unknown expression type"};
 }
 
-std::string preprocess(const std::string &modfile_string, int mode) {
-    
-    assert(mode >= 0 && mode <= 4 && "mode must be between 0 and 4 inclusive");
-    // Allowed values for mode:
-    // 0 -> no json (useless here)
-    // 1 -> json generated after parsing
-    // 2 -> json generated after checking
-    // 3 -> json generated after transforming
-    // 4 -> json generated after computing
-    
-    std::cout.setstate(std::ios_base::failbit); // silence standard output
 
-    JsonOutputPointType json = static_cast<JsonOutputPointType>(mode);
-    
+class DynareModel{
+    unique_ptr<ModFile> mod_file;
+    double evaluate_with_lags(
+        expr_t expression,
+        // vector of size 3 containing endogenous variables at times t-1, t and t+1 respectively
+        const vector<vector<double>>& endo,
+        const vector<double>& exo,
+        const vector<double>& exo_det,
+        const vector<double>& params
+    );
 
-    if(json == JsonOutputPointType::nojson) return "{}";
+    public:
+        DynareModel (const string& mod_string);
+        vector<string> endogenous;
+        vector<string> exogenous;
+        vector<string> exogenous_det;
+        vector<string> parameters;
+        vector<string> equations;
+        map<string,double> calibration;
+        vector<double> dynamic_function(
+            vector<double> endo_p1,
+            vector<double> endo_0,
+            vector<double> endo_m1,
+            vector<double> exo,
+            vector<double> exo_det,
+            vector<double> params
+        );
+};
 
+double DynareModel::evaluate_with_lags(
+    expr_t expression,
+    const vector<vector<double>>& endo,
+    const vector<double>& exo,
+    const vector<double>& exo_det,
+    const vector<double>& params
+){
+    switch(expression_type(expression)){
+        case ExprNodeType::NumConstNode:
+        {
+            NumConstNode* expr = static_cast<NumConstNode*>(expression);
+            return this->mod_file->num_constants.getDouble(expr->id);
+        }
+        case ExprNodeType::VariableNode:
+        {
+            VariableNode* expr = static_cast<VariableNode*>(expression);
+            int lag = expr->lag;
+            if(lag > 1 || lag < -1){
+                throw py::value_error{"Unsupported lag value"};
+            }
+            int id = expr->symb_id;
+            SymbolType type = mod_file->symbol_table.getType(id);
+            int sid = mod_file->symbol_table.getTypeSpecificID(id);
+            switch(type){
+                case SymbolType::endogenous:
+                    return endo[lag+1][sid];
+                case SymbolType::exogenous:
+                    return exo[sid];
+                case SymbolType::exogenousDet:
+                    return exo_det[sid];
+                case SymbolType::parameter:
+                    return params[sid];
+                default:
+                    throw py::value_error{"Unsupported variable type"};
+            }
+        }
+        case ExprNodeType::UnaryOpNode:
+        {
+            UnaryOpNode* expr = static_cast<UnaryOpNode*>(expression);
+            double arg = evaluate_with_lags(expr->arg, endo, exo, exo_det, params);
+            return expr->eval_opcode(expr->op_code, arg);
+        }
+        case ExprNodeType::BinaryOpNode:
+        {
+            BinaryOpNode* expr = static_cast<BinaryOpNode*>(expression);
+            double arg1 = evaluate_with_lags(expr->arg1, endo, exo, exo_det, params);
+            double arg2 = evaluate_with_lags(expr->arg2, endo, exo, exo_det, params);
+            BinaryOpcode opcode = expr->op_code;
+            if(opcode == BinaryOpcode::equal){
+                // special convention to make evaluation of residuals easier
+                opcode = BinaryOpcode::minus;
+            }
+            return expr->eval_opcode(arg1, opcode, arg2, expr->powerDerivOrder);
+        }
+        case ExprNodeType::TrinaryOpNode:
+        {
+            TrinaryOpNode* expr = static_cast<TrinaryOpNode*>(expression);
+            double arg1 = evaluate_with_lags(expr->arg1, endo, exo, exo_det, params);
+            double arg2 = evaluate_with_lags(expr->arg2, endo, exo, exo_det, params);
+            double arg3 = evaluate_with_lags(expr->arg3, endo, exo, exo_det, params);
+            return expr->eval_opcode(arg1, expr->op_code, arg2, arg3);
+        }
+        default:
+            throw py::type_error{"Unknown expression type"};
+    }
+}
+
+vector<double> DynareModel::dynamic_function(
+    vector<double> endo_p1,
+    vector<double> endo_0,
+    vector<double> endo_m1,
+    vector<double> exo,
+    vector<double> exo_det,
+    vector<double> params
+){
+    vector<vector<double>> endo;
+    endo.push_back(endo_m1);
+    endo.push_back(endo_0);
+    endo.push_back(endo_p1);
+    vector<double> res;
+    for(auto eq : this->mod_file->dynamic_model.equations){
+        res.push_back(evaluate_with_lags(eq, endo, exo, exo_det, params));
+    }
+    return res;
+}
+
+DynareModel::DynareModel(const string &modfile_string) {
     stringstream modfile;
     modfile << modfile_string;
     
@@ -68,32 +165,21 @@ std::string preprocess(const std::string &modfile_string, int mode) {
     bool nostrict = true;
     WarningConsolidation warnings(no_warn);
     ParsingDriver p(warnings, nostrict);
-    unique_ptr<ModFile> mod_file = p.parse(modfile, debug);    
+    mod_file = p.parse(modfile, debug);    
     
-    if(json == JsonOutputPointType::parsing){
-        return get_json(std::move(mod_file), json);
-    }
     // Run checking pass
     bool stochastic = true;
     mod_file->checkPass(nostrict, stochastic);
-    if(json == JsonOutputPointType::checkpass){
-        return get_json(std::move(mod_file), json);
-    }
-
-
+    
     // Perform transformations on the model (creation of auxiliary vars and equations)
     bool compute_xrefs = false;
     bool transform_unary_ops = false;
-    std::string exclude_eqs = "";
-    std::string include_eqs = "";
+    string exclude_eqs = "";
+    string include_eqs = "";
     mod_file->transformPass(nostrict, stochastic, compute_xrefs,
                           transform_unary_ops, exclude_eqs, include_eqs);
 
-    if(json == JsonOutputPointType::transformpass){
-        return get_json(std::move(mod_file), json);
-    }
-    
-    // Evaluate parameters initialization, initval, endval and pounds
+    // Evaluate parameters initialization, initval and endval
     bool warn_uninit = false;
     mod_file->evalAllExpressions(warn_uninit);
 
@@ -101,19 +187,53 @@ std::string preprocess(const std::string &modfile_string, int mode) {
     bool no_tmp_terms = true;
     OutputType output_mode = OutputType::standard;
     int params_derivs_order = 1;
-    mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order);
-    return get_json(std::move(mod_file), json);
-    
+    mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order);    
+
+    // Get symbols
+    SymbolTable table = mod_file->symbol_table;
+    endogenous = vector<string>();
+    for(int id: table.endo_ids){
+        endogenous.push_back(table.getName(id));
+    }
+    exogenous = vector<string>();
+    for(int id: table.exo_ids){
+        exogenous.push_back(table.getName(id));
+    }
+    exogenous_det = vector<string>();
+    for(int id: table.exo_det_ids){
+        exogenous_det.push_back(table.getName(id));
+    }
+    parameters = vector<string>();
+    for(int id: table.param_ids){
+        parameters.push_back(table.getName(id));
+    }
+
+    // Get equations
+    equations = vector<string>();
+    for(auto eq : mod_file->dynamic_model.equations){
+        equations.push_back(eq->toString());
+    }
+
+    // Get calibration
+    calibration = map<string,double>();
+    for (const auto& [id,val] : mod_file->global_eval_context){
+        calibration[table.getName(id)] = val;
+    }
+
 }
 
 
-#include <pybind11/pybind11.h>
 
-namespace py = pybind11;
 
 PYBIND11_MODULE(dynare_preprocessor, m) {
-
     m.doc() = "dynare preprocessor";
-    m.def("preprocess", &preprocess, "preprocess mod file using Dynare preprocessor");
-
+    py::class_<DynareModel>(m, "DynareModel")
+    .def(py::init<const string &>())
+    .def_readwrite("endogenous", &DynareModel::endogenous)
+    .def_readwrite("exogenous", &DynareModel::exogenous)
+    .def_readwrite("exogenous_det", &DynareModel::exogenous_det)
+    .def_readwrite("parameters", &DynareModel::parameters)
+    .def_readwrite("equations", &DynareModel::equations)
+    .def_readwrite("calibration", &DynareModel::calibration)
+    .def("dynamic_function", &DynareModel::dynamic_function);
 }

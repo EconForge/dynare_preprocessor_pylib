@@ -35,6 +35,8 @@ using namespace std;
 
 using expr_t = class ExprNode *;
 
+class DynareModel;
+
 //! Types of auxiliary variables
 enum class AuxVarType
   {
@@ -105,6 +107,7 @@ struct AuxVarInfo
 */
 class SymbolTable
 {
+friend class DynareModel;
 private:
   //! Has method freeze() been called?
   bool frozen{false};

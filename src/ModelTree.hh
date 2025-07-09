@@ -38,6 +38,8 @@
 #include "ExtendedPreprocessorTypes.hh"
 #include "Bytecode.hh"
 
+class DynareModel;
+
 using namespace std;
 
 // Helper to convert a vector into a tuple
@@ -66,6 +68,7 @@ class ModelTree : public DataTree
 {
   friend class DynamicModel;
   friend class StaticModel;
+  friend class DynareModel;
 public:
   // Set via the `compiler` command
   string user_set_add_flags, user_set_subst_flags, user_set_add_libs, user_set_subst_libs, user_set_compiler;
