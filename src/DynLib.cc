@@ -217,9 +217,18 @@ DynareModel::DynareModel(const string &modfile_string) {
         equations.push_back(eq->toString());
     }
 
+    // Add steady state to eval context for uninitialized variables
+    eval_context_t context = mod_file->global_eval_context;
+    for(const auto& [vect, expr] : mod_file->steady_state_model.def_table){
+        double val = expr->eval(context);
+        for(int id : vect){
+            if(context[id] == 0) context[id] = val;
+        }
+    }
+
     // Get calibration
     calibration = map<string,double>();
-    for(const auto& [id,val] : mod_file->global_eval_context){
+    for(const auto& [id,val] : context){
         calibration[table.getName(id)] = val;
     }
 
@@ -232,24 +241,24 @@ DynareModel::DynareModel(const string &modfile_string) {
             ShocksStatement* shock = static_cast<ShocksStatement*>(statement.get());
             for(const auto& [id, expr] : shock->var_shocks){
                 string s = table.getName(id);
-                covariances[make_pair(s,s)] = expr->eval(mod_file->global_eval_context);
+                covariances[make_pair(s,s)] = expr->eval(context);
             }
             for(const auto& [id, expr] : shock->std_shocks){
                 string s = table.getName(id);
-                covariances[make_pair(s,s)] = pow(expr->eval(mod_file->global_eval_context),2);
+                covariances[make_pair(s,s)] = pow(expr->eval(context),2);
             }
             for(const auto& [key, expr] : shock->covar_shocks){
                 const auto& [id1,id2] = key;
                 string s1 = table.getName(id1);
                 string s2 = table.getName(id2);
-                double covar = expr->eval(mod_file->global_eval_context);
+                double covar = expr->eval(context);
                 covariances[make_pair(s1,s2)] = covar;
             }
             for(const auto& [key, expr] : shock->corr_shocks){
                 const auto& [id1,id2] = key;
                 string s1 = table.getName(id1);
                 string s2 = table.getName(id2);
-                double corr = expr->eval(mod_file->global_eval_context);
+                double corr = expr->eval(context);
                 double std_1 = sqrt(covariances[make_pair(s1,s1)]);
                 double std_2 = sqrt(covariances[make_pair(s2,s2)]);
                 double covar = corr*std_1*std_2;
@@ -263,7 +272,7 @@ DynareModel::DynareModel(const string &modfile_string) {
             for(const auto& [id, trajectory] : shock->surprise_shocks){
                 string var = table.getName(id);
                 for(const auto& [p1, p2, expr] : trajectory){
-                    double val = expr->eval(mod_file->global_eval_context);
+                    double val = expr->eval(context);
                     trajectories[var].push_back(make_tuple(p1, p2, val));
                 }
             }
