@@ -30,6 +30,8 @@
 
 using namespace std;
 
+class DynareModel;
+
 class AbstractShocksStatement : public Statement
 {
 public:
@@ -52,6 +54,7 @@ protected:
 
 class ShocksStatement : public AbstractShocksStatement
 {
+friend class DynareModel;
 public:
   using var_and_std_shocks_t = map<int, expr_t>;
   using covar_and_corr_shocks_t = map<pair<int, int>, expr_t>;
@@ -91,6 +94,7 @@ public:
    it a separate class. */
 class ShocksSurpriseStatement : public Statement
 {
+friend class DynareModel;
 public:
   //! Does this "shocks(surprise)" statement replace the previous ones?
   const bool overwrite;

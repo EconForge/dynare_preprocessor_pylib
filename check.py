@@ -39,7 +39,7 @@ def traced(func, ignoredirs=None):
 # @traced
 def main():
     from dynare_preprocessor import DynareModel
-    f = "/home/work/dyno.py/examples/modfiles/example1.mod"
+    f = "/home/work/dyno.py/examples/modfiles/Occbin_example.mod"
     mod_string = open(f).read()
     dyn = DynareModel(mod_string)
     print("Symbols:")
@@ -61,6 +61,14 @@ def main():
     exo_det = [dyn.calibration[x] for x in dyn.exogenous_det]
     params = [dyn.calibration[x] for x in dyn.parameters]
     print(f"    {dyn.dynamic_function(endo,endo,endo,exo,exo_det,params)}")
+    print("\nCovariances:\n")
+    for [x,y],v in dyn.covariances.items():
+        print(f"    Covar({x}, {y}) = {v}")
+    print("\nTrajectories:\n")
+    for v, traj in dyn.trajectories.items():
+        print(f"    Trajectory of exogenous variable {v}")
+        for p1,p2,val in traj:
+            print(f"        {val} from {p1} to {p2}")
 
 
 

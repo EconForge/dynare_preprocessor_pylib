@@ -4,6 +4,7 @@
 using namespace std;
 namespace py = pybind11;
 
+#include <cmath>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -67,6 +68,8 @@ class DynareModel{
             vector<double> exo_det,
             vector<double> params
         );
+        map<pair<string,string>,double> covariances;
+        map<string, vector<tuple<int, int, double>>> trajectories;
 };
 
 double DynareModel::evaluate_with_lags(
@@ -216,10 +219,56 @@ DynareModel::DynareModel(const string &modfile_string) {
 
     // Get calibration
     calibration = map<string,double>();
-    for (const auto& [id,val] : mod_file->global_eval_context){
+    for(const auto& [id,val] : mod_file->global_eval_context){
         calibration[table.getName(id)] = val;
     }
 
+    // Get exogenous variable definitions
+    covariances = map<pair<string,string>, double>();
+    trajectories = map<string, vector<tuple<int, int, double>>>();
+    for(const auto &statement : mod_file->statements){
+        const type_info& type = typeid(*statement);
+        if(type == typeid(ShocksStatement)){
+            ShocksStatement* shock = static_cast<ShocksStatement*>(statement.get());
+            for(const auto& [id, expr] : shock->var_shocks){
+                string s = table.getName(id);
+                covariances[make_pair(s,s)] = expr->eval(mod_file->global_eval_context);
+            }
+            for(const auto& [id, expr] : shock->std_shocks){
+                string s = table.getName(id);
+                covariances[make_pair(s,s)] = pow(expr->eval(mod_file->global_eval_context),2);
+            }
+            for(const auto& [key, expr] : shock->covar_shocks){
+                const auto& [id1,id2] = key;
+                string s1 = table.getName(id1);
+                string s2 = table.getName(id2);
+                double covar = expr->eval(mod_file->global_eval_context);
+                covariances[make_pair(s1,s2)] = covar;
+            }
+            for(const auto& [key, expr] : shock->corr_shocks){
+                const auto& [id1,id2] = key;
+                string s1 = table.getName(id1);
+                string s2 = table.getName(id2);
+                double corr = expr->eval(mod_file->global_eval_context);
+                double std_1 = sqrt(covariances[make_pair(s1,s1)]);
+                double std_2 = sqrt(covariances[make_pair(s2,s2)]);
+                double covar = corr*std_1*std_2;
+                covariances[make_pair(s1,s2)] = covar;
+            }
+        } else if(type == typeid(ShocksSurpriseStatement)){
+            ShocksSurpriseStatement* shock = static_cast<ShocksSurpriseStatement*>(statement.get());
+            if(shock->overwrite){
+                covariances.clear();
+            }
+            for(const auto& [id, trajectory] : shock->surprise_shocks){
+                string var = table.getName(id);
+                for(const auto& [p1, p2, expr] : trajectory){
+                    double val = expr->eval(mod_file->global_eval_context);
+                    trajectories[var].push_back(make_tuple(p1, p2, val));
+                }
+            }
+        }
+    }
 }
 
 
@@ -235,5 +284,7 @@ PYBIND11_MODULE(dynare_preprocessor, m) {
     .def_readwrite("parameters", &DynareModel::parameters)
     .def_readwrite("equations", &DynareModel::equations)
     .def_readwrite("calibration", &DynareModel::calibration)
-    .def("dynamic_function", &DynareModel::dynamic_function);
+    .def("dynamic_function", &DynareModel::dynamic_function)
+    .def_readwrite("covariances", &DynareModel::covariances)
+    .def_readwrite("trajectories", &DynareModel::trajectories);
 }

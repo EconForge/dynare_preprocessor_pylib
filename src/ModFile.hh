@@ -41,9 +41,12 @@
 
 using namespace std;
 
+class DynareModel;
+
 //! The abstract representation of a "mod" file
 class ModFile
 {
+friend class DynareModel;
 public:
   explicit ModFile(WarningConsolidation &warnings_arg);
   //! Symbol table
