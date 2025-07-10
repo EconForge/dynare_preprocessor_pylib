@@ -3029,15 +3029,18 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
           if (!evaluate)
             output << "  mxArray *residual_mx = mxCreateDoubleMatrix(" << blocks[blk].mfs_size
                    << ", 1, mxREAL);" << endl
-                   << "  double *restrict residual = mxGetPr(residual_mx);" << endl
-                   << "  if (nlhs > 2)" << endl
-                   << "    plhs[2] = residual_mx;" << endl;
+                   << "  double *restrict residual = mxGetPr(residual_mx);" << endl;
 
           output << "  " << funcname << "_resid(y, x, params" << extra_argout << ", T"
                  << (evaluate ? "" : ", residual") << ");" << endl;
 
           if (!evaluate)
             {
+              output << "  if (nlhs > 2)" << endl
+                     << "    plhs[2] = residual_mx;" << endl
+                     << "  else" << endl
+                     << "    mxDestroyArray(residual_mx);" << endl;
+
               // Write Jacobian
               output << "  if (nlhs > 3)" << endl << "    {" << endl;
               sparse_jacobian_create(3, blocks[blk].mfs_size, g1_ncols,
