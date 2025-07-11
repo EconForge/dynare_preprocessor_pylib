@@ -74,13 +74,19 @@ def main():
     print("\nJacobians:\n")
     jacobians = dyn.jacobians(endo,endo,endo,exo,exo_det,params)
     n = len(dyn.equations)
-    for i, symblist in enumerate([endo, endo, endo, exo, exo_det]):
+    symtypes = ["future endogenous",
+                "present endogenous",
+                "past endogenous",
+                "exogenous",
+                "deterministic exogenous",
+                "parameters"]
+    for ind, symblist in enumerate([endo, endo, endo, exo, exo_det, params]):
         m = len(symblist)
         matrix = np.zeros((n,m))
-        for (i,j), v in jacobians[i].items():
+        for (i,j), v in jacobians[ind].items():
             matrix[i,j] = v
-        print(matrix)
-        print("\n")
+        print(f"    {symtypes[ind]}\n")
+        print(f"    {matrix}\n")
 
 
 

@@ -61,7 +61,7 @@ class DynareModel{
     vector<symb_jacobian_t> symb_jacob_endo;
     symb_jacobian_t symb_jacob_exo;
     symb_jacobian_t symb_jacob_exo_det;
-    // symb_jacobian_t jacobian_params;
+    symb_jacobian_t symb_jacob_params;
     
     void eval_symb_jacob(
         const symb_jacobian_t& symb_jacob,
@@ -92,11 +92,8 @@ class DynareModel{
         map<pair<string,string>,double> covariances;
         map<string, vector<tuple<int, int, double>>> trajectories;
 
-
-
         // returns vector of partial derivative matrices wrt endo_future, endo_present,
-        // endo_past, exo, exo_det vectors respectively
-        //! TODO: add params
+        // endo_past, exo, exo_det and params vectors respectively
         vector<jacobian_t> jacobians(
             vector<double> endo_future,
             vector<double> endo_present,
@@ -226,6 +223,7 @@ vector<jacobian_t> DynareModel::jacobians(
     eval_symb_jacob(this->symb_jacob_endo[0],res[2],endo, exo, exo_det, params);
     eval_symb_jacob(this->symb_jacob_exo,res[3],endo, exo, exo_det, params);
     eval_symb_jacob(this->symb_jacob_exo_det,res[4],endo, exo, exo_det, params);
+    eval_symb_jacob(this->symb_jacob_params,res[5],endo, exo, exo_det, params);
     return res;
 }
 
@@ -260,6 +258,8 @@ DynareModel::DynareModel(const string &modfile_string) {
     // Do computations (including derivatives)
     bool no_tmp_terms = true;
     OutputType output_mode = OutputType::standard;
+    //! forces the preprocessor to compute derivative w.r.t. parameters
+    mod_file->mod_file_struct.identification_present = true;
     int params_derivs_order = 1;
     mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order);    
 
@@ -285,7 +285,7 @@ DynareModel::DynareModel(const string &modfile_string) {
     // Get equations
     const DynamicModel& dm = mod_file->dynamic_model;
     equations = vector<string>();
-    for(auto eq : dm.equations){
+    for(expr_t eq : dm.equations){
         equations.push_back(eq->toString());
     }
 
@@ -380,6 +380,13 @@ DynareModel::DynareModel(const string &modfile_string) {
                     throw py::value_error{"Unknown symbol type"};
             }
         }
+    }
+    // Get derivatives wrt parameters
+    symb_jacob_params = symb_jacobian_t();
+    for (const auto &[indices, expr] : dm.params_derivatives.at({0,1})){
+        int eq = indices[0];
+        int param = dm.getTypeSpecificIDByDerivID(indices[1]);
+        symb_jacob_params[{eq,param}] = expr;
     }
 }
 
