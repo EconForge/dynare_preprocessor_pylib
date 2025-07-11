@@ -1,3 +1,5 @@
+import numpy as np
+
 def reexecute_if_unbuffered():
     """Ensures that output is immediately flushed (e.g. for segfaults).
     ONLY use this at your entrypoint. Otherwise, you may have code be
@@ -39,7 +41,7 @@ def traced(func, ignoredirs=None):
 # @traced
 def main():
     from dynare_preprocessor import DynareModel
-    f = "/home/work/dyno.py/examples/modfiles/Occbin_example.mod"
+    f = "/home/work/dyno.py/examples/modfiles/example1.mod"
     mod_string = open(f).read()
     dyn = DynareModel(mod_string)
     print("Symbols:")
@@ -69,6 +71,17 @@ def main():
         print(f"    Trajectory of exogenous variable {v}")
         for p1,p2,val in traj:
             print(f"        {val} from {p1} to {p2}")
+    print("\nJacobians:\n")
+    jacobians = dyn.jacobians(endo,endo,endo,exo,exo_det,params)
+    n = len(dyn.equations)
+    for i, symblist in enumerate([endo, endo, endo, exo, exo_det]):
+        m = len(symblist)
+        matrix = np.zeros((n,m))
+        for (i,j), v in jacobians[i].items():
+            matrix[i,j] = v
+        print(matrix)
+        print("\n")
+
 
 
 

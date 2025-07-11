@@ -24,6 +24,12 @@ enum class ExprNodeType{
     TrinaryOpNode
 };
 
+// (equation id, type specific id) -> symbolic partial derivative
+using symb_jacobian_t = map<pair<int,int>, expr_t>;
+
+// (equation id, type specific id) -> evaluated partial derivative
+using jacobian_t = map<pair<int,int>, double>;
+
 ExprNodeType expression_type(expr_t expression){
     const type_info& type = typeid(*expression);
     if(type == typeid(NumConstNode))
@@ -41,10 +47,25 @@ ExprNodeType expression_type(expr_t expression){
 }
 
 
+
 class DynareModel{
     unique_ptr<ModFile> mod_file;
     double evaluate_with_lags(
         expr_t expression,
+        // vector of size 3 containing endogenous variables at times t-1, t and t+1 respectively
+        const vector<vector<double>>& endo,
+        const vector<double>& exo,
+        const vector<double>& exo_det,
+        const vector<double>& params
+    );
+    vector<symb_jacobian_t> symb_jacob_endo;
+    symb_jacobian_t symb_jacob_exo;
+    symb_jacobian_t symb_jacob_exo_det;
+    // symb_jacobian_t jacobian_params;
+    
+    void eval_symb_jacob(
+        const symb_jacobian_t& symb_jacob,
+        jacobian_t& out,
         // vector of size 3 containing endogenous variables at times t-1, t and t+1 respectively
         const vector<vector<double>>& endo,
         const vector<double>& exo,
@@ -61,15 +82,29 @@ class DynareModel{
         vector<string> equations;
         map<string,double> calibration;
         vector<double> dynamic_function(
-            vector<double> endo_p1,
-            vector<double> endo_0,
-            vector<double> endo_m1,
+            vector<double> endo_future,
+            vector<double> endo_present,
+            vector<double> endo_past,
             vector<double> exo,
             vector<double> exo_det,
             vector<double> params
         );
         map<pair<string,string>,double> covariances;
         map<string, vector<tuple<int, int, double>>> trajectories;
+
+
+
+        // returns vector of partial derivative matrices wrt endo_future, endo_present,
+        // endo_past, exo, exo_det vectors respectively
+        //! TODO: add params
+        vector<jacobian_t> jacobians(
+            vector<double> endo_future,
+            vector<double> endo_present,
+            vector<double> endo_past,
+            vector<double> exo,
+            vector<double> exo_det,
+            vector<double> params
+        );
 };
 
 double DynareModel::evaluate_with_lags(
@@ -140,21 +175,57 @@ double DynareModel::evaluate_with_lags(
 }
 
 vector<double> DynareModel::dynamic_function(
-    vector<double> endo_p1,
-    vector<double> endo_0,
-    vector<double> endo_m1,
+    vector<double> endo_future,
+    vector<double> endo_present,
+    vector<double> endo_past,
     vector<double> exo,
     vector<double> exo_det,
     vector<double> params
 ){
     vector<vector<double>> endo;
-    endo.push_back(endo_m1);
-    endo.push_back(endo_0);
-    endo.push_back(endo_p1);
+    endo.push_back(endo_past);
+    endo.push_back(endo_present);
+    endo.push_back(endo_future);
     vector<double> res;
     for(auto eq : this->mod_file->dynamic_model.equations){
         res.push_back(evaluate_with_lags(eq, endo, exo, exo_det, params));
     }
+    return res;
+}
+
+void DynareModel::eval_symb_jacob(
+    const symb_jacobian_t& symb_jacob,
+    jacobian_t& out,
+    const vector<vector<double>>& endo,
+    const vector<double>& exo,
+    const vector<double>& exo_det,
+    const vector<double>& params
+){
+    for(const auto& [key, expr] : symb_jacob){
+        const auto& [eq,tsid] = key;
+        out[{eq, tsid}] = evaluate_with_lags(expr, endo, exo, exo_det, params);
+    }
+}
+
+vector<jacobian_t> DynareModel::jacobians(
+    vector<double> endo_future,
+    vector<double> endo_present,
+    vector<double> endo_past,
+    vector<double> exo,
+    vector<double> exo_det,
+    vector<double> params
+){
+    vector<vector<double>> endo;
+    endo.push_back(endo_past);
+    endo.push_back(endo_present);
+    endo.push_back(endo_future);
+
+    vector<jacobian_t> res(6);
+    eval_symb_jacob(this->symb_jacob_endo[2],res[0],endo, exo, exo_det, params);
+    eval_symb_jacob(this->symb_jacob_endo[1],res[1],endo, exo, exo_det, params);
+    eval_symb_jacob(this->symb_jacob_endo[0],res[2],endo, exo, exo_det, params);
+    eval_symb_jacob(this->symb_jacob_exo,res[3],endo, exo, exo_det, params);
+    eval_symb_jacob(this->symb_jacob_exo_det,res[4],endo, exo, exo_det, params);
     return res;
 }
 
@@ -210,10 +281,11 @@ DynareModel::DynareModel(const string &modfile_string) {
     for(int id: table.param_ids){
         parameters.push_back(table.getName(id));
     }
-
+    
     // Get equations
+    const DynamicModel& dm = mod_file->dynamic_model;
     equations = vector<string>();
-    for(auto eq : mod_file->dynamic_model.equations){
+    for(auto eq : dm.equations){
         equations.push_back(eq->toString());
     }
 
@@ -241,28 +313,28 @@ DynareModel::DynareModel(const string &modfile_string) {
             ShocksStatement* shock = static_cast<ShocksStatement*>(statement.get());
             for(const auto& [id, expr] : shock->var_shocks){
                 string s = table.getName(id);
-                covariances[make_pair(s,s)] = expr->eval(context);
+                covariances[{s,s}] = expr->eval(context);
             }
             for(const auto& [id, expr] : shock->std_shocks){
                 string s = table.getName(id);
-                covariances[make_pair(s,s)] = pow(expr->eval(context),2);
+                covariances[{s,s}] = pow(expr->eval(context),2);
             }
             for(const auto& [key, expr] : shock->covar_shocks){
                 const auto& [id1,id2] = key;
                 string s1 = table.getName(id1);
                 string s2 = table.getName(id2);
                 double covar = expr->eval(context);
-                covariances[make_pair(s1,s2)] = covar;
+                covariances[{s1,s2}] = covar;
             }
             for(const auto& [key, expr] : shock->corr_shocks){
                 const auto& [id1,id2] = key;
                 string s1 = table.getName(id1);
                 string s2 = table.getName(id2);
                 double corr = expr->eval(context);
-                double std_1 = sqrt(covariances[make_pair(s1,s1)]);
-                double std_2 = sqrt(covariances[make_pair(s2,s2)]);
+                double std_1 = sqrt(covariances[{s1,s1}]);
+                double std_2 = sqrt(covariances[{s2,s2}]);
                 double covar = corr*std_1*std_2;
-                covariances[make_pair(s1,s2)] = covar;
+                covariances[{s1,s2}] = covar;
             }
         } else if(type == typeid(ShocksSurpriseStatement)){
             ShocksSurpriseStatement* shock = static_cast<ShocksSurpriseStatement*>(statement.get());
@@ -273,8 +345,39 @@ DynareModel::DynareModel(const string &modfile_string) {
                 string var = table.getName(id);
                 for(const auto& [p1, p2, expr] : trajectory){
                     double val = expr->eval(context);
-                    trajectories[var].push_back(make_tuple(p1, p2, val));
+                    trajectories[var].push_back({p1, p2, val});
                 }
+            }
+        }
+    }
+    // Get derivatives wrt variables
+    symb_jacob_endo = vector<symb_jacobian_t>(3);
+    symb_jacob_exo = symb_jacobian_t();
+    symb_jacob_exo_det = symb_jacobian_t();
+    for(const auto& [vect, expr] : dm.derivatives[1]){
+        int eq = vect[0];
+        for(int i = 1; i < vect.size(); i++){
+            int derivID = vect[i];
+            SymbolType st = dm.getTypeByDerivID(derivID);
+            int tsid = dm.getTypeSpecificIDByDerivID(derivID);
+            switch(st){
+                case SymbolType::endogenous:
+                {
+                    int lag = dm.getLagByDerivID(derivID);
+                    if(lag > 1 || lag < -1){
+                        throw py::value_error{"Unsupported lag value"};
+                    }
+                    symb_jacob_endo[lag+1][{eq, tsid}] = expr;
+                }
+                break;
+                case SymbolType::exogenous:
+                    symb_jacob_exo[{eq,tsid}] = expr;
+                    break;
+                case SymbolType::exogenousDet:
+                    symb_jacob_exo_det[{eq,tsid}] = expr;
+                    break;
+                default:
+                    throw py::value_error{"Unknown symbol type"};
             }
         }
     }
@@ -295,5 +398,6 @@ PYBIND11_MODULE(dynare_preprocessor, m) {
     .def_readwrite("calibration", &DynareModel::calibration)
     .def("dynamic_function", &DynareModel::dynamic_function)
     .def_readwrite("covariances", &DynareModel::covariances)
-    .def_readwrite("trajectories", &DynareModel::trajectories);
+    .def_readwrite("trajectories", &DynareModel::trajectories)
+    .def("jacobians", &DynareModel::jacobians);
 }
