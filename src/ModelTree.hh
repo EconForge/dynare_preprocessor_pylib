@@ -1010,7 +1010,6 @@ ModelTree::writeModelCFile(const string& basename, const string& mexext,
                                                             : ExprNodeOutputType::CStaticModel>();
   vector<filesystem::path> header_files, object_files;
 
-  // TODO: when C++20 support is complete, mark the following strings constexpr
   const string prefix {dynamic ? "dynamic_" : "static_"};
   const string ss_it_argin {dynamic ? ", const double *restrict steady_state, int it_" : ""};
   const string ss_it_argout {dynamic ? ", steady_state, it_" : ""};
@@ -2270,7 +2269,6 @@ template<bool dynamic>
 void
 ModelTree::writeJsonSparseIndicesHelper(ostream& output) const
 {
-  // TODO: when C++20 support is complete, mark this constexpr
   const string model_name {dynamic ? "dynamic" : "static"};
 
   // Write indices for the sparse Jacobian (both naive and CSC storage)
@@ -2382,7 +2380,6 @@ ModelTree::writeSparseModelJuliaFiles(const string& basename) const
                                      : ExprNodeOutputType::juliaSparseStaticModel>();
 
   filesystem::path julia_dir {filesystem::path {basename} / "model" / "julia"};
-  // TODO: when C++20 support is complete, mark the following strings constexpr
   const string prefix {dynamic ? "SparseDynamic" : "SparseStatic"};
   const string ss_argin {dynamic ? ", steady_state::Vector{<: Real}" : ""};
   const string ss_argout {dynamic ? ", steady_state" : ""};
@@ -2495,7 +2492,6 @@ ModelTree::writeSparseModelMFiles(const string& basename,
   auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper<output_type>();
 
   const filesystem::path m_dir {packageDir(basename) / "+sparse"};
-  // TODO: when C++20 support is complete, mark the following strings constexpr
   const string prefix {
       (dynamic ? "dynamic_"s : "static_"s)
       + (heterogeneous_dimension ? "het"s + to_string(*heterogeneous_dimension + 1) + "_"s : ""s)};
@@ -2672,7 +2668,6 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
 
   const filesystem::path mex_dir {packageDir(basename) / "+sparse"};
   const filesystem::path model_src_dir {filesystem::path {basename} / "model" / "src" / "sparse"};
-  // TODO: when C++20 support is complete, mark the following strings constexpr
   const string prefix {dynamic ? "dynamic_" : "static_"};
   const string extra_argin {
       (dynamic ? ", const double *restrict steady_state"s : ""s)
@@ -3065,7 +3060,6 @@ ModelTree::writeDebugModelMFiles(const string& basename) const
                                                     : ExprNodeOutputType::matlabSparseStaticModel};
 
   const filesystem::path m_dir {packageDir(basename) / "+debug"};
-  // TODO: when C++20 support is complete, mark the following strings constexpr
   const string prefix {dynamic ? "dynamic_" : "static_"};
 
   const filesystem::path resid_filename {m_dir / (prefix + "resid.m")};
