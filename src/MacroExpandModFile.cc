@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2023 Dynare Team
+ * Copyright © 2015-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -52,15 +52,8 @@ macroExpandModFile(const filesystem::path& filename, const istream& modfile, boo
       string str(macro_output.str());
       if (!line_macro)
         {
-          /* Remove the @#line directives.
-             Unfortunately GCC 11 does not yet support std::regex::multiline
-             (despite it being in the C++17 standard), so we are forced to use
-             a trick to emulate the “usual” behaviour of the caret ^;
-             here, the latter only matches the beginning of file.
-             This also means that we are forced to remove the EOL before the
-             @#line, and not the one after it (matching the EOL before and the
-             EOL after in the same regexp does not work). */
-          str = regex_replace(str, regex(R"((^|\r?\n)@#line.*)"), "");
+          // Remove the @#line directives.
+          str = regex_replace(str, regex(R"(^@#line.*$)", std::regex::multiline), "");
           /* Remove the EOLs at the beginning of the output, the first one
              being a remnant of the first @#line directive. */
           str = regex_replace(str, regex(R"(^(\r?\n)+)"), "");
