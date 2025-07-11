@@ -219,13 +219,13 @@ RIGHT_ARRAY_SUBSCRIPT(ExprNodeOutputType output_type)
 }
 
 // Left and right parentheses
-inline string
+constexpr string
 LEFT_PAR(ExprNodeOutputType output_type)
 {
   return isLatexOutput(output_type) ? "\\left(" : "(";
 }
 
-inline string
+constexpr string
 RIGHT_PAR(ExprNodeOutputType output_type)
 {
   return isLatexOutput(output_type) ? "\\right)" : ")";
