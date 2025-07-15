@@ -59,6 +59,13 @@ class DynareModel{
         const vector<double>& exo_det,
         const vector<double>& params
     );
+    double checked_evaluate_with_lags(
+        expr_t expr,
+        const vector<vector<double>>& endo,
+        const vector<double>& exo,
+        const vector<double>& exo_det,
+        const vector<double>& params
+    );
     vector<symb_jacobian_t> symb_jacob_endo;
     symb_jacobian_t symb_jacob_exo;
     symb_jacobian_t symb_jacob_exo_det;
@@ -172,6 +179,29 @@ double DynareModel::evaluate_with_lags(
     }
 }
 
+double DynareModel::checked_evaluate_with_lags(
+    expr_t expr,
+    const vector<vector<double>>& endo,
+    const vector<double>& exo,
+    const vector<double>& exo_det,
+    const vector<double>& params
+){
+    // Capture cerr
+    ostringstream errss;
+    auto cerr_original = cerr.rdbuf(errss.rdbuf());
+
+    try{
+    double res = evaluate_with_lags(expr,endo,exo,exo_det,params);
+    // Stop cerr capture
+    cerr.rdbuf(cerr_original);
+    return res;
+    }
+    catch (const PreprocessorException & ex){
+        cerr.rdbuf(cerr_original);
+        throw PreprocessorException(errss.str());
+    }
+}
+
 vector<double> DynareModel::dynamic_function(
     vector<double> endo_future,
     vector<double> endo_present,
@@ -186,7 +216,7 @@ vector<double> DynareModel::dynamic_function(
     endo.push_back(endo_future);
     vector<double> res;
     for(auto eq : this->mod_file->dynamic_model.equations){
-        res.push_back(evaluate_with_lags(eq, endo, exo, exo_det, params));
+        res.push_back(checked_evaluate_with_lags(eq, endo, exo, exo_det, params));
     }
     return res;
 }
@@ -201,7 +231,7 @@ void DynareModel::eval_symb_jacob(
 ){
     for(const auto& [key, expr] : symb_jacob){
         const auto& [eq,tsid] = key;
-        out[{eq, tsid}] = evaluate_with_lags(expr, endo, exo, exo_det, params);
+        out[{eq, tsid}] = checked_evaluate_with_lags(expr, endo, exo, exo_det, params);
     }
 }
 
