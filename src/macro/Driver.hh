@@ -27,6 +27,7 @@
 #include "Parser.hh"
 #include "Environment.hh"
 #include "Expressions.hh"
+#include "../Exceptions.hh"
 
 #include <stack>
 

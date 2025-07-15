@@ -142,7 +142,7 @@ DataTree::AddVariable(int symb_id, int lag)
   if (lag != 0 && !is_dynamic)
     {
       cerr << "Leads/lags not authorized in this DataTree" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   if (auto it = variable_node_map.find({ symb_id, lag });
@@ -163,7 +163,7 @@ DataTree::getVariable(int symb_id, int lag) const
   if (it == variable_node_map.end())
     {
       cerr << "DataTree::getVariable: unknown variable node for symb_id=" << symb_id << " and lag=" << lag << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
   return it->second;
 }
@@ -424,7 +424,7 @@ DataTree::AddLog(expr_t iArg1)
   if (iArg1 == Zero)
     {
       cerr << "ERROR: log(0) not defined!" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   // Simplify log(1/x) in −log(x)
@@ -444,7 +444,7 @@ DataTree::AddLog10(expr_t iArg1)
   if (iArg1 == Zero)
     {
       cerr << "ERROR: log10(0) not defined!" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   // Simplify log₁₀(1/x) in −log₁₀(x)
@@ -967,7 +967,7 @@ DataTree::writeToFileIfModified(stringstream &new_contents, const filesystem::pa
   if (!new_file.is_open())
     {
       cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
   copy(istreambuf_iterator<char>{new_contents}, istreambuf_iterator<char>{},
        ostreambuf_iterator<char>{new_file});

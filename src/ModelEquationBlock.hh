@@ -26,6 +26,8 @@
 #include "DynamicModel.hh"
 #include "WarningConsolidation.hh"
 
+#include "Exceptions.hh"
+
 class DynareModel;
 
 class PlannerObjective : public StaticModel

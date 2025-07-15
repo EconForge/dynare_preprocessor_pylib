@@ -114,7 +114,7 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
   else
     {
       cerr << "ERROR: Shouldn't arrive here." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   for (auto [symb_id, value] : init_values)
@@ -148,10 +148,10 @@ InitOrEndValStatement::writeInitValues(ostream &output) const
         case SymbolType::excludedVariable:
           cerr << "ERROR: Variable `" << symbol_table.getName(symb_id)
                << "` was excluded but found in an initval or endval statement" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         default:
           cerr << "Should not arrive here" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
 
       output << "(" << tsid << ") = ";
@@ -207,7 +207,7 @@ InitValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
     }
 
   if (endogs.size() > 0 || exogs.size() > 0)
-    exit(EXIT_FAILURE);
+    throw PreprocessorException();
 }
 
 void
@@ -273,7 +273,7 @@ EndValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
     }
 
   if (endogs.size() > 0 || exogs.size() > 0)
-    exit(EXIT_FAILURE);
+    throw PreprocessorException();
 }
 
 void
@@ -326,7 +326,7 @@ EndValLearntInStatement::typeToString(LearntEndValType type)
     case LearntEndValType::multiply:
       return "multiply";
     }
-  exit(EXIT_FAILURE); // Silence GCC warning
+  throw PreprocessorException(); // Silence GCC warning
 }
 
 void
@@ -411,7 +411,7 @@ HistValStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_struct,
         }
 
       if (unused_endo.size() > 0 || unused_exo.size() > 0)
-        exit(EXIT_FAILURE);
+        throw PreprocessorException();
     }
 }
 
@@ -623,7 +623,7 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(const files
   if (f.fail())
     {
       cerr << "ERROR: Can't open " << filename.string() << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   while (true)
@@ -668,7 +668,7 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream &output, [[maybe_unused]]
           break;
         default:
           cerr << "ERROR: Unsupported variable type for " << symbol_table.getName(id) << " in load_params_and_steady_state" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
 
       int tsid = symbol_table.getTypeSpecificID(id) + 1;

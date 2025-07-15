@@ -417,7 +417,7 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) 
   catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   aux_vars.push_back(AuxVarInfo{symb_id, (endo ? AuxVarType::endoLead : AuxVarType::exoLead), 0, 0, 0, 0, expr_arg, ""});
@@ -437,7 +437,7 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
   catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   aux_vars.push_back(AuxVarInfo{symb_id, (endo ? AuxVarType::endoLag : AuxVarType::exoLag), orig_symb_id, orig_lead_lag, 0, 0, expr_arg, ""});
@@ -482,7 +482,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index, expr_t e
   catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::expectation, 0, 0, 0, information_set, expr_arg, ""});
@@ -502,7 +502,7 @@ SymbolTable::addLogTransformAuxiliaryVar(int orig_symb_id, int orig_lead_lag, ex
   catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: you should rename your variable called " << varname << ", it conflicts with the auxiliary variable created for representing the log of " << getName(orig_symb_id) << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::logTransform, orig_symb_id, orig_lead_lag, 0, 0, expr_arg, ""});
@@ -522,7 +522,7 @@ SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
   catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::diffLag, orig_symb_id, orig_lag, 0, 0, expr_arg, ""});
@@ -542,7 +542,7 @@ SymbolTable::addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_i
   catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::diffLead, orig_symb_id, orig_lead, 0, 0, expr_arg, ""});
@@ -562,7 +562,7 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, optional<int> orig_
   catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::diff, move(orig_symb_id), move(orig_lag), 0, 0, expr_arg, ""});
@@ -582,7 +582,7 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
   catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::unaryOp, move(orig_symb_id), move(orig_lag), 0, 0, expr_arg, unary_op});
@@ -602,7 +602,7 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) noexcept(false)
   catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::multiplier, 0, 0, index, 0, nullptr, ""});
@@ -621,7 +621,7 @@ SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, int orig_lead_lag, exp
   catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: you should rename your variable called " << varname << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::diffForward, orig_symb_id, orig_lead_lag, 0, 0, expr_arg, ""});
@@ -639,7 +639,7 @@ SymbolTable::addPacExpectationAuxiliaryVar(const string &name, expr_t expr_arg)
   catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: the variable/parameter '" << name << "' conflicts with a variable that will be generated for a 'pac_expectation' expression. Please rename it." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::pacExpectation, 0, 0, 0, 0, expr_arg, ""});
@@ -657,7 +657,7 @@ SymbolTable::addPacTargetNonstationaryAuxiliaryVar(const string &name, expr_t ex
   catch (AlreadyDeclaredException &e)
     {
       cerr << "ERROR: the variable/parameter '" << name << "' conflicts with a variable that will be generated for a 'pac_target_nonstationary' expression. Please rename it." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   aux_vars.push_back(AuxVarInfo{symb_id, AuxVarType::pacTargetNonstationary, 0, 0, 0, 0, expr_arg, ""});

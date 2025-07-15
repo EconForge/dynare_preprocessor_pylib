@@ -43,7 +43,10 @@ def main():
     from dynare_preprocessor import DynareModel
     f = "/home/work/dyno.py/examples/modfiles/example1.mod"
     mod_string = open(f).read()
+    from time import time
+    t0 = time()
     dyn = DynareModel(mod_string)
+    t1 = time()
     print("Symbols:")
     print(f"""
     endogenous: {dyn.endogenous}
@@ -74,19 +77,27 @@ def main():
     print("\nJacobians:\n")
     jacobians = dyn.jacobians(endo,endo,endo,exo,exo_det,params)
     n = len(dyn.equations)
-    symtypes = ["future endogenous",
+    symbtypes = ["future endogenous",
                 "present endogenous",
                 "past endogenous",
                 "exogenous",
                 "deterministic exogenous",
                 "parameters"]
-    for ind, symblist in enumerate([endo, endo, endo, exo, exo_det, params]):
+    symblists = [dyn.endogenous,
+                dyn.endogenous,
+                dyn.endogenous,
+                dyn.exogenous,
+                dyn.exogenous_det,
+                dyn.parameters]
+    for ind, symblist in enumerate(symblists):
         m = len(symblist)
         matrix = np.zeros((n,m))
         for (i,j), v in jacobians[ind].items():
             matrix[i,j] = v
-        print(f"    {symtypes[ind]}\n")
+        print(f"    {symbtypes[ind]}\n")
         print(f"    {matrix}\n")
+    t2 = time()
+    print(f"Elapsed: {t1-t0}")
 
 
 

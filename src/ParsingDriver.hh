@@ -43,6 +43,8 @@ class ParsingDriver;
 #include "NumericalInitialization.hh"
 #include "DynamicModel.hh"
 
+#include "Exceptions.hh"
+
 using namespace std;
 
 // Declare DynareFlexLexer class

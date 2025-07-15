@@ -67,5 +67,5 @@ void
 Driver::error(const Tokenizer::parser::location_type &location, const string &message) const
 {
   cerr << "ERROR in macro-processor: " << location << ": " << message << endl;
-  exit(EXIT_FAILURE);
+  throw PreprocessorException();
 }

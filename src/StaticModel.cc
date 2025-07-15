@@ -82,7 +82,7 @@ StaticModel::StaticModel(const DynamicModel &m) :
     catch (DataTree::DivisionByZeroException)
       {
         cerr << "...division by zero error encountered when converting equation " << i << " to static" << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException();
       }
 
   // Convert auxiliary equations
@@ -141,7 +141,7 @@ StaticModel::writeStaticBlockBytecode(const string &basename) const
   if (!bin_file.is_open())
     {
       cerr << R"(Error : Can't open file ")" << bin_filename.string() << R"(" for writing)" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   // Temporary variables declaration
@@ -189,7 +189,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
   if (log2(symbol_table.endo_nbr())*derivsOrder >= numeric_limits<int>::digits)
     {
       cerr << "ERROR: The derivatives matrix of the " << modelClassName() << " is too large. Please decrease the approximation order." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   // Compute derivatives w.r. to all endogenous
@@ -220,7 +220,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder, const eval_co
   if (!block_decomposed && block)
     {
       cerr << "ERROR: Block decomposition requested but failed. If your model does not have a steady state, you may want to try the 'no_static' option of the 'model' block." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 }
 
@@ -298,7 +298,7 @@ StaticModel::writeStaticMWrapperFunction(const string &basename, const string &e
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   if (ending == "g1")
@@ -346,7 +346,7 @@ StaticModel::writeStaticMFileHelper(const string &basename,
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   output << "function T = " << name_tt << "(T, y, x, params)" << endl
@@ -378,7 +378,7 @@ StaticModel::writeStaticMFileHelper(const string &basename,
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   output << "function " << retvalname << " = " << name << "(T, y, x, params, T_flag)" << endl
@@ -418,7 +418,7 @@ StaticModel::writeStaticMCompatFile(const string &basename) const
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
   int ntt { static_cast<int>(temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size() + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size()) };
 
@@ -883,7 +883,7 @@ StaticModel::writeRamseyMultipliersDerivativesMFile(const string &basename, int 
   if (!output_file.is_open())
     {
       cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   output_file << "function g1m = ramsey_multipliers_static_g1(y, x, params, sparse_rowval, sparse_colval, sparse_colptr)" << endl
@@ -916,7 +916,7 @@ StaticModel::writeRamseyMultipliersDerivativesCFile(const string &basename, cons
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   output << "#include <math.h>" << endl << endl

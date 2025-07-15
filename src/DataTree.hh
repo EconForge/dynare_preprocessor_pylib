@@ -36,6 +36,8 @@
 #include "ExternalFunctionsTable.hh"
 #include "ExprNode.hh"
 #include "SubModel.hh"
+#include "Exceptions.hh"
+
 
 using namespace std;
 

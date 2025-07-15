@@ -23,6 +23,8 @@
 #include <cstring>
 #include "ParsingDriver.hh"
 
+#include "Exceptions.hh"
+
 using namespace std;
 
 // Announce to Flex the prototype we want for lexing function
@@ -1244,5 +1246,5 @@ int
 DynareFlexLexer::yylex()
 {
   cerr << "DynareFlexLexer::yylex() has been called, that should never happen!" << endl;
-  exit(EXIT_FAILURE);
+  throw PreprocessorException();
 }

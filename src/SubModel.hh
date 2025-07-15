@@ -31,6 +31,8 @@
 #include "SymbolList.hh"
 #include "Statement.hh"
 
+#include "Exceptions.hh"
+
 // DynamicModel.hh can’t be included here, otherwise it would be a circular dependency
 class DynamicModel;
 

@@ -36,6 +36,8 @@
 #include "ConfigFile.hh"
 #include "ModFile.hh"
 
+#include "Exceptions.hh"
+
 /* Prototype for the function that handles the macro-expansion of the .mod file
    Splitting this out was necessary because ParsingDriver.hh and macro/Driver.hh can't be
    included simultaneously (because of Bison limitations).
@@ -58,7 +60,7 @@ usage()
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] [nopathchange] [nopreprocessoroutput]"
        << " [mexext=<extension>] [matlabroot=<path>] [onlymodel] [notime] [use_dll] [nocommutativity]"
        << endl;
-  exit(EXIT_FAILURE);
+  throw PreprocessorException();
 }
 
 /* Looks for an options list in the first non-empty line of the .mod file (but rewind
@@ -113,7 +115,7 @@ int main(int argc, char **argv)
   if (modfile.fail())
     {
       cerr << "ERROR: Could not open file: " << filename.string() << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   // Create options list, using first line of mod-file and command line
@@ -450,7 +452,7 @@ int main(int argc, char **argv)
     {
       cerr << "ERROR: Please use another name for your .mod file. The one you have chosen ("
            << argv[1] << ") conflicts with internal Dynare names." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   WarningConsolidation warnings(no_warn);
@@ -479,7 +481,7 @@ int main(int argc, char **argv)
   if (!exclude_eqs.empty() && !include_eqs.empty())
     {
       cerr << "You may only pass one of `include_eqs` and `exclude_eqs`" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   /*
@@ -499,7 +501,7 @@ int main(int argc, char **argv)
   if (mod_file->use_dll && language == LanguageOutputType::julia)
     {
       cerr << "ERROR: `use_dll` option is not compatible with Julia" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   if (json == JsonOutputPointType::parsing)

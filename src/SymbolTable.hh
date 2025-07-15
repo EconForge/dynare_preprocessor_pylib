@@ -31,6 +31,8 @@
 #include "CommonEnums.hh"
 #include "ExprNode.hh"
 
+#include "Exceptions.hh"
+
 using namespace std;
 
 using expr_t = class ExprNode *;

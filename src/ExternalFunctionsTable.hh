@@ -26,6 +26,8 @@
 #include <map>
 #include <algorithm>
 
+#include "Exceptions.hh"
+
 using namespace std;
 
 //! Handles external functions

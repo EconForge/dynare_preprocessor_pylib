@@ -26,6 +26,9 @@
 #include "StaticModel.hh"
 #include "Bytecode.hh"
 
+#include "Exceptions.hh"
+
+
 using namespace std;
 
 class DynareModel;
@@ -679,7 +682,7 @@ DynamicModel::writeParamsDerivativesFile(const string &basename) const
       if (!paramsDerivsFile.is_open())
         {
           cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
       paramsDerivsFile << "function [rp, gp, rpp, gpp, hp, g3p] = dynamic_params_derivs(y, x, params, steady_state, it_, ss_param_deriv, ss_param_2nd_deriv)" << endl
                        << "%" << endl

@@ -315,7 +315,7 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct,
         {
           cerr << "shocks: setting a variance on '"
                << symbol_table.getName(id) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
     }
 
@@ -326,7 +326,7 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct,
         {
           cerr << "shocks: setting a standard error on '"
                << symbol_table.getName(id) << "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
     }
 
@@ -342,7 +342,7 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct,
           cerr << "shocks: setting a covariance between '"
                << symbol_table.getName(symb_id1) << "' and '"
                << symbol_table.getName(symb_id2) << "'is not allowed; covariances can only be specified for exogenous or observed endogenous variables of same type" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
     }
 
@@ -358,7 +358,7 @@ ShocksStatement::checkPass(ModFileStructure &mod_file_struct,
           cerr << "shocks: setting a correlation between '"
                << symbol_table.getName(symb_id1) << "' and '"
                << symbol_table.getName(symb_id2) << "'is not allowed; correlations can only be specified for exogenous or observed endogenous variables of same type" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
     }
 
@@ -525,7 +525,7 @@ ShocksLearntInStatement::typeToString(LearntShockType type)
     case LearntShockType::multiply:
       return "multiply";
     }
-  exit(EXIT_FAILURE); // Silence GCC warning
+  throw PreprocessorException(); // Silence GCC warning
 }
 
 void
@@ -855,7 +855,7 @@ Init2shocksStatement::checkPass([[maybe_unused]] ModFileStructure &mod_file_stru
           cerr << "Init2shocks(" << name << "): enogenous variable '"
                << symbol_table.getName(init2shocks.at(i).first)
                << "' appears more than once in the init2shocks statement" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
 }
 

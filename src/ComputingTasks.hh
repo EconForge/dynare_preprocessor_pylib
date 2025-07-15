@@ -30,6 +30,8 @@
 #include "DynamicModel.hh"
 #include "ModelEquationBlock.hh"
 
+#include "Exceptions.hh"
+
 class SteadyStatement : public Statement
 {
 private:

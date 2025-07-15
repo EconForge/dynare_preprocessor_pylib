@@ -36,6 +36,8 @@ using namespace std;
 #include "ExternalFunctionsTable.hh"
 #include "Bytecode.hh"
 
+#include "Exceptions.hh"
+
 class DataTree;
 class NumConstNode;
 class VariableNode;

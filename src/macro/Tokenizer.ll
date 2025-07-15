@@ -20,6 +20,7 @@
 
 %{
 #include "Driver.hh"
+#include "../Exceptions.hh"
 
 // Announce to Flex the prototype we want for lexing function
 #define YY_DECL                                                \
@@ -220,5 +221,5 @@ int
 TokenizerFlexLexer::yylex()
 {
   cerr << "TokenizerFlexLexer::yylex() has been called; shouldn't arrive here." << endl;
-  exit(EXIT_FAILURE);
+  throw PreprocessorException();
 }

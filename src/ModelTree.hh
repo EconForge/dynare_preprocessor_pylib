@@ -38,6 +38,8 @@
 #include "ExtendedPreprocessorTypes.hh"
 #include "Bytecode.hh"
 
+#include "Exceptions.hh"
+
 class DynareModel;
 
 using namespace std;
@@ -934,7 +936,7 @@ ModelTree::writeModelCFile(const string &basename, const string &mexext,
     if (!output.is_open())
       {
         cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException();
       }
   };
 
@@ -1171,7 +1173,7 @@ ModelTree::writePerBlockHelper(int blk, ostream &output, temporary_terms_t &temp
           else if (equ_type != EquationType::evaluate)
             {
               cerr << "Type mismatch for equation " << getBlockEquationID(blk, eq)+1  << endl;
-              exit(EXIT_FAILURE);
+              throw PreprocessorException();
             }
           output << "  ";
           lhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
@@ -1197,7 +1199,7 @@ ModelTree::writePerBlockHelper(int blk, ostream &output, temporary_terms_t &temp
           break;
         default:
           cerr << "Incorrect type for block " << blk+1 << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
     }
 
@@ -2442,7 +2444,7 @@ ModelTree::writeSparseModelMFiles(const string &basename) const
     if (!output.is_open())
       {
         cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException();
       }
   };
 
@@ -2611,7 +2613,7 @@ ModelTree::writeSparseModelCFiles(const string &basename, const string &mexext,
     if (!output.is_open())
       {
         cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException();
       }
   };
 
@@ -2910,7 +2912,7 @@ ModelTree::writeDebugModelMFiles(const string &basename) const
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << resid_filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   output << "function [lhs, rhs] = " << prefix << "resid(y, x, params" << ss_arg << ")" << endl
@@ -2994,7 +2996,7 @@ ModelTree::writeSetAuxiliaryVariablesFile(const string &basename, bool julia) co
       if (!output_file.is_open())
         {
           cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
       output_file << output.str();
       output_file.close();

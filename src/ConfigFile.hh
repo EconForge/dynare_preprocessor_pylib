@@ -25,6 +25,7 @@
 #include <filesystem>
 
 #include "WarningConsolidation.hh"
+#include "Exceptions.hh"
 
 using namespace std;
 

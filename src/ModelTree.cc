@@ -1239,7 +1239,7 @@ ModelTree::writeBytecodeBinFile(const filesystem::path &filename, bool is_two_bo
   if (!SaveCode.is_open())
     {
       cerr << R"(Error : Can't open file ")" << filename.string() << R"(" for writing)" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
   int u_count {0};
   for (const auto &[indices, d1] : derivatives[1])
@@ -1321,14 +1321,14 @@ ModelTree::writeLatexModelFile(const string &mod_basename, const string &latex_b
   if (!output.is_open())
     {
       cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   ofstream content_output{content_filename, ios::out | ios::binary};
   if (!content_output.is_open())
     {
       cerr << "ERROR: Can't open file " << content_filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   output << R"(\documentclass[10pt,a4paper]{article})" << endl
@@ -1589,7 +1589,7 @@ ModelTree::matlab_arch(const string &mexext)
   else if (mexext == "mexmaci")
     {
       cerr << "32-bit MATLAB not supported on macOS" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
   else if (mexext == "mexmaci64")
     return "maci64";
@@ -1598,7 +1598,7 @@ ModelTree::matlab_arch(const string &mexext)
   else
     {
       cerr << "ERROR: 'mexext' option to preprocessor incorrectly set, needed with 'use_dll'" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 }
 
@@ -1633,7 +1633,7 @@ ModelTree::findCompilerOnMacos(const string &mexext)
       else if (mexext == "mexmaci64")
         cerr << " for x86_64";
       cerr << " and run `brew install gcc-" << macos_gcc_version << "` in a terminal." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 }
 #endif

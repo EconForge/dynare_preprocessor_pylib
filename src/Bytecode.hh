@@ -28,7 +28,7 @@
 #include <type_traits>
 
 #include "CommonEnums.hh"
-
+#include "Exceptions.hh"
 using namespace std;
 
 // The different opcodes of bytecode

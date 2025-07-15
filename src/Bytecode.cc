@@ -30,7 +30,7 @@ BytecodeWriter::BytecodeWriter(const filesystem::path &filename)
   if (!is_open())
     {
       cerr << R"(Error : Can't open file ")" << filename.string() << R"(" for writing)" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 }
 

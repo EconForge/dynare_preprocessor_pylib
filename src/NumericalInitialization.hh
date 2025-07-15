@@ -29,6 +29,8 @@
 #include "ExprNode.hh"
 #include "Statement.hh"
 
+#include "Exceptions.hh"
+
 using namespace std;
 
 class InitParamStatement : public Statement

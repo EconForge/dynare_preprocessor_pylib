@@ -23,6 +23,7 @@
 #include "ForwardDeclarationsAndEnums.hh"
 #include "Environment.hh"
 #include "ParserLocation.hh"
+#include "../Exceptions.hh"
 
 #include <cmath>
 #include <vector>
@@ -89,10 +90,10 @@ namespace macro
   public:
     Tokenizer::location getLocation() const noexcept { return location; }
     void
-    error(const StackTrace &e) const noexcept
+    error(const StackTrace &e) const noexcept(false)
     {
       cerr << endl << "Macro-processing error: backtrace..." << endl << e.trace();
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
     void
     warning(const StackTrace &e) const noexcept

@@ -28,6 +28,8 @@
 #include "SymbolTable.hh"
 #include "ExprNode.hh"
 
+#include "Exceptions.hh"
+
 using namespace std;
 
 class DynareModel;

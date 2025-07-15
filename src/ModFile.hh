@@ -39,6 +39,8 @@
 #include "ExtendedPreprocessorTypes.hh"
 #include "SubModel.hh"
 
+#include "Exceptions.hh"
+
 using namespace std;
 
 class DynareModel;

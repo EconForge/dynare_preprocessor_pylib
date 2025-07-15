@@ -15,6 +15,7 @@ namespace py = pybind11;
 #include "ExtendedPreprocessorTypes.hh"
 #include "WarningConsolidation.hh"
 #include "ModFile.hh"
+#include "Exceptions.hh"
 
 enum class ExprNodeType{
     NumConstNode,
@@ -228,9 +229,14 @@ vector<jacobian_t> DynareModel::jacobians(
 }
 
 DynareModel::DynareModel(const string &modfile_string) {
+    // Capture stderr
+    ostringstream errss;
+    auto cerr_original = cerr.rdbuf(errss.rdbuf());
+    
     stringstream modfile;
     modfile << modfile_string;
     
+    try{
     // Do parsing and construct internal representation of mod file
     bool debug = false;
     bool no_warn = true;
@@ -388,6 +394,12 @@ DynareModel::DynareModel(const string &modfile_string) {
         int param = dm.getTypeSpecificIDByDerivID(indices[1]);
         symb_jacob_params[{eq,param}] = expr;
     }
+    } catch (const PreprocessorException & ex){
+        cerr.rdbuf(cerr_original);
+        throw PreprocessorException(errss.str());
+    }
+    // Stop capturing cerr
+    cerr.rdbuf(cerr_original);
 }
 
 
@@ -407,4 +419,5 @@ PYBIND11_MODULE(dynare_preprocessor, m) {
     .def_readwrite("covariances", &DynareModel::covariances)
     .def_readwrite("trajectories", &DynareModel::trajectories)
     .def("jacobians", &DynareModel::jacobians);
+    py::register_exception<PreprocessorException>(m, "PreprocessorException", PyExc_RuntimeError);
 }

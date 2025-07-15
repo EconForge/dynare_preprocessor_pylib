@@ -38,7 +38,7 @@ Hook::Hook(string global_init_file_arg)
   if (global_init_file_arg.empty())
     {
       cerr << "ERROR: The Hook must have a Global Initialization File argument." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
   hooks["global_init_file"] = move(global_init_file_arg);
 }
@@ -48,7 +48,7 @@ Path::Path(vector<string> includepath_arg)
   if (includepath_arg.empty())
     {
       cerr << "ERROR: The Path must have an Include argument." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
   paths["include"] = move(includepath_arg);
 }
@@ -75,14 +75,14 @@ FollowerNode::FollowerNode(string computerName_arg, string port_arg, int minCpuN
   if (computerName.empty())
     {
       cerr << "ERROR: The node must have a ComputerName." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   if (!operatingSystem.empty())
     if (operatingSystem != "windows" && operatingSystem != "unix")
       {
         cerr << "ERROR: The OperatingSystem must be either 'unix' or 'windows' (Case Sensitive)." << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException();
       }
 }
 
@@ -92,7 +92,7 @@ Cluster::Cluster(member_nodes_t member_nodes_arg) :
   if (member_nodes.empty())
     {
       cerr << "ERROR: The cluster must have at least one member node." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 }
 
@@ -129,7 +129,7 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
           cerr << "APPDATA environment variable not found." << endl;
 
           if (parallel || parallel_test)
-            exit(EXIT_FAILURE);
+            throw PreprocessorException();
         }
 #else
       if (auto home = getenv("HOME");
@@ -143,7 +143,7 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
             cerr << "WARNING: ";
           cerr << "HOME environment variable not found." << endl;
           if (parallel || parallel_test)
-            exit(EXIT_FAILURE);
+            throw PreprocessorException();
         }
 #endif
       configFile.open(defaultConfigFile, fstream::in);
@@ -152,7 +152,7 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
           if (parallel || parallel_test)
             {
               cerr << "ERROR: Could not open the default config file (" << defaultConfigFile.string() << ")" << endl;
-              exit(EXIT_FAILURE);
+              throw PreprocessorException();
             }
           else
             return;
@@ -164,7 +164,7 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
       if (!configFile.is_open())
         {
           cerr << "ERROR: Couldn't open file " << config_file.string() << endl;;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
     }
 
@@ -252,7 +252,7 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
           if (tokenizedLine.size() != 2)
             {
               cerr << "ERROR (in config file): Options should be formatted as 'option = value'." << endl;
-              exit(EXIT_FAILURE);
+              throw PreprocessorException();
             }
           trim(tokenizedLine.front());
           trim(tokenizedLine.back());
@@ -264,12 +264,12 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
               else
                 {
                   cerr << "ERROR: May not have more than one GlobalInitFile option in [hooks] block." << endl;
-                  exit(EXIT_FAILURE);
+                  throw PreprocessorException();
                 }
             else
               {
                 cerr << "ERROR: Unrecognized option " << tokenizedLine.front() << " in [hooks] block." << endl;
-                exit(EXIT_FAILURE);
+                throw PreprocessorException();
               }
           else if (inPaths)
             if (tokenizedLine.front() == "Include")
@@ -287,12 +287,12 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
               else
                 {
                   cerr << "ERROR: May not have more than one Include option in [paths] block." << endl;
-                  exit(EXIT_FAILURE);
+                  throw PreprocessorException();
                 }
             else
               {
                 cerr << "ERROR: Unrecognized option " << tokenizedLine.front() << " in [paths] block." << endl;
-                exit(EXIT_FAILURE);
+                throw PreprocessorException();
               }
           else
             if (tokenizedLine.front() == "Name")
@@ -321,7 +321,7 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
                 catch (const invalid_argument &)
                   {
                     cerr << "ERROR: Could not convert value to integer for CPUnbr." << endl;
-                    exit(EXIT_FAILURE);
+                    throw PreprocessorException();
                   }
 
                 if (minCpuNbr <= 0 || maxCpuNbr <= 0)
@@ -330,7 +330,7 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
                          << "       1) CPUnbr = <int>" << endl
                          << "    or 2) CPUnbr = [<int>:<int>]" << endl
                          << "       where <int> is an Integer > 0." << endl;
-                    exit(EXIT_FAILURE);
+                    throw PreprocessorException();
                   }
 
                 minCpuNbr--;
@@ -371,7 +371,7 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
               else
                 {
                   cerr << "ERROR (in config file): The value passed to SingleCompThread may only be 'true' or 'false'." << endl;
-                  exit(EXIT_FAILURE);
+                  throw PreprocessorException();
                 }
             else if (tokenizedLine.front() == "OperatingSystem")
               operatingSystem = tokenizedLine.back();
@@ -402,7 +402,7 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
                             if (member_nodes.contains(node_name))
                               {
                                 cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
-                                exit(EXIT_FAILURE);
+                                throw PreprocessorException();
                               }
                             else
                               member_nodes[node_name] = 1.0;
@@ -416,14 +416,14 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
                           if (weight <= 0)
                             {
                               cerr << "ERROR (in config file): Misspecification of weights passed to Members option." << endl;
-                              exit(EXIT_FAILURE);
+                              throw PreprocessorException();
                             }
                           member_nodes[node_name] = weight;
                         }
                       catch (const invalid_argument &)
                         {
                           cerr << "ERROR (in config file): Misspecification of weights passed to Members option." << endl;
-                          exit(EXIT_FAILURE);
+                          throw PreprocessorException();
                         }
                   }
                 if (!node_name.empty())
@@ -433,14 +433,14 @@ ConfigFile::getConfigFileInfo(const filesystem::path &config_file)
                     else
                       {
                         cerr << "ERROR (in config file): Node entered twice in specification of cluster." << endl;
-                        exit(EXIT_FAILURE);
+                        throw PreprocessorException();
                       }
                   }
               }
             else
               {
                 cerr << "ERROR (in config file): Option " << tokenizedLine.front() << " is invalid." << endl;
-                exit(EXIT_FAILURE);
+                throw PreprocessorException();
               }
         }
     }
@@ -465,7 +465,7 @@ ConfigFile::addHooksConfFileElement(string global_init_file)
   if (global_init_file.empty())
     {
       cerr << "ERROR: The global initialization file must be passed to the GlobalInitFile option." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
   else
     hooks.emplace_back(move(global_init_file));
@@ -477,7 +477,7 @@ ConfigFile::addPathsConfFileElement(vector<string> includepath)
   if (includepath.empty())
     {
       cerr << "ERROR: The path to be included must be passed to the Include option." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
   else
     paths.emplace_back(move(includepath));
@@ -496,13 +496,13 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member
     if (!member_nodes.empty())
       {
         cerr << "Invalid option passed to [node]." << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException();
       }
     else
       if (name.empty() || follower_nodes.contains(name))
         {
           cerr << "ERROR: Every node must be assigned a unique name." << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
       else
         follower_nodes.try_emplace(name, computerName, port, minCpuNbr, maxCpuNbr, userName,
@@ -518,12 +518,12 @@ ConfigFile::addParallelConfFileElement(bool inNode, bool inCluster, const member
           || !matlabOctavePath.empty() || !operatingSystem.empty())
         {
           cerr << "Invalid option passed to [cluster]." << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
       else if (name.empty() || clusters.contains(name))
         {
           cerr << "ERROR: The cluster must be assigned a unique name." << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
       else
         {
@@ -544,7 +544,7 @@ ConfigFile::checkPass([[maybe_unused]] WarningConsolidation &warnings) const
         if (exchange(global_init_file_declared, true))
           {
             cerr << "ERROR: Only one global initialization file may be provided." << endl;
-            exit(EXIT_FAILURE);
+            throw PreprocessorException();
           }
 
   if (!parallel && !parallel_test)
@@ -554,7 +554,7 @@ ConfigFile::checkPass([[maybe_unused]] WarningConsolidation &warnings) const
   if (follower_nodes.empty())
     {
       cerr << "ERROR: At least one node must be defined in the config file." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   for (const auto &follower_node : follower_nodes)
@@ -574,19 +574,19 @@ ConfigFile::checkPass([[maybe_unused]] WarningConsolidation &warnings) const
         catch (const invalid_argument &)
           {
             cerr << "ERROR (node " << follower_node.first << "): the port must be an integer." << endl;
-            exit(EXIT_FAILURE);
+            throw PreprocessorException();
           }
       if (follower_node.second.computerName == "localhost") // We are working locally
         {
           if (!follower_node.second.remoteDrive.empty())
             {
               cerr << "ERROR (node " << follower_node.first << "): the RemoteDrive option may not be passed for a local node." << endl;
-              exit(EXIT_FAILURE);
+              throw PreprocessorException();
             }
           if (!follower_node.second.remoteDirectory.empty())
             {
               cerr << "ERROR (node " << follower_node.first << "): the RemoteDirectory option may not be passed for a local node." << endl;
-              exit(EXIT_FAILURE);
+              throw PreprocessorException();
             }
         }
       else
@@ -594,19 +594,19 @@ ConfigFile::checkPass([[maybe_unused]] WarningConsolidation &warnings) const
           if (follower_node.second.userName.empty())
             {
               cerr << "ERROR (node " << follower_node.first << "): the UserName option must be passed for every remote node." << endl;
-              exit(EXIT_FAILURE);
+              throw PreprocessorException();
             }
           if (follower_node.second.operatingSystem == "windows")
             {
               if (follower_node.second.password.empty())
                 {
                   cerr << "ERROR (node " << follower_node.first << "): the Password option must be passed under Windows for every remote node." << endl;
-                  exit(EXIT_FAILURE);
+                  throw PreprocessorException();
                 }
               if (follower_node.second.remoteDrive.empty())
                 {
                   cerr << "ERROR (node " << follower_node.first << "): the RemoteDrive option must be passed under Windows for every remote node." << endl;
-                  exit(EXIT_FAILURE);
+                  throw PreprocessorException();
                 }
             }
 #if defined(_WIN32) || defined(__CYGWIN32__)
@@ -615,19 +615,19 @@ ConfigFile::checkPass([[maybe_unused]] WarningConsolidation &warnings) const
               if (follower_node.second.password.empty())
                 {
                   cerr << "ERROR (node " << follower_node.first << "): the Password option must be passed under Windows for every remote node." << endl;
-                  exit(EXIT_FAILURE);
+                  throw PreprocessorException();
                 }
               if (follower_node.second.remoteDrive.empty())
                 {
                   cerr << "ERROR (node " << follower_node.first << "): the RemoteDrive option must be passed under Windows for every remote node." << endl;
-                  exit(EXIT_FAILURE);
+                  throw PreprocessorException();
                 }
             }
 #endif
           if (follower_node.second.remoteDirectory.empty())
             {
               cerr << "ERROR (node " << follower_node.first << "): the RemoteDirectory must be specified for every remote node." << endl;
-              exit(EXIT_FAILURE);
+              throw PreprocessorException();
             }
         }
     }
@@ -636,13 +636,13 @@ ConfigFile::checkPass([[maybe_unused]] WarningConsolidation &warnings) const
   if (clusters.empty())
     {
       cerr << "ERROR: At least one cluster must be defined in the config file." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   if (!cluster_name.empty() && !clusters.contains(cluster_name))
     {
       cerr << "ERROR: Cluster Name " << cluster_name << " was not found in the config file." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException();
     }
 
   for (const auto &cluster : clusters)
@@ -650,7 +650,7 @@ ConfigFile::checkPass([[maybe_unused]] WarningConsolidation &warnings) const
       if (!follower_nodes.contains(itmn.first))
         {
           cerr << "Error: node " << itmn.first << " specified in cluster " << cluster.first << " was not found" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
 }
 

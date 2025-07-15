@@ -47,7 +47,7 @@ macroExpandModFile(const filesystem::path &filename, const istream &modfile,
       if (macro_output_file.fail())
         {
           cerr << "Cannot open " << save_macro_file.string() << " for macro output" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException();
         }
 
       string str(macro_output.str());
