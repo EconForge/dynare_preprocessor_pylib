@@ -407,6 +407,7 @@ DynareModel::DynareModel(const string &modfile_string) {
 
 PYBIND11_MODULE(dynare_preprocessor, m) {
     m.doc() = "dynare preprocessor";
+    py::register_exception<PreprocessorException>(m, "PreprocessorException", PyExc_RuntimeError);
     py::class_<DynareModel>(m, "DynareModel")
     .def(py::init<const string &>())
     .def_readwrite("endogenous", &DynareModel::endogenous)
@@ -418,6 +419,36 @@ PYBIND11_MODULE(dynare_preprocessor, m) {
     .def("dynamic_function", &DynareModel::dynamic_function)
     .def_readwrite("covariances", &DynareModel::covariances)
     .def_readwrite("trajectories", &DynareModel::trajectories)
-    .def("jacobians", &DynareModel::jacobians);
-    py::register_exception<PreprocessorException>(m, "PreprocessorException", PyExc_RuntimeError);
+    .def("jacobians", &DynareModel::jacobians)
+    .doc() = R"(The DynareModel class is initialized by passing a mod file in string format.
+
+**Fields:**
+- `endogenous`, `exogenous`, `exogenous_det` and `parameters` (_list[str]_): lists of symbols
+- `equations` (_list[str]_): list of model equations in string form
+- `calibration` (_dict[str,float]_): dictionary of values indexed by the model symbols, filled using steady state then initval blocks, uninitialized values are set to 0
+- `covariances` (_dict[tuple[str,str],float_): contains the variances and covariances of the exogenous variables declared in Shocks block
+- `trajectories` (_dict[str,list[tuple[int,int,float]]]_): contains the trajectories of exogenous variables declared in surpise shocks block, encoded as lists of elements of the form (p1, p2, v) signifying that the variable in question takes on the value v in periods p1 to p2.
+
+**Methods:**
+
+- `dynamic_function`:
+  - Input:
+    - `endo_future` (_list[float]_): list of values of endogenous variables at time t+1, given in the same order as the `endogenous` field
+    - `endo_present` (_list[float]_): list of values of endogenous variables at time t, given in the same order as the `endogenous` field
+    - `endo_past` (_list[float]_): list of values of endogenous variables at time t-1, given in the same order as the `endogenous` field
+    - `exo` (_list[float]_): list of values of exogenous variables at time t, given in the same order as the `exogenous` field
+    - `exo_det` (_list[float]_): list of values of deterministic exogenous variables at time t, given in the same order as the `exogenous` field
+    - `params` (_list[float]_): list of values of parameters, given in the same order as the `exogenous` field
+  - Output: list of residuals at time t (_list[float]_)
+
+
+- `jacobians`:
+  - Input:
+    - `endo_future` (_list[float]_): list of values of endogenous variables at time t+1, given in the same order as the `endogenous` field
+    - `endo_present` (_list[float]_): list of values of endogenous variables at time t, given in the same order as the `endogenous` field
+    - `endo_past` (_list[float]_): list of values of endogenous variables at time t-1, given in the same order as the `endogenous` field
+    - `exo` (_list[float]_): list of values of exogenous variables at time t, given in the same order as the `exogenous` field
+    - `exo_det` (_list[float]_): list of values of deterministic exogenous variables at time t, given in the same order as the `exogenous` field
+    - `params` (_list[float]_): list of values of parameters, given in the same order as the `exogenous` field
+  - Output: list of jacobians of residuals with regards to endo_future, endo_present, endo_past, exo, exo_det and params vectors respectively evaluated at time t, each jacobian has the type dict[tuple[int,int], float]. The first index is the equation number and the second is the symbol number. For example, `parameter_jacobian[(0,0)]` is supposed to be the partial derivative of the first residual w.r.t. the first parameter and it exists as long as the partial derivative in equation is not identically equal to zero.)";
 }

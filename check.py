@@ -1,4 +1,5 @@
 import numpy as np
+from dynare_preprocessor import DynareModel, PreprocessorException
 
 def reexecute_if_unbuffered():
     """Ensures that output is immediately flushed (e.g. for segfaults).
@@ -40,7 +41,6 @@ def traced(func, ignoredirs=None):
 # it.
 # @traced
 def main():
-    from dynare_preprocessor import DynareModel
     f = "/home/work/dyno.py/examples/modfiles/example1.mod"
     mod_string = open(f).read()
     from time import time
@@ -106,4 +106,8 @@ def main():
 
 if __name__ == "__main__":
     reexecute_if_unbuffered()
-    main()
+    try:
+        main()
+    except PreprocessorException as e:
+        print("Detected exception:")
+        print(e)
