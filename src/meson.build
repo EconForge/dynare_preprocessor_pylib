@@ -29,36 +29,7 @@ bison_src = bison_gen.process('macro/Parser.yy', 'DynareBison.yy')
 
 preprocessor_incdir = include_directories('.', 'macro')
 
-preprocessor_src = [ 'ComputingTasks.cc',
-	             'EquationTags.cc',
-	             'ModelTree.cc',
-	             'StaticModel.cc',
-	             'DynamicModel.cc',
-	             'NumericalConstants.cc',
-	             'NumericalInitialization.cc',
-	             'Shocks.cc',
-	             'SymbolTable.cc',
-	             'SymbolList.cc',
-	             'ParsingDriver.cc',
-	             'DataTree.cc',
-	             'ModFile.cc',
-	             'Configuration.cc',
-	             'Statement.cc',
-	             'ExprNode.cc',
-	             'VariableDependencyGraph.cc',
-	             'DynareMain.cc',
-	             'MacroExpandModFile.cc',
-	             'Bytecode.cc',
-	             'ExternalFunctionsTable.cc',
-	             'ModelEquationBlock.cc',
-	             'WarningConsolidation.cc',
-	             'SubModel.cc',
-                     'HeterogeneityTable.cc',
-                     'HeterogeneousModel.cc',
-                     'macro/Driver.cc',
-	             'macro/Environment.cc',
-	             'macro/Expressions.cc',
-	             'macro/Directives.cc' ]
+
 
 if get_option('prefer_static')
   preprocessor_link_args = [ '-static-libgcc', '-static-libstdc++' ]
@@ -71,7 +42,97 @@ else
   preprocessor_link_args = []
 endif
 
-executable('dynare-preprocessor', preprocessor_src, flex_src, flexlexer_h, bison_src,
-           include_directories : preprocessor_incdir, dependencies : boost_dep,
-           link_args : preprocessor_link_args,
-           install : true)
+
+if build_library.disabled()
+
+	preprocessor_src = [ 'ComputingTasks.cc',
+					'EquationTags.cc',
+					'ModelTree.cc',
+					'StaticModel.cc',
+					'DynamicModel.cc',
+					'NumericalConstants.cc',
+					'NumericalInitialization.cc',
+					'Shocks.cc',
+					'SymbolTable.cc',
+					'SymbolList.cc',
+					'ParsingDriver.cc',
+					'DataTree.cc',
+					'ModFile.cc',
+					'Configuration.cc',
+					'Statement.cc',
+					'ExprNode.cc',
+					'VariableDependencyGraph.cc',
+					'DynareMain.cc',
+					'MacroExpandModFile.cc',
+					'Bytecode.cc',
+					'ExternalFunctionsTable.cc',
+					'ModelEquationBlock.cc',
+					'WarningConsolidation.cc',
+					'SubModel.cc',
+						'HeterogeneityTable.cc',
+						'HeterogeneousModel.cc',
+						'macro/Driver.cc',
+					'macro/Environment.cc',
+					'macro/Expressions.cc',
+					'macro/Directives.cc' ]
+
+
+
+	executable('dynare-preprocessor', preprocessor_src, flex_src, flexlexer_h, bison_src,
+			include_directories : preprocessor_incdir, dependencies : boost_dep,
+			link_args : preprocessor_link_args,
+			install : true)
+endif
+
+
+if build_library.enabled()
+
+	preprocessor_src = [ 'ComputingTasks.cc',
+					'EquationTags.cc',
+					'ModelTree.cc',
+					'StaticModel.cc',
+					'DynamicModel.cc',
+					'DynLib.cc',
+					'NumericalConstants.cc',
+					'NumericalInitialization.cc',
+					'Shocks.cc',
+					'SymbolTable.cc',
+					'SymbolList.cc',
+					'ParsingDriver.cc',
+					'DataTree.cc',
+					'ModFile.cc',
+					'Configuration.cc',
+					'Statement.cc',
+					'ExprNode.cc',
+					'VariableDependencyGraph.cc',
+					'DynareMain.cc',
+					'MacroExpandModFile.cc',
+					'Bytecode.cc',
+					'ExternalFunctionsTable.cc',
+					'ModelEquationBlock.cc',
+					'WarningConsolidation.cc',
+					'SubModel.cc',
+						'HeterogeneityTable.cc',
+						'HeterogeneousModel.cc',
+						'macro/Driver.cc',
+					'macro/Environment.cc',
+					'macro/Expressions.cc',
+					'macro/Directives.cc' ]
+
+
+
+	# PROBLEMS when building within emscripten_forge
+	# python3 dependency does not find the right headers: it must be added when calling meson
+	# pybind11 dependency is not found, due to the lack of pybind11-config: it is also added in meson call
+
+	# thread_dep = dependency('threads')
+
+	py3_inst = import('python').find_installation('python')
+	python3 = py3_inst.dependency()
+
+	py3_inst.extension_module('dynare_preprocessor', preprocessor_src, flex_src, flexlexer_h, bison_src, 'DynLib.cc', include_directories : preprocessor_incdir,
+	dependencies : [boost_dep, python3],
+	#dependencies : [boost_dep, python3, pybind11],
+	link_args : preprocessor_link_args, install: true)
+
+endif
