@@ -19,10 +19,33 @@ namespace py = pybind11;
 
 #include "DynLib.hh"
 
-void DynareModel::set_mod_file(const string& modfile_string){
+DynareModel::DynareModel(const string &modfile_string, int derivs_order, int params_derivs_order) {
+    // Capture stderr
+    ostringstream errss;
+    auto cerr_original = cerr.rdbuf(errss.rdbuf());
+    try{
+        set_mod_file(modfile_string, derivs_order, params_derivs_order);   
+        set_symbols();
+        set_equations();
+        set_calibration();
+        set_exogenous();
+        set_symbolic_derivatives();
+    } catch (const PreprocessorException & ex){
+        cerr.rdbuf(cerr_original);
+        throw PreprocessorException(errss.str());
+    } catch(...){
+        cerr.rdbuf(cerr_original);
+        throw;
+    }
+    // Stop capturing cerr
+    cerr.rdbuf(cerr_original);
+}
+
+
+void DynareModel::set_mod_file(const string& modfile_string, int derivs_order, int params_derivs_order){
     stringstream modfile;
     modfile << modfile_string;
-    
+    cout.setstate(ios_base::failbit);
     // Do parsing and construct internal representation of mod file
     bool debug = false;
     bool no_warn = true;
@@ -49,11 +72,27 @@ void DynareModel::set_mod_file(const string& modfile_string){
 
     // Do computations (including derivatives)
     bool no_tmp_terms = true;
-    OutputType output_mode = OutputType::standard;
-    //! forces the preprocessor to compute derivative w.r.t. parameters
-    mod_file->mod_file_struct.identification_present = true;
-    int params_derivs_order = 1;
-    mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order); 
+    // //! forces the preprocessor to compute derivative w.r.t. parameters
+    // mod_file->mod_file_struct.identification_present = true;
+    // mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order); 
+    mod_file->static_model = static_cast<StaticModel>(mod_file->dynamic_model);
+    mod_file->static_model.computingPass(
+        derivs_order,
+        params_derivs_order,
+        mod_file->global_eval_context,
+        no_tmp_terms,
+        mod_file->block,
+        mod_file->use_dll
+    );
+    mod_file->dynamic_model.computingPass(
+        derivs_order,
+        params_derivs_order,
+        mod_file->global_eval_context,
+        no_tmp_terms,
+        mod_file->block,
+        mod_file->use_dll
+    );
+    cout.clear();
 }
 
 void DynareModel::set_symbols(){
@@ -155,7 +194,7 @@ void DynareModel::set_exogenous(){
 
 void DynareModel::set_symbolic_derivatives(){
     const DynamicModel& dm = mod_file->dynamic_model;
-    // Get derivatives wrt variables
+    // Get first order derivatives w.r.t variables
     symb_jacob_endo = vector<symb_jacobian_t>(3);
     symb_jacob_exo = symb_jacobian_t();
     symb_jacob_exo_det = symb_jacobian_t();
@@ -186,12 +225,21 @@ void DynareModel::set_symbolic_derivatives(){
             }
         }
     }
-    // Get derivatives wrt parameters
+    // Get first order derivatives wrt parameters
     symb_jacob_params = symb_jacobian_t();
     for (const auto &[indices, expr] : dm.params_derivatives.at({0,1})){
         int eq = indices[0];
         int param = dm.getTypeSpecificIDByDerivID(indices[1]);
         symb_jacob_params[{eq,param}] = expr;
+    }
+    // Get all derivatives w.r.t. variables
+    symb_derivatives = dm.derivatives;
+
+    // Set symbol_info table
+    for(const auto& [id,lag] : dm.inv_deriv_id_table){
+        SymbolType type = mod_file->symbol_table.getType(id);
+        int tsid = mod_file->symbol_table.getTypeSpecificID(id);
+        symbol_info.emplace_back(type, tsid, lag);
     }
 }
 
@@ -344,25 +392,30 @@ vector<jacobian_t> DynareModel::jacobians(
     return res;
 }
 
-DynareModel::DynareModel(const string &modfile_string) {
-    // Capture stderr
-    ostringstream errss;
-    auto cerr_original = cerr.rdbuf(errss.rdbuf());
-    
-    try{
-        set_mod_file(modfile_string);   
-        set_symbols();
-        set_equations();
-        set_calibration();
-        set_exogenous();
-        set_symbolic_derivatives();
-    } catch (const PreprocessorException & ex){
-        cerr.rdbuf(cerr_original);
-        throw PreprocessorException(errss.str());
-    } catch(...){
-        cerr.rdbuf(cerr_original);
-        throw;
+derivatives_t DynareModel::derivatives(
+    vector<double> endo_future,
+    vector<double> endo_present,
+    vector<double> endo_past,
+    vector<double> exo,
+    vector<double> exo_det,
+    vector<double> params
+){
+    vector<vector<double>> endo;
+    endo.push_back(endo_past);
+    endo.push_back(endo_present);
+    endo.push_back(endo_future);
+
+    derivatives_t res;
+
+    for(const auto& fixed_order_derivs : symb_derivatives){
+        vector<vector<int>> coords;
+        vector<double> values;
+        for(const auto& [vect, expr]: fixed_order_derivs){
+            coords.push_back(vect);
+            values.push_back(checked_evaluate_with_lags(expr, endo, exo, exo_det, params));
+        }
+        res.emplace_back(coords, values);
     }
-    // Stop capturing cerr
-    cerr.rdbuf(cerr_original);
+
+    return res;
 }
