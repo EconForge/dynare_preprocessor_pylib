@@ -109,8 +109,7 @@ ParsingDriver::parse(istream &in, bool debug)
 void
 ParsingDriver::error(const Dynare::parser::location_type &l, const string &m)
 {
-  create_error_string(l, m, cerr);
-  throw PreprocessorException();
+  throw ParserException(l.begin.line, l.begin.column, l.end.line, l.end.column, m);
 }
 
 void
@@ -2167,7 +2166,7 @@ ParsingDriver::end_planner_objective(expr_t expr)
       }
   undeclared_model_variable_errors.clear();
   if (exit_after_write)
-    throw PreprocessorException();
+    exit(EXIT_FAILURE);
 
   reset_data_tree();
 }

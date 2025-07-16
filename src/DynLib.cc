@@ -282,6 +282,9 @@ double DynareModel::checked_evaluate_with_lags(
     catch (const PreprocessorException & ex){
         cerr.rdbuf(cerr_original);
         throw PreprocessorException(errss.str());
+    } catch(...){
+        cerr.rdbuf(cerr_original);
+        throw;
     }
 }
 
@@ -356,6 +359,9 @@ DynareModel::DynareModel(const string &modfile_string) {
     } catch (const PreprocessorException & ex){
         cerr.rdbuf(cerr_original);
         throw PreprocessorException(errss.str());
+    } catch(...){
+        cerr.rdbuf(cerr_original);
+        throw;
     }
     // Stop capturing cerr
     cerr.rdbuf(cerr_original);

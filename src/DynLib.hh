@@ -122,17 +122,18 @@ class DynareModel{
 PYBIND11_MODULE(dynare_preprocessor, m) {
     m.doc() = "dynare preprocessor";
     py::register_exception<PreprocessorException>(m, "PreprocessorException", PyExc_RuntimeError);
+    py::register_exception<ParserException>(m, "ParserException", PyExc_RuntimeError);
     py::class_<DynareModel>(m, "DynareModel")
     .def(py::init<const string &>())
-    .def_readwrite("endogenous", &DynareModel::endogenous)
-    .def_readwrite("exogenous", &DynareModel::exogenous)
-    .def_readwrite("exogenous_det", &DynareModel::exogenous_det)
-    .def_readwrite("parameters", &DynareModel::parameters)
-    .def_readwrite("equations", &DynareModel::equations)
-    .def_readwrite("calibration", &DynareModel::calibration)
+    .def_readonly("endogenous", &DynareModel::endogenous)
+    .def_readonly("exogenous", &DynareModel::exogenous)
+    .def_readonly("exogenous_det", &DynareModel::exogenous_det)
+    .def_readonly("parameters", &DynareModel::parameters)
+    .def_readonly("equations", &DynareModel::equations)
+    .def_readonly("calibration", &DynareModel::calibration)
+    .def_readonly("covariances", &DynareModel::covariances)
+    .def_readonly("trajectories", &DynareModel::trajectories)
     .def("dynamic_function", &DynareModel::dynamic_function)
-    .def_readwrite("covariances", &DynareModel::covariances)
-    .def_readwrite("trajectories", &DynareModel::trajectories)
     .def("jacobians", &DynareModel::jacobians)
     .doc() = R"(The DynareModel class is initialized by passing a mod file in string format.
 
