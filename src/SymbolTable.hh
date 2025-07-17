@@ -34,6 +34,8 @@
 
 using namespace std;
 
+class DynareModel;
+
 //! Types of auxiliary variables
 enum class AuxVarType
 {
@@ -110,6 +112,7 @@ struct AuxVarInfo
 */
 class SymbolTable
 {
+friend class DynareModel;
 private:
   HeterogeneityTable& heterogeneity_table;
 

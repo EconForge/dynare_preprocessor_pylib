@@ -26,6 +26,8 @@
 #include "StaticModel.hh"
 #include "WarningConsolidation.hh"
 
+class DynareModel;
+
 class PlannerObjective : public StaticModel
 {
 public:
@@ -77,6 +79,7 @@ protected:
 
 class SteadyStateModel : public DataTree
 {
+friend class DynareModel;
 private:
   //! Associates a set of symbol IDs (the variable(s) assigned in a given statement) to an
   //! expression (their assigned value)

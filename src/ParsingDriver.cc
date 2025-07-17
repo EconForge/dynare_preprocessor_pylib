@@ -34,19 +34,6 @@
    used below in error() and undeclared_model_variable_error() */
 #include "WarningConsolidation.hh"
 
-class ParserException : public exception {
-  string message;
-  public:
-    ParserException(const Dynare::parser::location_type& l, const string& m)
-      {
-        err_msg << l << ": " << m;
-        message = err_msg.str();
-      }
-    const char* what() const noexcept {
-      return message.c_str();
-    }
-};
-
 bool
 ParsingDriver::symbol_exists_and_is_not_modfile_local_or_external_function(const string& s)
 {
