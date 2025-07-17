@@ -115,9 +115,12 @@ class DynareModel{
             vector<double> exo_det,
             vector<double> params
         );
+        //! String representing the preprocessor's json output
+        string json_string;
     private:
         unique_ptr<ModFile> mod_file;
         void set_mod_file(const string& modfile_string, int derivs_order, int params_derivs_order);
+        void set_json_string();
         void set_symbols();
         void set_equations();
         void set_context();
@@ -168,6 +171,7 @@ PYBIND11_MODULE(dynare_preprocessor, m) {
         py::arg("derivs_order") = 1,
         py::arg("params_derivs_order") = 0
     )
+    .def_readonly("json_string", &DynareModel::json_string)
     .def_readonly("endogenous", &DynareModel::endogenous)
     .def_readonly("exogenous", &DynareModel::exogenous)
     .def_readonly("exogenous_det", &DynareModel::exogenous_det)

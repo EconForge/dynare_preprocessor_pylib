@@ -10,17 +10,21 @@ namespace py = pybind11;
 #include <fstream>
 #include <vector>
 #include <string>
+
+// necessary to make json valid
+#include <boost/algorithm/string.hpp>
+
 #include "WarningConsolidation.hh"
 #include "ParsingDriver.hh"
 #include "ExtendedPreprocessorTypes.hh"
-#include "Configuration.hh"
 #include "ModFile.hh"
 #include "Exceptions.hh"
 
 #include "DynLib.hh"
 
 DynareModel::DynareModel(const string &modfile_string, int derivs_order, int params_derivs_order) {
-    set_mod_file(modfile_string, derivs_order, params_derivs_order);   
+    set_mod_file(modfile_string, derivs_order, params_derivs_order);
+    set_json_string(); 
     set_symbols();
     set_equations();
     set_context();
@@ -81,6 +85,30 @@ void DynareModel::set_mod_file(const string& modfile_string, int derivs_order, i
     );
     //Reenable standard output
     cout.clear();
+}
+
+void DynareModel::set_json_string(){
+    const string basename = "model";
+    JsonOutputPointType outputpoint = JsonOutputPointType::computingpass;
+    JsonFileOutputType json_output_mode = JsonFileOutputType::standardout;
+    bool onlyjson = false; // exits after json output if set to true
+    // we capture output completely
+    std::stringstream buffer;
+    std::streambuf * old = std::cout.rdbuf(buffer.rdbuf());
+    bool jsonderivsimple = true;
+    mod_file->writeJsonOutput(basename, outputpoint, json_output_mode, onlyjson, jsonderivsimple);
+    std::cout.rdbuf(old);
+    json_string = buffer.str();
+    // below needed otherwide output file would be invalid json (json 513: property expected)
+    boost::replace_all(json_string , ", ,", ",");
+    string prefix = "//-- BEGIN JSON --// \n";
+    string suffix = "\n//-- END JSON --// \nJSON written after Computing step.\n";
+    if(json_string.ends_with(suffix)){
+        json_string.erase(suffix.length() - suffix.length(), suffix.length());
+    }
+    if(json_string.starts_with(prefix)){
+        json_string.erase(0, prefix.length());
+    }
 }
 
 void DynareModel::set_symbols(){
