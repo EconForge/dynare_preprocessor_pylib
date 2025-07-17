@@ -23,7 +23,7 @@
 #include <iostream>
 
 #include "Bytecode.hh"
-
+#include "Exceptions.hh"
 namespace Bytecode
 {
 
@@ -32,8 +32,8 @@ Writer::Writer(const filesystem::path& filename)
   open(filename, ios::out | ios::binary);
   if (!is_open())
     {
-      cerr << R"(Error : Can't open file ")" << filename.string() << R"(" for writing)" << endl;
-      exit(EXIT_FAILURE);
+      err_msg << R"(Error : Can't open file ")" << filename.string() << R"(" for writing)" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 }
 

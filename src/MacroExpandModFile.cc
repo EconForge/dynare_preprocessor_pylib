@@ -24,6 +24,8 @@
 #include <sstream>
 
 #include "macro/Driver.hh"
+#include "Exceptions.hh"
+
 
 stringstream
 macroExpandModFile(const filesystem::path& filename, const istream& modfile, bool debug,
@@ -45,8 +47,9 @@ macroExpandModFile(const filesystem::path& filename, const istream& modfile, boo
       ofstream macro_output_file {save_macro_file};
       if (macro_output_file.fail())
         {
-          cerr << "Cannot open " << save_macro_file.string() << " for macro output" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "Cannot open " << save_macro_file.string() << " for macro output" << endl;
+          throw PreprocessorException(err_msg.str());
         }
 
       string str(macro_output.str());

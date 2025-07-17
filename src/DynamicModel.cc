@@ -30,6 +30,8 @@
 
 #include "DynamicModel.hh"
 #include "ParsingDriver.hh"
+#include "Exceptions.hh"
+
 
 void
 DynamicModel::copyHelper(const DynamicModel& m)
@@ -218,8 +220,9 @@ DynamicModel::writeDynamicBlockBytecode(const string& basename) const
   ofstream bin_file {bin_filename, ios::out | ios::binary};
   if (!bin_file.is_open())
     {
-      cerr << R"(Error : Can't open file ")" << bin_filename.string() << R"(" for writing)" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << R"(Error : Can't open file ")" << bin_filename.string() << R"(" for writing)" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   // Temporary variables declaration
@@ -355,8 +358,9 @@ DynamicModel::writeDynamicMWrapperFunction(const string& basename, const string&
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   if (ending == "g1")
@@ -415,8 +419,9 @@ DynamicModel::writeDynamicMFileHelper(const string& basename, const string& name
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   output << "function T = " << name_tt << "(T, y, x, params, steady_state, it_)" << endl
@@ -468,8 +473,9 @@ DynamicModel::writeDynamicMFileHelper(const string& basename, const string& name
   output.open(filename, ios::out | ios::binary);
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   output << "function " << retvalname << " = " << name
@@ -529,8 +535,9 @@ DynamicModel::writeDynamicMCompatFile(const string& basename) const
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
   int ntt {static_cast<int>(
       temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size()
@@ -571,8 +578,9 @@ DynamicModel::parseIncludeExcludeEquations(const string& inc_exc_option_value, b
       exclude_file.open(inc_exc_option_value, ifstream::in);
       if (!exclude_file.is_open())
         {
-          cerr << "ERROR: Could not open " << inc_exc_option_value << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "ERROR: Could not open " << inc_exc_option_value << endl;
+          throw PreprocessorException(err_msg.str());
         }
 
       string line;
@@ -607,9 +615,10 @@ DynamicModel::parseIncludeExcludeEquations(const string& inc_exc_option_value, b
 
   if (tags.front() == '[' && tags.back() != ']')
     {
-      cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
+      
+      err_msg << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
            << ": if the first character is '[' the last must be ']'" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException(err_msg.str());
     }
 
   if (tags.front() == '[' && tags.back() == ']')
@@ -639,9 +648,10 @@ DynamicModel::parseIncludeExcludeEquations(const string& inc_exc_option_value, b
           + non_quote_regex + R"()\s*)*)");
   if (!regex_match(tags, r))
     {
-      cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
+      
+      err_msg << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
            << ": argument is of incorrect format." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException(err_msg.str());
     }
 
   vector<map<string, string>> eq_tag_set;
@@ -713,11 +723,12 @@ DynamicModel::removeEquationsHelper(
                   excluded_vars.push_back(*result.begin());
                 else
                   {
-                    cerr << "ERROR: Equation " << i + 1
+                    
+                    err_msg << "ERROR: Equation " << i + 1
                          << " has been excluded but it does not have a single variable on its "
                             "left-hand side or an `endogenous` tag"
                          << endl;
-                    exit(EXIT_FAILURE);
+                    throw PreprocessorException(err_msg.str());
                   }
               }
           }
@@ -742,11 +753,12 @@ DynamicModel::removeEquationsHelper(
       for (size_t j = i + 1; j < excluded_vars.size(); j++)
         if (excluded_vars[i] == excluded_vars[j])
           {
-            cerr << "ERROR: Variable " << symbol_table.getName(i) << " was excluded twice"
+            
+            err_msg << "ERROR: Variable " << symbol_table.getName(i) << " was excluded twice"
                  << " via a model_remove or model_replace statement, or via the include_eqs or "
                     "exclude_eqs option"
                  << endl;
-            exit(EXIT_FAILURE);
+            throw PreprocessorException(err_msg.str());
           }
 
   cout << "Excluded " << n_excl << (static_equations ? " static " : " dynamic ") << "equation"
@@ -776,27 +788,28 @@ DynamicModel::removeEquations(const vector<map<string, string>>& listed_eqs_by_t
 
   if (!listed_eqs_by_tag2.empty())
     {
-      cerr
+      err_msg
           << "ERROR: model_remove/model_replace/exclude_eqs/include_eqs: The equations specified by"
           << endl;
       for (const auto& m : listed_eqs_by_tag)
         {
-          cerr << " ";
+          err_msg << " ";
           if (m.size() > 1)
-            cerr << "[ ";
+            err_msg << "[ ";
           bool first_printed {false};
           for (const auto& [tagname, tagvalue] : m)
             {
               if (exchange(first_printed, true))
-                cerr << ", ";
-              cerr << tagname << "=" << tagvalue;
+                err_msg << ", ";
+              err_msg << tagname << "=" << tagvalue;
             }
           if (m.size() > 1)
-            cerr << " ]";
-          cerr << endl;
+            err_msg << " ]";
+          err_msg << endl;
         }
-      cerr << "were not found." << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "were not found." << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   if (excluded_vars_change_type)
@@ -815,7 +828,7 @@ DynamicModel::removeEquations(const vector<map<string, string>>& listed_eqs_by_t
         if (eqn_vars.contains(ev))
           {
             symbol_table.changeType(ev, SymbolType::exogenous);
-            cerr << "Variable '" << symbol_table.getName(ev)
+            err_msg << "Variable '" << symbol_table.getName(ev)
                  << "' turned into an exogenous, as its defining equation has been removed (but it "
                     "still appears in an equation)"
                  << endl;
@@ -823,7 +836,7 @@ DynamicModel::removeEquations(const vector<map<string, string>>& listed_eqs_by_t
         else
           {
             symbol_table.changeType(ev, SymbolType::excludedVariable);
-            cerr << "Variable '" << symbol_table.getName(ev)
+            err_msg << "Variable '" << symbol_table.getName(ev)
                  << "' has been excluded from the model, as its defining equation has been removed "
                     "and it appears nowhere else"
                  << endl;
@@ -846,10 +859,11 @@ DynamicModel::includeExcludeEquations(const string& inc_exc_option_value, bool e
      ModFile::transformPass(), so we must do the check again */
   if (staticOnlyEquationsNbr() != dynamicOnlyEquationsNbr())
     {
-      cerr << "ERROR: exclude_eqs/include_eqs: You must remove the same number of equations marked "
+      
+      err_msg << "ERROR: exclude_eqs/include_eqs: You must remove the same number of equations marked "
               "`static` as equations marked `dynamic`."
            << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException(err_msg.str());
     }
 }
 
@@ -1216,10 +1230,11 @@ DynamicModel::updateVarAndTrendModel() const
                           }
                       if (ranges::find(trend_lhs, *trend_var_symb_id) == trend_lhs.end())
                         {
-                          cerr << "ERROR: trend found in trend_component equation #" << eqn << " ("
+                          
+                          err_msg << "ERROR: trend found in trend_component equation #" << eqn << " ("
                                << symbol_table.getName(*trend_var_symb_id)
                                << ") does not correspond to a trend equation" << endl;
-                          exit(EXIT_FAILURE);
+                          throw PreprocessorException(err_msg.str());
                         }
                     }
                   trend_var.push_back(trend_var_symb_id);
@@ -1244,6 +1259,8 @@ DynamicModel::updateVarAndTrendModel() const
 void
 DynamicModel::fillVarModelTable() const
 {
+  
+
   map<string, vector<int>> eqnums, lhsr;
   map<string, vector<expr_t>> lhs_expr_tr;
   map<string, vector<set<pair<int, int>>>> rhsr;
@@ -1260,8 +1277,9 @@ DynamicModel::fillVarModelTable() const
           optional<int> eqn {equation_tags.getEqnByTag("name", eqtag)};
           if (!eqn)
             {
-              cerr << "ERROR: no equation is named '" << eqtag << "'" << endl;
-              exit(EXIT_FAILURE);
+              
+              err_msg << "ERROR: no equation is named '" << eqtag << "'" << endl;
+              throw PreprocessorException(err_msg.str());
             }
 
           equations[*eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, lhs_set);
@@ -1270,18 +1288,19 @@ DynamicModel::fillVarModelTable() const
 
           if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
             {
-              cerr << "ERROR: in Equation " << eqtag
+              err_msg << "ERROR: in Equation " << eqtag
                    << ". A VAR may only have one endogenous variable on the LHS. " << endl;
-              exit(EXIT_FAILURE);
+              throw PreprocessorException(err_msg.str());
             }
 
           auto itlhs = lhs_set.begin();
           if (itlhs->second != 0)
             {
-              cerr << "ERROR: in Equation " << eqtag
+              
+              err_msg << "ERROR: in Equation " << eqtag
                    << ". The variable on the LHS of a VAR may not appear with a lead or a lag. "
                    << endl;
-              exit(EXIT_FAILURE);
+              throw PreprocessorException(err_msg.str());
             }
 
           eqnumber.push_back(*eqn);
@@ -1325,29 +1344,30 @@ DynamicModel::fillVarModelTableFromOrigModel() const
           for (const auto& [symb_id, lag] : rhs_endo_set)
             if (lag > 0)
               {
-                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
+                err_msg << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
                      << ". A VAR model may not have leaded endogenous variables on the RHS. "
                      << endl;
-                exit(EXIT_FAILURE);
+                throw PreprocessorException(err_msg.str());
               }
             else if (!var_model_table.getStructural().at(model_name) && lag == 0)
               {
-                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
+                err_msg << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
                      << ". A non-structural VAR model may not have contemporaneous endogenous "
                         "variables on the RHS. "
                      << endl;
-                exit(EXIT_FAILURE);
+                throw PreprocessorException(err_msg.str());
               }
 
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::exogenous, rhs_exo_set);
           for (const auto& [symb_id, lag] : rhs_exo_set)
             if (lag != 0)
               {
-                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
+                
+                err_msg << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
                      << ". A VAR model may not have lagged or leaded exogenous variables on the "
                         "RHS. "
                      << endl;
-                exit(EXIT_FAILURE);
+                throw PreprocessorException(err_msg.str());
               }
 
           // save lhs variables
@@ -1361,9 +1381,10 @@ DynamicModel::fillVarModelTableFromOrigModel() const
 
               if (diff_set.size() != 1)
                 {
-                  cerr << "ERROR: problem getting variable for LHS diff operator in equation "
+                  
+                  err_msg << "ERROR: problem getting variable for LHS diff operator in equation "
                        << eqn << endl;
-                  exit(EXIT_FAILURE);
+                  throw PreprocessorException(err_msg.str());
                 }
               orig_diff_var_vec.emplace_back(diff_set.begin()->first);
             }
@@ -1373,8 +1394,9 @@ DynamicModel::fillVarModelTableFromOrigModel() const
 
       if (eqns.size() != lhs.size())
         {
-          cerr << "ERROR: The LHS variables of the VAR model are not unique" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "ERROR: The LHS variables of the VAR model are not unique" << endl;
+          throw PreprocessorException(err_msg.str());
         }
 
       set<expr_t> lhs_lag_equiv;
@@ -1472,11 +1494,12 @@ DynamicModel::fillVarModelTableMatrices()
                     {
                       if (!d->isConstant())
                         {
-                          cerr << "ERROR: Equation "
+                          
+                          err_msg << "ERROR: Equation "
                                << equation_tags.getTagValueByEqnAndKey(eqns[i], "name")
                                       .value_or(to_string(eqns[i] + 1))
                                << " is not linear" << endl;
-                          exit(EXIT_FAILURE);
+                          throw PreprocessorException(err_msg.str());
                         }
 
                       AR[model_name][{i, lag, lhs_symb_id}] = AddUMinus(d);
@@ -1493,11 +1516,12 @@ DynamicModel::fillVarModelTableMatrices()
                 {
                   if (!d->isConstant())
                     {
-                      cerr << "ERROR: Equation "
+                      
+                      err_msg << "ERROR: Equation "
                            << equation_tags.getTagValueByEqnAndKey(eqns[i], "name")
                                   .value_or(to_string(eqns[i] + 1))
                            << " is not linear" << endl;
-                      exit(EXIT_FAILURE);
+                      throw PreprocessorException(err_msg.str());
                     }
 
                   A0[model_name][{i, lhs_symb_id}] = d;
@@ -1549,6 +1573,7 @@ DynamicModel::computeAutoregressiveMatrices() const
 void
 DynamicModel::fillTrendComponentModelTable() const
 {
+  
   map<string, vector<int>> eqnums, trend_eqnums, lhsr;
   map<string, vector<expr_t>> lhs_expr_tr;
   map<string, vector<set<pair<int, int>>>> rhsr;
@@ -1560,8 +1585,9 @@ DynamicModel::fillTrendComponentModelTable() const
           optional<int> eqn {equation_tags.getEqnByTag("name", eqtag)};
           if (!eqn)
             {
-              cerr << "ERROR: no equation is named '" << eqtag << "'" << endl;
-              exit(EXIT_FAILURE);
+              
+              err_msg << "ERROR: no equation is named '" << eqtag << "'" << endl;
+              throw PreprocessorException(err_msg.str());
             }
           trend_eqnumber.push_back(*eqn);
         }
@@ -1580,8 +1606,9 @@ DynamicModel::fillTrendComponentModelTable() const
           optional<int> eqn {equation_tags.getEqnByTag("name", eqtag)};
           if (!eqn)
             {
-              cerr << "ERROR: no equation is named '" << eqtag << "'" << endl;
-              exit(EXIT_FAILURE);
+              
+              err_msg << "ERROR: no equation is named '" << eqtag << "'" << endl;
+              throw PreprocessorException(err_msg.str());
             }
 
           equations[*eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, lhs_set);
@@ -1590,20 +1617,20 @@ DynamicModel::fillTrendComponentModelTable() const
 
           if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
             {
-              cerr << "ERROR: in Equation " << eqtag
+              err_msg << "ERROR: in Equation " << eqtag
                    << ". A trend component model may only have one endogenous variable on the LHS. "
                    << endl;
-              exit(EXIT_FAILURE);
+              throw PreprocessorException(err_msg.str());
             }
 
           auto itlhs = lhs_set.begin();
           if (itlhs->second != 0)
             {
-              cerr << "ERROR: in Equation " << eqtag
+              err_msg << "ERROR: in Equation " << eqtag
                    << ". The variable on the LHS of a trend component model may not appear with a "
                       "lead or a lag. "
                    << endl;
-              exit(EXIT_FAILURE);
+              throw PreprocessorException(err_msg.str());
             }
 
           eqnumber.push_back(*eqn);
@@ -1677,21 +1704,23 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
           for (const auto& [symb_id, lag] : rhs_endo_set)
             if (lag >= 0)
               {
-                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
+                
+                err_msg << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
                      << ". A trend component model may not have leaded or contemporaneous "
                         "endogenous variables on the RHS. "
                      << endl;
-                exit(EXIT_FAILURE);
+                throw PreprocessorException(err_msg.str());
               }
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::exogenous, rhs_exo_set);
           for (const auto& [symb_id, lag] : rhs_exo_set)
             if (lag != 0)
               {
-                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
+                
+                err_msg << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
                      << ". A trend component model may not have lagged or leaded exogenous "
                         "variables on the RHS. "
                      << endl;
-                exit(EXIT_FAILURE);
+                throw PreprocessorException(err_msg.str());
               }
 
           // save lhs variables
@@ -1705,9 +1734,10 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
 
               if (diff_set.size() != 1)
                 {
-                  cerr << "ERROR: problem getting variable for LHS diff operator in equation "
+                  
+                  err_msg << "ERROR: problem getting variable for LHS diff operator in equation "
                        << eqn << endl;
-                  exit(EXIT_FAILURE);
+                  throw PreprocessorException(err_msg.str());
                 }
               orig_diff_var_vec.emplace_back(diff_set.begin()->first);
             }
@@ -1717,8 +1747,9 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
 
       if (eqns.size() != lhs.size())
         {
-          cerr << "ERROR: The LHS variables of the trend component model are not unique" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "ERROR: The LHS variables of the trend component model are not unique" << endl;
+          throw PreprocessorException(err_msg.str());
         }
 
       set<expr_t> lhs_lag_equiv;
@@ -1766,16 +1797,18 @@ DynamicModel::getUndiffLHSForPac(const string& aux_model_name,
 
       if (eqnumber[i] != eqn)
         {
-          cerr << "ERROR: equation " << eqn << " not found in VAR" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "ERROR: equation " << eqn << " not found in VAR" << endl;
+          throw PreprocessorException(err_msg.str());
         }
 
       if (!diff.at(i))
         {
-          cerr << "ERROR: the variable on the LHS of equation #" << eqn
+          
+          err_msg << "ERROR: the variable on the LHS of equation #" << eqn
                << " does not have the diff operator applied to it yet you are trying to undiff it."
                << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException(err_msg.str());
         }
 
       expr_t node = nullptr;
@@ -1789,8 +1822,9 @@ DynamicModel::getUndiffLHSForPac(const string& aux_model_name,
 
       if (!node)
         {
-          cerr << "Unexpected error encountered." << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "Unexpected error encountered." << endl;
+          throw PreprocessorException(err_msg.str());
         }
 
       node = node->undiff();
@@ -1818,18 +1852,20 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
       {
         if (pac_eq_name.contains(name))
           {
-            cerr << "It is not possible to use 'pac_expectation(" << name
+            
+            err_msg << "It is not possible to use 'pac_expectation(" << name
                  << ")' in several equations." << endl;
-            exit(EXIT_FAILURE);
+            throw PreprocessorException(err_msg.str());
           }
         optional<string> eqn {
             equation_tags.getTagValueByEqnAndKey(&equation - &equations[0], "name")};
         if (!eqn)
           {
-            cerr << "Every equation with a 'pac_expectation' operator must have been assigned an "
+            
+            err_msg << "Every equation with a 'pac_expectation' operator must have been assigned an "
                     "equation tag name"
                  << endl;
-            exit(EXIT_FAILURE);
+            throw PreprocessorException(err_msg.str());
           }
         pac_eq_name[name] = *eqn;
 
@@ -1850,8 +1886,9 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
         auto arg2 = dynamic_cast<BinaryOpNode*>(equation->arg2);
         if (!arg2)
           {
-            cerr << "Pac equation in incorrect format" << endl;
-            exit(EXIT_FAILURE);
+            
+            err_msg << "Pac equation in incorrect format" << endl;
+            throw PreprocessorException(err_msg.str());
           }
         auto [optim_share_index, optim_part, non_optim_part, additive_part]
             = arg2->getPacOptimizingShareAndExprNodes(lhs_orig_symb_id);
@@ -1865,8 +1902,9 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
             auto bopn = dynamic_cast<BinaryOpNode*>(equation->arg2);
             if (!bopn)
               {
-                cerr << "Error in PAC equation" << endl;
-                exit(EXIT_FAILURE);
+                
+                err_msg << "Error in PAC equation" << endl;
+                throw PreprocessorException(err_msg.str());
               }
             bopn->getPacAREC(lhs_symb_id, lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars,
                              additive_vars_params_and_constants);
@@ -1876,8 +1914,9 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
             auto bopn = dynamic_cast<BinaryOpNode*>(optim_part);
             if (!bopn)
               {
-                cerr << "Error in PAC equation" << endl;
-                exit(EXIT_FAILURE);
+                
+                err_msg << "Error in PAC equation" << endl;
+                throw PreprocessorException(err_msg.str());
               }
             bopn->getPacAREC(lhs_symb_id, lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars,
                              optim_additive_vars_params_and_constants);
@@ -1891,21 +1930,24 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
               }
             catch (ExprNode::MatchFailureException& e)
               {
-                cerr << "Error in parsing non-optimizing agents or additive part of PAC equation: "
+                
+                err_msg << "Error in parsing non-optimizing agents or additive part of PAC equation: "
                      << e.message << endl;
-                exit(EXIT_FAILURE);
+                throw PreprocessorException(err_msg.str());
               }
           }
 
         if (lhs.first == -1)
           {
-            cerr << "analyzePacEquationStructure: error obtaining LHS variable." << endl;
-            exit(EXIT_FAILURE);
+            
+            err_msg << "analyzePacEquationStructure: error obtaining LHS variable." << endl;
+            throw PreprocessorException(err_msg.str());
           }
         if (ec_params_and_vars.second.empty())
           {
-            cerr << "analyzePacEquationStructure: error obtaining RHS parameters." << endl;
-            exit(EXIT_FAILURE);
+            
+            err_msg << "analyzePacEquationStructure: error obtaining RHS parameters." << endl;
+            throw PreprocessorException(err_msg.str());
           }
         pac_equation_info[name] = {lhs,
                                    optim_share_index,
@@ -1918,9 +1960,10 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
 
   if (!pac_eq_name.contains(name))
     {
-      cerr << "ERROR: the model does not contain the 'pac_expectation(" << name << ")' operator."
+      
+      err_msg << "ERROR: the model does not contain the 'pac_expectation(" << name << ")' operator."
            << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException(err_msg.str());
     }
 }
 
@@ -1981,8 +2024,9 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(
     }
   catch (PacTargetNotIdentifiedException& e)
     {
-      cerr << "Can't identify target for PAC model " << name << ": " << e.message;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "Can't identify target for PAC model " << name << ": " << e.message;
+      throw PreprocessorException(err_msg.str());
     }
   int neqs = 0;
 
@@ -2009,10 +2053,11 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(
         }
       catch (SymbolTable::AlreadyDeclaredException& e)
         {
-          cerr << "The variable/parameter '" << param_name
+          
+          err_msg << "The variable/parameter '" << param_name
                << "' conflicts with a parameter that will be generated for the '" << name
                << "' PAC model. Please rename it." << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException(err_msg.str());
         }
     }
 
@@ -2107,10 +2152,11 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
       }
     catch (SymbolTable::AlreadyDeclaredException)
       {
-        cerr << "ERROR: the variable/parameter '" << param_name
+        
+        err_msg << "ERROR: the variable/parameter '" << param_name
              << "' conflicts with some auxiliary parameter that will be generated for the '" << name
              << "' PAC model. Please rename that parameter." << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException(err_msg.str());
       }
   };
   int neqs = 0;
@@ -2135,10 +2181,11 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
         }
       catch (SymbolTable::AlreadyDeclaredException& e)
         {
-          cerr << "The variable/parameter '" << param_name
+          
+          err_msg << "The variable/parameter '" << param_name
                << "' conflicts with a parameter that will be generated for the '" << name
                << "' PAC model. Please rename it." << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException(err_msg.str());
         }
     }
 
@@ -2304,10 +2351,11 @@ DynamicModel::computePacBackwardExpectationSubstitution(
       }
     catch (SymbolTable::AlreadyDeclaredException)
       {
-        cerr << "ERROR: the variable/parameter '" << param_name
+        
+        err_msg << "ERROR: the variable/parameter '" << param_name
              << "' conflicts with some auxiliary parameter that will be generated for the '" << name
              << "' PAC model. Please rename that parameter." << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException(err_msg.str());
       }
   };
 
@@ -2355,10 +2403,11 @@ DynamicModel::computePacBackwardExpectationSubstitutionWithComponents(
       }
     catch (SymbolTable::AlreadyDeclaredException)
       {
-        cerr << "ERROR: the variable/parameter '" << param_name
+        
+        err_msg << "ERROR: the variable/parameter '" << param_name
              << "' conflicts with some auxiliary parameter that will be generated for the '" << name
              << "' PAC model. Please rename that parameter." << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException(err_msg.str());
       }
   };
 
@@ -2466,9 +2515,10 @@ DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder,
      removed once the legacy representation is dropped). */
   if (log2(getJacobianColsNbr(false)) * derivsOrder >= numeric_limits<int>::digits)
     {
-      cerr << "ERROR: The derivatives matrix of the " << modelClassName()
+      
+      err_msg << "ERROR: The derivatives matrix of the " << modelClassName()
            << " is too large. Please decrease the approximation order." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException(err_msg.str());
     }
 
   // Compute derivatives w.r. to all endogenous, exogenous and exogenous deterministic
@@ -2513,8 +2563,9 @@ DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder,
     computeBlockDynJacobianCols();
   if (!block_decomposed && block)
     {
-      cerr << "ERROR: Block decomposition requested but failed." << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Block decomposition requested but failed." << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   computeMCPEquationsReordering();
@@ -3015,10 +3066,11 @@ DynamicModel::expandEqTags()
           equation_tags.add(eq, "name", to_string(eq + 1));
         else
           {
-            cerr << "Error creating default equation tag: cannot assign default tag to equation "
+            
+            err_msg << "Error creating default equation tag: cannot assign default tag to equation "
                     "number "
                  << eq + 1 << " because it is already in use" << endl;
-            exit(EXIT_FAILURE);
+            throw PreprocessorException(err_msg.str());
           }
       }
 }
@@ -3253,19 +3305,20 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t& eval_context
                         eval_context); // eval d F / d Trend d Endog
                     if (fabs(nearZero) > balanced_growth_test_tol)
                       {
-                        cerr << "ERROR: trends not compatible with balanced growth path; the "
+                        err_msg << "ERROR: trends not compatible with balanced growth path; the "
                                 "second-order cross partial of equation "
                              << eq + 1;
                         if (equations_lineno[eq])
-                          cerr << " (line " << *equations_lineno[eq] << ") ";
-                        cerr << "w.r.t. trend variable " << symbol_table.getName(symb_id1)
+                          err_msg << " (line " << *equations_lineno[eq] << ") ";
+                        
+                        err_msg << "w.r.t. trend variable " << symbol_table.getName(symb_id1)
                              << " and endogenous variable " << symbol_table.getName(symb_id2)
                              << " is not null (abs. value = " << fabs(nearZero)
                              << "). If you are confident that your trends are correctly specified, "
                                 "you can raise the value of option 'balanced_growth_test_tol' in "
                                 "the 'model' block."
                              << endl;
-                        exit(EXIT_FAILURE);
+                        throw PreprocessorException(err_msg.str());
                       }
                   }
             }
@@ -3344,8 +3397,9 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
           subst = value->differentiateForwardVars(subset, subst_table, neweqs);
           break;
         default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
+          throw PreprocessorException(err_msg.str());
         }
       local_variables_table[used_local_var] = subst;
     }
@@ -3373,8 +3427,9 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
           subst = equation->differentiateForwardVars(subset, subst_table, neweqs);
           break;
         default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
+          throw PreprocessorException(err_msg.str());
         }
       auto substeq = dynamic_cast<BinaryOpNode*>(subst);
       assert(substeq);
@@ -3412,8 +3467,9 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
           cout << "forward vars";
           break;
         default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
+          throw PreprocessorException(err_msg.str());
         }
       cout << ": added " << neweqs.size() << " auxiliary variables and equations." << endl;
     }
@@ -3462,8 +3518,9 @@ DynamicModel::getEquationNumbersFromTags(const set<string>& eqtags) const
       set<int> tmp = equation_tags.getEqnsByTag("name", eqtag);
       if (tmp.empty())
         {
-          cerr << "ERROR: looking for equation tag " << eqtag << " failed." << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "ERROR: looking for equation tag " << eqtag << " failed." << endl;
+          throw PreprocessorException(err_msg.str());
         }
       eqnumbers.insert(tmp.begin(), tmp.end());
     }
@@ -3735,12 +3792,13 @@ DynamicModel::checkNoWithLogTransform(const set<int>& eqnumbers)
   ranges::set_intersection(endos, with_log_transform, back_inserter(intersect));
   if (!intersect.empty())
     {
-      cerr << "ERROR: the following variables are declared with var(log) and therefore cannot "
+      
+      err_msg << "ERROR: the following variables are declared with var(log) and therefore cannot "
               "appear in a VAR/TCM/PAC equation: ";
       for (int symb_id : intersect)
-        cerr << symbol_table.getName(symb_id) << " ";
-      cerr << endl;
-      exit(EXIT_FAILURE);
+        err_msg << symbol_table.getName(symb_id) << " ";
+      err_msg << endl;
+      throw PreprocessorException(err_msg.str());
     }
 }
 
@@ -3969,8 +4027,9 @@ DynamicModel::isChecksumMatching(const string& basename) const
   checksum_file.open(filename, ios::out | ios::binary);
   if (!checksum_file.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << filename.string() << endl;
+      throw PreprocessorException(err_msg.str());
     }
   checksum_file << result;
   checksum_file.close();
@@ -4226,10 +4285,11 @@ DynamicModel::checkNoRemainingPacExpectation() const
   for (size_t eq = 0; eq < equations.size(); eq++)
     if (equations[eq]->containsPacExpectation())
       {
-        cerr << "ERROR: in equation "
+        
+        err_msg << "ERROR: in equation "
              << equation_tags.getTagValueByEqnAndKey(eq, "name").value_or(to_string(eq + 1))
              << ", the pac_expectation operator references an unknown pac_model" << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException(err_msg.str());
       }
 }
 
@@ -4260,12 +4320,13 @@ DynamicModel::checkNoRemainingPacTargetNonstationary() const
   for (size_t eq = 0; eq < equations.size(); eq++)
     if (equations[eq]->containsPacTargetNonstationary())
       {
-        cerr << "ERROR: in equation "
+        
+        err_msg << "ERROR: in equation "
              << equation_tags.getTagValueByEqnAndKey(eq, "name").value_or(to_string(eq + 1))
              << ", the pac_target_nonstationary operator does not match a corresponding "
                 "'pac_target_info' block"
              << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException(err_msg.str());
       }
 }
 
@@ -4274,17 +4335,17 @@ DynamicModel::checkIsLinear() const
 {
   if (!nonzero_hessian_eqs.empty())
     {
-      cerr << "ERROR: If the model is declared linear the second derivatives must be equal to zero."
+      err_msg << "ERROR: If the model is declared linear the second derivatives must be equal to zero."
            << endl
            << "       The following equations have non-zero second derivatives:" << endl;
       for (auto it : nonzero_hessian_eqs)
         {
-          cerr << "       * Eq # " << it + 1;
+          err_msg << "       * Eq # " << it + 1;
           if (optional<string> eqname {equation_tags.getTagValueByEqnAndKey(it, "name")}; eqname)
-            cerr << " [" << *eqname << "]";
-          cerr << endl;
+            err_msg << " [" << *eqname << "]";
+          err_msg << endl;
         }
-      exit(EXIT_FAILURE);
+      throw PreprocessorException(err_msg.str());
     }
 }
 
@@ -4299,31 +4360,32 @@ DynamicModel::checkOccbinRegimes() const
         }
       catch (OccbinRegimeTracker::MissingRegimeException& e)
         {
-          cerr << "ERROR: for equation '" << eq_name << "', the regime corresponding to ";
+          err_msg << "ERROR: for equation '" << eq_name << "', the regime corresponding to ";
           if (!e.constraints_bind.empty())
             {
-              cerr << "bind='";
+              err_msg << "bind='";
               for (bool first_printed {false}; const auto& r : e.constraints_bind)
                 {
                   if (exchange(first_printed, true))
-                    cerr << ",";
-                  cerr << r;
+                    err_msg << ",";
+                  err_msg << r;
                 }
             }
           if (!e.constraints_bind.empty() && !e.constraints_relax.empty())
-            cerr << "' and ";
+            err_msg << "' and ";
           if (!e.constraints_relax.empty())
             {
-              cerr << "relax='";
+              err_msg << "relax='";
               for (bool first_printed {false}; const auto& r : e.constraints_relax)
                 {
                   if (exchange(first_printed, true))
-                    cerr << ",";
-                  cerr << r;
+                    err_msg << ",";
+                  err_msg << r;
                 }
             }
-          cerr << "' is not defined" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "' is not defined" << endl;
+          throw PreprocessorException(err_msg.str());
         }
     }
 }

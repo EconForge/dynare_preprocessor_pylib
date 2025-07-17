@@ -29,6 +29,8 @@
 
 #include "DynamicModel.hh"
 #include "StaticModel.hh"
+#include "Exceptions.hh"
+
 
 StaticModel::StaticModel(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                          ExternalFunctionsTable& external_functions_table_arg,
@@ -105,9 +107,10 @@ StaticModel::StaticModel(const DynamicModel& m) :
       }
     catch (DataTree::DivisionByZeroException)
       {
-        cerr << "...division by zero error encountered when converting equation " << i
+        
+        err_msg << "...division by zero error encountered when converting equation " << i
              << " to static" << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException(err_msg.str());
       }
 
   // Convert auxiliary equations
@@ -164,8 +167,9 @@ StaticModel::writeStaticBlockBytecode(const string& basename) const
   ofstream bin_file {bin_filename, ios::out | ios::binary};
   if (!bin_file.is_open())
     {
-      cerr << R"(Error : Can't open file ")" << bin_filename.string() << R"(" for writing)" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << R"(Error : Can't open file ")" << bin_filename.string() << R"(" for writing)" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   // Temporary variables declaration
@@ -214,9 +218,10 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder,
      with DynamicModel::computingPass(). */
   if (log2(symbol_table.endo_nbr()) * derivsOrder >= numeric_limits<int>::digits)
     {
-      cerr << "ERROR: The derivatives matrix of the " << modelClassName()
+      
+      err_msg << "ERROR: The derivatives matrix of the " << modelClassName()
            << " is too large. Please decrease the approximation order." << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException(err_msg.str());
     }
 
   // Compute derivatives w.r. to all endogenous
@@ -247,10 +252,11 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder,
   computingPassBlock(eval_context, no_tmp_terms);
   if (!block_decomposed && block)
     {
-      cerr << "ERROR: Block decomposition requested but failed. If your model does not have a "
+      
+      err_msg << "ERROR: Block decomposition requested but failed. If your model does not have a "
               "steady state, you may want to try the 'no_static' option of the 'model' block."
            << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException(err_msg.str());
     }
 
   computeMCPEquationsReordering();
@@ -701,8 +707,9 @@ StaticModel::writeRamseyMultipliersDerivativesMFile(const string& basename,
   ofstream output_file {filename, ios::out | ios::binary};
   if (!output_file.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   output_file << "function g1m = ramsey_multipliers_static_g1(y, x, params, sparse_rowval, "
@@ -734,8 +741,9 @@ StaticModel::writeRamseyMultipliersDerivativesCFile(const string& basename, cons
   ofstream output {p, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << p.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   output << "#include <math.h>" << endl

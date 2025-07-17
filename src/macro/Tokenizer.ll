@@ -20,6 +20,8 @@
 
 %{
 #include "Driver.hh"
+#include "../Exceptions.hh"
+
 
 // Announce to Flex the prototype we want for lexing function
 #define YY_DECL                                                \
@@ -219,6 +221,7 @@ TokenizerFlex::location_increment(Tokenizer::parser::location_type* yylloc, cons
 int
 TokenizerFlexLexer::yylex()
 {
-  cerr << "TokenizerFlexLexer::yylex() has been called; shouldn't arrive here." << endl;
-  exit(EXIT_FAILURE);
+  
+  err_msg << "TokenizerFlexLexer::yylex() has been called; shouldn't arrive here." << endl;
+  throw PreprocessorException(err_msg.str());
 }

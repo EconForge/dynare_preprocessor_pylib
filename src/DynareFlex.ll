@@ -21,6 +21,8 @@
 
 %{
 #include "ParsingDriver.hh"
+#include "Exceptions.hh"
+
 
 using namespace std;
 
@@ -1229,6 +1231,7 @@ DynareFlex::location_increment(Dynare::parser::location_type* yylloc, const char
 int
 DynareFlexLexer::yylex()
 {
-  cerr << "DynareFlexLexer::yylex() has been called, that should never happen!" << endl;
-  exit(EXIT_FAILURE);
+  
+  err_msg << "DynareFlexLexer::yylex() has been called, that should never happen!" << endl;
+  throw PreprocessorException(err_msg.str());
 }

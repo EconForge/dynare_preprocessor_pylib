@@ -21,6 +21,7 @@
 #include <iostream>
 
 #include "HeterogeneousModel.hh"
+#include "Exceptions.hh"
 
 HeterogeneousModel::HeterogeneousModel(SymbolTable& symbol_table_arg,
                                        NumericalConstants& num_constants_arg,
@@ -49,23 +50,26 @@ HeterogeneousModel::operator=(const HeterogeneousModel& m)
 void
 HeterogeneousModel::computeChainRuleJacobian()
 {
-  cerr << "Heterogeneous::computeChainRuleJacobian(): unimplemented" << endl;
-  exit(EXIT_FAILURE);
+  
+  err_msg << "Heterogeneous::computeChainRuleJacobian(): unimplemented" << endl;
+  throw PreprocessorException(err_msg.str());
 }
 
 int
 HeterogeneousModel::getBlockJacobianEndoCol([[maybe_unused]] int blk, [[maybe_unused]] int var,
                                             [[maybe_unused]] int lead_lag) const
 {
-  cerr << "Heterogeneous::getBlockJacobianEndoCol(): unimplemented" << endl;
-  exit(EXIT_FAILURE);
+  
+  err_msg << "Heterogeneous::getBlockJacobianEndoCol(): unimplemented" << endl;
+  throw PreprocessorException(err_msg.str());
 }
 
 int
 HeterogeneousModel::getMFS() const
 {
-  cerr << "Heterogeneous::getMFS(): unimplemented" << endl;
-  exit(EXIT_FAILURE);
+  
+  err_msg << "Heterogeneous::getMFS(): unimplemented" << endl;
+  throw PreprocessorException(err_msg.str());
 }
 
 void
