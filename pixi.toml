@@ -20,9 +20,11 @@ pybind11 = ">=3.0.0,<4"
 libboost-headers = ">=1.88.0,<2"
 
 [feature.test.dependencies]
-ipykernel = "*"
+pytest = ">=8.3.3"
+ipykernel = ">=6.29.0"
 
 [feature.test.tasks]
+test = "sh build_lib.sh && pytest"
 ipython = "sh build_lib.sh && ipython"
 
 [environments]
