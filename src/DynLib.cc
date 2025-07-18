@@ -24,7 +24,7 @@ namespace py = pybind11;
 
 DynareModel::DynareModel(const string &modfile_string, int derivs_order, int params_derivs_order) {
     set_mod_file(modfile_string, derivs_order, params_derivs_order);
-    set_json_string(); 
+    set_json_string();
     set_symbols();
     set_equations();
     set_context();
@@ -242,7 +242,7 @@ void DynareModel::set_symbolic_derivatives(){
                     symb_jacob_exo_det[{eq,tsid}] = expr;
                     break;
                 default:
-                    throw py::value_error{"Unknown symbol type"};
+                    throw PreprocessorException("Unknown symbol type");
             }
         }
     }
@@ -282,7 +282,7 @@ double DynareModel::evaluate_with_lags(
             VariableNode* expr = static_cast<VariableNode*>(expression);
             int lag = expr->lag;
             if(lag > 1 || lag < -1){
-                throw py::value_error{"Unsupported lag value"};
+                throw PreprocessorException("Unsupported lag value");
             }
             int id = expr->symb_id;
             SymbolType type = mod_file->symbol_table.getType(id);
@@ -297,7 +297,7 @@ double DynareModel::evaluate_with_lags(
                 case SymbolType::parameter:
                     return params[sid];
                 default:
-                    throw py::value_error{"Unsupported variable type"};
+                    throw PreprocessorException("Unsupported variable type");
             }
         }
         case ExprNodeType::UnaryOpNode:
@@ -327,7 +327,7 @@ double DynareModel::evaluate_with_lags(
             return expr->eval_opcode(arg1, expr->op_code, arg2, arg3);
         }
         default:
-            throw py::type_error{"Unknown expression type"};
+            throw PreprocessorException("Unknown expression type");
     }
 }
 
