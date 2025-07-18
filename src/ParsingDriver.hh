@@ -57,6 +57,7 @@ class ParserException : public exception {
   public:
     ParserException(const Dynare::parser::location_type& l, const string& m)
       {
+        err_msg.str("");
         err_msg << l << ": " << m;
         message = err_msg.str();
       }
