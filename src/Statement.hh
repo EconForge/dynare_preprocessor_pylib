@@ -204,6 +204,7 @@ public:
 
 class NativeStatement : public Statement
 {
+friend class DynareModel;
 private:
   const string native_statement;
 

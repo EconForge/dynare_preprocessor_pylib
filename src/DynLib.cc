@@ -209,6 +209,9 @@ void DynareModel::set_exogenous(){
                     }
                 }
             }
+        } else if(type == typeid(NativeStatement)){
+            NativeStatement* native_statement = static_cast<NativeStatement*>(statement.get());
+            throw PreprocessorException("Unsupported native statement: `" + native_statement->native_statement + "`");
         }
     }
 }
