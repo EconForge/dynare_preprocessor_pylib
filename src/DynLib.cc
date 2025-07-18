@@ -144,9 +144,17 @@ void DynareModel::set_context(){
     eval_context_t new_context = mod_file->global_eval_context;
     // Add steady state to eval context for uninitialized variables
     for(const auto& [vect, expr] : mod_file->steady_state_model.def_table){
-        double val = expr->eval(new_context);
-        for(int id : vect){
-            if(new_context[id] == 0) new_context[id] = val;
+        try{
+            double val = expr->eval(new_context);
+            for(int id : vect){
+                if(new_context[id] == 0) new_context[id] = val;
+            }
+        }
+        catch(const ExprNode::EvalExternalFunctionException& ex){
+            throw PreprocessorException("External functions are not supported (yet).");
+        }
+        catch(const ExprNode::EvalException& ex){
+            throw PreprocessorException("Evaluation error in steady state");
         }
     }
 
@@ -163,56 +171,64 @@ void DynareModel::set_exogenous(){
     const eval_context_t& context = mod_file->global_eval_context;
     covariances = map<pair<string,string>, double>();
     trajectories = map<string, vector<tuple<int, int, double>>>();
-    for(const auto &statement : mod_file->statements){
-        const type_info& type = typeid(*statement);
-        if(type == typeid(ShocksStatement)){
-            ShocksStatement* shock = static_cast<ShocksStatement*>(statement.get());
-            for(const auto& [id, expr] : shock->var_shocks){
-                string s = table.getName(id);
-                covariances[{s,s}] = expr->eval(context);
-            }
-            for(const auto& [id, expr] : shock->std_shocks){
-                string s = table.getName(id);
-                covariances[{s,s}] = pow(expr->eval(context),2);
-            }
-            for(const auto& [key, expr] : shock->covar_shocks){
-                const auto& [id1,id2] = key;
-                string s1 = table.getName(id1);
-                string s2 = table.getName(id2);
-                double covar = expr->eval(context);
-                covariances[{s1,s2}] = covar;
-            }
-            for(const auto& [key, expr] : shock->corr_shocks){
-                const auto& [id1,id2] = key;
-                string s1 = table.getName(id1);
-                string s2 = table.getName(id2);
-                double corr = expr->eval(context);
-                double std_1 = sqrt(covariances[{s1,s1}]);
-                double std_2 = sqrt(covariances[{s2,s2}]);
-                double covar = corr*std_1*std_2;
-                covariances[{s1,s2}] = covar;
-            }
-        } else if(type == typeid(ShocksSurpriseStatement)){
-            ShocksSurpriseStatement* shock = static_cast<ShocksSurpriseStatement*>(statement.get());
-            if(shock->overwrite){
-                covariances.clear();
-            }
-            for(const auto& [id, trajectory] : shock->surprise_shocks){
-                string var = table.getName(id);
-                for(const auto& [period_range, expr] : trajectory){
-                    if(holds_alternative<pair<int,int>>(period_range)){
-                        auto [p1, p2] = get<pair<int,int>>(period_range);
-                        double val = expr->eval(context);
-                        trajectories[var].emplace_back(p1, p2, val);
-                    } else {
-                        throw PreprocessorException("Date period ranges are not supported (yet)");
+    try{
+        for(const auto &statement : mod_file->statements){
+            const type_info& type = typeid(*statement);
+                if(type == typeid(ShocksStatement)){
+                ShocksStatement* shock = static_cast<ShocksStatement*>(statement.get());
+                for(const auto& [id, expr] : shock->var_shocks){
+                    string s = table.getName(id);
+                    covariances[{s,s}] = expr->eval(context);
+                }
+                for(const auto& [id, expr] : shock->std_shocks){
+                    string s = table.getName(id);
+                    covariances[{s,s}] = pow(expr->eval(context),2);
+                }
+                for(const auto& [key, expr] : shock->covar_shocks){
+                    const auto& [id1,id2] = key;
+                    string s1 = table.getName(id1);
+                    string s2 = table.getName(id2);
+                    double covar = expr->eval(context);
+                    covariances[{s1,s2}] = covar;
+                }
+                for(const auto& [key, expr] : shock->corr_shocks){
+                    const auto& [id1,id2] = key;
+                    string s1 = table.getName(id1);
+                    string s2 = table.getName(id2);
+                    double corr = expr->eval(context);
+                    double std_1 = sqrt(covariances[{s1,s1}]);
+                    double std_2 = sqrt(covariances[{s2,s2}]);
+                    double covar = corr*std_1*std_2;
+                    covariances[{s1,s2}] = covar;
+                }
+            } else if(type == typeid(ShocksSurpriseStatement)){
+                ShocksSurpriseStatement* shock = static_cast<ShocksSurpriseStatement*>(statement.get());
+                if(shock->overwrite){
+                    covariances.clear();
+                }
+                for(const auto& [id, trajectory] : shock->surprise_shocks){
+                    string var = table.getName(id);
+                    for(const auto& [period_range, expr] : trajectory){
+                        if(holds_alternative<pair<int,int>>(period_range)){
+                            auto [p1, p2] = get<pair<int,int>>(period_range);
+                            double val = expr->eval(context);
+                            trajectories[var].emplace_back(p1, p2, val);
+                        } else {
+                            throw PreprocessorException("Date period ranges are not supported (yet)");
+                        }
                     }
                 }
+            } else if(type == typeid(NativeStatement)){
+                NativeStatement* native_statement = static_cast<NativeStatement*>(statement.get());
+                throw PreprocessorException("Unsupported native statement: `" + native_statement->native_statement + "`");
             }
-        } else if(type == typeid(NativeStatement)){
-            NativeStatement* native_statement = static_cast<NativeStatement*>(statement.get());
-            throw PreprocessorException("Unsupported native statement: `" + native_statement->native_statement + "`");
         }
+    }
+    catch(const ExprNode::EvalExternalFunctionException& ex){
+        throw PreprocessorException("External functions are not supported (yet).");
+    }
+    catch(const ExprNode::EvalException& ex){
+        throw PreprocessorException("Evaluation error in steady state");
     }
 }
 
@@ -274,63 +290,71 @@ double DynareModel::evaluate_with_lags(
     const vector<double>& exo_det,
     const vector<double>& params
 ){
-    switch(expression_type(expression)){
-        case ExprNodeType::NumConstNode:
-        {
-            NumConstNode* expr = static_cast<NumConstNode*>(expression);
-            return this->mod_file->num_constants.getDouble(expr->id);
-        }
-        case ExprNodeType::VariableNode:
-        {
-            VariableNode* expr = static_cast<VariableNode*>(expression);
-            int lag = expr->lag;
-            if(lag > 1 || lag < -1){
-                throw PreprocessorException("Unsupported lag value");
+    try{
+        switch(expression_type(expression)){
+            case ExprNodeType::NumConstNode:
+            {
+                NumConstNode* expr = static_cast<NumConstNode*>(expression);
+                return this->mod_file->num_constants.getDouble(expr->id);
             }
-            int id = expr->symb_id;
-            SymbolType type = mod_file->symbol_table.getType(id);
-            int sid = mod_file->symbol_table.getTypeSpecificID(id);
-            switch(type){
-                case SymbolType::endogenous:
-                    return endo[lag+1][sid];
-                case SymbolType::exogenous:
-                    return exo[sid];
-                case SymbolType::exogenousDet:
-                    return exo_det[sid];
-                case SymbolType::parameter:
-                    return params[sid];
-                default:
-                    throw PreprocessorException("Unsupported variable type");
+            case ExprNodeType::VariableNode:
+            {
+                VariableNode* expr = static_cast<VariableNode*>(expression);
+                int lag = expr->lag;
+                if(lag > 1 || lag < -1){
+                    throw PreprocessorException("Unsupported lag value");
+                }
+                int id = expr->symb_id;
+                SymbolType type = mod_file->symbol_table.getType(id);
+                int sid = mod_file->symbol_table.getTypeSpecificID(id);
+                switch(type){
+                    case SymbolType::endogenous:
+                        return endo[lag+1][sid];
+                    case SymbolType::exogenous:
+                        return exo[sid];
+                    case SymbolType::exogenousDet:
+                        return exo_det[sid];
+                    case SymbolType::parameter:
+                        return params[sid];
+                    default:
+                        throw PreprocessorException("Unsupported variable type");
+                }
             }
-        }
-        case ExprNodeType::UnaryOpNode:
-        {
-            UnaryOpNode* expr = static_cast<UnaryOpNode*>(expression);
-            double arg = evaluate_with_lags(expr->arg, endo, exo, exo_det, params);
-            return expr->eval_opcode(expr->op_code, arg);
-        }
-        case ExprNodeType::BinaryOpNode:
-        {
-            BinaryOpNode* expr = static_cast<BinaryOpNode*>(expression);
-            double arg1 = evaluate_with_lags(expr->arg1, endo, exo, exo_det, params);
-            double arg2 = evaluate_with_lags(expr->arg2, endo, exo, exo_det, params);
-            BinaryOpcode opcode = expr->op_code;
-            if(opcode == BinaryOpcode::equal){
-                // special convention to make evaluation of residuals easier
-                opcode = BinaryOpcode::minus;
+            case ExprNodeType::UnaryOpNode:
+            {
+                UnaryOpNode* expr = static_cast<UnaryOpNode*>(expression);
+                double arg = evaluate_with_lags(expr->arg, endo, exo, exo_det, params);
+                return expr->eval_opcode(expr->op_code, arg);
             }
-            return expr->eval_opcode(arg1, opcode, arg2, expr->powerDerivOrder);
+            case ExprNodeType::BinaryOpNode:
+            {
+                BinaryOpNode* expr = static_cast<BinaryOpNode*>(expression);
+                double arg1 = evaluate_with_lags(expr->arg1, endo, exo, exo_det, params);
+                double arg2 = evaluate_with_lags(expr->arg2, endo, exo, exo_det, params);
+                BinaryOpcode opcode = expr->op_code;
+                if(opcode == BinaryOpcode::equal){
+                    // special convention to make evaluation of residuals easier
+                    opcode = BinaryOpcode::minus;
+                }
+                return expr->eval_opcode(arg1, opcode, arg2, expr->powerDerivOrder);
+            }
+            case ExprNodeType::TrinaryOpNode:
+            {
+                TrinaryOpNode* expr = static_cast<TrinaryOpNode*>(expression);
+                double arg1 = evaluate_with_lags(expr->arg1, endo, exo, exo_det, params);
+                double arg2 = evaluate_with_lags(expr->arg2, endo, exo, exo_det, params);
+                double arg3 = evaluate_with_lags(expr->arg3, endo, exo, exo_det, params);
+                return expr->eval_opcode(arg1, expr->op_code, arg2, arg3);
+            }
+            default:
+                throw PreprocessorException("Unknown expression type");
         }
-        case ExprNodeType::TrinaryOpNode:
-        {
-            TrinaryOpNode* expr = static_cast<TrinaryOpNode*>(expression);
-            double arg1 = evaluate_with_lags(expr->arg1, endo, exo, exo_det, params);
-            double arg2 = evaluate_with_lags(expr->arg2, endo, exo, exo_det, params);
-            double arg3 = evaluate_with_lags(expr->arg3, endo, exo, exo_det, params);
-            return expr->eval_opcode(arg1, expr->op_code, arg2, arg3);
-        }
-        default:
-            throw PreprocessorException("Unknown expression type");
+    }
+    catch(const ExprNode::EvalExternalFunctionException& ex){
+        throw PreprocessorException("External functions are not supported (yet).");
+    }
+    catch(const ExprNode::EvalException& ex){
+        throw PreprocessorException("Evaluation error in steady state");
     }
 }
 

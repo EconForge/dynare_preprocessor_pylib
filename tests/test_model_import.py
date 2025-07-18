@@ -36,10 +36,7 @@ preprocessor_exception = [
     "ramst.mod", # display BUG, two errors on the same line
     "example1.mod", # unsupported native statement
     "example1_reporting.mod", # unsupported native statement
-]
-
-unknown_exception = [
-    "example3.mod" # BUG, need to expose Exception to python
+    "example3.mod", # external steady state helper
 ]
 
 @pytest.mark.parametrize("filename", files)
