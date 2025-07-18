@@ -104,7 +104,7 @@ void DynareModel::set_json_string(){
     string prefix = "//-- BEGIN JSON --// \n";
     string suffix = "\n//-- END JSON --// \nJSON written after Computing step.\n";
     if(json_string.ends_with(suffix)){
-        json_string.erase(suffix.length() - suffix.length(), suffix.length());
+        json_string.erase(json_string.length() - suffix.length(), suffix.length());
     }
     if(json_string.starts_with(prefix)){
         json_string.erase(0, prefix.length());
