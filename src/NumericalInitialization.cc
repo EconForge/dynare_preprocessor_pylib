@@ -24,6 +24,8 @@
 #include <utility>
 
 #include "NumericalInitialization.hh"
+#include "Exceptions.hh"
+
 
 InitParamStatement::InitParamStatement(int symb_id_arg, const expr_t param_value_arg,
                                        const SymbolTable& symbol_table_arg) :
@@ -115,8 +117,9 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
     unused = symbol_table.getExogenous();
   else
     {
-      cerr << "ERROR: Shouldn't arrive here." << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Shouldn't arrive here." << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   for (auto [symb_id, value] : init_values)
@@ -148,12 +151,14 @@ InitOrEndValStatement::writeInitValues(ostream& output) const
           output << "oo_.exo_det_steady_state";
           break;
         case SymbolType::excludedVariable:
-          cerr << "ERROR: Variable `" << symbol_table.getName(symb_id)
+          
+          err_msg << "ERROR: Variable `" << symbol_table.getName(symb_id)
                << "` was excluded but found in an initval or endval statement" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException(err_msg.str());
         default:
-          cerr << "Should not arrive here" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "Should not arrive here" << endl;
+          throw PreprocessorException(err_msg.str());
         }
 
       output << "(" << tsid << ") = ";
@@ -191,8 +196,8 @@ InitValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
 {
   if (mod_file_struct.endval_present)
     {
-      cerr << "ERROR: an 'initval' block cannot appear after an 'endval' block" << endl; // See #104
-      exit(EXIT_FAILURE);
+      err_msg << "ERROR: an 'initval' block cannot appear after an 'endval' block" << endl; // See #104
+      throw PreprocessorException(err_msg.str());
     }
 
   set<int> exogs = getUninitializedVariables(SymbolType::exogenous);
@@ -200,22 +205,23 @@ InitValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
 
   if (endogs.size() > 0)
     {
-      cerr << "ERROR: You have not set the following endogenous variables in initval:";
+      err_msg << "ERROR: You have not set the following endogenous variables in initval:";
       for (int endog : endogs)
-        cerr << " " << symbol_table.getName(endog);
-      cerr << endl;
+        err_msg << " " << symbol_table.getName(endog);
+      err_msg << endl;
     }
 
   if (exogs.size() > 0)
     {
-      cerr << "ERROR: You have not set the following exogenous variables in initval:";
+      
+      err_msg << "ERROR: You have not set the following exogenous variables in initval:";
       for (int exog : exogs)
-        cerr << " " << symbol_table.getName(exog);
-      cerr << endl;
+        err_msg << " " << symbol_table.getName(exog);
+      err_msg << endl;
     }
 
   if (endogs.size() > 0 || exogs.size() > 0)
-    exit(EXIT_FAILURE);
+    throw PreprocessorException(err_msg.str());
 }
 
 void
@@ -273,14 +279,15 @@ EndValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
 
   if (exogs.size() > 0)
     {
-      cerr << "ERROR: You have not set the following exogenous variables in endval:";
+      
+      err_msg << "ERROR: You have not set the following exogenous variables in endval:";
       for (int exog : exogs)
-        cerr << " " << symbol_table.getName(exog);
-      cerr << endl;
+        err_msg << " " << symbol_table.getName(exog);
+      err_msg << endl;
     }
 
   if (endogs.size() > 0 || exogs.size() > 0)
-    exit(EXIT_FAILURE);
+    throw PreprocessorException(err_msg.str());
 }
 
 void
@@ -419,14 +426,15 @@ HistValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
 
       if (unused_exo.size() > 0)
         {
-          cerr << "ERROR: You have not set the following exogenous variables in endval:";
+          
+          err_msg << "ERROR: You have not set the following exogenous variables in endval:";
           for (int it : unused_exo)
-            cerr << " " << symbol_table.getName(it);
-          cerr << endl;
+            err_msg << " " << symbol_table.getName(it);
+          err_msg << endl;
         }
 
       if (unused_endo.size() > 0 || unused_exo.size() > 0)
-        exit(EXIT_FAILURE);
+        throw PreprocessorException(err_msg.str());
     }
 }
 
@@ -658,8 +666,9 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(
   f.open(filename, ios::in);
   if (f.fail())
     {
-      cerr << "ERROR: Can't open " << filename.string() << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open " << filename.string() << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   while (true)
@@ -705,9 +714,10 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream& output,
           output << "oo_.exo_det_steady_state";
           break;
         default:
-          cerr << "ERROR: Unsupported variable type for " << symbol_table.getName(id)
+          
+          err_msg << "ERROR: Unsupported variable type for " << symbol_table.getName(id)
                << " in load_params_and_steady_state" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException(err_msg.str());
         }
 
       int tsid = symbol_table.getTypeSpecificID(id) + 1;

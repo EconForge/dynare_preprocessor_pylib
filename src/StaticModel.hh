@@ -25,6 +25,8 @@
 
 #include "Bytecode.hh"
 #include "ModelTree.hh"
+#include "Exceptions.hh"
+
 
 using namespace std;
 
@@ -220,8 +222,9 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
       ofstream paramsDerivsFile {filename, ios::out | ios::binary};
       if (!paramsDerivsFile.is_open())
         {
-          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+          throw PreprocessorException(err_msg.str());
         }
       paramsDerivsFile
           << "function [rp, gp, rpp, gpp, hp] = static_params_derivs(y, x, params)" << endl

@@ -24,10 +24,12 @@
 #include <numeric>
 #include <ranges>
 #include <sstream>
+#include <exception>
 
 #include "ExprNode.hh"
 #include "ParsingDriver.hh"
 #include "Statement.hh"
+#include "Exceptions.hh"
 /* NB: the following also imports our specialization of operator<< for location class,
    used below in error() and undeclared_model_variable_error() */
 #include "WarningConsolidation.hh"
@@ -115,8 +117,7 @@ ParsingDriver::parse(istream& in, bool debug)
 void
 ParsingDriver::error(const Dynare::parser::location_type& l, const string& m)
 {
-  cerr << "ERROR: " << l << ": " << m << endl;
-  exit(EXIT_FAILURE);
+  throw ParserException(l, m);
 }
 
 void
@@ -886,13 +887,13 @@ ParsingDriver::end_model()
         else
           {
             exit_after_write = true;
-            cerr << it.second << endl;
+            err_msg << it.second << endl;
           }
       }
   undeclared_model_variable_errors.clear();
 
   if (exit_after_write)
-    exit(EXIT_FAILURE);
+    throw PreprocessorException(err_msg.str());
 
   reset_data_tree();
 }
@@ -2310,12 +2311,13 @@ ParsingDriver::end_planner_objective(expr_t expr)
         else
           {
             exit_after_write = true;
-            cerr << it.second << endl;
+            
+            err_msg << it.second << endl;
           }
       }
   undeclared_model_variable_errors.clear();
   if (exit_after_write)
-    exit(EXIT_FAILURE);
+    throw PreprocessorException(err_msg.str());
 
   reset_data_tree();
 }

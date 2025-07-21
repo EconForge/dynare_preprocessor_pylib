@@ -21,6 +21,7 @@
 #include <utility>
 
 #include "Expressions.hh"
+#include "../Exceptions.hh"
 
 using namespace macro;
 
@@ -885,7 +886,7 @@ UnaryOp::eval(Environment& env) const
       throw StackTrace("unary operation", e.what(), location);
     }
   // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  throw PreprocessorException();
 }
 
 BaseTypePtr
@@ -945,7 +946,7 @@ BinaryOp::eval(Environment& env) const
       throw StackTrace("binary operation", e.what(), location);
     }
   // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  throw PreprocessorException();
 }
 
 BaseTypePtr
@@ -971,7 +972,7 @@ TrinaryOp::eval(Environment& env) const
       throw StackTrace("trinary operation", e.what(), location);
     }
   // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  throw PreprocessorException();
 }
 
 BaseTypePtr
@@ -1181,7 +1182,7 @@ UnaryOp::to_string() const noexcept
       return "defined(" + retval + ")";
     }
   // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  throw PreprocessorException();
 }
 
 string
@@ -1259,7 +1260,7 @@ TrinaryOp::to_string() const noexcept
              + ")";
     }
   // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  throw PreprocessorException();
 }
 
 string
@@ -1537,8 +1538,9 @@ BinaryOp::print(ostream& output, bool matlab_output) const noexcept
     case codes::BinaryOp::max:
     case codes::BinaryOp::min:
     case codes::BinaryOp::mod:
-      cerr << "macro::BinaryOp::print: Should not arrive here" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "macro::BinaryOp::print: Should not arrive here" << endl;
+      throw PreprocessorException(err_msg.str());
     }
   arg2->print(output, matlab_output);
   output << ")";

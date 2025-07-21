@@ -18,6 +18,8 @@
  */
 
 #include "Driver.hh"
+#include "../Exceptions.hh"
+
 
 #include <regex>
 #include <utility>
@@ -65,6 +67,7 @@ Driver::parse(const string& file_arg, const istream& modfile, bool debug,
 void
 Driver::error(const Tokenizer::parser::location_type& location, const string& message) const
 {
-  cerr << "ERROR in macro-processor: " << location << ": " << message << endl;
-  exit(EXIT_FAILURE);
+  
+  err_msg << "" << location << ": " << message << endl;
+  throw PreprocessorException(err_msg.str());
 }

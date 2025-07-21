@@ -23,6 +23,8 @@
 #include "Environment.hh"
 #include "ForwardDeclarationsAndEnums.hh"
 #include "ParserLocation.hh"
+#include "../Exceptions.hh"
+
 
 #include <cmath>
 #include <iomanip>
@@ -102,8 +104,8 @@ public:
   void
   error(const StackTrace& e) const noexcept
   {
-    cerr << endl << "Macro-processing error: backtrace..." << endl << e.trace();
-    exit(EXIT_FAILURE);
+    err_msg << endl << "Macro-processing error: backtrace..." << endl << e.trace();
+    throw PreprocessorException(err_msg.str());
   }
   void
   warning(const StackTrace& e) const noexcept
@@ -142,6 +144,7 @@ public:
   explicit BaseType(Tokenizer::location location_arg = Tokenizer::location()) :
       Expression(move(location_arg))
   {
+    throw PreprocessorException();
   }
   virtual codes::BaseType getType() const noexcept = 0;
   BaseTypePtr

@@ -23,6 +23,8 @@
 #include <sstream>
 
 #include "ModelEquationBlock.hh"
+#include "Exceptions.hh"
+
 
 PlannerObjective::PlannerObjective(SymbolTable& symbol_table_arg,
                                    NumericalConstants& num_constants_arg,
@@ -156,11 +158,12 @@ SteadyStateModel::checkPass(ModFileStructure& mod_file_struct, WarningConsolidat
           for (int used_symbol : used_symbols)
             if (!so_far_defined.contains(used_symbol))
               {
-                cerr << "ERROR: in the 'steady_state_model' block, variable '"
+                
+                err_msg << "ERROR: in the 'steady_state_model' block, variable '"
                      << symbol_table.getName(used_symbol)
                      << "' is undefined in the declaration of variable '"
                      << symbol_table.getName(symb_ids[0]) << "'" << endl;
-                exit(EXIT_FAILURE);
+                throw PreprocessorException(err_msg.str());
               }
         }
 
@@ -191,15 +194,17 @@ SteadyStateModel::writeLatexSteadyStateFile(const string& basename) const
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   ofstream content_output {content_filename, ios::out | ios::binary};
   if (!content_output.is_open())
     {
-      cerr << "ERROR: Can't open file " << content_filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << content_filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   output << "\\documentclass[10pt,a4paper]{article}" << endl
@@ -288,8 +293,9 @@ SteadyStateModel::writeSteadyStateFile(const string& basename, bool julia) const
       ofstream output_file {filename, ios::out | ios::binary};
       if (!output_file.is_open())
         {
-          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+          throw PreprocessorException(err_msg.str());
         }
       output_file << output.str();
       output_file.close();
@@ -379,10 +385,11 @@ Epilogue::checkPass(ModFileStructure& mod_file_struct) const
     {
       if (mod_file_struct.with_epilogue_option)
         {
-          cerr << "ERROR: the 'with_epilogue' option cannot be specified when there is no "
+          
+          err_msg << "ERROR: the 'with_epilogue' option cannot be specified when there is no "
                   "'epilogue' block"
                << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException(err_msg.str());
         }
       return;
     }
@@ -391,9 +398,10 @@ Epilogue::checkPass(ModFileStructure& mod_file_struct) const
   for (const auto& [symb_id, expr] : dynamic_def_table)
     if (so_far_defined.contains(symb_id))
       {
-        cerr << "ERROR: in the 'epilogue' block, variable '" << symbol_table.getName(symb_id)
+        
+        err_msg << "ERROR: in the 'epilogue' block, variable '" << symbol_table.getName(symb_id)
              << "' is declared twice" << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException(err_msg.str());
       }
     else
       so_far_defined.insert(symb_id);
@@ -447,8 +455,9 @@ Epilogue::writeStaticEpilogueFile(const string& basename) const
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   output << "function ds = epilogue_static(params, ds)" << endl
@@ -489,8 +498,9 @@ Epilogue::writeDynamicEpilogueFile(const string& basename) const
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   output << "function ds = epilogue_dynamic(params, ds)" << endl

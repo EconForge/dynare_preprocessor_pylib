@@ -37,6 +37,8 @@
 #include "DataTree.hh"
 #include "EquationTags.hh"
 #include "ExtendedPreprocessorTypes.hh"
+#include "Exceptions.hh"
+
 
 using namespace std;
 
@@ -999,8 +1001,9 @@ ModelTree::writeModelCFile(const string& basename, const string& mexext,
     output.open(p, ios::out | ios::binary);
     if (!output.is_open())
       {
-        cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
-        exit(EXIT_FAILURE);
+        
+        err_msg << "ERROR: Can't open file " << p.string() << " for writing" << endl;
+        throw PreprocessorException(err_msg.str());
       }
   };
 
@@ -2511,8 +2514,9 @@ ModelTree::writeSparseModelMFiles(const string& basename,
     output.open(p, ios::out | ios::binary);
     if (!output.is_open())
       {
-        cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
-        exit(EXIT_FAILURE);
+        
+        err_msg << "ERROR: Can't open file " << p.string() << " for writing" << endl;
+        throw PreprocessorException(err_msg.str());
       }
   };
 
@@ -2686,8 +2690,9 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
     output.open(p, ios::out | ios::binary);
     if (!output.is_open())
       {
-        cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
-        exit(EXIT_FAILURE);
+        
+        err_msg << "ERROR: Can't open file " << p.string() << " for writing" << endl;
+        throw PreprocessorException(err_msg.str());
       }
   };
 
@@ -3066,8 +3071,9 @@ ModelTree::writeDebugModelMFiles(const string& basename) const
   ofstream output {resid_filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << resid_filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << resid_filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   output << "function [lhs, rhs] = " << prefix << "resid(y, x, params";
@@ -3159,8 +3165,9 @@ ModelTree::writeSetAuxiliaryVariablesFile(const string& basename, bool julia) co
       ofstream output_file {filename, ios::out | ios::binary};
       if (!output_file.is_open())
         {
-          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+          throw PreprocessorException(err_msg.str());
         }
       output_file << output.str();
       output_file.close();
@@ -3184,8 +3191,9 @@ ModelTree::writeComplementarityConditionsFile(const string& basename,
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   output << "function [lb, ub] = " << funcname << "(params)" << endl

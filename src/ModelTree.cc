@@ -19,6 +19,8 @@
 
 #include "ModelTree.hh"
 #include "VariableDependencyGraph.hh"
+#include "Exceptions.hh"
+
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -313,7 +315,7 @@ ModelTree::computeNonSingularNormalization(const eval_context_t& eval_context)
           }
         catch (ModelNormalizationFailed& e)
           {
-            cerr << "WARNING: All equations are written so that a single contemporaneous "
+            err_msg << "WARNING: All equations are written so that a single contemporaneous "
                     "endogenous variable appears on the left-hand side. This suggests a natural "
                     "normalization of the model. However, variable "
                  << e.unmatched_endo
@@ -1273,8 +1275,9 @@ ModelTree::writeBytecodeBinFile(const filesystem::path& filename, bool is_two_bo
   ofstream SaveCode {filename, ios::out | ios::binary};
   if (!SaveCode.is_open())
     {
-      cerr << R"(Error : Can't open file ")" << filename.string() << R"(" for writing)" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << R"(Error : Can't open file ")" << filename.string() << R"(" for writing)" << endl;
+      throw PreprocessorException(err_msg.str());
     }
   int u_count {0};
   for (const auto& [indices, d1] : derivatives[1])
@@ -1355,15 +1358,17 @@ ModelTree::writeLatexModelFile(const string& mod_basename, const string& latex_b
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   ofstream content_output {content_filename, ios::out | ios::binary};
   if (!content_output.is_open())
     {
-      cerr << "ERROR: Can't open file " << content_filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << content_filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   output << R"(\documentclass[10pt,a4paper]{article})" << endl
@@ -1648,8 +1653,9 @@ ModelTree::matlab_arch(const string& mexext)
     return "win64";
   else if (mexext == "mexmaci")
     {
-      cerr << "32-bit MATLAB not supported on macOS" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "32-bit MATLAB not supported on macOS" << endl;
+      throw PreprocessorException(err_msg.str());
     }
   else if (mexext == "mexmaci64")
     return "maci64";
@@ -1657,9 +1663,10 @@ ModelTree::matlab_arch(const string& mexext)
     return "maca64";
   else
     {
-      cerr << "ERROR: 'mexext' option to preprocessor incorrectly set, needed with 'use_dll'"
+      
+      err_msg << "ERROR: 'mexext' option to preprocessor incorrectly set, needed with 'use_dll'"
            << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException(err_msg.str());
     }
 }
 
@@ -1686,15 +1693,16 @@ ModelTree::findCompilerOnMacos(const string& mexext)
     return {global_clang_path, true};
   else
     {
-      cerr << "ERROR: You must install gcc@" << macos_gcc_version
+      err_msg << "ERROR: You must install gcc@" << macos_gcc_version
            << " on your system before using the `use_dll` option of Dynare. "
            << "You should install Homebrew";
       if (mexext == "mexmaca64")
-        cerr << " for arm64";
+        err_msg << " for arm64";
       else if (mexext == "mexmaci64")
-        cerr << " for x86_64";
-      cerr << " and run `brew install gcc@" << macos_gcc_version << "` in a terminal." << endl;
-      exit(EXIT_FAILURE);
+        err_msg << " for x86_64";
+      
+      err_msg << " and run `brew install gcc@" << macos_gcc_version << "` in a terminal." << endl;
+      throw PreprocessorException(err_msg.str());
     }
 }
 #endif
@@ -1720,9 +1728,10 @@ ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_b
 
   if (matlabroot.empty())
     {
-      cerr << "ERROR: 'matlabroot' option to preprocessor is not set, needed with 'use_dll'"
+      
+      err_msg << "ERROR: 'matlabroot' option to preprocessor is not set, needed with 'use_dll'"
            << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException(err_msg.str());
     }
 
   if (mexext == "mex")
@@ -1761,8 +1770,9 @@ ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_b
 #endif
       else
         {
-          cerr << "ERROR: unsupported value '" << mexext << "' for 'mexext' option" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "ERROR: unsupported value '" << mexext << "' for 'mexext' option" << endl;
+          throw PreprocessorException(err_msg.str());
         }
     }
 
@@ -1781,9 +1791,10 @@ ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_b
     cmd << compiler << " ";
   else if (!filesystem::exists(user_set_compiler))
     {
-      cerr << "Error: The specified compiler '" << user_set_compiler
+      
+      err_msg << "Error: The specified compiler '" << user_set_compiler
            << "' cannot be found on your system" << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException(err_msg.str());
     }
   else
     cmd << user_set_compiler << " ";
@@ -2025,8 +2036,9 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
          contrary to what is done on GNU/Linux and macOS. */
       if (putenv(const_cast<char*>(newpath.c_str())) != 0)
         {
-          cerr << "Can't set PATH" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "Can't set PATH" << endl;
+          throw PreprocessorException(err_msg.str());
         }
     }
 #ifdef __APPLE__
@@ -2038,14 +2050,16 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
       auto [compiler_path, is_clang] {findCompilerOnMacos(mexext)};
       if (setenv("CC", compiler_path.c_str(), 1) != 0)
         {
-          cerr << "Can't set CC environment variable" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "Can't set CC environment variable" << endl;
+          throw PreprocessorException(err_msg.str());
         }
       // We also define CXX, because that is used for linking
       if (setenv("CXX", compiler_path.c_str(), 1) != 0)
         {
-          cerr << "Can't set CXX environment variable" << endl;
-          exit(EXIT_FAILURE);
+          
+          err_msg << "Can't set CXX environment variable" << endl;
+          throw PreprocessorException(err_msg.str());
         }
     }
 #endif
@@ -2061,12 +2075,13 @@ ModelTree::waitForMEXCompilationWorkers()
   });
   if (!mex_compilation_failed.empty())
     {
-      cerr << "Compilation failed for: ";
+      
+      err_msg << "Compilation failed for: ";
       for (const auto& p : mex_compilation_failed)
-        cerr << p.string() << " ";
-      cerr << endl;
+        err_msg << p.string() << " ";
+      err_msg << endl;
       lk.unlock(); // So that threads can process their stoken
-      exit(EXIT_FAILURE);
+      throw PreprocessorException(err_msg.str());
     }
 }
 
@@ -2141,9 +2156,10 @@ ModelTree::computeMCPEquationsReordering(const optional<int>& heterogeneous_dime
         auto [ignore, inserted] = endos.insert(symb_id);
         if (!inserted)
           {
-            cerr << "ERROR: variable " << symbol_table.getName(symb_id)
+            
+            err_msg << "ERROR: variable " << symbol_table.getName(symb_id)
                  << " appears in two complementarity conditions" << endl;
-            exit(EXIT_FAILURE);
+            throw PreprocessorException(err_msg.str());
           }
 
         int endo_id {symbol_table.getTypeSpecificID(symb_id)};

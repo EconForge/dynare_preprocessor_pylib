@@ -24,6 +24,8 @@
 #include <utility>
 
 #include "Shocks.hh"
+#include "Exceptions.hh"
+
 
 static auto print_matlab_period_range = []<class T>(ostream& output, const T& arg) {
   if constexpr (is_same_v<T, pair<int, int>>)
@@ -341,11 +343,12 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
     {
       if (symbol_table.getType(id) != SymbolType::exogenous && !symbol_table.isObservedVariable(id))
         {
-          cerr << "shocks: setting a variance on '" << symbol_table.getName(id)
+          
+          err_msg << "shocks: setting a variance on '" << symbol_table.getName(id)
                << "' is not allowed, because it is neither an exogenous variable nor an observed "
                   "endogenous variable"
                << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException(err_msg.str());
         }
     }
 
@@ -353,11 +356,12 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
     {
       if (symbol_table.getType(id) != SymbolType::exogenous && !symbol_table.isObservedVariable(id))
         {
-          cerr << "shocks: setting a standard error on '" << symbol_table.getName(id)
+          
+          err_msg << "shocks: setting a standard error on '" << symbol_table.getName(id)
                << "' is not allowed, because it is neither an exogenous variable nor an observed "
                   "endogenous variable"
                << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException(err_msg.str());
         }
     }
 
@@ -370,12 +374,13 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
             || (symbol_table.isObservedVariable(symb_id1)
                 && symbol_table.isObservedVariable(symb_id2))))
         {
-          cerr << "shocks: setting a covariance between '" << symbol_table.getName(symb_id1)
+          
+          err_msg << "shocks: setting a covariance between '" << symbol_table.getName(symb_id1)
                << "' and '" << symbol_table.getName(symb_id2)
                << "'is not allowed; covariances can only be specified for exogenous or observed "
                   "endogenous variables of same type"
                << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException(err_msg.str());
         }
     }
 
@@ -388,12 +393,13 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
             || (symbol_table.isObservedVariable(symb_id1)
                 && symbol_table.isObservedVariable(symb_id2))))
         {
-          cerr << "shocks: setting a correlation between '" << symbol_table.getName(symb_id1)
+          
+          err_msg << "shocks: setting a correlation between '" << symbol_table.getName(symb_id1)
                << "' and '" << symbol_table.getName(symb_id2)
                << "'is not allowed; correlations can only be specified for exogenous or observed "
                   "endogenous variables of same type"
                << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException(err_msg.str());
         }
     }
 
@@ -786,17 +792,19 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
   for (auto [id, val] : var_shocks)
     if (symbol_table.getType(id) != SymbolType::heterogeneousExogenous)
       {
-        cerr << "shocks: setting a variance on '" << symbol_table.getName(id)
+        
+        err_msg << "shocks: setting a variance on '" << symbol_table.getName(id)
              << "' is not allowed, because it is not a heterogeneous exogenous variable" << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException(err_msg.str());
       }
 
   for (auto [id, val] : std_shocks)
     if (symbol_table.getType(id) != SymbolType::heterogeneousExogenous)
       {
-        cerr << "shocks: setting a standard error on '" << symbol_table.getName(id)
+        
+        err_msg << "shocks: setting a standard error on '" << symbol_table.getName(id)
              << "' is not allowed, because it is not a heterogeneous exogenous variable" << endl;
-        exit(EXIT_FAILURE);
+        throw PreprocessorException(err_msg.str());
       }
 
   for (const auto& [ids, val] : covar_shocks)
@@ -806,12 +814,13 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
       if (!(symbol_table.getType(symb_id1) == SymbolType::heterogeneousExogenous
             && symbol_table.getType(symb_id2) == SymbolType::heterogeneousExogenous))
         {
-          cerr << "shocks: setting a covariance between '" << symbol_table.getName(symb_id1)
+          
+          err_msg << "shocks: setting a covariance between '" << symbol_table.getName(symb_id1)
                << "' and '" << symbol_table.getName(symb_id2)
                << "'is not allowed; covariances can only be specified for heterogeneous exogenous "
                   "variables"
                << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException(err_msg.str());
         }
     }
 
@@ -822,12 +831,13 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
       if (!(symbol_table.getType(symb_id1) == SymbolType::heterogeneousExogenous
             && symbol_table.getType(symb_id2) == SymbolType::heterogeneousExogenous))
         {
-          cerr << "shocks: setting a correlation between '" << symbol_table.getName(symb_id1)
+          
+          err_msg << "shocks: setting a correlation between '" << symbol_table.getName(symb_id1)
                << "' and '" << symbol_table.getName(symb_id2)
                << "'is not allowed; covariances can only be specified for heterogeneous exogenous "
                   "variables"
                << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException(err_msg.str());
         }
     }
 
@@ -1098,7 +1108,7 @@ ShockGroupsStatement::writeOutput(ostream& output, [[maybe_unused]] const string
         if (it->name == it1->name)
           {
             unique_label = false;
-            cerr << "Warning: shock group label '" << it->name << "' has been reused. "
+            err_msg << "Warning: shock group label '" << it->name << "' has been reused. "
                  << "Only using the last definition." << endl;
             break;
           }
@@ -1163,10 +1173,11 @@ Init2shocksStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_stru
     for (size_t j = i + 1; j < init2shocks.size(); j++)
       if (init2shocks.at(i).first == init2shocks.at(j).first)
         {
-          cerr << "Init2shocks(" << name << "): enogenous variable '"
+          
+          err_msg << "Init2shocks(" << name << "): enogenous variable '"
                << symbol_table.getName(init2shocks.at(i).first)
                << "' appears more than once in the init2shocks statement" << endl;
-          exit(EXIT_FAILURE);
+          throw PreprocessorException(err_msg.str());
         }
 }
 

@@ -27,6 +27,7 @@
 #include <ranges>
 
 #include "DataTree.hh"
+#include "Exceptions.hh"
 
 bool DataTree::no_commutativity = false;
 
@@ -144,8 +145,9 @@ DataTree::AddVariable(int symb_id, int lag)
 {
   if (lag != 0 && !is_dynamic)
     {
-      cerr << "Leads/lags not authorized in this DataTree" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "Leads/lags not authorized in this DataTree" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   if (auto it = variable_node_map.find({symb_id, lag}); it != variable_node_map.end())
@@ -164,9 +166,10 @@ DataTree::getVariable(int symb_id, int lag) const
   auto it = variable_node_map.find({symb_id, lag});
   if (it == variable_node_map.end())
     {
-      cerr << "DataTree::getVariable: unknown variable node for symb_id=" << symb_id
+      
+      err_msg << "DataTree::getVariable: unknown variable node for symb_id=" << symb_id
            << " and lag=" << lag << endl;
-      exit(EXIT_FAILURE);
+      throw PreprocessorException(err_msg.str());
     }
   return it->second;
 }
@@ -425,8 +428,9 @@ DataTree::AddLog(expr_t iArg1)
 
   if (iArg1 == Zero)
     {
-      cerr << "ERROR: log(0) not defined!" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: log(0) not defined!" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   // Simplify log(1/x) in −log(x)
@@ -445,8 +449,9 @@ DataTree::AddLog10(expr_t iArg1)
 
   if (iArg1 == Zero)
     {
-      cerr << "ERROR: log10(0) not defined!" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: log10(0) not defined!" << endl;
+      throw PreprocessorException(err_msg.str());
     }
 
   // Simplify log₁₀(1/x) in −log₁₀(x)
@@ -981,8 +986,9 @@ DataTree::writeToFileIfModified(stringstream& new_contents, const filesystem::pa
   ofstream new_file {filename, ios::out | ios::binary};
   if (!new_file.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
+      
+      err_msg << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      throw PreprocessorException(err_msg.str());
     }
   ranges::copy(istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {},
                ostreambuf_iterator<char> {new_file});
