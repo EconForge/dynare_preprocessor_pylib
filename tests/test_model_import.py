@@ -19,10 +19,7 @@ files = [
     "example3.mod",
     "agtrend.mod",
     "example2.mod",
-]
-
-seg_fault = [
-    "Occbin_example.mod", # BUG in json output function
+    "Occbin_example.mod",
 ]
 
 parser_exception = [
@@ -33,10 +30,10 @@ parser_exception = [
 ]
 
 preprocessor_exception = [
-    "ramst.mod", # display BUG, two errors on the same line
     "example1.mod", # unsupported native statement
     "example1_reporting.mod", # unsupported native statement
     "example3.mod", # external steady state helper
+    "ramst.mod", # mixed perfect foresight context with stochastic context
 ]
 
 @pytest.mark.parametrize("filename", files)
@@ -46,7 +43,7 @@ def test_modfile_import(filename):
         filename = "tests/modfiles/" + f
         mod_string = open(filename).read()
         model = DynareModel(mod_string)
-    except PreprocessorException:
-        assert(f in preprocessor_exception)
     except ParserException:
         assert(f in parser_exception)
+    except PreprocessorException:
+        assert(f in preprocessor_exception)

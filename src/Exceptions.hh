@@ -15,7 +15,7 @@ class PreprocessorException : public exception {
     PreprocessorException(): message("Unknown preprocessor exception") {}
     PreprocessorException(string msg): message(msg) {
       err_msg.str("");
-      string prefix = "Error: ";
+      string prefix = "ERROR: ";
       if(message.starts_with(prefix)){
         message.erase(0, prefix.length());
       }
