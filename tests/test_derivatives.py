@@ -62,7 +62,20 @@ def test_jacobians(filename):
     ]
     assert(len(preprocessor_jacobians) == 6)
     for i in range(6):
-        if not np.allclose(preprocessor_jacobians[i], fin_diff_jacobians[i], atol=1e-3):
-            print(preprocessor_jacobians[i])
-            print(fin_diff_jacobians[i])
-            assert(False)
+        assert(np.allclose(preprocessor_jacobians[i], fin_diff_jacobians[i], atol=1e-3))
+
+@pytest.mark.parametrize("filename", files)
+def test_derivatives(filename):
+    deriv_order = 5 
+    f = filename
+    filename = "tests/modfiles/" + f
+    mod_string = open(filename).read()
+    model = DynareModel(mod_string, deriv_order, 1)
+    endo = [model.context[x] for x in model.endogenous]
+    exo = [model.context[x] for x in model.exogenous]
+    exo_det = [model.context[x] for x in model.exogenous_det]
+    params = [model.context[x] for x in model.parameters]
+    derivatives = model.derivatives(endo,endo,endo,exo,exo_det,params)
+    for i in range(deriv_order):
+        for lst, val in derivatives[i]:
+            assert(len(lst) == i+1)

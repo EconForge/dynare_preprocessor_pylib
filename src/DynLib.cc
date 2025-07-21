@@ -302,6 +302,7 @@ void DynareModel::set_symbolic_derivatives(){
         vector<int> coordinate = {i};
         residuals[coordinate] = dm.equations[i];
     }
+    symb_derivatives[0] = residuals;
     
     // Set symbol_info table
     for(const auto& [id,lag] : dm.inv_deriv_id_table){
