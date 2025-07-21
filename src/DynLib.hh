@@ -19,8 +19,6 @@ namespace py = pybind11;
 #include "ModFile.hh"
 #include "Exceptions.hh"
 
-class ParserException; // needed for pybind11
-
 enum class ExprNodeType{
     NumConstNode,
     VariableNode,
@@ -158,8 +156,10 @@ class DynareModel{
 
 PYBIND11_MODULE(dynare_preprocessor, m) {
     m.doc() = "dynare preprocessor";
-    py::register_exception<PreprocessorException>(m, "PreprocessorException", PyExc_RuntimeError);
-    py::register_exception<ParserException>(m, "ParserException", PyExc_RuntimeError);
+    auto PyExc_Preprocessor = py::register_exception<PreprocessorException>(m, "PreprocessorException", PyExc_RuntimeError);
+    py::register_exception<ParserException>(m, "ParserException", PyExc_Preprocessor.ptr());
+    py::register_exception<EvalException>(m, "EvalException", PyExc_Preprocessor.ptr());
+    py::register_exception<UnsupportedFeatureException>(m, "UnsupportedFeatureException", PyExc_Preprocessor.ptr());
     py::enum_<SymbolType>(m, "SymbolType", "enum.Enum")
     .value("endogenous", SymbolType::endogenous)
     .value("exogenous", SymbolType::exogenous)

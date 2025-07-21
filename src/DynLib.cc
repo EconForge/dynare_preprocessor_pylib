@@ -68,8 +68,6 @@ void DynareModel::set_mod_file(const string& modfile_string, int derivs_order, i
 
     // Do computations (including derivatives)
     const bool no_tmp_terms = true;
-    // mod_file->mod_file_struct.identification_present = true;
-    // mod_file->computingPass(no_tmp_terms, OutputType::first, params_derivs_order);
 
     mod_file->mod_file_struct.order_option = derivs_order;
 
@@ -174,10 +172,10 @@ void DynareModel::set_context(){
             }
         }
         catch(const ExprNode::EvalExternalFunctionException& ex){
-            throw PreprocessorException("External functions are not supported (yet).");
+            throw UnsupportedFeatureException("External functions are not supported (yet).");
         }
         catch(const ExprNode::EvalException& ex){
-            throw PreprocessorException("Evaluation error in steady state");
+            throw EvalException("Evaluation error in steady state");
         }
     }
 
@@ -237,21 +235,21 @@ void DynareModel::set_exogenous(){
                             double val = expr->eval(context);
                             trajectories[var].emplace_back(p1, p2, val);
                         } else {
-                            throw PreprocessorException("Date period ranges are not supported (yet)");
+                            throw UnsupportedFeatureException("Date period ranges are not supported (yet)");
                         }
                     }
                 }
             } else if(type == typeid(NativeStatement)){
                 NativeStatement* native_statement = static_cast<NativeStatement*>(statement.get());
-                throw PreprocessorException("Unsupported native statement: `" + native_statement->native_statement + "`");
+                throw UnsupportedFeatureException("Unsupported native statement: `" + native_statement->native_statement + "`");
             }
         }
     }
     catch(const ExprNode::EvalExternalFunctionException& ex){
-        throw PreprocessorException("External functions are not supported (yet).");
+        throw UnsupportedFeatureException("External functions are not supported (yet).");
     }
     catch(const ExprNode::EvalException& ex){
-        throw PreprocessorException("Evaluation error in steady state");
+        throw EvalException("Evaluation error in steady state");
     }
 }
 
@@ -272,7 +270,7 @@ void DynareModel::set_symbolic_derivatives(){
                 {
                     int lag = dm.getLagByDerivID(derivID);
                     if(lag > 1 || lag < -1){
-                        throw py::value_error{"Unsupported lag value"};
+                        throw UnsupportedFeatureException("The only supported lag values are 1, 0 and -1");
                     }
                     symb_jacob_endo[lag+1][{eq, tsid}] = expr;
                 }
@@ -374,10 +372,10 @@ double DynareModel::evaluate_with_lags(
         }
     }
     catch(const ExprNode::EvalExternalFunctionException& ex){
-        throw PreprocessorException("External functions are not supported (yet).");
+        throw UnsupportedFeatureException("External functions are not supported (yet).");
     }
     catch(const ExprNode::EvalException& ex){
-        throw PreprocessorException("Evaluation error in steady state");
+        throw EvalException("Evaluation error in steady state");
     }
 }
 

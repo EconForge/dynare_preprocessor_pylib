@@ -52,8 +52,8 @@ using namespace std;
 # undef yyFlexLexer
 #endif
 
-class ParserException : public exception {
-  string message;
+// defined here because dynare namespace is inaccessible from "Exceptions.hh"
+class ParserException : public PreprocessorException {
   public:
     ParserException(const Dynare::parser::location_type& l, const string& m)
       {
@@ -61,9 +61,6 @@ class ParserException : public exception {
         oss << m << l;
         message = oss.str();
       }
-    const char* what() const noexcept {
-      return message.c_str();
-    }
 };
 
 
