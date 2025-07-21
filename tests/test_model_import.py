@@ -1,4 +1,4 @@
-from dynare_preprocessor import DynareModel, PreprocessorException, ParserException
+from dynare_preprocessor import DynareModel, PreprocessorException, ParserException, UnsupportedFeatureException
 import pytest
 
 files = [
@@ -29,10 +29,13 @@ parser_exception = [
     "agtrend.mod", # character unrecognized by lexer `@`
 ]
 
-preprocessor_exception = [
+unsupported_exception = [
     "example1.mod", # unsupported native statement
     "example1_reporting.mod", # unsupported native statement
     "example3.mod", # external steady state helper
+]
+
+generic_exception = [
     "ramst.mod", # mixed perfect foresight context with stochastic context
 ]
 
@@ -45,5 +48,7 @@ def test_modfile_import(filename):
         model = DynareModel(mod_string)
     except ParserException:
         assert(f in parser_exception)
+    except UnsupportedFeatureException:
+        assert(f in unsupported_exception)
     except PreprocessorException:
-        assert(f in preprocessor_exception)
+        assert(f in generic_exception)
