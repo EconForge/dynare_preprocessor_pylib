@@ -34,9 +34,9 @@ using symb_jacobian_t = map<pair<int,int>, expr_t>;
 using jacobian_t = map<pair<int,int>, double>;
 
 //! Matrix in COO format
-using coo_matrix_t = pair<vector<vector<int>>, vector<double>>;
+using coo_matrix_t = vector<pair<vector<int>, double>>;
 
-/*! Index 0 is not used, index 1 contains first derivatives, ...
+/*! Index 0 contains residuals, index 1 contains first derivatives, ...
      For each derivation order, stores a matrix in COO form where coordinates are vectors of integer: the
      first integer is the equation index, the remaining ones are the derivation
      IDs of variables (in non-decreasing order, to avoid storing symmetric
@@ -100,7 +100,7 @@ class DynareModel{
             vector<double> params
         );
 
-        /*! Returns a matrix in COO form for each derivation order (Index 0 is not used,
+        /*! Returns a matrix in COO form for each derivation order (Index 0 is for residuals,
         index 1 contains first derivatives, ...) where coordinates are vectors of
         integer: the first integer is the equation index, the remaining ones are the
         derivation IDs of variables (in non-decreasing order, to avoid storing symmetric

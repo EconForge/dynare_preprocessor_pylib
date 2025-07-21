@@ -296,6 +296,13 @@ void DynareModel::set_symbolic_derivatives(){
     // Get all derivatives w.r.t. variables
     symb_derivatives = dm.derivatives;
 
+    // Insert residuals into symbolic derivatives at order 0
+    map<vector<int>, expr_t> residuals;
+    for(int i = 0; i < dm.equations.size(); i++){
+        vector<int> coordinate = {i};
+        residuals[coordinate] = dm.equations[i];
+    }
+    
     // Set symbol_info table
     for(const auto& [id,lag] : dm.inv_deriv_id_table){
         SymbolType type = mod_file->symbol_table.getType(id);
@@ -316,7 +323,7 @@ double DynareModel::evaluate_with_lags(
             case ExprNodeType::NumConstNode:
             {
                 NumConstNode* expr = static_cast<NumConstNode*>(expression);
-                return this->mod_file->num_constants.getDouble(expr->id);
+                return mod_file->num_constants.getDouble(expr->id);
             }
             case ExprNodeType::VariableNode:
             {
@@ -392,7 +399,7 @@ vector<double> DynareModel::dynamic_function(
     endo.push_back(endo_present);
     endo.push_back(endo_future);
     vector<double> res;
-    for(auto eq : this->mod_file->dynamic_model.equations){
+    for(auto eq : mod_file->dynamic_model.equations){
         res.push_back(evaluate_with_lags(eq, endo, exo, exo_det, params));
     }
     return res;
@@ -426,12 +433,12 @@ vector<jacobian_t> DynareModel::jacobians(
     endo.push_back(endo_future);
 
     vector<jacobian_t> res(6);
-    eval_symb_jacob(this->symb_jacob_endo[2],res[0],endo, exo, exo_det, params);
-    eval_symb_jacob(this->symb_jacob_endo[1],res[1],endo, exo, exo_det, params);
-    eval_symb_jacob(this->symb_jacob_endo[0],res[2],endo, exo, exo_det, params);
-    eval_symb_jacob(this->symb_jacob_exo,res[3],endo, exo, exo_det, params);
-    eval_symb_jacob(this->symb_jacob_exo_det,res[4],endo, exo, exo_det, params);
-    eval_symb_jacob(this->symb_jacob_params,res[5],endo, exo, exo_det, params);
+    eval_symb_jacob(symb_jacob_endo[2],res[0],endo, exo, exo_det, params);
+    eval_symb_jacob(symb_jacob_endo[1],res[1],endo, exo, exo_det, params);
+    eval_symb_jacob(symb_jacob_endo[0],res[2],endo, exo, exo_det, params);
+    eval_symb_jacob(symb_jacob_exo,res[3],endo, exo, exo_det, params);
+    eval_symb_jacob(symb_jacob_exo_det,res[4],endo, exo, exo_det, params);
+    eval_symb_jacob(symb_jacob_params,res[5],endo, exo, exo_det, params);
     return res;
 }
 
@@ -451,13 +458,11 @@ derivatives_t DynareModel::derivatives(
     derivatives_t res;
 
     for(const auto& fixed_order_derivs : symb_derivatives){
-        vector<vector<int>> coords;
-        vector<double> values;
+        vector<pair<vector<int>, double>> coords;
         for(const auto& [vect, expr]: fixed_order_derivs){
-            coords.push_back(vect);
-            values.push_back(evaluate_with_lags(expr, endo, exo, exo_det, params));
+            coords.emplace_back(vect, evaluate_with_lags(expr, endo, exo, exo_det, params));
         }
-        res.emplace_back(coords, values);
+        res.push_back(coords);
     }
 
     return res;

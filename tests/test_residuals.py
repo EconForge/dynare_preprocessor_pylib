@@ -2,8 +2,6 @@ from dynare_preprocessor import DynareModel
 import pytest
 
 declared_steady_state = [
-    # "fs2000_nonstationary.mod", # fails for some unknown reason
-    # "fs2000.mod", # fails for some unknown reason
     "model_KR2000_IRF.mod",
     "model_KR2000_STAT.mod",
     "Occbin_example.mod",
