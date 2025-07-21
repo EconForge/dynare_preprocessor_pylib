@@ -22,7 +22,11 @@ namespace py = pybind11;
 
 #include "DynLib.hh"
 
-DynareModel::DynareModel(const string &modfile_string, int derivs_order, int params_derivs_order) {
+DynareModel::DynareModel(
+    const string &modfile_string,
+    int derivs_order,
+    int params_derivs_order
+){
     set_mod_file(modfile_string, derivs_order, params_derivs_order);
     set_json_string();
     set_symbols();
@@ -39,33 +43,36 @@ void DynareModel::set_mod_file(const string& modfile_string, int derivs_order, i
     // Disable standard output
     cout.setstate(ios_base::failbit);
     // Do parsing and construct internal representation of mod file
-    bool debug = false;
-    bool no_warn = true;
-    bool nostrict = true;
-    WarningConsolidation warnings(no_warn);
-    ParsingDriver p(warnings, nostrict);
-    mod_file = p.parse(modfile, debug);    
+    const bool nostrict = true;
+    const bool nowarn = true;
+    warnings = make_unique<WarningConsolidation>(nowarn);
+    driver = make_unique<ParsingDriver>(*warnings,nostrict);
+    const bool debug = false;
+    mod_file = driver->parse(modfile, debug);    
     
     // Run checking pass
-    bool stochastic = true;
+    const bool stochastic = true;
     mod_file->checkPass(nostrict, stochastic);
     
     // Perform transformations on the model (creation of auxiliary vars and equations)
-    bool compute_xrefs = false;
-    bool transform_unary_ops = false;
+    const bool compute_xrefs = false;
+    const bool transform_unary_ops = false;
     string exclude_eqs = "";
     string include_eqs = "";
     mod_file->transformPass(nostrict, stochastic, compute_xrefs,
                           transform_unary_ops, exclude_eqs, include_eqs);
 
     // Evaluate parameters initialization, initval and endval
-    bool warn_uninit = false;
+    const bool warn_uninit = false;
     mod_file->evalAllExpressions(warn_uninit);
 
     // Do computations (including derivatives)
-    bool no_tmp_terms = true;
+    const bool no_tmp_terms = true;
     // mod_file->mod_file_struct.identification_present = true;
-    // mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order); 
+    // mod_file->computingPass(no_tmp_terms, OutputType::first, params_derivs_order);
+
+    mod_file->mod_file_struct.order_option = derivs_order;
+
     mod_file->static_model = static_cast<StaticModel>(mod_file->dynamic_model);
     mod_file->static_model.computingPass(
         derivs_order,
@@ -83,6 +90,22 @@ void DynareModel::set_mod_file(const string& modfile_string, int derivs_order, i
         mod_file->block,
         mod_file->use_dll
     );
+
+    for (auto& statement : mod_file->statements){
+        statement->computingPass(mod_file->mod_file_struct);
+    }
+    
+    // Those matrices can only be filled here, because we use derivatives
+    mod_file->dynamic_model.fillVarModelTableMatrices();
+
+    for (auto& hm : mod_file->heterogeneous_models){
+        hm.computingPass(
+            derivs_order,
+            no_tmp_terms,
+            mod_file->use_dll
+        );
+    }
+
     //Reenable standard output
     cout.clear();
 }

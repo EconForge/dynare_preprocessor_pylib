@@ -118,6 +118,8 @@ class DynareModel{
         //! String representing the preprocessor's json output
         string json_string;
     private:
+        unique_ptr<WarningConsolidation> warnings;
+        unique_ptr<ParsingDriver> driver;
         unique_ptr<ModFile> mod_file;
         void set_mod_file(const string& modfile_string, int derivs_order, int params_derivs_order);
         void set_json_string();
