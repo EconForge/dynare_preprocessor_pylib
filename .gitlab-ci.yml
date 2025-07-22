@@ -8,7 +8,7 @@ variables:
 build_linux_x86_64:
   stage: build
   script:
-    - meson setup --buildtype=release build
+    - meson setup --buildtype=release -Db_lto=true build
     - meson compile -C build -v
   artifacts:
     paths:
@@ -17,7 +17,7 @@ build_linux_x86_64:
 build_linux_arm64:
   stage: build
   script:
-    - meson setup --buildtype=release --cross-file scripts/linux-arm64-cross.ini build
+    - meson setup --buildtype=release -Db_lto=true --cross-file scripts/linux-arm64-cross.ini build
     - meson compile -C build -v
   artifacts:
     paths:
@@ -31,7 +31,7 @@ build_windows_x86_64:
     - mkdir -p deps
     - tar xf tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst --directory deps
     - echo -e "[properties]\nboost_root = '$(pwd)/deps/mingw64/'" > boost.ini
-    - meson setup --buildtype=release --cross-file scripts/windows-cross.ini --cross-file boost.ini build
+    - meson setup --buildtype=release -Db_lto=true --cross-file scripts/windows-cross.ini --cross-file boost.ini build
     - meson compile -C build -v
   cache:
     # This cache is shared between all branches, to save space
@@ -47,7 +47,7 @@ build_macos_x86_64:
   tags:
     - macOS
   script:
-    - arch -x86_64 meson setup --buildtype=release --native-file scripts/homebrew-native-x86_64.ini build
+    - arch -x86_64 meson setup --buildtype=release -Db_lto=true --native-file scripts/homebrew-native-x86_64.ini build
     - arch -x86_64 meson compile -C build -v
   artifacts:
     paths:
@@ -59,7 +59,7 @@ build_macos_arm64:
     - macOS
   script:
     - export PATH="/opt/homebrew/bin:$PATH"
-    - arch -arm64 meson setup --buildtype=release --native-file scripts/homebrew-native-arm64.ini build
+    - arch -arm64 meson setup --buildtype=release -Db_lto=true --native-file scripts/homebrew-native-arm64.ini build
     - arch -arm64 meson compile -C build -v
   artifacts:
     paths:
