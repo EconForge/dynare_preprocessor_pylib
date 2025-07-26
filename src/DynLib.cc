@@ -468,3 +468,38 @@ derivatives_t DynareModel::derivatives(
 
     return res;
 }
+
+
+PYBIND11_MODULE(dynare_preprocessor, m) {
+    m.doc() = "dynare preprocessor";
+    auto PyExc_Preprocessor = py::register_exception<PreprocessorException>(m, "PreprocessorException", PyExc_RuntimeError);
+    py::register_exception<ParserException>(m, "ParserException", PyExc_Preprocessor.ptr());
+    py::register_exception<EvalException>(m, "EvalException", PyExc_Preprocessor.ptr());
+    py::register_exception<UnsupportedFeatureException>(m, "UnsupportedFeatureException", PyExc_Preprocessor.ptr());
+    py::enum_<SymbolType>(m, "SymbolType", "enum.Enum")
+    .value("endogenous", SymbolType::endogenous)
+    .value("exogenous", SymbolType::exogenous)
+    .value("exogenous_det", SymbolType::exogenousDet)
+    .value("parameter", SymbolType::parameter)
+    .export_values();
+    py::class_<DynareModel>(m, "DynareModel")
+    .def(
+        py::init<const string &, int, int>(),
+        py::arg(),
+        py::arg("derivs_order") = 1,
+        py::arg("params_derivs_order") = 0
+    )
+    .def_readonly("json_string", &DynareModel::json_string)
+    .def_readonly("endogenous", &DynareModel::endogenous)
+    .def_readonly("exogenous", &DynareModel::exogenous)
+    .def_readonly("exogenous_det", &DynareModel::exogenous_det)
+    .def_readonly("parameters", &DynareModel::parameters)
+    .def_readonly("equations", &DynareModel::equations)
+    .def_readonly("context", &DynareModel::context)
+    .def_readonly("covariances", &DynareModel::covariances)
+    .def_readonly("trajectories", &DynareModel::trajectories)
+    .def_readonly("symbol_info", &DynareModel::symbol_info)
+    .def("dynamic_function", &DynareModel::dynamic_function)
+    .def("jacobians", &DynareModel::jacobians)
+    .def("derivatives", &DynareModel::derivatives);
+}
