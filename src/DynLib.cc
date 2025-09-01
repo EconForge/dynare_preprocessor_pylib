@@ -387,7 +387,7 @@ double DynareModel::evaluate_with_lags(
     }
 }
 
-vector<double> DynareModel::dynamic_function(
+vector<double> DynareModel::residuals(
     vector<double> endo_future,
     vector<double> endo_present,
     vector<double> endo_past,
@@ -499,7 +499,7 @@ PYBIND11_MODULE(dynare_preprocessor, m) {
     .def_readonly("covariances", &DynareModel::covariances)
     .def_readonly("trajectories", &DynareModel::trajectories)
     .def_readonly("symbol_info", &DynareModel::symbol_info)
-    .def("dynamic_function", &DynareModel::dynamic_function)
+    .def("residuals", &DynareModel::residuals)
     .def("jacobians", &DynareModel::jacobians)
     .def("derivatives", &DynareModel::derivatives);
 }

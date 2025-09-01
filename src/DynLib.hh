@@ -80,7 +80,7 @@ class DynareModel{
         // deriv ID -> (symbol type, index, lag)
         vector<tuple<SymbolType, int, int>> symbol_info;
 
-        vector<double> dynamic_function(
+        vector<double> residuals(
             vector<double> endo_future,
             vector<double> endo_present,
             vector<double> endo_past,
