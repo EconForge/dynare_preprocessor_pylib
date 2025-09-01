@@ -48,7 +48,7 @@ def test_jacobians(filename):
     e = np.array(exo)
     ed = np.array(exo_det)
     p = np.array(params)
-    dyn = lambda u,v,w,x,y,z: np.array(model.dynamic_function(u,v,w,x,y,z))
+    dyn = lambda u,v,w,x,y,z: np.array(model.residuals(u,v,w,x,y,z))
 
     fin_diff_jacobians = [
         jacobian(func, init) for (func,init) in [

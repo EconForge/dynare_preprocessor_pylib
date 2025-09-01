@@ -19,5 +19,5 @@ def test_steady_state(filename):
     exo = [model.context[x] for x in model.exogenous]
     exo_det = [model.context[x] for x in model.exogenous_det]
     params = [model.context[x] for x in model.parameters]
-    for x in model.dynamic_function(endo,endo,endo,exo,exo_det,params):
+    for x in model.residuals(endo,endo,endo,exo,exo_det,params):
         assert(isclose(x,0, abs_tol=1e-10))
