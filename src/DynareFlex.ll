@@ -854,6 +854,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>simul_algo {return token::SIMUL_ALGO;}
 <DYNARE_STATEMENT>stack_solve_algo {return token::STACK_SOLVE_ALGO;}
 <DYNARE_STATEMENT>robust_lin_solve {return token::ROBUST_LIN_SOLVE;}
+<DYNARE_STATEMENT>allow_nonfinite_values {return token::ALLOW_NONFINITE_VALUES;}
 <DYNARE_STATEMENT>drop {return token::DROP;}
 <DYNARE_STATEMENT>order {return token::ORDER;}
 <DYNARE_STATEMENT>lyapunov {return token::LYAPUNOV;}
