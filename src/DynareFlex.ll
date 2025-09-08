@@ -753,7 +753,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>preconditioner {return token::PRECONDITIONER;}
 <DYNARE_STATEMENT>first_iter_lu {return token::FIRST_ITER_LU;}
 <DYNARE_STATEMENT>block_diagonal_lu {return token::BLOCK_DIAGONAL_LU;}
-<DYNARE_STATEMENT>ilu {return token::ILU;}
+<DYNARE_STATEMENT>incomplete_lu {return token::INCOMPLETE_LU;}
 <DYNARE_STATEMENT>iter_tol {return token::ITER_TOL;}
 <DYNARE_STATEMENT>iter_maxit {return token::ITER_MAXIT;}
 <DYNARE_STATEMENT>gmres_restart {return token::GMRES_RESTART;}

@@ -221,7 +221,7 @@ str_tolower(string s)
 %token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK HOMOTOPY_EXCLUDE_VAREXO FROM_INITVAL_TO_ENDVAL
 %token STATIC_MFS RELATIVE_TO_INITVAL MATCHED_IRFS MATCHED_IRFS_WEIGHTS WEIGHTS PERPENDICULAR
 %token HETEROGENEITY HETEROGENEITY_DIMENSION SUM PERFECT_FORESIGHT_CONTROLLED_PATHS EXOGENIZE ENDOGENIZE
-%token PRECONDITIONER FIRST_ITER_LU BLOCK_DIAGONAL_LU ILU ITER_TOL ITER_MAXIT GMRES_RESTART BLOCK_DIAGONAL_LU_MAXLU BLOCK_DIAGONAL_LU_NPERIODS BLOCK_DIAGONAL_LU_NLU BLOCK_DIAGONAL_LU_RELU
+%token PRECONDITIONER FIRST_ITER_LU BLOCK_DIAGONAL_LU INCOMPLETE_LU ITER_TOL ITER_MAXIT GMRES_RESTART BLOCK_DIAGONAL_LU_MAXLU BLOCK_DIAGONAL_LU_NPERIODS BLOCK_DIAGONAL_LU_NLU BLOCK_DIAGONAL_LU_RELU
 CHECK_JACOBIAN_SINGULARITY
 
 %token <vector<string>> SYMBOL_VEC
@@ -4157,8 +4157,8 @@ o_preconditioner : PRECONDITIONER EQUAL FIRST_ITER_LU
                    { driver.option_str("simul.preconditioner", "first_iter_lu"); }
                  | PRECONDITIONER EQUAL BLOCK_DIAGONAL_LU
                    { driver.option_str("simul.preconditioner", "block_diagonal_lu"); }
-                 | PRECONDITIONER EQUAL ILU
-                   { driver.option_str("simul.preconditioner", "ilu"); };
+                 | PRECONDITIONER EQUAL INCOMPLETE_LU
+                   { driver.option_str("simul.preconditioner", "incomplete_lu"); };
                  ;
 o_iter_tol : ITER_TOL EQUAL non_negative_number  { driver.option_num("simul.iter_tol", $3); };
 o_iter_maxit : ITER_MAXIT EQUAL INT_NUMBER  { driver.option_num("simul.iter_maxit", $3); };
