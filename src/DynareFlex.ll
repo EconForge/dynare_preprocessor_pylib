@@ -751,16 +751,16 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>heteroskedastic_filter {return token::HETEROSKEDASTIC_FILTER;}
 <DYNARE_STATEMENT>non_zero {return token::NON_ZERO;}
 <DYNARE_STATEMENT>preconditioner {return token::PRECONDITIONER;}
-<DYNARE_STATEMENT>umfiter {return token::UMFITER;}
-<DYNARE_STATEMENT>iterstack {return token::ITERSTACK;}
+<DYNARE_STATEMENT>first_iter_lu {return token::FIRST_ITER_LU;}
+<DYNARE_STATEMENT>block_diagonal_lu {return token::BLOCK_DIAGONAL_LU;}
 <DYNARE_STATEMENT>ilu {return token::ILU;}
 <DYNARE_STATEMENT>iter_tol {return token::ITER_TOL;}
 <DYNARE_STATEMENT>iter_maxit {return token::ITER_MAXIT;}
 <DYNARE_STATEMENT>gmres_restart {return token::GMRES_RESTART;}
-<DYNARE_STATEMENT>iterstack_maxlu {return token::ITERSTACK_MAXLU;}
-<DYNARE_STATEMENT>iterstack_nperiods {return token::ITERSTACK_NPERIODS;}
-<DYNARE_STATEMENT>iterstack_nlu {return token::ITERSTACK_NLU;}
-<DYNARE_STATEMENT>iterstack_relu {return token::ITERSTACK_RELU;}
+<DYNARE_STATEMENT>block_diagonal_lu_maxlu {return token::BLOCK_DIAGONAL_LU_MAXLU;}
+<DYNARE_STATEMENT>block_diagonal_lu_nperiods {return token::BLOCK_DIAGONAL_LU_NPERIODS;}
+<DYNARE_STATEMENT>block_diagonal_lu_nlu {return token::BLOCK_DIAGONAL_LU_NLU;}
+<DYNARE_STATEMENT>block_diagonal_lu_relu {return token::BLOCK_DIAGONAL_LU_RELU;}
 <DYNARE_STATEMENT>check_jacobian_singularity {return token::CHECK_JACOBIAN_SINGULARITY;}
 
 <DYNARE_STATEMENT>\$[^$]*\$ {

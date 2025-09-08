@@ -221,7 +221,7 @@ str_tolower(string s)
 %token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK HOMOTOPY_EXCLUDE_VAREXO FROM_INITVAL_TO_ENDVAL
 %token STATIC_MFS RELATIVE_TO_INITVAL MATCHED_IRFS MATCHED_IRFS_WEIGHTS WEIGHTS PERPENDICULAR
 %token HETEROGENEITY HETEROGENEITY_DIMENSION SUM PERFECT_FORESIGHT_CONTROLLED_PATHS EXOGENIZE ENDOGENIZE
-%token PRECONDITIONER UMFITER ITERSTACK ILU ITER_TOL ITER_MAXIT GMRES_RESTART ITERSTACK_MAXLU ITERSTACK_NPERIODS ITERSTACK_NLU ITERSTACK_RELU
+%token PRECONDITIONER FIRST_ITER_LU BLOCK_DIAGONAL_LU ILU ITER_TOL ITER_MAXIT GMRES_RESTART BLOCK_DIAGONAL_LU_MAXLU BLOCK_DIAGONAL_LU_NPERIODS BLOCK_DIAGONAL_LU_NLU BLOCK_DIAGONAL_LU_RELU
 CHECK_JACOBIAN_SINGULARITY
 
 %token <vector<string>> SYMBOL_VEC
@@ -1592,10 +1592,10 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_iter_tol
                                  | o_iter_maxit
                                  | o_gmres_restart
-                                 | o_iterstack_maxlu
-                                 | o_iterstack_nperiods
-                                 | o_iterstack_nlu
-                                 | o_iterstack_relu
+                                 | o_block_diagonal_lu_maxlu
+                                 | o_block_diagonal_lu_nperiods
+                                 | o_block_diagonal_lu_nlu
+                                 | o_block_diagonal_lu_relu
                                  | o_check_jacobian_singularity
                                  ;
 
@@ -4153,20 +4153,20 @@ o_max_dim_cova_group : MAX_DIM_COVA_GROUP EQUAL INT_NUMBER { driver.option_num("
 o_homotopy_mode : HOMOTOPY_MODE EQUAL INT_NUMBER { driver.option_num("homotopy_mode", $3); };
 o_homotopy_steps : HOMOTOPY_STEPS EQUAL INT_NUMBER { driver.option_num("homotopy_steps", $3); };
 o_homotopy_force_continue: HOMOTOPY_FORCE_CONTINUE EQUAL INT_NUMBER { driver.option_num("homotopy_force_continue", $3); };
-o_preconditioner : PRECONDITIONER EQUAL UMFITER
-                   { driver.option_str("simul.preconditioner", "umfiter"); }
-                 | PRECONDITIONER EQUAL ITERSTACK
-                   { driver.option_str("simul.preconditioner", "iterstack"); }
+o_preconditioner : PRECONDITIONER EQUAL FIRST_ITER_LU
+                   { driver.option_str("simul.preconditioner", "first_iter_lu"); }
+                 | PRECONDITIONER EQUAL BLOCK_DIAGONAL_LU
+                   { driver.option_str("simul.preconditioner", "block_diagonal_lu"); }
                  | PRECONDITIONER EQUAL ILU
                    { driver.option_str("simul.preconditioner", "ilu"); };
                  ;
 o_iter_tol : ITER_TOL EQUAL non_negative_number  { driver.option_num("simul.iter_tol", $3); };
 o_iter_maxit : ITER_MAXIT EQUAL INT_NUMBER  { driver.option_num("simul.iter_maxit", $3); };
 o_gmres_restart : GMRES_RESTART EQUAL INT_NUMBER  { driver.option_num("simul.gmres_restart", $3); };
-o_iterstack_maxlu : ITERSTACK_MAXLU EQUAL INT_NUMBER  { driver.option_num("simul.iterstack_maxlu", $3); };
-o_iterstack_nperiods : ITERSTACK_NPERIODS EQUAL INT_NUMBER  { driver.option_num("simul.iterstack_nperiods", $3); };
-o_iterstack_nlu : ITERSTACK_NLU EQUAL INT_NUMBER  { driver.option_num("simul.iterstack_nlu", $3); };
-o_iterstack_relu : ITERSTACK_RELU EQUAL non_negative_number  { driver.option_num("simul.iterstack_relu", $3); };
+o_block_diagonal_lu_maxlu : BLOCK_DIAGONAL_LU_MAXLU EQUAL INT_NUMBER  { driver.option_num("simul.block_diagonal_lu_maxlu", $3); };
+o_block_diagonal_lu_nperiods : BLOCK_DIAGONAL_LU_NPERIODS EQUAL INT_NUMBER  { driver.option_num("simul.block_diagonal_lu_nperiods", $3); };
+o_block_diagonal_lu_nlu : BLOCK_DIAGONAL_LU_NLU EQUAL INT_NUMBER  { driver.option_num("simul.block_diagonal_lu_nlu", $3); };
+o_block_diagonal_lu_relu : BLOCK_DIAGONAL_LU_RELU EQUAL non_negative_number  { driver.option_num("simul.block_diagonal_lu_relu", $3); };
 o_check_jacobian_singularity : CHECK_JACOBIAN_SINGULARITY { driver.option_num("simul.check_jacobian_singularity", "true"); };
 o_nocheck : NOCHECK { driver.option_num("steadystate.nocheck", "true"); };
 
