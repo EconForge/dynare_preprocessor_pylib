@@ -378,7 +378,7 @@ StochSimulStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
       one_sided_hp = options_list.contains("one_sided_hp_filter");
       (hp && bandpass) || (hp && one_sided_hp) || (bandpass && one_sided_hp))
     {
-      cerr << "ERROR: stoch_simul: can only use one of hp, one-sided hp, and bandpass filters"
+      cerr << "ERROR: stoch_simul: can only use one of HP, one-sided HP, and bandpass filters"
            << endl;
       exit(EXIT_FAILURE);
     }
@@ -5049,6 +5049,16 @@ MethodOfMomentsStatement::checkPass(ModFileStructure& mod_file_struct,
   if (!mod_file_struct.GMM_present && mod_file_struct.analytic_jacobian_present)
     {
       cerr << "ERROR: The analytic_jacobian statement requires the GMM option." << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (bool hp = options_list.contains("hp_filter"),
+      bandpass = options_list.contains("bandpass.indicator"),
+      one_sided_hp = options_list.contains("one_sided_hp_filter");
+      (hp && bandpass) || (hp && one_sided_hp) || (bandpass && one_sided_hp))
+    {
+      cerr << "ERROR: method_of_moments: can only use one of HP, one-sided HP, and bandpass filters"
+           << endl;
       exit(EXIT_FAILURE);
     }
 }
