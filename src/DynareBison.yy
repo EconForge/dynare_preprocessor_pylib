@@ -106,7 +106,7 @@ str_tolower(string s)
 %token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_CYCLE_REDUCTION_MAXITER DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR EXPRESSION
 %token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS FIRST_SIMULATION_PERIOD LAST_SIMULATION_PERIOD LAST_OBS
-%token SET_TIME OSR_PARAMS_BOUNDS KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED
+%token SET_TIME OSR_PARAMS_BOUNDS
 %token <string> FALSE FLOAT_NUMBER DATE
 %token DEFAULT FIXED_POINT FLIP OPT_ALGO COMPILATION_SETUP COMPILER ADD_FLAGS SUBSTITUTE_FLAGS ADD_LIBS SUBSTITUTE_LIBS
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
@@ -2426,7 +2426,6 @@ estimation_options : o_datafile
                    | o_no_posterior_kernel_density
                    | o_posterior_sampling_method
                    | o_posterior_sampler_options
-                   | o_keep_kalman_algo_if_singularity_is_detected
                    | o_use_penalized_objective_for_hessian
                    | o_rescale_prediction_error_covariance
                    | o_analytical_girf
@@ -3854,7 +3853,6 @@ o_pf_first_simulation_period : FIRST_SIMULATION_PERIOD EQUAL date_expr { driver.
 o_pf_last_simulation_period : LAST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("simul.last_simulation_period", $3); };
 o_last_obs : LAST_OBS EQUAL INT_NUMBER { driver.option_num("last_obs", $3); };
 o_data_last_obs : LAST_OBS EQUAL date_expr { driver.option_date("last_obs", $3); } ;
-o_keep_kalman_algo_if_singularity_is_detected : KEEP_KALMAN_ALGO_IF_SINGULARITY_IS_DETECTED { driver.option_num("kalman.keep_kalman_algo_if_singularity_is_detected", "true"); } ;
 o_data_nobs : NOBS EQUAL INT_NUMBER { driver.option_num("nobs", $3); };
 o_shift : SHIFT EQUAL signed_number { driver.option_num("shift", $3); };
 o_shape : SHAPE EQUAL prior_distribution { driver.prior_shape = $3; };
