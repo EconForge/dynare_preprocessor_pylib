@@ -140,7 +140,7 @@ str_tolower(string s)
 %token QZ_CRITERIUM QZ_ZERO_THRESHOLD DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE PIPE_E PIPE_X PIPE_P
 %token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY TARGETS
 %token SHOCKS HETEROSKEDASTIC_SHOCKS SHOCK_DECOMPOSITION SHOCK_GROUPS USE_SHOCK_GROUPS SIMUL SIMUL_ALGO SIMUL_SEED ENDOGENOUS_TERMINAL_PERIOD
-%token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS ROBUST_LIN_SOLVE
+%token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS ROBUST_LIN_SOLVE ALLOW_NONFINITE_VALUES
 %token STDERR STEADY STOCH_SIMUL REGIMES REGIME REALTIME_SHOCK_DECOMPOSITION CONDITIONAL UNCONDITIONAL
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT PLANNER_DISCOUNT_LATEX_NAME
 %token DISCRETIONARY_POLICY DISCRETIONARY_TOL EVALUATE_PLANNER_OBJECTIVE
@@ -1571,6 +1571,7 @@ perfect_foresight_solver_options : o_stack_solve_algo
                                  | o_no_homotopy
                                  | o_solve_algo
                                  | o_robust_lin_solve
+                                 | o_allow_nonfinite_values
                                  | o_lmmcp
                                  | o_pf_tolf
                                  | o_pf_tolx
@@ -3754,6 +3755,7 @@ matched_irfs_weights_elem_var_varexo : symbol '(' INT_NUMBER ')' COMMA symbol
 o_solve_algo : SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("solve_algo", $3); };
 o_stack_solve_algo : STACK_SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("stack_solve_algo", $3); };
 o_robust_lin_solve : ROBUST_LIN_SOLVE { driver.option_num("simul.robust_lin_solve", "true"); };
+o_allow_nonfinite_values : ALLOW_NONFINITE_VALUES { driver.option_num("simul.allow_nonfinite_values", "true"); };
 o_endogenous_terminal_period : ENDOGENOUS_TERMINAL_PERIOD { driver.option_num("endogenous_terminal_period", "true"); };
 o_order : ORDER EQUAL INT_NUMBER { driver.option_num("order", $3); };
 o_replic : REPLIC EQUAL INT_NUMBER { driver.option_num("replic", $3); };
