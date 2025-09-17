@@ -1669,6 +1669,7 @@ method_of_moments_option : o_add_tiny_number_to_cholesky
                          | o_aim_solver
                          | o_analytic_jacobian
                          | o_analytic_standard_errors
+                         | o_bandpass_filter
                          | o_bartlett_kernel_lag
                          | o_bounded_shock_support
                          | o_brooks_gelman_plotrows
@@ -1684,6 +1685,7 @@ method_of_moments_option : o_add_tiny_number_to_cholesky
                          | o_first_obs
                          | o_geweke_interval
                          | o_graph_format
+                         | o_hp_filter
                          | o_huge_number
                          | o_irf_matching_file
                          | o_k_order_solver
@@ -1725,6 +1727,7 @@ method_of_moments_option : o_add_tiny_number_to_cholesky
                          | o_nodisplay
                          | o_nograph
                          | o_noprint
+                         | o_one_sided_hp_filter
                          | o_optim
                          | o_order
                          | o_penalized_estimator
