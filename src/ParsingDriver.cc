@@ -2429,7 +2429,7 @@ ParsingDriver::discretionary_policy(vector<string> symbol_list)
      because we want to allow several instances of “discretionary_policy” in
      the same .mod file. */
   if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
-    declare_parameter("optimal_policy_discount_factor");
+    declare_parameter("optimal_policy_discount_factor", planner_discount_latex_name);
 
   if (!planner_discount)
     planner_discount = data_tree->One;
@@ -2444,6 +2444,7 @@ ParsingDriver::discretionary_policy(vector<string> symbol_list)
       move(symbol_list), move(options_list), mod_file->symbol_table));
   options_list.clear();
   planner_discount = nullptr;
+  planner_discount_latex_name.clear();
 }
 
 void
