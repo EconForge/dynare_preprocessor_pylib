@@ -181,11 +181,12 @@ ModFile::checkPass(bool nostrict, bool stochastic)
 
   if (((mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present)
        && !mod_file_struct.planner_objective_present)
-      || (!(mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present)
+      || (!(mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present
+            || mod_file_struct.osr_present)
           && mod_file_struct.planner_objective_present))
     {
       cerr << "ERROR: A planner_objective statement must be used with a ramsey_model, a "
-              "ramsey_policy or a discretionary_policy statement and vice versa."
+              "ramsey_policy, osr, or a discretionary_policy statement and vice versa."
            << endl;
       exit(EXIT_FAILURE);
     }
@@ -198,15 +199,27 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
-  if ((mod_file_struct.osr_present
-       && (!mod_file_struct.osr_params_present || !mod_file_struct.optim_weights_present))
-      || ((!mod_file_struct.osr_present || !mod_file_struct.osr_params_present)
-          && mod_file_struct.optim_weights_present)
-      || ((!mod_file_struct.osr_present || !mod_file_struct.optim_weights_present)
-          && mod_file_struct.osr_params_present))
+  if (mod_file_struct.osr_present)
     {
-      cerr << "ERROR: The osr statement must be used with osr_params and optim_weights." << endl;
-      exit(EXIT_FAILURE);
+      if (!mod_file_struct.osr_params_present)
+        {
+          cerr << "ERROR: The osr statement requires the osr_params statement." << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (!mod_file_struct.optim_weights_present && !mod_file_struct.planner_objective_present)
+        {
+          cerr << "ERROR: The osr statement requires either an optim_weights block or a "
+                  "planner_objective."
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (mod_file_struct.optim_weights_present && mod_file_struct.planner_objective_present)
+        {
+          cerr << "ERROR: The osr statement cannot have both optim_weights and a "
+                  "planner_objective; they are mutually exclusive."
+               << endl;
+          exit(EXIT_FAILURE);
+        }
     }
 
   if ((mod_file_struct.perfect_foresight_solver_present

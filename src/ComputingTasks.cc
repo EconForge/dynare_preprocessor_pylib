@@ -2021,6 +2021,7 @@ OsrStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolidation&
 {
   mod_file_struct.osr_present = true;
 
+  planner_discount_declared = mod_file_struct.planner_objective_present;
   // Fill in option_order of mod_file_struct
   if (auto opt = options_list.get_if<OptionsList::NumVal>("order"))
     mod_file_struct.order_option = max(mod_file_struct.order_option, stoi(*opt));
@@ -2063,9 +2064,14 @@ OsrStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basena
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "[info, oo_, options_, M_] = osr.run(M_, options_, oo_, "
-            "var_list_,M_.osr.param_names,M_.osr.variable_indices,M_.osr.variable_weights);"
-         << endl;
+  if (planner_discount_declared)
+    output
+        << "[info, oo_, options_, M_] = osr.run(M_, options_, oo_, var_list_, M_.osr.param_names);"
+        << endl;
+  else
+    output << "[info, oo_, options_, M_] = osr.run(M_, options_, oo_, "
+              "var_list_, M_.osr.param_names, M_.osr.variable_indices, M_.osr.variable_weights);"
+           << endl;
 }
 
 void

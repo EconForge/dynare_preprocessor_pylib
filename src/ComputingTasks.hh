@@ -391,6 +391,7 @@ private:
   const SymbolList symbol_list;
   const OptionsList options_list;
   const SymbolTable& symbol_table;
+  bool planner_discount_declared {false};
 
 public:
   OsrStatement(SymbolList symbol_list_arg, OptionsList options_list_arg,

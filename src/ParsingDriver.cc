@@ -2225,9 +2225,21 @@ ParsingDriver::set_osr_params(vector<string> symbol_list)
 void
 ParsingDriver::run_osr(vector<string> symbol_list)
 {
+  /* The logic here is different from “ramsey_policy” and “ramsey_model”,
+     because we want to allow several instances of “osr” in
+     the same .mod file. */
+  if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
+    declare_parameter("optimal_policy_discount_factor", planner_discount_latex_name);
+
+  if (!planner_discount)
+    planner_discount = data_tree->One;
+  init_param("optimal_policy_discount_factor", planner_discount);
+
   mod_file->addStatement(
       make_unique<OsrStatement>(move(symbol_list), move(options_list), mod_file->symbol_table));
   options_list.clear();
+  planner_discount = nullptr;
+  planner_discount_latex_name.clear();
 }
 
 void
