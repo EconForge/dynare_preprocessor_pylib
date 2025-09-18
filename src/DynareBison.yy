@@ -2830,6 +2830,7 @@ discretionary_policy_options_list : discretionary_policy_options_list COMMA disc
 discretionary_policy_options : ramsey_policy_options
                              | o_discretionary_tol;
                              | o_dp_maxit;
+                             | o_planner_discount_latex_name
                              ;
 
 ramsey_model_options_list : ramsey_model_options_list COMMA ramsey_model_options

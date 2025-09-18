@@ -245,7 +245,7 @@ private:
   //! Temporary storage for init2shocks
   vector<pair<int, int>> init2shocks;
   /* Temporary storage for planner_discount and planner_discount_latex_name
-     options of ramsey_model and ramsey_policy */
+     options of ramsey_model, ramsey_policy, and discretionary_policy */
   expr_t planner_discount {nullptr};
   string planner_discount_latex_name;
   //! reset the values for temporary storage
@@ -395,9 +395,10 @@ public:
                                           const string& subsample_name);
   //! Copies the set of subsamples from_name to_name
   void copy_subsamples(string to_name1, string to_name2, string from_name1, string from_name2);
-  //! Sets the value of the planner_discount option of ramsey_{model,policy}
+  //! Sets the value of the planner_discount option of ramsey_{model,policy}, discretionary_policy
   void set_planner_discount(expr_t value);
-  //! Sets the value of the planner_discount_latex_name option of ramsey_model
+  //! Sets the value of the planner_discount_latex_name option of ramsey_model and
+  //! discretionary_policy
   void set_planner_discount_latex_name(string tex_name);
   //! Handles a “predetermined_variables” statement
   void predetermined_variables(const vector<string>& symbol_list);
