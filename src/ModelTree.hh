@@ -2753,6 +2753,8 @@ ModelTree::writeSetAuxiliaryVariablesFile(const string& basename, bool julia) co
     output << "ds";
   else
     output << "y, x";
+  if (!heterogeneity_table.empty())
+    output << ", yagg";
   output << ", params)" << endl
          << comment << endl
          << comment << " Computes auxiliary variables of the " << modelClassName() << endl
