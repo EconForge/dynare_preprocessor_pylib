@@ -216,7 +216,7 @@ str_tolower(string s)
 %token MAX_NROWS SQUEEZE_SHOCK_DECOMPOSITION WITH_EPILOGUE MODEL_REMOVE MODEL_REPLACE MODEL_OPTIONS
 %token VAR_REMOVE ESTIMATED_PARAMS_REMOVE BLOCK_STATIC BLOCK_DYNAMIC INCIDENCE RESID NON_ZERO LEARNT_IN PLUS_EQUAL TIMES_EQUAL
 %token FSOLVE_OPTIONS
-%token ENDVAL_STEADY STEADY_SOLVE_ALGO STEADY_MAXIT STEADY_TOLF STEADY_TOLX STEADY_MARKOWITZ
+%token ENDVAL_STEADY ENDVAL_STEADY_NOCHECK STEADY_SOLVE_ALGO STEADY_MAXIT STEADY_TOLF STEADY_TOLX STEADY_MARKOWITZ
 %token HOMOTOPY_MAX_COMPLETION_SHARE HOMOTOPY_MIN_STEP_SIZE HOMOTOPY_INITIAL_STEP_SIZE HOMOTOPY_STEP_SIZE_INCREASE_SUCCESS_COUNT
 %token HOMOTOPY_LINEARIZATION_FALLBACK HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK HOMOTOPY_EXCLUDE_VAREXO FROM_INITVAL_TO_ENDVAL
 %token STATIC_MFS RELATIVE_TO_INITVAL MATCHED_IRFS MATCHED_IRFS_WEIGHTS WEIGHTS PERPENDICULAR
@@ -1548,6 +1548,7 @@ perfect_foresight_setup_options_list : perfect_foresight_setup_options_list COMM
 perfect_foresight_setup_options : o_periods
                                 | o_datafile
                                 | o_endval_steady
+                                | o_endval_steady_nocheck
                                 | o_pf_first_simulation_period
                                 | o_pf_last_simulation_period
                                 ;
@@ -1614,6 +1615,7 @@ perfect_foresight_with_expectation_errors_setup_options : o_periods
                                                         | o_datafile
                                                         | o_pf_first_simulation_period
                                                         | o_pf_last_simulation_period
+                                                        | o_endval_steady_nocheck
                                                         ;
 
 perfect_foresight_with_expectation_errors_solver : PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SOLVER ';'
@@ -4403,6 +4405,7 @@ o_consider_all_endogenous_and_auxiliary : CONSIDER_ALL_ENDOGENOUS_AND_AUXILIARY 
 o_consider_only_observed : CONSIDER_ONLY_OBSERVED { driver.option_str("endo_vars_for_moment_computations_in_estimation", "only_observed_variables"); };
 o_no_homotopy : NO_HOMOTOPY { driver.option_num("no_homotopy", "true"); };
 o_endval_steady : ENDVAL_STEADY { driver.option_num("simul.endval_steady", "true"); }
+o_endval_steady_nocheck : ENDVAL_STEADY_NOCHECK { driver.option_num("simul.endval_steady_nocheck", "true"); }
 o_homotopy_max_completion_share : HOMOTOPY_MAX_COMPLETION_SHARE EQUAL non_negative_number { driver.option_num("simul.homotopy_max_completion_share", $3); }
 o_homotopy_min_step_size : HOMOTOPY_MIN_STEP_SIZE EQUAL non_negative_number { driver.option_num("simul.homotopy_min_step_size", $3); }
 o_homotopy_initial_step_size : HOMOTOPY_INITIAL_STEP_SIZE EQUAL non_negative_number { driver.option_num("simul.homotopy_initial_step_size", $3); }

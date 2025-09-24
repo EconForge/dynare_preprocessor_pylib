@@ -351,6 +351,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>periods	{return token::PERIODS;}
 <DYNARE_BLOCK>from_initval_to_endval	{return token::FROM_INITVAL_TO_ENDVAL;}
 <DYNARE_STATEMENT>endval_steady	{return token::ENDVAL_STEADY;}
+<DYNARE_STATEMENT>endval_steady_nocheck	{return token::ENDVAL_STEADY_NOCHECK;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>model_name	{return token::MODEL_NAME;}
 <DYNARE_STATEMENT>auxiliary_model_name    {return token::AUXILIARY_MODEL_NAME;}
 <DYNARE_STATEMENT>endogenous_terminal_period 	{return token::ENDOGENOUS_TERMINAL_PERIOD;}
