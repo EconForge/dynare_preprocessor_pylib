@@ -3,9 +3,11 @@
 
 project('dynare-preprocessor', 'cpp',
         version : '7-unstable',
+        license : 'GPL-3.0-or-later',
+        license_files : 'COPYING',
         # NB: update C++ standard in .clang-format whenever the following is modified
         default_options : [ 'cpp_std=gnu++20', 'warning_level=2' ],
-        meson_version : '>=0.64.0')
+        meson_version : '>=1.3.0')
 
 add_global_arguments('-DPACKAGE_VERSION="' + meson.project_version() + '"', language : 'cpp')
 
