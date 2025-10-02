@@ -2560,6 +2560,8 @@ osr_options : stoch_simul_primary_options
             | o_silent_optimizer
             | o_analytic_derivation
             | o_analytic_derivation_mode
+            | o_planner_discount
+            | o_planner_discount_latex_name
             ;
 
 osr : OSR ';'
