@@ -784,13 +784,8 @@ StaticModel::writeRamseyMultipliersDerivativesCFile(const string& basename, cons
          << endl
          << R"(    mexErrMsgTxt("sparse_colptr must be an int32 array with )" << ncols + 1
          << R"( elements");)" << endl
-         << "#if MX_HAS_INTERLEAVED_COMPLEX" << endl
          << "  const int32_T *restrict sparse_rowval = mxGetInt32s(prhs[3]);" << endl
          << "  const int32_T *restrict sparse_colptr = mxGetInt32s(prhs[5]);" << endl
-         << "#else" << endl
-         << "  const int32_T *restrict sparse_rowval = (int32_T *) mxGetData(prhs[3]);" << endl
-         << "  const int32_T *restrict sparse_colptr = (int32_T *) mxGetData(prhs[5]);" << endl
-         << "#endif" << endl
          << "  plhs[0] = mxCreateSparse(" << ramsey_orig_endo_nbr << ", " << ncols << ", " << nzval
          << ", mxREAL);" << endl
          << "  mwIndex *restrict ir = mxGetIr(plhs[0]), *restrict jc = mxGetJc(plhs[0]);" << endl

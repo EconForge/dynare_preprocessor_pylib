@@ -2745,17 +2745,10 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
            << "]) == " << ncols + 1 << "))" << endl
            << R"(    mexErrMsgTxt("sparse_colptr must be an int32 array with )" << ncols + 1
            << R"( elements");)" << endl
-           << "#if MX_HAS_INTERLEAVED_COMPLEX" << endl
            << "  const int32_T *restrict sparse_rowval = mxGetInt32s(prhs[" << row_idx << "]);"
            << endl
            << "  const int32_T *restrict sparse_colptr = mxGetInt32s(prhs[" << col_idx << "]);"
-           << endl
-           << "#else" << endl
-           << "  const int32_T *restrict sparse_rowval = (int32_T *) mxGetData(prhs[" << row_idx
-           << "]);" << endl
-           << "  const int32_T *restrict sparse_colptr = (int32_T *) mxGetData(prhs[" << col_idx
-           << "]);" << endl
-           << "#endif" << endl;
+           << endl;
   };
 
   // Helper for creating sparse Jacobian (shared with block case)

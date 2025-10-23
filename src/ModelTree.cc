@@ -1729,7 +1729,7 @@ ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_b
     {
       // Octave
       compiler = matlabroot / "bin" / "mkoctfile";
-      flags << "--mex";
+      flags << "--mex -R2018a";
     }
   else
     {
