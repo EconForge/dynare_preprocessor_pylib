@@ -1121,11 +1121,11 @@ ModelTree::writeModelCFile(const string& basename, const string& mexext,
            << "  if (nrhs != 3)" << endl
            << R"(    mexErrMsgTxt("Requires exactly 3 input arguments");)" << endl;
   output << endl
-         << "  double *y = mxGetPr(prhs[0]);" << endl
-         << "  double *x = mxGetPr(prhs[1]);" << endl
-         << "  double *params = mxGetPr(prhs[2]);" << endl;
+         << "  double *y = mxGetDoubles(prhs[0]);" << endl
+         << "  double *x = mxGetDoubles(prhs[1]);" << endl
+         << "  double *params = mxGetDoubles(prhs[2]);" << endl;
   if constexpr (dynamic)
-    output << "  double *steady_state = mxGetPr(prhs[3]);" << endl
+    output << "  double *steady_state = mxGetDoubles(prhs[3]);" << endl
            << "  int it_ = (int) mxGetScalar(prhs[4]) - 1;" << endl
            << "  int nb_row_x = mxGetM(prhs[1]);" << endl;
   output << endl
@@ -1134,7 +1134,7 @@ ModelTree::writeModelCFile(const string& basename, const string& mexext,
          << "  if (nlhs >= 1)" << endl
          << "    {" << endl
          << "       plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
-         << "       double *residual = mxGetPr(plhs[0]);" << endl
+         << "       double *residual = mxGetDoubles(plhs[0]);" << endl
          << "       " << prefix << "resid_tt(y, x" << nb_row_x_argout << ", params" << ss_it_argout
          << ", T);" << endl
          << "       " << prefix << "resid(y, x" << nb_row_x_argout << ", params" << ss_it_argout
@@ -1145,7 +1145,7 @@ ModelTree::writeModelCFile(const string& basename, const string& mexext,
          << "    {" << endl
          << "       plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", "
          << getJacobianColsNbr(false) << ", mxREAL);" << endl
-         << "       double *g1 = mxGetPr(plhs[1]);" << endl
+         << "       double *g1 = mxGetDoubles(plhs[1]);" << endl
          << "       " << prefix << "g1_tt(y, x" << nb_row_x_argout << ", params" << ss_it_argout
          << ", T);" << endl
          << "       " << prefix << "g1(y, x" << nb_row_x_argout << ", params" << ss_it_argout
@@ -1163,7 +1163,7 @@ ModelTree::writeModelCFile(const string& basename, const string& mexext,
          << "      " << prefix << "g2_tt(y, x" << nb_row_x_argout << ", params" << ss_it_argout
          << ", T);" << endl
          << "      " << prefix << "g2(y, x" << nb_row_x_argout << ", params" << ss_it_argout
-         << ", T, mxGetPr(g2_i), mxGetPr(g2_j), mxGetPr(g2_v));" << endl
+         << ", T, mxGetDoubles(g2_i), mxGetDoubles(g2_j), mxGetDoubles(g2_v));" << endl
          << "      mxArray *m = mxCreateDoubleScalar(" << equations.size() << ");" << endl
          << "      mxArray *n = mxCreateDoubleScalar("
          << getJacobianColsNbr(false) * getJacobianColsNbr(false) << ");" << endl
@@ -1189,7 +1189,7 @@ ModelTree::writeModelCFile(const string& basename, const string& mexext,
            << "      " << prefix << "g3_tt(y, x" << nb_row_x_argout << ", params" << ss_it_argout
            << ", T);" << endl
            << "      " << prefix << "g3(y, x" << nb_row_x_argout << ", params" << ss_it_argout
-           << ", T, mxGetPr(g3_i), mxGetPr(g3_j), mxGetPr(g3_v));" << endl
+           << ", T, mxGetDoubles(g3_i), mxGetDoubles(g3_j), mxGetDoubles(g3_v));" << endl
            << "      mxArray *m = mxCreateDoubleScalar(" << equations.size() << ");" << endl
            << "      mxArray *n = mxCreateDoubleScalar("
            << getJacobianColsNbr(false) * getJacobianColsNbr(false) * getJacobianColsNbr(false)
@@ -2701,26 +2701,26 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
            << R"(    mexErrMsgTxt("y must be a real dense numeric array with )" << ylen
            << R"( elements");)" << endl;
     if (assign_y)
-      output << "  const double *restrict y = mxGetPr(prhs[0]);" << endl;
+      output << "  const double *restrict y = mxGetDoubles(prhs[0]);" << endl;
     output << "  if (!(mxIsDouble(prhs[1]) && !mxIsComplex(prhs[1]) && !mxIsSparse(prhs[1]) && "
               "mxGetNumberOfElements(prhs[1]) == "
            << xlen << "))" << endl
            << R"(    mexErrMsgTxt("x must be a real dense numeric array with )" << xlen
            << R"( elements");)" << endl
-           << "  const double *restrict x = mxGetPr(prhs[1]);" << endl
+           << "  const double *restrict x = mxGetDoubles(prhs[1]);" << endl
            << "  if (!(mxIsDouble(prhs[2]) && !mxIsComplex(prhs[2]) && !mxIsSparse(prhs[2]) && "
               "mxGetNumberOfElements(prhs[2]) == "
            << symbol_table.param_nbr() << "))" << endl
            << R"(    mexErrMsgTxt("params must be a real dense numeric array with )"
            << symbol_table.param_nbr() << R"( elements");)" << endl
-           << "  const double *restrict params = mxGetPr(prhs[2]);" << endl;
+           << "  const double *restrict params = mxGetDoubles(prhs[2]);" << endl;
     if constexpr (dynamic)
       output << "  if (!(mxIsDouble(prhs[3]) && !mxIsComplex(prhs[3]) && !mxIsSparse(prhs[3]) && "
                 "mxGetNumberOfElements(prhs[3]) == "
              << symbol_table.endo_nbr() << "))" << endl
              << R"(    mexErrMsgTxt("steady_state must be a real dense numeric array with )"
              << symbol_table.endo_nbr() << R"( elements");)" << endl
-             << "  const double *restrict steady_state = mxGetPr(prhs[3]);" << endl;
+             << "  const double *restrict steady_state = mxGetDoubles(prhs[3]);" << endl;
     if (!heterogeneity_table.empty())
       {
         const int idx {3 + static_cast<int>(dynamic)};
@@ -2729,7 +2729,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
                << "]) == " << heterogeneity_table.aggregateEndoSize() << "))" << endl
                << R"(    mexErrMsgTxt("yagg must be a real dense numeric array with )"
                << heterogeneity_table.aggregateEndoSize() << R"( elements");)" << endl
-               << "  const double *restrict yagg = mxGetPr(prhs[" << idx << "]);" << endl;
+               << "  const double *restrict yagg = mxGetDoubles(prhs[" << idx << "]);" << endl;
       }
   };
 
@@ -2846,43 +2846,43 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
       if (i == 1)
         sparse_indices_inputs(getJacobianColsNbr(true), jacobian_sparse_column_major_order.size());
 
-      output
-          << "  mxArray *T_mx, *T_order_mx;" << endl
-          << "  int T_order_on_input;" << endl
-          << "  if (nrhs > " << nargin - 2 << ")" << endl
-          << "    {" << endl
-          << "      T_order_mx = (mxArray *) prhs[" << nargin - 2 << "];" << endl
-          << "      T_mx = (mxArray *) prhs[" << nargin - 1 << "];" << endl
-          << "      if (!(mxIsScalar(T_order_mx) && mxIsNumeric(T_order_mx)))" << endl
-          << R"(        mexErrMsgTxt("T_order should be a numeric scalar");)" << endl
-          << "      if (!(mxIsDouble(T_mx) && !mxIsComplex(T_mx) && !mxIsSparse(T_mx) && "
-             "mxGetN(T_mx) == 1))"
-          << endl
-          << R"(        mexErrMsgTxt("T_mx should be a real dense column vector");)" << endl
-          << "      T_order_on_input = mxGetScalar(T_order_mx);" << endl
-          << "      if (T_order_on_input < " << i << ")" << endl
-          << "        {" << endl
-          << "          T_order_mx = mxCreateDoubleScalar(" << i << ");" << endl
-          << "          const mxArray *T_old_mx = T_mx;" << endl
-          << "          T_mx = mxCreateDoubleMatrix(max(" << ttlen
-          << ", mxGetM(T_old_mx)), 1, mxREAL);" << endl
-          << "          memcpy(mxGetPr(T_mx), mxGetPr(T_old_mx), mxGetM(T_old_mx)*sizeof(double));"
-          << endl
-          << "        }" << endl
-          << "      else if (mxGetM(T_mx) < " << ttlen << ")" << endl
-          << R"(        mexErrMsgTxt("T_mx should have at least )" << ttlen << R"( elements");)"
-          << endl
-          << "    }" << endl
-          << "  else" << endl
-          << "    {" << endl
-          << "      T_order_mx = mxCreateDoubleScalar(" << i << ");" << endl
-          << "      T_mx = mxCreateDoubleMatrix(" << ttlen << ", 1, mxREAL);" << endl
-          << "      T_order_on_input = -1;" << endl
-          << "    }" << endl
-          << "  double *restrict T = mxGetPr(T_mx);" << endl
-          << "  if (T_order_on_input < " << i << ")" << endl
-          << "    switch (T_order_on_input)" << endl
-          << "      {" << endl;
+      output << "  mxArray *T_mx, *T_order_mx;" << endl
+             << "  int T_order_on_input;" << endl
+             << "  if (nrhs > " << nargin - 2 << ")" << endl
+             << "    {" << endl
+             << "      T_order_mx = (mxArray *) prhs[" << nargin - 2 << "];" << endl
+             << "      T_mx = (mxArray *) prhs[" << nargin - 1 << "];" << endl
+             << "      if (!(mxIsScalar(T_order_mx) && mxIsNumeric(T_order_mx)))" << endl
+             << R"(        mexErrMsgTxt("T_order should be a numeric scalar");)" << endl
+             << "      if (!(mxIsDouble(T_mx) && !mxIsComplex(T_mx) && !mxIsSparse(T_mx) && "
+                "mxGetN(T_mx) == 1))"
+             << endl
+             << R"(        mexErrMsgTxt("T_mx should be a real dense column vector");)" << endl
+             << "      T_order_on_input = mxGetScalar(T_order_mx);" << endl
+             << "      if (T_order_on_input < " << i << ")" << endl
+             << "        {" << endl
+             << "          T_order_mx = mxCreateDoubleScalar(" << i << ");" << endl
+             << "          const mxArray *T_old_mx = T_mx;" << endl
+             << "          T_mx = mxCreateDoubleMatrix(max(" << ttlen
+             << ", mxGetM(T_old_mx)), 1, mxREAL);" << endl
+             << "          memcpy(mxGetDoubles(T_mx), mxGetDoubles(T_old_mx), "
+                "mxGetM(T_old_mx)*sizeof(double));"
+             << endl
+             << "        }" << endl
+             << "      else if (mxGetM(T_mx) < " << ttlen << ")" << endl
+             << R"(        mexErrMsgTxt("T_mx should have at least )" << ttlen << R"( elements");)"
+             << endl
+             << "    }" << endl
+             << "  else" << endl
+             << "    {" << endl
+             << "      T_order_mx = mxCreateDoubleScalar(" << i << ");" << endl
+             << "      T_mx = mxCreateDoubleMatrix(" << ttlen << ", 1, mxREAL);" << endl
+             << "      T_order_on_input = -1;" << endl
+             << "    }" << endl
+             << "  double *restrict T = mxGetDoubles(T_mx);" << endl
+             << "  if (T_order_on_input < " << i << ")" << endl
+             << "    switch (T_order_on_input)" << endl
+             << "      {" << endl;
       for (int j {0}; j <= i; j++)
         {
           if (j == 0)
@@ -2899,7 +2899,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
         output << "  plhs[0] = mxCreateDoubleMatrix("
                << (i == 0 ? equations.size() : derivatives[i].size()) << ", 1, mxREAL);" << endl;
       output << "  " << prefix << (i == 0 ? "resid" : "g" + to_string(i)) << "(y, x, params"
-             << extra_argout << ", T, mxGetPr(plhs[0]));" << endl
+             << extra_argout << ", T, mxGetDoubles(plhs[0]));" << endl
              << "  if (nlhs == 3)" << endl
              << "    {" << endl
              << "      plhs[1] = T_order_mx;" << endl
@@ -2992,7 +2992,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
             https://fr.mathworks.com/matlabcentral/answers/422751-how-to-output-a-mexfunction-input-without-copy
           */
           output << "  plhs[0] = mxDuplicateArray(prhs[0]);" << endl
-                 << "  double *restrict y = mxGetPr(plhs[0]);" << endl;
+                 << "  double *restrict y = mxGetDoubles(plhs[0]);" << endl;
 
           // NB: For “evaluate” blocks, sparse_{rowval,colval,colptr} arguments are present but
           // ignored
@@ -3012,12 +3012,12 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
                  /* We’d like to avoid copying T when the block has no temporary
                     terms, but the same remark as above applies. */
                  << "  plhs[1] = mxDuplicateArray(prhs[" << nargin - 1 << "]);" << endl
-                 << "  double *restrict T = mxGetPr(plhs[1]);" << endl;
+                 << "  double *restrict T = mxGetDoubles(plhs[1]);" << endl;
 
           if (!evaluate)
             output << "  mxArray *residual_mx = mxCreateDoubleMatrix(" << blocks[blk].mfs_size
                    << ", 1, mxREAL);" << endl
-                   << "  double *restrict residual = mxGetPr(residual_mx);" << endl;
+                   << "  double *restrict residual = mxGetDoubles(residual_mx);" << endl;
 
           output << "  " << funcname << "_resid(y, x, params" << extra_argout << ", T"
                  << (evaluate ? "" : ", residual") << ");" << endl;
@@ -3033,7 +3033,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
               output << "  if (nlhs > 3)" << endl << "    {" << endl;
               sparse_jacobian_create(3, blocks[blk].mfs_size, g1_ncols,
                                      blocks_jacobian_sparse_column_major_order[blk].size());
-              output << "      double *restrict g1_v = mxGetPr(plhs[3]);" << endl
+              output << "      double *restrict g1_v = mxGetDoubles(plhs[3]);" << endl
                      << "      " << funcname << "_g1(y, x, params" << extra_argout << ", T, g1_v);"
                      << endl
                      << "    }" << endl;

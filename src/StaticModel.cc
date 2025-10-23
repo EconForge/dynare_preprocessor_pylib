@@ -750,54 +750,55 @@ StaticModel::writeRamseyMultipliersDerivativesCFile(const string& basename, cons
          << endl
          << "{" << endl;
   writeRamseyMultipliersDerivativesHelper<output_type>(output);
-  output << "}" << endl
-         << endl
-         << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
-         << "{" << endl
-         << "  if (nrhs != 6)" << endl
-         << R"(    mexErrMsgTxt("Accepts exactly 6 input arguments");)" << endl
-         << "  if (nlhs != 1)" << endl
-         << R"(    mexErrMsgTxt("Accepts exactly 1 output argument");)" << endl
-         << "  if (!(mxIsDouble(prhs[0]) && !mxIsComplex(prhs[0]) && !mxIsSparse(prhs[0]) && "
-            "mxGetNumberOfElements(prhs[0]) == "
-         << symbol_table.endo_nbr() << "))" << endl
-         << R"(    mexErrMsgTxt("y must be a real dense numeric array with )"
-         << symbol_table.endo_nbr() << R"( elements");)" << endl
-         << "  const double *restrict y = mxGetPr(prhs[0]);" << endl
-         << "  if (!(mxIsDouble(prhs[1]) && !mxIsComplex(prhs[1]) && !mxIsSparse(prhs[1]) && "
-            "mxGetNumberOfElements(prhs[1]) == "
-         << xlen << "))" << endl
-         << R"(    mexErrMsgTxt("x must be a real dense numeric array with )" << xlen
-         << R"( elements");)" << endl
-         << "  const double *restrict x = mxGetPr(prhs[1]);" << endl
-         << "  if (!(mxIsDouble(prhs[2]) && !mxIsComplex(prhs[2]) && !mxIsSparse(prhs[2]) && "
-            "mxGetNumberOfElements(prhs[2]) == "
-         << symbol_table.param_nbr() << "))" << endl
-         << R"(    mexErrMsgTxt("params must be a real dense numeric array with )"
-         << symbol_table.param_nbr() << R"( elements");)" << endl
-         << "  const double *restrict params = mxGetPr(prhs[2]);" << endl
-         << "  if (!(mxIsInt32(prhs[3]) && mxGetNumberOfElements(prhs[3]) == " << nzval << "))"
-         << endl
-         << R"(    mexErrMsgTxt("sparse_rowval must be an int32 array with )" << nzval
-         << R"( elements");)" << endl
-         << "  if (!(mxIsInt32(prhs[5]) && mxGetNumberOfElements(prhs[5]) == " << ncols + 1 << "))"
-         << endl
-         << R"(    mexErrMsgTxt("sparse_colptr must be an int32 array with )" << ncols + 1
-         << R"( elements");)" << endl
-         << "  const int32_T *restrict sparse_rowval = mxGetInt32s(prhs[3]);" << endl
-         << "  const int32_T *restrict sparse_colptr = mxGetInt32s(prhs[5]);" << endl
-         << "  plhs[0] = mxCreateSparse(" << ramsey_orig_endo_nbr << ", " << ncols << ", " << nzval
-         << ", mxREAL);" << endl
-         << "  mwIndex *restrict ir = mxGetIr(plhs[0]), *restrict jc = mxGetJc(plhs[0]);" << endl
-         << "  for (mwSize i = 0; i < " << nzval << "; i++)" << endl
-         << "    *ir++ = *sparse_rowval++ - 1;" << endl
-         << "  for (mwSize i = 0; i < " << ncols + 1 << "; i++)" << endl
-         << "    *jc++ = *sparse_colptr++ - 1;" << endl
-         << "  mxArray *T_mx = mxCreateDoubleMatrix("
-         << ramsey_multipliers_derivatives_temporary_terms.size() << ", 1, mxREAL);" << endl
-         << "  ramsey_multipliers_static_g1(y, x, params, mxGetPr(T_mx), mxGetPr(plhs[0]));" << endl
-         << "  mxDestroyArray(T_mx);" << endl
-         << "}" << endl;
+  output
+      << "}" << endl
+      << endl
+      << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
+      << "{" << endl
+      << "  if (nrhs != 6)" << endl
+      << R"(    mexErrMsgTxt("Accepts exactly 6 input arguments");)" << endl
+      << "  if (nlhs != 1)" << endl
+      << R"(    mexErrMsgTxt("Accepts exactly 1 output argument");)" << endl
+      << "  if (!(mxIsDouble(prhs[0]) && !mxIsComplex(prhs[0]) && !mxIsSparse(prhs[0]) && "
+         "mxGetNumberOfElements(prhs[0]) == "
+      << symbol_table.endo_nbr() << "))" << endl
+      << R"(    mexErrMsgTxt("y must be a real dense numeric array with )"
+      << symbol_table.endo_nbr() << R"( elements");)" << endl
+      << "  const double *restrict y = mxGetDoubles(prhs[0]);" << endl
+      << "  if (!(mxIsDouble(prhs[1]) && !mxIsComplex(prhs[1]) && !mxIsSparse(prhs[1]) && "
+         "mxGetNumberOfElements(prhs[1]) == "
+      << xlen << "))" << endl
+      << R"(    mexErrMsgTxt("x must be a real dense numeric array with )" << xlen
+      << R"( elements");)" << endl
+      << "  const double *restrict x = mxGetDoubles(prhs[1]);" << endl
+      << "  if (!(mxIsDouble(prhs[2]) && !mxIsComplex(prhs[2]) && !mxIsSparse(prhs[2]) && "
+         "mxGetNumberOfElements(prhs[2]) == "
+      << symbol_table.param_nbr() << "))" << endl
+      << R"(    mexErrMsgTxt("params must be a real dense numeric array with )"
+      << symbol_table.param_nbr() << R"( elements");)" << endl
+      << "  const double *restrict params = mxGetDoubles(prhs[2]);" << endl
+      << "  if (!(mxIsInt32(prhs[3]) && mxGetNumberOfElements(prhs[3]) == " << nzval << "))" << endl
+      << R"(    mexErrMsgTxt("sparse_rowval must be an int32 array with )" << nzval
+      << R"( elements");)" << endl
+      << "  if (!(mxIsInt32(prhs[5]) && mxGetNumberOfElements(prhs[5]) == " << ncols + 1 << "))"
+      << endl
+      << R"(    mexErrMsgTxt("sparse_colptr must be an int32 array with )" << ncols + 1
+      << R"( elements");)" << endl
+      << "  const int32_T *restrict sparse_rowval = mxGetInt32s(prhs[3]);" << endl
+      << "  const int32_T *restrict sparse_colptr = mxGetInt32s(prhs[5]);" << endl
+      << "  plhs[0] = mxCreateSparse(" << ramsey_orig_endo_nbr << ", " << ncols << ", " << nzval
+      << ", mxREAL);" << endl
+      << "  mwIndex *restrict ir = mxGetIr(plhs[0]), *restrict jc = mxGetJc(plhs[0]);" << endl
+      << "  for (mwSize i = 0; i < " << nzval << "; i++)" << endl
+      << "    *ir++ = *sparse_rowval++ - 1;" << endl
+      << "  for (mwSize i = 0; i < " << ncols + 1 << "; i++)" << endl
+      << "    *jc++ = *sparse_colptr++ - 1;" << endl
+      << "  mxArray *T_mx = mxCreateDoubleMatrix("
+      << ramsey_multipliers_derivatives_temporary_terms.size() << ", 1, mxREAL);" << endl
+      << "  ramsey_multipliers_static_g1(y, x, params, mxGetDoubles(T_mx), mxGetDoubles(plhs[0]));"
+      << endl
+      << "  mxDestroyArray(T_mx);" << endl
+      << "}" << endl;
 
   output.close();
 

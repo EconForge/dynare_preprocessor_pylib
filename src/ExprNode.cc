@@ -7820,12 +7820,12 @@ ExternalFunctionNode::writeExternalFunctionOutput(
           output << "  mexCallMATLAB(" << nlhs << ", plhs, " << arguments.size() << ", prhs, "
                  << R"(")" << getName() << R"(");)" << endl;
 
-          output << "  TEF_" << indx << " = mxGetPr(plhs[0]);" << endl;
+          output << "  TEF_" << indx << " = mxGetDoubles(plhs[0]);" << endl;
           if (symb_id == first_deriv_symb_id)
             {
-              output << "  TEFD_" << indx << " = mxGetPr(plhs[1]);" << endl;
+              output << "  TEFD_" << indx << " = mxGetDoubles(plhs[1]);" << endl;
               if (symb_id == second_deriv_symb_id)
-                output << "  TEFDD_" << indx << " = mxGetPr(plhs[2]);" << endl
+                output << "  TEFDD_" << indx << " = mxGetDoubles(plhs[2]);" << endl
                        << "  TEFDD_" << indx << "_nrows = (int)mxGetM(plhs[2]);" << endl;
             }
           output << "}" << endl;
@@ -8085,7 +8085,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(
         output << "  mexCallMATLAB(1, plhs, 3, prhs,"
                << R"("jacob_element");)" << endl
                << "  TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex
-               << " = mxGetPr(plhs[0]);" << endl
+               << " = mxGetDoubles(plhs[0]);" << endl
                << "}" << endl;
       }
     else
@@ -8100,7 +8100,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(
 
         output << "  mexCallMATLAB(1, plhs, " << arguments.size() << ", prhs,"
                << R"(")" << datatree.symbol_table.getName(first_deriv_symb_id) << R"(");)" << endl
-               << "  TEFD_def_" << indx << " = mxGetPr(plhs[0]);" << endl
+               << "  TEFD_def_" << indx << " = mxGetDoubles(plhs[0]);" << endl
                << "}" << endl;
       }
   else
@@ -8414,7 +8414,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(
         output << "  mexCallMATLAB(1, plhs, 4, prhs, "
                << R"("hess_element");)" << endl
                << "  TEFDD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex1
-               << "_" << inputIndex2 << " = mxGetPr(plhs[0]);" << endl
+               << "_" << inputIndex2 << " = mxGetDoubles(plhs[0]);" << endl
                << "}" << endl;
       }
     else
@@ -8429,7 +8429,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(
 
         output << "  mexCallMATLAB(1, plhs, " << arguments.size() << ", prhs, "
                << R"(")" << datatree.symbol_table.getName(second_deriv_symb_id) << R"(");)" << endl
-               << "  TEFDD_def_" << indx << " = mxGetPr(plhs[0]);" << endl
+               << "  TEFDD_def_" << indx << " = mxGetDoubles(plhs[0]);" << endl
                << "}" << endl;
       }
   else
