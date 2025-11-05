@@ -1,6 +1,6 @@
 variables:
   TERM: linux
-  MINGW64_BOOST_VERSION: 1.89.0-1
+  MSYS2_BOOST_VERSION: 1.89.0-1
   WGET_OPTIONS: '--no-verbose --no-use-server-timestamps --retry-connrefused --retry-on-host-error'
   # To ensure that "false && true" fails, see https://gitlab.com/gitlab-org/gitlab-runner/-/issues/25394#note_412609647
   FF_ENABLE_BASH_EXIT_CODE_CHECK: 'true'
@@ -27,10 +27,10 @@ build_windows_x86_64:
   stage: build
   script:
     - mkdir -p tarballs
-    - '[[ -f tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst ]] || wget $WGET_OPTIONS -P tarballs http://repo.msys2.org/mingw/x86_64/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst'
+    - '[[ -f tarballs/mingw-w64-ucrt-x86_64-boost-$MSYS2_BOOST_VERSION-any.pkg.tar.zst ]] || wget $WGET_OPTIONS -P tarballs https://mirror.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-boost-$MSYS2_BOOST_VERSION-any.pkg.tar.zst'
     - mkdir -p deps
-    - tar xf tarballs/mingw-w64-x86_64-boost-$MINGW64_BOOST_VERSION-any.pkg.tar.zst --directory deps
-    - echo -e "[properties]\nboost_root = '$(pwd)/deps/mingw64/'" > boost.ini
+    - tar xf tarballs/mingw-w64-ucrt-x86_64-boost-$MSYS2_BOOST_VERSION-any.pkg.tar.zst --directory deps
+    - echo -e "[properties]\nboost_root = '$(pwd)/deps/ucrt64/'" > boost.ini
     - meson setup --buildtype=release -Db_lto=true --cross-file scripts/windows-cross.ini --cross-file boost.ini build
     - meson compile -C build -v
   cache:
