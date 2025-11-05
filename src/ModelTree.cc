@@ -2017,8 +2017,8 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
      the PATH variable can become too long and GCC will not be found. */
   if (mexext == "mexw64")
     {
-      // Put the MinGW environment shipped with Dynare in the path
-      auto mingwpath = dynareroot / "mingw64" / "bin";
+      // Put the MSYS2 UCRT64 environment shipped with Dynare in the path
+      auto mingwpath = dynareroot / "ucrt64" / "bin";
       string newpath = "PATH=" + mingwpath.string() + ';' + getenv("PATH");
       /* We can’t use setenv() since it is not available on MinGW. Note that
          putenv() seems to make an internal copy of the string on MinGW,
