@@ -402,6 +402,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>plot_init_date {return token::PLOT_INIT_DATE;}
 <DYNARE_STATEMENT>plot_end_date {return token::PLOT_END_DATE;}
 <DYNARE_STATEMENT>square_root_solver {return token::SQUARE_ROOT_SOLVER;}
+<DYNARE_STATEMENT>aim {yylval->emplace<string>(yytext); return token::AIM;}
 <DYNARE_STATEMENT>cycle_reduction {return token::CYCLE_REDUCTION;}
 <DYNARE_STATEMENT>logarithmic_reduction {return token::LOGARITHMIC_REDUCTION;}
 <DYNARE_STATEMENT>use_univariate_filters_if_singularity_is_detected {return token::USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED;}
