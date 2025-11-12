@@ -2341,6 +2341,7 @@ estimation_options : o_datafile
                    | o_mode_check_symmetric_plots
                    | o_mode_check_number_of_points
                    | o_prior_trunc
+                   | o_pruning
                    | o_mh_posterior_mode_estimation
                    | o_mh_nblocks
                    | o_load_mh_file
