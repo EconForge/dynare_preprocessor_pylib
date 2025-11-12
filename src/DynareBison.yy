@@ -150,7 +150,7 @@ str_tolower(string s)
 %token SIMUL_DEBUG SMOOTHER_DEBUG SIMUL_PERIODIC_SOLUTION LIKELIHOOD_PERIODIC_SOLUTION SMOOTHER_PERIODIC_SOLUTION
 %token LIKELIHOOD_INVERSION_FILTER SMOOTHER_INVERSION_FILTER FILTER_USE_RELEXATION
 %token LIKELIHOOD_PIECEWISE_KALMAN_FILTER SMOOTHER_PIECEWISE_KALMAN_FILTER LIKELIHOOD_MAX_KALMAN_ITERATIONS
-%token <string> TEX_NAME TRUE BIND RELAX ERROR_BIND ERROR_RELAX
+%token <string> AIM TEX_NAME TRUE BIND RELAX ERROR_BIND ERROR_RELAX
 %token UNIFORM_PDF UNIT_ROOT_VARS USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
 %token VALUES SCALES VAR VAREXO VAREXO_DET VARIABLE VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL WRITE_LATEX_STEADY_STATE_MODEL
@@ -4031,7 +4031,10 @@ o_mh_initialize_from_previous_mcmc_record : MH_INITIALIZE_FROM_PREVIOUS_MCMC_REC
 o_mh_initialize_from_previous_mcmc_prior : MH_INITIALIZE_FROM_PREVIOUS_MCMC_PRIOR EQUAL filename { driver.option_str("mh_initialize_from_previous_mcmc.prior", $3); };
 o_diffuse_filter: DIFFUSE_FILTER { driver.option_num("diffuse_filter", "true"); };
 o_plot_priors: PLOT_PRIORS EQUAL INT_NUMBER { driver.option_num("plot_priors", $3); };
-o_aim_solver: AIM_SOLVER { driver.option_num("aim_solver", "true"); };
+o_aim_solver: AIM_SOLVER { 
+                            driver.warning("The 'aim_solver' option is deprecated. It has been superseded by the 'dr=aim' option.");
+                            driver.option_num("aim_solver", "true"); 
+                         };
 o_partial_information : PARTIAL_INFORMATION { driver.option_num("partial_information", "true"); };
 o_sub_draws: SUB_DRAWS EQUAL INT_NUMBER { driver.option_num("sub_draws", $3); };
 o_planner_discount : PLANNER_DISCOUNT EQUAL expression { driver.set_planner_discount($3); };
@@ -4045,7 +4048,8 @@ o_lyapunov_fixed_point_tol : LYAPUNOV_FIXED_POINT_TOL EQUAL non_negative_number 
 o_lyapunov_doubling_tol : LYAPUNOV_DOUBLING_TOL EQUAL non_negative_number { driver.option_num("lyapunov_doubling_tol", $3); };
 o_dr : DR EQUAL CYCLE_REDUCTION { driver.option_num("dr_cycle_reduction", "true"); }
        | DR EQUAL LOGARITHMIC_REDUCTION { driver.option_num("dr_logarithmic_reduction", "true"); }
-       | DR EQUAL DEFAULT { driver.option_num("dr_cycle_reduction", "false"); driver.option_num("dr_logarithmic_reduction", "false"); };
+       | DR EQUAL AIM { driver.option_num("aim_solver", "true"); };
+       | DR EQUAL DEFAULT { driver.option_num("dr_cycle_reduction", "false"); driver.option_num("dr_logarithmic_reduction", "false"); driver.option_num("aim_solver", "false"); };
 o_dr_cycle_reduction_tol : DR_CYCLE_REDUCTION_TOL EQUAL non_negative_number { driver.option_num("dr_cycle_reduction_tol", $3); };
 o_dr_cycle_reduction_maxiter : DR_CYCLE_REDUCTION_MAXITER EQUAL INT_NUMBER { driver.option_num("dr_cycle_reduction_maxiter", $3); };
 o_dr_logarithmic_reduction_tol : DR_LOGARITHMIC_REDUCTION_TOL EQUAL non_negative_number { driver.option_num("dr_logarithmic_reduction_tol", $3); };
@@ -4686,6 +4690,7 @@ symbol : NAME
        | MULTIPLY
        | MFS
        | RESIDUAL
+       | AIM
        ;
 
 %%
