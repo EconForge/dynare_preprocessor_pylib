@@ -3101,9 +3101,9 @@ void
 ModelTree::writeSetAuxiliaryVariablesFile(const string& basename, bool julia) const
 {
   const auto output_type {julia ? (dynamic ? ExprNodeOutputType::juliaTimeDataFrame
-                                           : ExprNodeOutputType::juliaStaticModel)
+                                           : ExprNodeOutputType::juliaSparseStaticModel)
                                 : (dynamic ? ExprNodeOutputType::matlabDseries
-                                           : ExprNodeOutputType::matlabStaticModel)};
+                                           : ExprNodeOutputType::matlabSparseStaticModel)};
 
   ostringstream output_func_body;
   writeAuxVarRecursiveDefinitions(output_func_body, output_type);
