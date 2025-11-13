@@ -3936,7 +3936,7 @@ DynamicModel::isChecksumMatching(const string& basename) const
   // Write equation tags
   equation_tags.writeCheckSumInfo(buffer);
 
-  constexpr ExprNodeOutputType buffer_type {ExprNodeOutputType::CDynamicModel};
+  constexpr ExprNodeOutputType buffer_type {ExprNodeOutputType::CSparseDynamicModel};
 
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temp_term_union;
