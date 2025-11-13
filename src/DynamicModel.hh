@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -157,8 +157,6 @@ private:
      Only used when converting to StaticModel class. */
   int static_mfs {0};
 
-  // Writes dynamic model file (MATLAB/Octave version, legacy representation)
-  void writeDynamicMFile(const string& basename) const;
   //! Writes the code of the block-decomposed model in virtual machine bytecode
   void writeDynamicBlockBytecode(const string& basename) const;
   //! Writes the code of the model in virtual machine bytecode
@@ -221,20 +219,6 @@ private:
   //! Write reverse cross references
   void writeRevXrefs(ostream& output, const map<pair<int, int>, set<int>>& xrefmap,
                      const string& type) const;
-
-  /* Writes MATLAB/Octave wrapper function for computing residuals and
-     derivatives at the same time (legacy representation) */
-  void writeDynamicMWrapperFunction(const string& name, const string& ending) const;
-  /* Helper for writing MATLAB/Octave functions for residuals/derivatives and
-     their temporary terms (legacy representation) */
-  void writeDynamicMFileHelper(const string& basename, const string& name, const string& retvalname,
-                               const string& name_tt, size_t ttlen, const string& previous_tt_name,
-                               const ostringstream& init_s, const ostringstream& end_s,
-                               const ostringstream& s, const ostringstream& s_tt) const;
-
-  /* Create the compatibility dynamic.m file for MATLAB/Octave not yet using
-     the temporary terms array interface (legacy representation) */
-  void writeDynamicMCompatFile(const string& basename) const;
 
   //! Internal helper for the copy constructor and assignment operator
   /*! Copies all the structures that contain ExprNode*, by the converting the

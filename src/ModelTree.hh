@@ -265,9 +265,7 @@ protected:
   /* The nonzero values of the sparse block Jacobians in column-major order
      (which is the natural order for Compressed Sparse Column (CSC) storage).
      The pair of indices is (row, column). Nothing is stored for blocks of
-     type “evaluate”, since their Jacobian is not used in the sparse
-     representation (since the latter does not support the stochastic mode,
-     which only exists in the legacy representation). */
+     type “evaluate”, since their Jacobian is not used. */
   vector<SparseColumnMajorOrderMatrix> blocks_jacobian_sparse_column_major_order;
   /* Column indices for the sparse block Jacobian in Compressed Sparse Column
      (CSC) storage (corresponds to the “jc” vector in MATLAB terminology).
@@ -332,11 +330,6 @@ protected:
   // Returns outputs for derivatives and temporary terms at each derivation order
   template<ExprNodeOutputType output_type>
   pair<vector<ostringstream>, vector<ostringstream>> writeModelFileHelper() const;
-
-  // Writes and compiles dynamic/static file (C version, legacy representation)
-  template<bool dynamic>
-  void writeModelCFile(const string& basename, const string& mexext,
-                       const filesystem::path& matlabroot) const;
 
   // Writes per-block residuals and temporary terms (incl. for derivatives)
   template<ExprNodeOutputType output_type>
@@ -814,7 +807,7 @@ template<ExprNodeOutputType output_type>
 pair<vector<ostringstream>, vector<ostringstream>>
 ModelTree::writeModelFileHelper() const
 {
-  constexpr bool sparse {isSparseModelOutput(output_type)};
+  static_assert(isSparseModelOutput(output_type));
 
   vector<ostringstream> d_output(
       derivatives.size()); // Derivatives output (at all orders, including 0=residual)
@@ -834,38 +827,18 @@ ModelTree::writeModelFileHelper() const
       writeTemporaryTerms<output_type>(temporary_terms_derivatives[1], temp_term_union,
                                        temporary_terms_idxs, tt_output[1], tef_terms);
 
-      if constexpr (sparse)
+      // NB: we iterate over the Jacobian reordered in column-major order
+      // Indices of rows and columns are output in M_ and the JSON file (since they are
+      // constant)
+      for (int k {0}; const auto& [row_col, d1] : jacobian_sparse_column_major_order)
         {
-          // NB: we iterate over the Jacobian reordered in column-major order
-          // Indices of rows and columns are output in M_ and the JSON file (since they are
-          // constant)
-          for (int k {0}; const auto& [row_col, d1] : jacobian_sparse_column_major_order)
-            {
-              d_output[1] << "g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                          << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                          << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-              d1->writeOutput(d_output[1], output_type, temp_term_union, temporary_terms_idxs,
-                              tef_terms);
-              d_output[1] << ";" << endl;
-              k++;
-            }
-        }
-      else // Legacy representation (dense matrix)
-        {
-          for (const auto& [indices, d1] : derivatives[1])
-            {
-              auto [eq, var] = vectorToTuple<2>(indices);
-
-              d_output[1] << "g1" << LEFT_ARRAY_SUBSCRIPT(output_type);
-              if constexpr (isMatlabOutput(output_type) || isJuliaOutput(output_type))
-                d_output[1] << eq + 1 << "," << getJacobianCol(var, sparse) + 1;
-              else
-                d_output[1] << eq + getJacobianCol(var, sparse) * equations.size();
-              d_output[1] << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-              d1->writeOutput(d_output[1], output_type, temp_term_union, temporary_terms_idxs,
-                              tef_terms);
-              d_output[1] << ";" << endl;
-            }
+          d_output[1] << "g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                      << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                      << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+          d1->writeOutput(d_output[1], output_type, temp_term_union, temporary_terms_idxs,
+                          tef_terms);
+          d_output[1] << ";" << endl;
+          k++;
         }
     }
 
@@ -876,101 +849,18 @@ ModelTree::writeModelFileHelper() const
         writeTemporaryTerms<output_type>(temporary_terms_derivatives[i], temp_term_union,
                                          temporary_terms_idxs, tt_output[i], tef_terms);
 
-        if constexpr (sparse)
+        /* List non-zero elements of the tensor in row-major order (this is
+           suitable for the k-order solver according to Normann). */
+        // Tensor indices are output in M_ and the JSON file (since they are constant)
+        for (int k {0}; const auto& [vidx, d] : derivatives[i])
           {
-            /* List non-zero elements of the tensor in row-major order (this is
-               suitable for the k-order solver according to Normann). */
-            // Tensor indices are output in M_ and the JSON file (since they are constant)
-            for (int k {0}; const auto& [vidx, d] : derivatives[i])
-              {
-                d_output[i] << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                            << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                            << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-                d->writeOutput(d_output[i], output_type, temp_term_union, temporary_terms_idxs,
-                               tef_terms);
-                d_output[i] << ";" << endl;
-                k++;
-              }
-          }
-        else // Legacy representation
-          {
-            /* When creating the sparse matrix (in MATLAB or C mode), since storage
-               is in column-major order, output the first column, then the second,
-               then the third. This gives a significant performance boost in use_dll
-               mode (at both compilation and runtime), because it facilitates memory
-               accesses and expression reusage. */
-            ostringstream i_output, j_output, v_output;
-
-            for (int k {0}; // Current line index in the 3-column matrix
-                 const auto& [vidx, d] : derivatives[i])
-              {
-                int eq {vidx[0]};
-
-                int col_idx {0};
-                for (size_t j = 1; j < vidx.size(); j++)
-                  {
-                    col_idx *= getJacobianColsNbr(sparse);
-                    col_idx += getJacobianCol(vidx[j], sparse);
-                  }
-
-                if constexpr (isJuliaOutput(output_type))
-                  {
-                    d_output[i] << "    g" << i << "[" << eq + 1 << "," << col_idx + 1 << "] = ";
-                    d->writeOutput(d_output[i], output_type, temp_term_union, temporary_terms_idxs,
-                                   tef_terms);
-                    d_output[i] << endl;
-                  }
-                else
-                  {
-                    i_output << "g" << i << "_i" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                             << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                             << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl;
-                    j_output << "g" << i << "_j" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                             << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                             << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << col_idx + 1 << ";"
-                             << endl;
-                    v_output << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                             << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                             << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-                    d->writeOutput(v_output, output_type, temp_term_union, temporary_terms_idxs,
-                                   tef_terms);
-                    v_output << ";" << endl;
-
-                    k++;
-                  }
-
-                // Output symetric elements at order 2
-                if (i == 2 && vidx[1] != vidx[2])
-                  {
-                    int col_idx_sym {getJacobianCol(vidx[2], sparse) * getJacobianColsNbr(sparse)
-                                     + getJacobianCol(vidx[1], sparse)};
-
-                    if constexpr (isJuliaOutput(output_type))
-                      d_output[2] << "    g2[" << eq + 1 << "," << col_idx_sym + 1 << "] = "
-                                  << "g2[" << eq + 1 << "," << col_idx + 1 << "]" << endl;
-                    else
-                      {
-                        i_output << "g" << i << "_i" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                                 << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";"
-                                 << endl;
-                        j_output << "g" << i << "_j" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                                 << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << col_idx_sym + 1
-                                 << ";" << endl;
-                        v_output << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                                 << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "="
-                                 << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
-                                 << k - 1 + ARRAY_SUBSCRIPT_OFFSET(output_type)
-                                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
-
-                        k++;
-                      }
-                  }
-              }
-            if constexpr (!isJuliaOutput(output_type))
-              d_output[i] << i_output.str() << j_output.str() << v_output.str();
+            d_output[i] << "g" << i << "_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+                        << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
+                        << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+            d->writeOutput(d_output[i], output_type, temp_term_union, temporary_terms_idxs,
+                           tef_terms);
+            d_output[i] << ";" << endl;
+            k++;
           }
       }
 
@@ -987,230 +877,6 @@ ModelTree::writeModelFileHelper() const
     }
 
   return {move(d_output), move(tt_output)};
-}
-
-template<bool dynamic>
-void
-ModelTree::writeModelCFile(const string& basename, const string& mexext,
-                           const filesystem::path& matlabroot) const
-{
-  ofstream output;
-  auto open_file = [&output](const filesystem::path& p) {
-    output.open(p, ios::out | ios::binary);
-    if (!output.is_open())
-      {
-        cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
-        exit(EXIT_FAILURE);
-      }
-  };
-
-  const filesystem::path model_src_dir {filesystem::path {basename} / "model" / "src"};
-
-  auto [d_output, tt_output] = writeModelFileHelper<dynamic ? ExprNodeOutputType::CDynamicModel
-                                                            : ExprNodeOutputType::CStaticModel>();
-  vector<filesystem::path> header_files, object_files;
-
-  const string prefix {dynamic ? "dynamic_" : "static_"};
-  const string ss_it_argin {dynamic ? ", const double *restrict steady_state, int it_" : ""};
-  const string ss_it_argout {dynamic ? ", steady_state, it_" : ""};
-  const string nb_row_x_argin {dynamic ? ", int nb_row_x" : ""};
-  const string nb_row_x_argout {dynamic ? ", nb_row_x" : ""};
-
-  for (size_t i {0}; i < d_output.size(); i++)
-    {
-      const string funcname {prefix + (i == 0 ? "resid" : "g" + to_string(i))};
-
-      const string prototype_tt {"void " + funcname
-                                 + "_tt(const double *restrict y, const double *restrict x"
-                                 + nb_row_x_argin + ", const double *restrict params" + ss_it_argin
-                                 + ", double *restrict T)"};
-
-      const filesystem::path header_tt {model_src_dir / (funcname + "_tt.h")};
-      open_file(header_tt);
-      output << prototype_tt << ";" << endl;
-      output.close();
-      header_files.push_back(header_tt);
-
-      const filesystem::path source_tt {model_src_dir / (funcname + "_tt.c")};
-      open_file(source_tt);
-      output << "#include <math.h>" << endl
-             << R"(#include "mex.h")" << endl // Needed for calls to external functions
-             << endl;
-      writeCHelpersDefinition(output);
-      output << endl
-             << prototype_tt << endl
-             << "{" << endl
-             << tt_output[i].str() << "}" << endl
-             << endl;
-      output.close();
-      object_files.push_back(
-          compileMEX(model_src_dir, funcname + "_tt", mexext, {source_tt}, matlabroot, false));
-
-      const string prototype_main {[&funcname, &ss_it_argin, &nb_row_x_argin, i] {
-        string p = "void " + funcname + "(const double *restrict y, const double *restrict x"
-                   + nb_row_x_argin + ", const double *restrict params" + ss_it_argin
-                   + ", const double *restrict T, ";
-        if (i == 0)
-          p += "double *restrict residual";
-        else if (i == 1)
-          p += "double *restrict g1";
-        else
-          p += "double *restrict g" + to_string(i) + "_i, double *restrict g" + to_string(i)
-               + "_j, double *restrict g" + to_string(i) + "_v";
-        p += ")";
-        return p;
-      }()};
-
-      const filesystem::path header_main {model_src_dir / (funcname + ".h")};
-      open_file(header_main);
-      output << prototype_main << ";" << endl;
-      output.close();
-      header_files.push_back(header_main);
-
-      const filesystem::path source_main {model_src_dir / (funcname + ".c")};
-      open_file(source_main);
-      output << "#include <math.h>" << endl
-             << R"(#include "mex.h")" << endl // Needed for calls to external functions
-             << endl;
-      writeCHelpersDefinition(output);
-      if (i == 0)
-        writeCHelpersDeclaration(
-            output); // Provide external definition of helpers in resid main file
-      output << endl
-             << prototype_main << endl
-             << "{" << endl
-             << d_output[i].str() << "}" << endl
-             << endl;
-      output.close();
-      object_files.push_back(
-          compileMEX(model_src_dir, funcname, mexext, {source_main}, matlabroot, false));
-    }
-
-  const filesystem::path filename {model_src_dir / (dynamic ? "dynamic.c" : "static.c")};
-
-  const int ntt {static_cast<int>(
-      temporary_terms_derivatives[0].size() + temporary_terms_derivatives[1].size()
-      + temporary_terms_derivatives[2].size() + temporary_terms_derivatives[3].size())};
-
-  open_file(filename);
-  output << "/*" << endl
-         << " * " << filename << " : Computes " << modelClassName() << " for Dynare" << endl
-         << " *" << endl
-         << " * Warning : this file is generated automatically by Dynare" << endl
-         << " *           from model file (.mod)" << endl
-         << " */" << endl
-         << endl
-         << "#include <math.h>" << endl   // Needed for getPowerDeriv()
-         << "#include <stdlib.h>" << endl // Needed for malloc() and free()
-         << R"(#include "mex.h")" << endl;
-  for (const auto& it : header_files)
-    output << "#include " << it.filename() << endl;
-  output << endl
-         << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
-         << "{" << endl;
-  if constexpr (dynamic)
-    output
-        << "  if (nlhs > " << min(computed_derivs_order + 1, 4) << ")" << endl
-        << R"(    mexErrMsgTxt("Derivatives of higher order than computed have been requested");)"
-        << endl
-        << "  if (nrhs != 5)" << endl
-        << R"(    mexErrMsgTxt("Requires exactly 5 input arguments");)" << endl;
-  else
-    output << "  if (nrhs > 3)" << endl
-           << R"(    mexErrMsgTxt("Accepts at most 3 output arguments");)" << endl
-           << "  if (nrhs != 3)" << endl
-           << R"(    mexErrMsgTxt("Requires exactly 3 input arguments");)" << endl;
-  output << endl
-         << "  double *y = mxGetDoubles(prhs[0]);" << endl
-         << "  double *x = mxGetDoubles(prhs[1]);" << endl
-         << "  double *params = mxGetDoubles(prhs[2]);" << endl;
-  if constexpr (dynamic)
-    output << "  double *steady_state = mxGetDoubles(prhs[3]);" << endl
-           << "  int it_ = (int) mxGetScalar(prhs[4]) - 1;" << endl
-           << "  int nb_row_x = mxGetM(prhs[1]);" << endl;
-  output << endl
-         << "  double *T = (double *) malloc(sizeof(double)*" << ntt << ");" << endl
-         << endl
-         << "  if (nlhs >= 1)" << endl
-         << "    {" << endl
-         << "       plhs[0] = mxCreateDoubleMatrix(" << equations.size() << ",1, mxREAL);" << endl
-         << "       double *residual = mxGetDoubles(plhs[0]);" << endl
-         << "       " << prefix << "resid_tt(y, x" << nb_row_x_argout << ", params" << ss_it_argout
-         << ", T);" << endl
-         << "       " << prefix << "resid(y, x" << nb_row_x_argout << ", params" << ss_it_argout
-         << ", T, residual);" << endl
-         << "    }" << endl
-         << endl
-         << "  if (nlhs >= 2)" << endl
-         << "    {" << endl
-         << "       plhs[1] = mxCreateDoubleMatrix(" << equations.size() << ", "
-         << getJacobianColsNbr(false) << ", mxREAL);" << endl
-         << "       double *g1 = mxGetDoubles(plhs[1]);" << endl
-         << "       " << prefix << "g1_tt(y, x" << nb_row_x_argout << ", params" << ss_it_argout
-         << ", T);" << endl
-         << "       " << prefix << "g1(y, x" << nb_row_x_argout << ", params" << ss_it_argout
-         << ", T, g1);" << endl
-         << "    }" << endl
-         << endl
-         << "  if (nlhs >= 3)" << endl
-         << "    {" << endl
-         << "      mxArray *g2_i = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1
-         << ", mxREAL);" << endl
-         << "      mxArray *g2_j = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1
-         << ", mxREAL);" << endl
-         << "      mxArray *g2_v = mxCreateDoubleMatrix(" << NNZDerivatives[2] << ", " << 1
-         << ", mxREAL);" << endl
-         << "      " << prefix << "g2_tt(y, x" << nb_row_x_argout << ", params" << ss_it_argout
-         << ", T);" << endl
-         << "      " << prefix << "g2(y, x" << nb_row_x_argout << ", params" << ss_it_argout
-         << ", T, mxGetDoubles(g2_i), mxGetDoubles(g2_j), mxGetDoubles(g2_v));" << endl
-         << "      mxArray *m = mxCreateDoubleScalar(" << equations.size() << ");" << endl
-         << "      mxArray *n = mxCreateDoubleScalar("
-         << getJacobianColsNbr(false) * getJacobianColsNbr(false) << ");" << endl
-         << "      mxArray *plhs_sparse[1], *prhs_sparse[5] = { g2_i, g2_j, g2_v, m, n };" << endl
-         << R"(      mexCallMATLAB(1, plhs_sparse, 5, prhs_sparse, "sparse");)" << endl
-         << "      plhs[2] = plhs_sparse[0];" << endl
-         << "      mxDestroyArray(g2_i);" << endl
-         << "      mxDestroyArray(g2_j);" << endl
-         << "      mxDestroyArray(g2_v);" << endl
-         << "      mxDestroyArray(m);" << endl
-         << "      mxDestroyArray(n);" << endl
-         << "    }" << endl
-         << endl;
-  if constexpr (dynamic)
-    output << "  if (nlhs >= 4)" << endl
-           << "    {" << endl
-           << "      mxArray *g3_i = mxCreateDoubleMatrix(" << NNZDerivatives[3] << ", " << 1
-           << ", mxREAL);" << endl
-           << "      mxArray *g3_j = mxCreateDoubleMatrix(" << NNZDerivatives[3] << ", " << 1
-           << ", mxREAL);" << endl
-           << "      mxArray *g3_v = mxCreateDoubleMatrix(" << NNZDerivatives[3] << ", " << 1
-           << ", mxREAL);" << endl
-           << "      " << prefix << "g3_tt(y, x" << nb_row_x_argout << ", params" << ss_it_argout
-           << ", T);" << endl
-           << "      " << prefix << "g3(y, x" << nb_row_x_argout << ", params" << ss_it_argout
-           << ", T, mxGetDoubles(g3_i), mxGetDoubles(g3_j), mxGetDoubles(g3_v));" << endl
-           << "      mxArray *m = mxCreateDoubleScalar(" << equations.size() << ");" << endl
-           << "      mxArray *n = mxCreateDoubleScalar("
-           << getJacobianColsNbr(false) * getJacobianColsNbr(false) * getJacobianColsNbr(false)
-           << ");" << endl
-           << "      mxArray *plhs_sparse[1], *prhs_sparse[5] = { g3_i, g3_j, g3_v, m, n };" << endl
-           << R"(      mexCallMATLAB(1, plhs_sparse, 5, prhs_sparse, "sparse");)" << endl
-           << "      plhs[3] = plhs_sparse[0];" << endl
-           << "      mxDestroyArray(g3_i);" << endl
-           << "      mxDestroyArray(g3_j);" << endl
-           << "      mxDestroyArray(g3_v);" << endl
-           << "      mxDestroyArray(m);" << endl
-           << "      mxDestroyArray(n);" << endl
-           << "    }" << endl
-           << endl;
-
-  output << "  free(T);" << endl << "}" << endl;
-  output.close();
-
-  object_files.push_back(filename);
-  compileMEX(packageDir(basename), dynamic ? "dynamic" : "static", mexext, object_files,
-             matlabroot);
 }
 
 template<ExprNodeOutputType output_type>
