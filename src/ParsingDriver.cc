@@ -2333,6 +2333,28 @@ ParsingDriver::run_identification()
 }
 
 void
+ParsingDriver::heterogeneity_load_steady_state()
+{
+  mod_file->addStatement(make_unique<HeterogeneityLoadSteadyStateStatement>(move(options_list)));
+  options_list.clear();
+}
+
+void
+ParsingDriver::heterogeneity_solve()
+{
+  mod_file->addStatement(make_unique<HeterogeneitySolveStatement>(move(options_list)));
+  options_list.clear();
+}
+
+void
+ParsingDriver::heterogeneity_simulate(vector<string> symbol_list)
+{
+  mod_file->addStatement(
+      make_unique<HeterogeneitySimulateStatement>(move(symbol_list), move(options_list)));
+  options_list.clear();
+}
+
+void
 ParsingDriver::add_mc_filename(string filename, string prior)
 {
   for (auto& it : filename_list)

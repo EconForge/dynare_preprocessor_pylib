@@ -224,6 +224,7 @@ str_tolower(string s)
 %token HETEROGENEITY HETEROGENEITY_DIMENSION SUM PERFECT_FORESIGHT_CONTROLLED_PATHS EXOGENIZE ENDOGENIZE
 %token PRECONDITIONER FIRST_ITER_LU BLOCK_DIAGONAL_LU INCOMPLETE_LU ITER_TOL ITER_MAXIT GMRES_RESTART BLOCK_DIAGONAL_LU_MAXLU BLOCK_DIAGONAL_LU_NPERIODS BLOCK_DIAGONAL_LU_NLU BLOCK_DIAGONAL_LU_RELU
 CHECK_JACOBIAN_SINGULARITY
+%token TRUNCATION_HORIZON HETEROGENEITY_LOAD_STEADY_STATE HETEROGENEITY_SOLVE HETEROGENEITY_SIMULATE
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -408,6 +409,9 @@ statement : parameters
           | resid
           | matched_irfs
           | matched_irfs_weights
+          | heterogeneity_load_steady_state
+          | heterogeneity_solve
+          | heterogeneity_simulate
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -3649,6 +3653,61 @@ smoother2histval_option : o_infile
                         | o_outvars
                         ;
 
+heterogeneity_load_steady_state : HETEROGENEITY_LOAD_STEADY_STATE ';'
+                                 { driver.heterogeneity_load_steady_state(); }
+                                | HETEROGENEITY_LOAD_STEADY_STATE '(' heterogeneity_load_steady_state_options_list ')' ';'
+                                 { driver.heterogeneity_load_steady_state(); }
+                                ;
+
+heterogeneity_load_steady_state_options_list : heterogeneity_load_steady_state_options_list COMMA heterogeneity_load_steady_state_options
+                                             | heterogeneity_load_steady_state_options
+                                             ;
+
+heterogeneity_load_steady_state_options : o_heterogeneity_steady_state_filename
+                                        | o_heterogeneity_steady_state_variable
+                                        ;
+
+heterogeneity_solve : HETEROGENEITY_SOLVE ';'
+                     { driver.heterogeneity_solve(); }
+                    | HETEROGENEITY_SOLVE '(' heterogeneity_solve_options_list ')' ';'
+                     { driver.heterogeneity_solve(); }
+                    ;
+
+heterogeneity_solve_options_list : heterogeneity_solve_options_list COMMA heterogeneity_solve_options
+                                 | heterogeneity_solve_options
+                                 ;
+
+heterogeneity_solve_options : o_truncation_horizon
+                            ;
+
+heterogeneity_simulate : HETEROGENEITY_SIMULATE ';'
+                        { driver.heterogeneity_simulate(); }
+                       | HETEROGENEITY_SIMULATE '(' heterogeneity_simulate_options_list ')' ';'
+                        { driver.heterogeneity_simulate(); }
+                       | HETEROGENEITY_SIMULATE '(' heterogeneity_simulate_options_list ')' symbol_list ';'
+                        { driver.heterogeneity_simulate($5); }
+                       | HETEROGENEITY_SIMULATE symbol_list ';'
+                        { driver.heterogeneity_simulate($2); }
+                       ;
+
+heterogeneity_simulate_options_list : heterogeneity_simulate_options_list COMMA heterogeneity_simulate_options
+                                    | heterogeneity_simulate_options
+                                    ;
+
+heterogeneity_simulate_options : o_irf
+                               | o_periods
+                               | o_drop
+                               | o_irf_shocks
+                               | o_relative_irf
+                               | o_nograph
+                               | o_nodisplay
+                               | o_graph_format
+                               | o_tex
+                               | o_irf_plot_threshold
+                               | o_print
+                               | o_noprint
+                               ;
+
 shock_groups : SHOCK_GROUPS ';' shock_group_list END ';'
                { driver.end_shock_groups("default"); }
              | SHOCK_GROUPS '(' NAME EQUAL symbol ')' ';' shock_group_list END ';'
@@ -3862,6 +3921,9 @@ o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); 
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_filename : FILENAME EQUAL filename { driver.option_str("filename", $3); };
+o_heterogeneity_steady_state_filename : FILENAME EQUAL filename { driver.option_str("steady_state_file_name", $3); };
+o_heterogeneity_steady_state_variable : VARIABLE EQUAL symbol { driver.option_str("steady_state_variable_name", $3); };
+o_truncation_horizon : TRUNCATION_HORIZON EQUAL INT_NUMBER { driver.option_num("truncation_horizon", $3); };
 o_var_eq_tags : EQTAGS EQUAL vec_str { driver.option_vec_str("var.eqtags", $3); }
 o_var_structural : STRUCTURAL { driver.option_num("var.structural", "true"); }
 o_dirname : DIRNAME EQUAL filename { driver.option_str("dirname", $3); };

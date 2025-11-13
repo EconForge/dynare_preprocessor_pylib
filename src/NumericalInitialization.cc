@@ -740,3 +740,32 @@ LoadParamsAndSteadyStateStatement::fillEvalContext(eval_context_t& eval_context)
        NumericalConstants.cc */
     eval_context[id] = strtod(value.c_str(), nullptr);
 }
+
+HeterogeneityLoadSteadyStateStatement::HeterogeneityLoadSteadyStateStatement(
+    OptionsList options_list_arg) :
+    options_list {move(options_list_arg)}
+{
+}
+
+void
+HeterogeneityLoadSteadyStateStatement::writeOutput(ostream& output, const string& basename,
+                                                   [[maybe_unused]] bool minimal_workspace) const
+{
+  options_list.writeOutput(output, "options_.heterogeneity");
+  output << "oo_.heterogeneity = struct;" << endl
+         << "oo_.heterogeneity = heterogeneity.load_steady_state(M_, options_.heterogeneity, "
+            "oo_.heterogeneity);"
+         << endl;
+}
+
+void
+HeterogeneityLoadSteadyStateStatement::writeJsonOutput(ostream& output) const
+{
+  output << R"({"statementName": "heterogeneity_load_steady_state")";
+  if (!options_list.empty())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}

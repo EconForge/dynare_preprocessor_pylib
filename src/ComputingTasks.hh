@@ -1340,4 +1340,27 @@ private:
   const bool overwrite;
 };
 
+class HeterogeneitySolveStatement : public Statement
+{
+private:
+  const OptionsList options_list;
+
+public:
+  explicit HeterogeneitySolveStatement(OptionsList options_list_arg);
+  void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream& output) const override;
+};
+
+class HeterogeneitySimulateStatement : public Statement
+{
+private:
+  const SymbolList symbol_list;
+  const OptionsList options_list;
+
+public:
+  HeterogeneitySimulateStatement(SymbolList symbol_list_arg, OptionsList options_list_arg);
+  void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream& output) const override;
+};
+
 #endif
