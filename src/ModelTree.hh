@@ -1624,7 +1624,6 @@ ModelTree::writeJsonComputingPassOutputHelper(bool writeDetails) const
   d_output[0] << ", ";
   writeJsonModelEquations(d_output[0], true);
 
-  int ncols {getJacobianColsNbr(false)};
   for (size_t i {1}; i < derivatives.size(); i++)
     {
       string matrix_name {i == 1   ? "jacobian"
@@ -1636,8 +1635,10 @@ ModelTree::writeJsonComputingPassOutputHelper(bool writeDetails) const
       temp_term_union.insert(temporary_terms_derivatives[i].begin(),
                              temporary_terms_derivatives[i].end());
       d_output[i] << R"(, ")" << matrix_name << R"(": {)"
-                  << R"(  "nrows": )" << equations.size() << R"(, "ncols": )" << ncols
-                  << R"(, "entries": [)";
+                  << R"("dims": [)" << equations.size();
+      for (size_t j {1}; j <= i; j++)
+        d_output[i] << ", " << getJacobianColsNbr(true);
+      d_output[i] << R"(], "entries": [)";
 
       for (bool printed_something {false}; const auto& [vidx, d] : derivatives[i])
         {
@@ -1646,46 +1647,30 @@ ModelTree::writeJsonComputingPassOutputHelper(bool writeDetails) const
 
           int eq {vidx[0]};
 
-          int col_idx {0};
+          d_output[i] << R"({"indices": [)" << eq + 1;
           for (size_t j {1}; j < vidx.size(); j++)
-            {
-              col_idx *= getJacobianColsNbr(false);
-              col_idx += getJacobianCol(vidx[j], false);
-            }
+            d_output[i] << ", " << getJacobianCol(vidx[j], true) + 1;
+          d_output[i] << "]";
 
           if (writeDetails)
-            d_output[i] << R"({"eq": )" << eq + 1;
-          else
-            d_output[i] << R"({"row": )" << eq + 1;
-
-          d_output[i] << R"(, "col": )" << (i > 1 ? "[" : "") << col_idx + 1;
-
-          if (i == 2 && vidx[1] != vidx[2]) // Symmetric elements in hessian
             {
-              int col_idx_sym {getJacobianCol(vidx[2], false) * getJacobianColsNbr(false)
-                               + getJacobianCol(vidx[1], false)};
-              d_output[i] << ", " << col_idx_sym + 1;
-            }
-          if (i > 1)
-            d_output[i] << "]";
+              d_output[i] << R"(, "eq": )" << eq + 1;
 
-          if (writeDetails)
-            for (size_t j = 1; j < vidx.size(); j++)
-              {
-                d_output[i] << R"(, "var)" << (i > 1 ? to_string(j) : "") << R"(": ")"
-                            << getNameByDerivID(vidx[j]) << R"(")";
-                if constexpr (dynamic)
-                  d_output[i] << R"(, "shift)" << (i > 1 ? to_string(j) : "") << R"(": )"
-                              << getLagByDerivID(vidx[j]);
-              }
+              for (size_t j = 1; j < vidx.size(); j++)
+                {
+                  d_output[i] << R"(, "var)" << (i > 1 ? to_string(j) : "") << R"(": ")"
+                              << getNameByDerivID(vidx[j]) << R"(")";
+                  if constexpr (dynamic)
+                    d_output[i] << R"(, "shift)" << (i > 1 ? to_string(j) : "") << R"(": )"
+                                << getLagByDerivID(vidx[j]);
+                }
+            }
 
           d_output[i] << R"(, "val": ")";
           d->writeJsonOutput(d_output[i], temp_term_union, tef_terms);
           d_output[i] << R"("})" << endl;
         }
       d_output[i] << "]}";
-
-      ncols *= getJacobianColsNbr(false);
     }
 
   return {move(mlv_output), move(d_output)};
@@ -1742,7 +1727,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
   gp_output << R"("deriv_jacobian_wrt_params": {)"
             << R"(  "neqs": )" << equations.size() << R"(, "nvarcols": )"
-            << getJacobianColsNbr(false) << R"(, "nparamcols": )" << symbol_table.param_nbr()
+            << getJacobianColsNbr(true) << R"(, "nparamcols": )" << symbol_table.param_nbr()
             << R"(, "entries": [)";
   for (bool printed_something {false}; const auto& [vidx, d] : params_derivatives.at({1, 1}))
     {
@@ -1751,7 +1736,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       auto [eq, var, param] {vectorToTuple<3>(vidx)};
 
-      int var_col {getJacobianCol(var, false) + 1};
+      int var_col {getJacobianCol(var, true) + 1};
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
       if (writeDetails)
@@ -1807,7 +1792,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
   gpp_output << R"("second_deriv_jacobian_wrt_params": {)"
              << R"(  "neqs": )" << equations.size() << R"(, "nvarcols": )"
-             << getJacobianColsNbr(false) << R"(, "nparam1cols": )" << symbol_table.param_nbr()
+             << getJacobianColsNbr(true) << R"(, "nparam1cols": )" << symbol_table.param_nbr()
              << R"(, "nparam2cols": )" << symbol_table.param_nbr() << R"(, "entries": [)";
   for (bool printed_something {false}; const auto& [vidx, d] : params_derivatives.at({1, 2}))
     {
@@ -1816,7 +1801,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       auto [eq, var, param1, param2] {vectorToTuple<4>(vidx)};
 
-      int var_col {getJacobianCol(var, false) + 1};
+      int var_col {getJacobianCol(var, true) + 1};
       int param1_col {getTypeSpecificIDByDerivID(param1) + 1};
       int param2_col {getTypeSpecificIDByDerivID(param2) + 1};
 
@@ -1845,7 +1830,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
   hp_output << R"("derivative_hessian_wrt_params": {)"
             << R"(  "neqs": )" << equations.size() << R"(, "nvar1cols": )"
-            << getJacobianColsNbr(false) << R"(, "nvar2cols": )" << getJacobianColsNbr(false)
+            << getJacobianColsNbr(true) << R"(, "nvar2cols": )" << getJacobianColsNbr(true)
             << R"(, "nparamcols": )" << symbol_table.param_nbr() << R"(, "entries": [)";
   for (bool printed_something {false}; const auto& [vidx, d] : params_derivatives.at({2, 1}))
     {
@@ -1854,8 +1839,8 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       auto [eq, var1, var2, param] {vectorToTuple<4>(vidx)};
 
-      int var1_col {getJacobianCol(var1, false) + 1};
-      int var2_col {getJacobianCol(var2, false) + 1};
+      int var1_col {getJacobianCol(var1, true) + 1};
+      int var2_col {getJacobianCol(var2, true) + 1};
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
       if (writeDetails)
@@ -1887,8 +1872,8 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
     {
       g3p_output << R"("derivative_g3_wrt_params": {)"
                  << R"(  "neqs": )" << equations.size() << R"(, "nvar1cols": )"
-                 << getJacobianColsNbr(false) << R"(, "nvar2cols": )" << getJacobianColsNbr(false)
-                 << R"(, "nvar3cols": )" << getJacobianColsNbr(false) << R"(, "nparamcols": )"
+                 << getJacobianColsNbr(true) << R"(, "nvar2cols": )" << getJacobianColsNbr(true)
+                 << R"(, "nvar3cols": )" << getJacobianColsNbr(true) << R"(, "nparamcols": )"
                  << symbol_table.param_nbr() << R"(, "entries": [)";
       for (bool printed_something {false}; const auto& [vidx, d] : params_derivatives.at({3, 1}))
         {
@@ -1897,9 +1882,9 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
           auto [eq, var1, var2, var3, param] {vectorToTuple<5>(vidx)};
 
-          int var1_col {getJacobianCol(var1, false) + 1};
-          int var2_col {getJacobianCol(var2, false) + 1};
-          int var3_col {getJacobianCol(var3, false) + 1};
+          int var1_col {getJacobianCol(var1, true) + 1};
+          int var2_col {getJacobianCol(var2, true) + 1};
+          int var3_col {getJacobianCol(var3, true) + 1};
           int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
           if (writeDetails)
