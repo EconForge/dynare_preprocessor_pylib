@@ -3286,8 +3286,10 @@ sensitivity_option : o_gsa_identification
                    | o_useautocorr
                    | o_ar
                    | o_kalman_algo
+                   | o_kalman_tol
                    | o_lik_init
                    | o_diffuse_filter
+                   | o_diffuse_kalman_tol
                    | o_analytic_derivation
                    | o_analytic_derivation_mode
                    ;
@@ -3310,8 +3312,12 @@ shock_decomposition_option : o_parameter_set
                            | o_loglinear
                            | o_diffuse_kalman_tol
                            | o_diffuse_filter
+                           | o_kalman_algo
+                           | o_kalman_tol
+                           | o_lik_init
                            | o_xls_sheet
                            | o_xls_range
+                           | o_smoother_redux
                            ;
 
 realtime_shock_decomposition_options_list : realtime_shock_decomposition_option COMMA realtime_shock_decomposition_options_list
@@ -3485,6 +3491,7 @@ calib_smoother_option : o_filtered_vars
                       | o_datafile
                       | o_prefilter
                       | o_kalman_algo
+                      | o_kalman_tol
                       | o_loglinear
                       | o_first_obs
                       | o_filter_covariance
