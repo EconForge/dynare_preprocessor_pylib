@@ -610,8 +610,6 @@ DynamicModel::writeBlockDriverOutput(ostream& output) const
       output << "];" << endl
              << "M_.block_structure.block(" << blk + 1 << ").is_linear = " << boolalpha
              << blocks[blk].linear << ';' << endl
-             << "M_.block_structure.block(" << blk + 1
-             << ").NNZDerivatives = " << blocks_derivatives[blk].size() << ';' << endl
              << "M_.block_structure.block(" << blk + 1 << ").bytecode_jacob_cols_to_sparse = [";
       const bool one_boundary {
           blocks[blk].simulation_type == BlockSimulationType::solveBackwardSimple
@@ -853,13 +851,6 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
 
   if (compute_xrefs)
     writeXrefs(output);
-
-  // Write number of non-zero derivatives
-  // Use -1 if the derivatives have not been computed
-  output << "M_.NNZDerivatives = [";
-  for (int i = 1; i < static_cast<int>(NNZDerivatives.size()); i++)
-    output << (i > computed_derivs_order ? -1 : NNZDerivatives[i]) << "; ";
-  output << "];" << endl;
 
   writeDriverSparseIndicesHelper("dynamic", output);
 
@@ -3893,16 +3884,8 @@ DynamicModel::writeJsonDynamicModelInfo(ostream& output) const
          << R"("orig_maximum_exo_det_lead": )" << max_exo_det_lead_orig << "," << endl
          << R"("orig_maximum_lag": )" << max_lag_orig << "," << endl
          << R"("orig_maximum_lead": )" << max_lead_orig << "," << endl
-         << R"("orig_maximum_lag_with_diffs_expanded": )" << max_lag_with_diffs_expanded_orig << ","
-         << endl
-         << R"("NNZDerivatives": [)";
-  for (int i = 1; i < static_cast<int>(NNZDerivatives.size()); i++)
-    {
-      output << (i > computed_derivs_order ? -1 : NNZDerivatives[i]);
-      if (i < static_cast<int>(NNZDerivatives.size()) - 1)
-        output << ", ";
-    }
-  output << "]}" << endl;
+         << R"("orig_maximum_lag_with_diffs_expanded": )" << max_lag_with_diffs_expanded_orig << "}"
+         << endl;
 }
 
 void

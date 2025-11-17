@@ -121,11 +121,6 @@ protected:
      elements several times). Only non-zero derivatives are stored. */
   vector<map<vector<int>, expr_t>> derivatives;
 
-  //! Number of non-zero derivatives
-  /*! Index 0 is not used, index 1 contains number of non-zero first
-    derivatives, ... */
-  vector<int> NNZDerivatives;
-
   // Used to order pairs of indices (row, col) according to column-major order
   struct columnMajorOrderLess
   {

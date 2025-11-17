@@ -149,7 +149,6 @@ ModelTree::ModelTree(SymbolTable& symbol_table_arg, NumericalConstants& num_cons
     DataTree {symbol_table_arg, num_constants_arg, external_functions_table_arg,
               heterogeneity_table_arg, is_dynamic_arg},
     derivatives(4),
-    NNZDerivatives(4, 0),
     temporary_terms_derivatives(4)
 {
   // Ensure that elements accessed by writeParamsDerivativesFileHelper() exist
@@ -168,7 +167,6 @@ ModelTree::ModelTree(const ModelTree& m) :
     equations_lineno {m.equations_lineno},
     equation_tags {m.equation_tags},
     computed_derivs_order {m.computed_derivs_order},
-    NNZDerivatives {m.NNZDerivatives},
     jacobian_sparse_colptr {m.jacobian_sparse_colptr},
     eq_idx_block2orig {m.eq_idx_block2orig},
     endo_idx_block2orig {m.endo_idx_block2orig},
@@ -198,7 +196,6 @@ ModelTree::operator=(const ModelTree& m)
   complementarity_conditions.clear();
 
   computed_derivs_order = m.computed_derivs_order;
-  NNZDerivatives = m.NNZDerivatives;
 
   derivatives.clear();
 
@@ -905,9 +902,8 @@ ModelTree::computeDerivatives(int order, const set<int>& vars)
 
   computed_derivs_order = order;
 
-  // Do not shrink the vectors, since they have a minimal size of 4 (see constructor)
+  // Do not shrink the vector, since it has a minimal size of 4 (see constructor)
   derivatives.resize(max(static_cast<size_t>(order + 1), derivatives.size()));
-  NNZDerivatives.resize(max(static_cast<size_t>(order + 1), NNZDerivatives.size()), 0);
 
   // First-order derivatives
   for (int var : vars)
@@ -917,7 +913,6 @@ ModelTree::computeDerivatives(int order, const set<int>& vars)
         if (d1 == Zero)
           continue;
         derivatives[1][{eq, var}] = d1;
-        ++NNZDerivatives[1];
       }
 
   // Compute the sparse representation of the Jacobian
@@ -943,11 +938,6 @@ ModelTree::computeDerivatives(int order, const set<int>& vars)
           indices.push_back(var);
           // At this point, indices of endogenous variables are sorted in non-decreasing order
           derivatives[o][indices] = d;
-          // We output symmetric elements at order = 2
-          if (o == 2 && indices[1] != indices[2])
-            NNZDerivatives[o] += 2;
-          else
-            NNZDerivatives[o]++;
         }
 }
 
