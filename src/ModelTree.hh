@@ -802,8 +802,6 @@ template<ExprNodeOutputType output_type>
 pair<vector<ostringstream>, vector<ostringstream>>
 ModelTree::writeModelFileHelper() const
 {
-  static_assert(isSparseModelOutput(output_type));
-
   vector<ostringstream> d_output(
       derivatives.size()); // Derivatives output (at all orders, including 0=residual)
   vector<ostringstream> tt_output(derivatives.size()); // Temp terms output (at all orders)
@@ -961,8 +959,6 @@ ModelTree::writeParamsDerivativesFileHelper() const
 {
   static_assert(!isCOutput(output_type), "C output is not implemented");
 
-  constexpr bool sparse {isSparseModelOutput(output_type)};
-
   ostringstream tt_output;   // Used for storing model temp vars and equations
   ostringstream rp_output;   // 1st deriv. of residuals w.r.t. parameters
   ostringstream g1p_output;  // 1st deriv. of Jacobian w.r.t. parameters
@@ -1002,7 +998,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
     {
       auto [eq, var, param] {vectorToTuple<3>(indices)};
 
-      int var_col {getJacobianCol(var, sparse) + 1};
+      int var_col {getJacobianCol(var, true) + 1};
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
       g1p_output << "g1p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
@@ -1046,7 +1042,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
     {
       auto [eq, var, param1, param2] {vectorToTuple<4>(indices)};
 
-      int var_col {getJacobianCol(var, sparse) + 1};
+      int var_col {getJacobianCol(var, true) + 1};
       int param1_col {getTypeSpecificIDByDerivID(param1) + 1};
       int param2_col {getTypeSpecificIDByDerivID(param2) + 1};
 
@@ -1071,8 +1067,8 @@ ModelTree::writeParamsDerivativesFileHelper() const
     {
       auto [eq, var1, var2, param] {vectorToTuple<4>(indices)};
 
-      int var1_col {getJacobianCol(var1, sparse) + 1};
-      int var2_col {getJacobianCol(var2, sparse) + 1};
+      int var1_col {getJacobianCol(var1, true) + 1};
+      int var2_col {getJacobianCol(var2, true) + 1};
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
       g2p_output << "g2p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
@@ -1098,9 +1094,9 @@ ModelTree::writeParamsDerivativesFileHelper() const
       {
         auto [eq, var1, var2, var3, param] {vectorToTuple<5>(indices)};
 
-        int var1_col {getJacobianCol(var1, sparse) + 1};
-        int var2_col {getJacobianCol(var2, sparse) + 1};
-        int var3_col {getJacobianCol(var3, sparse) + 1};
+        int var1_col {getJacobianCol(var1, true) + 1};
+        int var2_col {getJacobianCol(var2, true) + 1};
+        int var3_col {getJacobianCol(var3, true) + 1};
         int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
         g3p_output << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
@@ -1955,8 +1951,6 @@ void
 ModelTree::writeSparsePerBlockJacobianHelper(int blk, ostream& output,
                                              temporary_terms_t& temporary_terms) const
 {
-  static_assert(isSparseModelOutput(output_type));
-
   // NB: stochastic mode is currently unsupported by sparse representation
   /* See also the comment above the definition of
      blocks_jacobian_sparse_column_major_order and

@@ -1209,19 +1209,8 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
-        case ExprNodeOutputType::juliaDynamicModel:
-        case ExprNodeOutputType::matlabDynamicModel:
-        case ExprNodeOutputType::CDynamicModel:
-          i = datatree.getJacobianCol(getDerivID(), isSparseModelOutput(output_type))
-              + ARRAY_SUBSCRIPT_OFFSET(output_type);
-          output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          break;
-        case ExprNodeOutputType::CStaticModel:
         case ExprNodeOutputType::CSparseStaticModel:
-        case ExprNodeOutputType::juliaStaticModel:
         case ExprNodeOutputType::juliaSparseStaticModel:
-        case ExprNodeOutputType::matlabStaticModel:
         case ExprNodeOutputType::matlabSparseStaticModel:
           i = tsid + ARRAY_SUBSCRIPT_OFFSET(output_type);
           output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
@@ -1272,36 +1261,13 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
       i = getTypeSpecificID() + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch (output_type)
         {
-        case ExprNodeOutputType::juliaDynamicModel:
-        case ExprNodeOutputType::matlabDynamicModel:
-          if (lag > 0)
-            output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          else if (lag < 0)
-            output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_" << lag << ", " << i
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          else
-            output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_, " << i
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          break;
-        case ExprNodeOutputType::CDynamicModel:
-          if (lag == 0)
-            output << "x[it_+" << i << "*nb_row_x]";
-          else if (lag > 0)
-            output << "x[it_+" << lag << "+" << i << "*nb_row_x]";
-          else
-            output << "x[it_" << lag << "+" << i << "*nb_row_x]";
-          break;
         case ExprNodeOutputType::juliaSparseDynamicModel:
         case ExprNodeOutputType::matlabSparseDynamicModel:
         case ExprNodeOutputType::CSparseDynamicModel:
           assert(lag == 0);
           [[fallthrough]];
-        case ExprNodeOutputType::CStaticModel:
         case ExprNodeOutputType::CSparseStaticModel:
-        case ExprNodeOutputType::juliaStaticModel:
         case ExprNodeOutputType::juliaSparseStaticModel:
-        case ExprNodeOutputType::matlabStaticModel:
         case ExprNodeOutputType::matlabSparseStaticModel:
           output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -1345,36 +1311,13 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch (output_type)
         {
-        case ExprNodeOutputType::juliaDynamicModel:
-        case ExprNodeOutputType::matlabDynamicModel:
-          if (lag > 0)
-            output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_+" << lag << ", " << i
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          else if (lag < 0)
-            output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_" << lag << ", " << i
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          else
-            output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << "it_, " << i
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type);
-          break;
-        case ExprNodeOutputType::CDynamicModel:
-          if (lag == 0)
-            output << "x[it_+" << i << "*nb_row_x]";
-          else if (lag > 0)
-            output << "x[it_+" << lag << "+" << i << "*nb_row_x]";
-          else
-            output << "x[it_" << lag << "+" << i << "*nb_row_x]";
-          break;
         case ExprNodeOutputType::juliaSparseDynamicModel:
         case ExprNodeOutputType::matlabSparseDynamicModel:
         case ExprNodeOutputType::CSparseDynamicModel:
           assert(lag == 0);
           [[fallthrough]];
-        case ExprNodeOutputType::CStaticModel:
         case ExprNodeOutputType::CSparseStaticModel:
-        case ExprNodeOutputType::juliaStaticModel:
         case ExprNodeOutputType::juliaSparseStaticModel:
-        case ExprNodeOutputType::matlabStaticModel:
         case ExprNodeOutputType::matlabSparseStaticModel:
           output << "x" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
@@ -3168,7 +3111,6 @@ UnaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
       ExprNodeOutputType new_output_type;
       switch (output_type)
         {
-        case ExprNodeOutputType::matlabDynamicModel:
         case ExprNodeOutputType::matlabSparseDynamicModel:
         case ExprNodeOutputType::occbinDifferenceFile:
           new_output_type = ExprNodeOutputType::matlabDynamicSteadyStateOperator;
@@ -3176,11 +3118,9 @@ UnaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::latexDynamicModel:
           new_output_type = ExprNodeOutputType::latexDynamicSteadyStateOperator;
           break;
-        case ExprNodeOutputType::CDynamicModel:
         case ExprNodeOutputType::CSparseDynamicModel:
           new_output_type = ExprNodeOutputType::CDynamicSteadyStateOperator;
           break;
-        case ExprNodeOutputType::juliaDynamicModel:
         case ExprNodeOutputType::juliaSparseDynamicModel:
           new_output_type = ExprNodeOutputType::juliaDynamicSteadyStateOperator;
           break;
