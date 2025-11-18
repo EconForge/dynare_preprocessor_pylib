@@ -696,7 +696,7 @@ void
 StaticModel::writeRamseyMultipliersDerivativesMFile(const string& basename,
                                                     int ramsey_orig_endo_nbr) const
 {
-  constexpr auto output_type {ExprNodeOutputType::matlabStaticModel};
+  constexpr auto output_type {ExprNodeOutputType::matlabSparseStaticModel};
   filesystem::path filename {packageDir(basename) / "ramsey_multipliers_static_g1.m"};
   ofstream output_file {filename, ios::out | ios::binary};
   if (!output_file.is_open())
@@ -723,7 +723,7 @@ StaticModel::writeRamseyMultipliersDerivativesCFile(const string& basename, cons
                                                     const filesystem::path& matlabroot,
                                                     int ramsey_orig_endo_nbr) const
 {
-  constexpr auto output_type {ExprNodeOutputType::CStaticModel};
+  constexpr auto output_type {ExprNodeOutputType::CSparseStaticModel};
   const filesystem::path model_src_dir {filesystem::path {basename} / "model" / "src"};
 
   const int xlen {symbol_table.exo_nbr() + symbol_table.exo_det_nbr()};
