@@ -2780,7 +2780,7 @@ ModelTree::writeComplementarityConditionsFile(const string& basename,
   const filesystem::path filename {packageDir(basename) / (funcname + ".m")};
   /* Can’t use matlabOutsideModel for output type, since it uses M_.
      Static is ok even for the dynamic model, since there are no leads/lags. */
-  constexpr ExprNodeOutputType output_type {ExprNodeOutputType::matlabStaticModel};
+  constexpr ExprNodeOutputType output_type {ExprNodeOutputType::matlabSparseStaticModel};
 
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
