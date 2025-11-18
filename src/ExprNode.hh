@@ -88,25 +88,26 @@ using lag_equivalence_table_t = map<expr_t, map<int, expr_t>>;
 //! Possible types of output when writing ExprNode(s) (not used for bytecode)
 enum class ExprNodeOutputType
 {
-  matlabStaticModel,                //!< MATLAB/Octave code, static model
-  matlabDynamicModel,               //!< MATLAB/Octave code, dynamic model
-  CDynamicModel,                    //!< C code, dynamic model
-  CStaticModel,                     //!< C code, static model
-  juliaStaticModel,                 //!< Julia code, static model
-  juliaDynamicModel,                //!< Julia code, dynamic model
-  matlabOutsideModel,               //!< Matlab code, outside model block (for example in initval)
-  latexStaticModel,                 //!< LaTeX code, static model
-  latexDynamicModel,                //!< LaTeX code, dynamic model
-  latexDynamicSteadyStateOperator,  //!< LaTeX code, dynamic model, inside a steady state operator
-  matlabDynamicSteadyStateOperator, //!< Matlab code, dynamic model, inside a steady state operator
-  CDynamicSteadyStateOperator,      //!< C code, dynamic model, inside a steady state operator
-  juliaDynamicSteadyStateOperator,  //!< Julia code, dynamic model, inside a steady state operator
-  steadyStateFile,                  //!< Matlab code, in the generated steady state file
-  juliaSteadyStateFile,             //!< Julia code, in the generated steady state file
-  matlabDseries,                    //!< Matlab code for dseries
-  juliaTimeDataFrame,               //!< Julia code for TimeDataFrame objects
-  epilogueFile,                     //!< Matlab code, in the generated epilogue file
-  occbinDifferenceFile              //!< MATLAB, in the generated occbin_difference file
+  matlabStaticModel,                // MATLAB/Octave code, static model
+  matlabDynamicModel,               // MATLAB/Octave code, dynamic model
+  CDynamicModel,                    // C code, dynamic model
+  CStaticModel,                     // C code, static model
+  juliaStaticModel,                 // Julia code, static model
+  juliaDynamicModel,                // Julia code, dynamic model
+  matlabOutsideModel,               // MATLAB/Octave code, outside model block (e.g. in initval)
+  latexStaticModel,                 // LaTeX code, static model
+  latexDynamicModel,                // LaTeX code, dynamic model
+  latexDynamicSteadyStateOperator,  // LaTeX code, dynamic model, inside a steady_state operator
+  matlabDynamicSteadyStateOperator, // MATLAB/Octave code, dynamic model, inside a steady_state
+                                    // operator
+  CDynamicSteadyStateOperator,      // C code, dynamic model, inside a steady_state operator
+  juliaDynamicSteadyStateOperator,  // Julia code, dynamic model, inside a steady_state operator
+  steadyStateFile,                  // MATLAB/Octave code, in the generated steadystate file
+  juliaSteadyStateFile,             // Julia code, in the generated steadystate file
+  matlabDseries,                    // MATLAB/Octave code for dseries
+  juliaTimeDataFrame,               // Julia code for TimeDataFrame objects
+  epilogueFile,                     // MATLAB/Octave code, in the generated epilogue file
+  occbinDifferenceFile              // MATLAB/Octave code, in the generated occbin_difference file
 };
 
 // Possible types of output when writing ExprNode(s) in bytecode
