@@ -745,8 +745,8 @@ DynamicModel::writeParamsDerivativesFile(const string& basename) const
   if (!params_derivatives.size())
     return;
 
-  constexpr ExprNodeOutputType output_type {julia ? ExprNodeOutputType::juliaDynamicModel
-                                                  : ExprNodeOutputType::matlabDynamicModel};
+  constexpr ExprNodeOutputType output_type {julia ? ExprNodeOutputType::juliaSparseDynamicModel
+                                                  : ExprNodeOutputType::matlabSparseDynamicModel};
 
   auto [tt_output, rp_output, gp_output, rpp_output, gpp_output, hp_output,
         g3p_output] {writeParamsDerivativesFileHelper<output_type>()};
@@ -762,7 +762,7 @@ DynamicModel::writeParamsDerivativesFile(const string& basename) const
         }
       paramsDerivsFile
           << "function [rp, gp, rpp, gpp, hp, g3p] = dynamic_params_derivs(y, x, params, "
-             "steady_state, it_, ss_param_deriv, ss_param_2nd_deriv)"
+             "steady_state, ss_param_deriv, ss_param_2nd_deriv)"
           << endl
           << "%" << endl
           << "% Compute the derivatives of the dynamic model with respect to the parameters" << endl
@@ -782,9 +782,6 @@ DynamicModel::writeParamsDerivativesFile(const string& basename) const
           << endl
           << "%   steady_state  [M_.endo_nbr by 1] double       vector of steady state values"
           << endl
-          << "%   it_       scalar double                       time period for exogenous "
-             "variables for which to evaluate the model"
-          << endl
           << "%   ss_param_deriv     [M_.eq_nbr by #params]     Jacobian matrix of the steady "
              "states values with respect to the parameters"
           << endl
@@ -799,14 +796,23 @@ DynamicModel::writeParamsDerivativesFile(const string& basename) const
           << "%                                              Dynare may prepend or append "
              "auxiliary equations, see M_.aux_vars"
           << endl
-          << "%   gp        [M_.endo_nbr by #dynamic variables by #params] double    Derivative of "
-             "the Jacobian matrix of the dynamic model equations with respect to the parameters"
+          << "%   gp        [#first_order_Jacobian_terms by 4] double    Derivative of the "
+             "Jacobian matrix of the dynamic model equations with respect to the parameters"
           << endl
-          << "%                                                           rows: equations in order "
-             "of declaration"
+          << "%                                                              rows: respective "
+             "derivative term"
           << endl
-          << "%                                                           columns: variables in "
-             "order stored in M_.lead_lag_incidence"
+          << "%                                                              1st column: equation "
+             "number of the term appearing"
+          << endl
+          << "%                                                              2nd column: number of "
+             "the variable in derivative"
+          << endl
+          << "%                                                              3rd column: number of "
+             "the parameter in derivative"
+          << endl
+          << "%                                                              4th column: value of "
+             "the derivative term"
           << endl
           << "%   rpp       [#second_order_residual_terms by 4] double   Hessian matrix of second "
              "derivatives of residuals with respect to parameters;"
@@ -898,20 +904,23 @@ DynamicModel::writeParamsDerivativesFile(const string& basename) const
           << "%           from model file (.mod)" << endl
           << endl
           << "T = NaN(" << params_derivs_temporary_terms_idxs.size() << ",1);" << endl
-          << tt_output.str() << "rp = zeros(" << equations.size() << ", "
+          << tt_output.str() << "rp_i = NaN(" << params_derivatives.at({0, 1}).size() << ", 1);"
+          << endl
+          << "rp_j = NaN(" << params_derivatives.at({0, 1}).size() << ", 1);" << endl
+          << "rp_v = NaN(" << params_derivatives.at({0, 1}).size() << ", 1);" << endl
+          << rp_output.str() << "rp = sparse(rp_i, rp_j, rp_v, " << equations.size() << ", "
           << symbol_table.param_nbr() << ");" << endl
-          << rp_output.str() << "gp = zeros(" << equations.size() << ", "
-          << getJacobianColsNbr(false) << ", " << symbol_table.param_nbr() << ");" << endl
+          << "gp = NaN(" << params_derivatives.at({1, 1}).size() << ",4);" << endl
           << gp_output.str() << "if nargout >= 3" << endl
-          << "rpp = zeros(" << params_derivatives.at({0, 2}).size() << ",4);" << endl
-          << rpp_output.str() << "gpp = zeros(" << params_derivatives.at({1, 2}).size() << ",5);"
+          << "rpp = NaN(" << params_derivatives.at({0, 2}).size() << ",4);" << endl
+          << rpp_output.str() << "gpp = NaN(" << params_derivatives.at({1, 2}).size() << ",5);"
           << endl
           << gpp_output.str() << "end" << endl
           << "if nargout >= 5" << endl
-          << "hp = zeros(" << params_derivatives.at({2, 1}).size() << ",5);" << endl
+          << "hp = NaN(" << params_derivatives.at({2, 1}).size() << ",5);" << endl
           << hp_output.str() << "end" << endl
           << "if nargout >= 6" << endl
-          << "g3p = zeros(" << params_derivatives.at({3, 1}).size() << ",6);" << endl
+          << "g3p = NaN(" << params_derivatives.at({3, 1}).size() << ",6);" << endl
           << g3p_output.str() << "end" << endl
           << "end" << endl;
       paramsDerivsFile.close();
@@ -922,21 +931,24 @@ DynamicModel::writeParamsDerivativesFile(const string& basename) const
       output << "# NB: this file was automatically generated by Dynare" << endl
              << "#     from " << basename << ".mod" << endl
              << "#" << endl
-             << "function dynamic_params_derivs(y, x, params, steady_state, it_,"
+             << "function dynamic_params_derivs(y, x, params, steady_state, "
              << "ss_param_deriv, ss_param_2nd_deriv)" << endl
              << "@inbounds begin" << endl
-             << tt_output.str() << "rp = zeros(" << equations.size() << ", "
+             << tt_output.str() << "rp_i = fill(NaN, " << params_derivatives.at({0, 1}).size()
+             << ");" << endl
+             << "rp_j = fill(NaN, " << params_derivatives.at({0, 1}).size() << ");" << endl
+             << "rp_v = fill(NaN, " << params_derivatives.at({0, 1}).size() << ");" << endl
+             << rp_output.str() << "rp = sparse(rp_i, rp_j, rp_v, " << equations.size() << ", "
              << symbol_table.param_nbr() << ");" << endl
-             << rp_output.str() << "gp = zeros(" << equations.size() << ", "
-             << getJacobianColsNbr(false) << ", " << symbol_table.param_nbr() << ");" << endl
-             << gp_output.str() << "rpp = zeros(" << params_derivatives.at({0, 2}).size() << ",4);"
-             << endl
-             << rpp_output.str() << "gpp = zeros(" << params_derivatives.at({1, 2}).size() << ",5);"
-             << endl
-             << gpp_output.str() << "hp = zeros(" << params_derivatives.at({2, 1}).size() << ",5);"
-             << endl
-             << hp_output.str() << "g3p = zeros(" << params_derivatives.at({3, 1}).size() << ",6);"
-             << endl
+             << "gp = fill(NaN, " << params_derivatives.at({1, 1}).size() << ",4);" << endl
+             << gp_output.str() << "rpp = fill(NaN, " << params_derivatives.at({0, 2}).size()
+             << ",4);" << endl
+             << rpp_output.str() << "gpp = fill(NaN, " << params_derivatives.at({1, 2}).size()
+             << ",5);" << endl
+             << gpp_output.str() << "hp = fill(NaN, " << params_derivatives.at({2, 1}).size()
+             << ",5);" << endl
+             << hp_output.str() << "g3p = fill(NaN, " << params_derivatives.at({3, 1}).size()
+             << ",6);" << endl
              << g3p_output.str() << "end" << endl
              << "return (rp, gp, rpp, gpp, hp, g3p)" << endl
              << "end" << endl;

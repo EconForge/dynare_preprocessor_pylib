@@ -979,31 +979,45 @@ ModelTree::writeParamsDerivativesFileHelper() const
     writeTemporaryTerms<output_type>(tts, temp_term_union, params_derivs_temporary_terms_idxs,
                                      tt_output, tef_terms);
 
-  for (const auto& [indices, d1] : params_derivatives.at({0, 1}))
+  for (int i {1}; const auto& [indices, d1] : params_derivatives.at({0, 1}))
     {
       auto [eq, param] {vectorToTuple<2>(indices)};
 
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
-      rp_output << "rp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq + 1 << ", " << param_col
-                << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
+      rp_output << "rp_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
+                << "rp_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                << "rp_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d1->writeOutput(rp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs,
                       tef_terms);
       rp_output << ";" << endl;
+
+      i++;
     }
 
-  for (const auto& [indices, d2] : params_derivatives.at({1, 1}))
+  for (int i {1}; const auto& [indices, d2] : params_derivatives.at({1, 1}))
     {
       auto [eq, var, param] {vectorToTuple<3>(indices)};
 
       int var_col {getJacobianCol(var, sparse) + 1};
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
-      gp_output << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << eq + 1 << ", " << var_col << ", "
-                << param_col << RIGHT_ARRAY_SUBSCRIPT(output_type) << " = ";
+      gp_output << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
+                << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
+                << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(gp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs,
                       tef_terms);
       gp_output << ";" << endl;
+
+      i++;
     }
 
   for (int i {1}; const auto& [indices, d2] : params_derivatives.at({0, 2}))
@@ -1026,22 +1040,6 @@ ModelTree::writeParamsDerivativesFileHelper() const
       rpp_output << ";" << endl;
 
       i++;
-
-      if (param1 != param2)
-        {
-          // Treat symmetric elements
-          rpp_output << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
-                     << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
-                     << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
-                     << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=rpp"
-                     << LEFT_ARRAY_SUBSCRIPT(output_type) << i - 1 << ",4"
-                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
-          i++;
-        }
     }
 
   for (int i {1}; const auto& [indices, d2] : params_derivatives.at({1, 2}))
@@ -1067,24 +1065,6 @@ ModelTree::writeParamsDerivativesFileHelper() const
       gpp_output << ";" << endl;
 
       i++;
-
-      if (param1 != param2)
-        {
-          // Treat symmetric elements
-          gpp_output << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
-                     << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
-                     << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
-                     << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
-                     << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
-                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=gpp"
-                     << LEFT_ARRAY_SUBSCRIPT(output_type) << i - 1 << ",5"
-                     << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
-          i++;
-        }
     }
 
   for (int i {1}; const auto& [indices, d2] : params_derivatives.at({2, 1}))
@@ -1110,28 +1090,10 @@ ModelTree::writeParamsDerivativesFileHelper() const
       hp_output << ";" << endl;
 
       i++;
-
-      if (var1 != var2)
-        {
-          // Treat symmetric elements
-          hp_output << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
-                    << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
-                    << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
-                    << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
-                    << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
-                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=hp"
-                    << LEFT_ARRAY_SUBSCRIPT(output_type) << i - 1 << ",5"
-                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << ";" << endl;
-          i++;
-        }
     }
 
-  if constexpr (output_type == ExprNodeOutputType::matlabDynamicModel
-                || output_type == ExprNodeOutputType::juliaDynamicModel)
+  if constexpr (output_type == ExprNodeOutputType::matlabSparseDynamicModel
+                || output_type == ExprNodeOutputType::juliaSparseDynamicModel)
     for (int i {1}; const auto& [indices, d2] : params_derivatives.at({3, 1}))
       {
         auto [eq, var1, var2, var3, param] {vectorToTuple<5>(indices)};

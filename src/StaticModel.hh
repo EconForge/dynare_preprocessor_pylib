@@ -207,8 +207,8 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
   if (!params_derivatives.size())
     return;
 
-  constexpr ExprNodeOutputType output_type {julia ? ExprNodeOutputType::juliaStaticModel
-                                                  : ExprNodeOutputType::matlabStaticModel};
+  constexpr ExprNodeOutputType output_type {julia ? ExprNodeOutputType::juliaSparseStaticModel
+                                                  : ExprNodeOutputType::matlabSparseStaticModel};
 
   auto [tt_output, rp_output, gp_output, rpp_output, gpp_output, hp_output,
         g3p_output] {writeParamsDerivativesFileHelper<output_type>()};
@@ -247,14 +247,23 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
           << "%                                              Dynare may prepend or append "
              "auxiliary equations, see M_.aux_vars"
           << endl
-          << "%   gp        [M_.endo_nbr by M_.endo_nbr by #params] double    Derivative of the "
+          << "%   gp        [#first_order_Jacobian_terms by 4] double    Derivative of the "
              "Jacobian matrix of the static model equations with respect to the parameters"
           << endl
-          << "%                                                           rows: variables in "
-             "declaration order"
+          << "%                                                              rows: respective "
+             "derivative term"
           << endl
-          << "%                                                           rows: equations in order "
-             "of declaration"
+          << "%                                                              1st column: equation "
+             "number of the term appearing"
+          << endl
+          << "%                                                              2nd column: number of "
+             "the variable in derivative"
+          << endl
+          << "%                                                              3rd column: number of "
+             "the parameter in derivative"
+          << endl
+          << "%                                                              4th column: value of "
+             "the derivative term"
           << endl
           << "%   rpp       [#second_order_residual_terms by 4] double   Hessian matrix of second "
              "derivatives of residuals with respect to parameters;"
@@ -301,17 +310,20 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
           << "%           from model file (.mod)" << endl
           << endl
           << "T = NaN(" << params_derivs_temporary_terms_idxs.size() << ",1);" << endl
-          << tt_output.str() << "rp = zeros(" << equations.size() << ", "
+          << tt_output.str() << "rp_i = NaN(" << params_derivatives.at({0, 1}).size() << ", 1);"
+          << endl
+          << "rp_j = NaN(" << params_derivatives.at({0, 1}).size() << ", 1);" << endl
+          << "rp_v = NaN(" << params_derivatives.at({0, 1}).size() << ", 1);" << endl
+          << rp_output.str() << "rp = sparse(rp_i, rp_j, rp_v, " << equations.size() << ", "
           << symbol_table.param_nbr() << ");" << endl
-          << rp_output.str() << "gp = zeros(" << equations.size() << ", " << symbol_table.endo_nbr()
-          << ", " << symbol_table.param_nbr() << ");" << endl
+          << "gp = NaN(" << params_derivatives.at({1, 1}).size() << ",4);" << endl
           << gp_output.str() << "if nargout >= 3" << endl
-          << "rpp = zeros(" << params_derivatives.at({0, 2}).size() << ",4);" << endl
-          << rpp_output.str() << "gpp = zeros(" << params_derivatives.at({1, 2}).size() << ",5);"
+          << "rpp = NaN(" << params_derivatives.at({0, 2}).size() << ",4);" << endl
+          << rpp_output.str() << "gpp = NaN(" << params_derivatives.at({1, 2}).size() << ",5);"
           << endl
           << gpp_output.str() << "end" << endl
           << "if nargout >= 5" << endl
-          << "hp = zeros(" << params_derivatives.at({2, 1}).size() << ",5);" << endl
+          << "hp = NaN(" << params_derivatives.at({2, 1}).size() << ",5);" << endl
           << hp_output.str() << "end" << endl
           << "end" << endl;
       paramsDerivsFile.close();
@@ -324,16 +336,19 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
              << "#" << endl
              << "function static_params_derivs(y, x, params)" << endl
              << "@inbounds begin" << endl
-             << tt_output.str() << "rp = zeros(" << equations.size() << ", "
+             << tt_output.str() << "rp_i = fill(NaN, " << params_derivatives.at({0, 1}).size()
+             << ");" << endl
+             << "rp_j = fill(NaN, " << params_derivatives.at({0, 1}).size() << ");" << endl
+             << "rp_v = fill(NaN, " << params_derivatives.at({0, 1}).size() << ");" << endl
+             << rp_output.str() << "rp = sparse(rp_i, rp_j, rp_v, " << equations.size() << ", "
              << symbol_table.param_nbr() << ");" << endl
-             << rp_output.str() << "gp = zeros(" << equations.size() << ", "
-             << symbol_table.endo_nbr() << ", " << symbol_table.param_nbr() << ");" << endl
-             << gp_output.str() << "rpp = zeros(" << params_derivatives.at({0, 2}).size() << ",4);"
-             << endl
-             << rpp_output.str() << "gpp = zeros(" << params_derivatives.at({1, 2}).size() << ",5);"
-             << endl
-             << gpp_output.str() << "hp = zeros(" << params_derivatives.at({2, 1}).size() << ",5);"
-             << endl
+             << "gp = fill(NaN, " << params_derivatives.at({1, 1}).size() << ",4);" << endl
+             << gp_output.str() << "rpp = fill(NaN, " << params_derivatives.at({0, 2}).size()
+             << ",4);" << endl
+             << rpp_output.str() << "gpp = fill(NaN, " << params_derivatives.at({1, 2}).size()
+             << ",5);" << endl
+             << gpp_output.str() << "hp = fill(NaN, " << params_derivatives.at({2, 1}).size()
+             << ",5);" << endl
              << hp_output.str() << "end" << endl
              << "return (rp, gp, rpp, gpp, hp)" << endl
              << "end" << endl;
