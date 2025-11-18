@@ -151,10 +151,6 @@ ModelTree::ModelTree(SymbolTable& symbol_table_arg, NumericalConstants& num_cons
     derivatives(4),
     temporary_terms_derivatives(4)
 {
-  // Ensure that elements accessed by writeParamsDerivativesFileHelper() exist
-  for (const auto& ord :
-       {pair {0, 1}, pair {1, 1}, pair {0, 2}, pair {1, 2}, pair {2, 1}, pair {3, 1}})
-    params_derivatives.try_emplace(ord);
 }
 
 ModelTree::ModelTree(const ModelTree& m) :
@@ -1478,6 +1474,11 @@ ModelTree::computeParamsDerivatives(int paramsDerivsOrder)
 
   set<int> deriv_id_set;
   addAllParamDerivId(deriv_id_set);
+
+  // Ensure that elements accessed by writeParamsDerivativesFileHelper() exist
+  for (const auto& ord :
+       {pair {0, 1}, pair {1, 1}, pair {0, 2}, pair {1, 2}, pair {2, 1}, pair {3, 1}})
+    params_derivatives.try_emplace(ord);
 
   // First-order derivatives w.r.t. params
   for (int param : deriv_id_set)
