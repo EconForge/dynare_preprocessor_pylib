@@ -963,12 +963,12 @@ ModelTree::writeParamsDerivativesFileHelper() const
 
   constexpr bool sparse {isSparseModelOutput(output_type)};
 
-  ostringstream tt_output;  // Used for storing model temp vars and equations
-  ostringstream rp_output;  // 1st deriv. of residuals w.r.t. parameters
-  ostringstream gp_output;  // 1st deriv. of Jacobian w.r.t. parameters
-  ostringstream rpp_output; // 2nd deriv of residuals w.r.t. parameters
-  ostringstream gpp_output; // 2nd deriv of Jacobian w.r.t. parameters
-  ostringstream hp_output;  // 1st deriv. of Hessian w.r.t. parameters
+  ostringstream tt_output;   // Used for storing model temp vars and equations
+  ostringstream rp_output;   // 1st deriv. of residuals w.r.t. parameters
+  ostringstream g1p_output;  // 1st deriv. of Jacobian w.r.t. parameters
+  ostringstream rpp_output;  // 2nd deriv of residuals w.r.t. parameters
+  ostringstream g1pp_output; // 2nd deriv of Jacobian w.r.t. parameters
+  ostringstream g2p_output;  // 1st deriv. of Hessian w.r.t. parameters
   ostringstream
       g3p_output; // 1st deriv. of 3rd deriv. matrix w.r.t. parameters (only in dynamic case)
 
@@ -1005,17 +1005,17 @@ ModelTree::writeParamsDerivativesFileHelper() const
       int var_col {getJacobianCol(var, sparse) + 1};
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
-      gp_output << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
-                << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
-                << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
-                << "gp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(gp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs,
+      g1p_output << "g1p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
+                 << "g1p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
+                 << "g1p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                 << "g1p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+      d2->writeOutput(g1p_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs,
                       tef_terms);
-      gp_output << ";" << endl;
+      g1p_output << ";" << endl;
 
       i++;
     }
@@ -1050,19 +1050,19 @@ ModelTree::writeParamsDerivativesFileHelper() const
       int param1_col {getTypeSpecificIDByDerivID(param1) + 1};
       int param2_col {getTypeSpecificIDByDerivID(param2) + 1};
 
-      gpp_output << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
-                 << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
-                 << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
-                 << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
-                 << "gpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(gpp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs,
+      g1pp_output << "g1pp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
+                  << "g1pp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
+                  << "g1pp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                  << "g1pp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                  << "g1pp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+      d2->writeOutput(g1pp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs,
                       tef_terms);
-      gpp_output << ";" << endl;
+      g1pp_output << ";" << endl;
 
       i++;
     }
@@ -1075,19 +1075,19 @@ ModelTree::writeParamsDerivativesFileHelper() const
       int var2_col {getJacobianCol(var2, sparse) + 1};
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
-      hp_output << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
-                << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
-                << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
-                << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
-                << "hp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
-                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
-      d2->writeOutput(hp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs,
+      g2p_output << "g2p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
+                 << "g2p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
+                 << "g2p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
+                 << "g2p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                 << "g2p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
+      d2->writeOutput(g2p_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs,
                       tef_terms);
-      hp_output << ";" << endl;
+      g2p_output << ";" << endl;
 
       i++;
     }
@@ -1130,15 +1130,15 @@ ModelTree::writeParamsDerivativesFileHelper() const
       bool message_printed {false};
       fixNestedParenthesis(tt_output, tmp_paren_vars, message_printed);
       fixNestedParenthesis(rp_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(gp_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(g1p_output, tmp_paren_vars, message_printed);
       fixNestedParenthesis(rpp_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(gpp_output, tmp_paren_vars, message_printed);
-      fixNestedParenthesis(hp_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(g1pp_output, tmp_paren_vars, message_printed);
+      fixNestedParenthesis(g2p_output, tmp_paren_vars, message_printed);
       fixNestedParenthesis(g3p_output, tmp_paren_vars, message_printed);
     }
 
-  return {move(tt_output),  move(rp_output), move(gp_output), move(rpp_output),
-          move(gpp_output), move(hp_output), move(g3p_output)};
+  return {move(tt_output),   move(rp_output),  move(g1p_output), move(rpp_output),
+          move(g1pp_output), move(g2p_output), move(g3p_output)};
 }
 
 template<ExprNodeBytecodeOutputType output_type>
@@ -1638,14 +1638,14 @@ tuple<ostringstream, ostringstream, ostringstream, ostringstream, ostringstream,
       ostringstream, ostringstream>
 ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 {
-  ostringstream mlv_output; // Used for storing model local vars
-  ostringstream tt_output;  // Used for storing model temp vars and equations
-  ostringstream rp_output;  // 1st deriv. of residuals w.r.t. parameters
-  ostringstream gp_output;  // 1st deriv. of Jacobian w.r.t. parameters
-  ostringstream rpp_output; // 2nd deriv of residuals w.r.t. parameters
-  ostringstream gpp_output; // 2nd deriv of Jacobian w.r.t. parameters
-  ostringstream hp_output;  // 1st deriv. of Hessian w.r.t. parameters
-  ostringstream g3p_output; // 1st deriv. of 3rd deriv. matrix w.r.t. parameters
+  ostringstream mlv_output;  // Used for storing model local vars
+  ostringstream tt_output;   // Used for storing model temp vars and equations
+  ostringstream rp_output;   // 1st deriv. of residuals w.r.t. parameters
+  ostringstream g1p_output;  // 1st deriv. of Jacobian w.r.t. parameters
+  ostringstream rpp_output;  // 2nd deriv of residuals w.r.t. parameters
+  ostringstream g1pp_output; // 2nd deriv of Jacobian w.r.t. parameters
+  ostringstream g2p_output;  // 1st deriv. of Hessian w.r.t. parameters
+  ostringstream g3p_output;  // 1st deriv. of 3rd deriv. matrix w.r.t. parameters
 
   deriv_node_temp_terms_t tef_terms;
   writeJsonModelLocalVariables(mlv_output, true, tef_terms);
@@ -1682,14 +1682,14 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
     }
   rp_output << "]}";
 
-  gp_output << R"("deriv_jacobian_wrt_params": {)"
-            << R"(  "neqs": )" << equations.size() << R"(, "nvarcols": )"
-            << getJacobianColsNbr(true) << R"(, "nparamcols": )" << symbol_table.param_nbr()
-            << R"(, "entries": [)";
+  g1p_output << R"("deriv_jacobian_wrt_params": {)"
+             << R"(  "neqs": )" << equations.size() << R"(, "nvarcols": )"
+             << getJacobianColsNbr(true) << R"(, "nparamcols": )" << symbol_table.param_nbr()
+             << R"(, "entries": [)";
   for (bool printed_something {false}; const auto& [vidx, d] : params_derivatives.at({1, 1}))
     {
       if (exchange(printed_something, true))
-        gp_output << ", ";
+        g1p_output << ", ";
 
       auto [eq, var, param] {vectorToTuple<3>(vidx)};
 
@@ -1697,25 +1697,25 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
       if (writeDetails)
-        gp_output << R"({"eq": )" << eq + 1;
+        g1p_output << R"({"eq": )" << eq + 1;
       else
-        gp_output << R"({"row": )" << eq + 1;
+        g1p_output << R"({"row": )" << eq + 1;
 
-      gp_output << R"(, "var_col": )" << var_col << R"(, "param_col": )" << param_col;
+      g1p_output << R"(, "var_col": )" << var_col << R"(, "param_col": )" << param_col;
 
       if (writeDetails)
         {
-          gp_output << R"(, "var": ")" << getNameByDerivID(var) << R"(")";
+          g1p_output << R"(, "var": ")" << getNameByDerivID(var) << R"(")";
           if constexpr (dynamic)
-            gp_output << R"(, "lag": )" << getLagByDerivID(var);
-          gp_output << R"(, "param": ")" << getNameByDerivID(param) << R"(")";
+            g1p_output << R"(, "lag": )" << getLagByDerivID(var);
+          g1p_output << R"(, "param": ")" << getNameByDerivID(param) << R"(")";
         }
 
-      gp_output << R"(, "val": ")";
-      d->writeJsonOutput(gp_output, temp_term_union, tef_terms);
-      gp_output << R"("})" << endl;
+      g1p_output << R"(, "val": ")";
+      d->writeJsonOutput(g1p_output, temp_term_union, tef_terms);
+      g1p_output << R"("})" << endl;
     }
-  gp_output << "]}";
+  g1p_output << "]}";
 
   rpp_output << R"("second_deriv_residuals_wrt_params": {)"
              << R"(  "nrows": )" << equations.size() << R"(, "nparam1cols": )"
@@ -1747,14 +1747,14 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
     }
   rpp_output << "]}";
 
-  gpp_output << R"("second_deriv_jacobian_wrt_params": {)"
-             << R"(  "neqs": )" << equations.size() << R"(, "nvarcols": )"
-             << getJacobianColsNbr(true) << R"(, "nparam1cols": )" << symbol_table.param_nbr()
-             << R"(, "nparam2cols": )" << symbol_table.param_nbr() << R"(, "entries": [)";
+  g1pp_output << R"("second_deriv_jacobian_wrt_params": {)"
+              << R"(  "neqs": )" << equations.size() << R"(, "nvarcols": )"
+              << getJacobianColsNbr(true) << R"(, "nparam1cols": )" << symbol_table.param_nbr()
+              << R"(, "nparam2cols": )" << symbol_table.param_nbr() << R"(, "entries": [)";
   for (bool printed_something {false}; const auto& [vidx, d] : params_derivatives.at({1, 2}))
     {
       if (exchange(printed_something, true))
-        gpp_output << ", ";
+        g1pp_output << ", ";
 
       auto [eq, var, param1, param2] {vectorToTuple<4>(vidx)};
 
@@ -1763,36 +1763,36 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
       int param2_col {getTypeSpecificIDByDerivID(param2) + 1};
 
       if (writeDetails)
-        gpp_output << R"({"eq": )" << eq + 1;
+        g1pp_output << R"({"eq": )" << eq + 1;
       else
-        gpp_output << R"({"row": )" << eq + 1;
+        g1pp_output << R"({"row": )" << eq + 1;
 
-      gpp_output << R"(, "var_col": )" << var_col << R"(, "param1_col": )" << param1_col
-                 << R"(, "param2_col": )" << param2_col;
+      g1pp_output << R"(, "var_col": )" << var_col << R"(, "param1_col": )" << param1_col
+                  << R"(, "param2_col": )" << param2_col;
 
       if (writeDetails)
         {
-          gpp_output << R"(, "var": ")" << getNameByDerivID(var) << R"(")";
+          g1pp_output << R"(, "var": ")" << getNameByDerivID(var) << R"(")";
           if constexpr (dynamic)
-            gpp_output << R"(, "lag": )" << getLagByDerivID(var);
-          gpp_output << R"(, "param1": ")" << getNameByDerivID(param1) << R"(")"
-                     << R"(, "param2": ")" << getNameByDerivID(param2) << R"(")";
+            g1pp_output << R"(, "lag": )" << getLagByDerivID(var);
+          g1pp_output << R"(, "param1": ")" << getNameByDerivID(param1) << R"(")"
+                      << R"(, "param2": ")" << getNameByDerivID(param2) << R"(")";
         }
 
-      gpp_output << R"(, "val": ")";
-      d->writeJsonOutput(gpp_output, temp_term_union, tef_terms);
-      gpp_output << R"("})" << endl;
+      g1pp_output << R"(, "val": ")";
+      d->writeJsonOutput(g1pp_output, temp_term_union, tef_terms);
+      g1pp_output << R"("})" << endl;
     }
-  gpp_output << "]}" << endl;
+  g1pp_output << "]}" << endl;
 
-  hp_output << R"("derivative_hessian_wrt_params": {)"
-            << R"(  "neqs": )" << equations.size() << R"(, "nvar1cols": )"
-            << getJacobianColsNbr(true) << R"(, "nvar2cols": )" << getJacobianColsNbr(true)
-            << R"(, "nparamcols": )" << symbol_table.param_nbr() << R"(, "entries": [)";
+  g2p_output << R"("derivative_hessian_wrt_params": {)"
+             << R"(  "neqs": )" << equations.size() << R"(, "nvar1cols": )"
+             << getJacobianColsNbr(true) << R"(, "nvar2cols": )" << getJacobianColsNbr(true)
+             << R"(, "nparamcols": )" << symbol_table.param_nbr() << R"(, "entries": [)";
   for (bool printed_something {false}; const auto& [vidx, d] : params_derivatives.at({2, 1}))
     {
       if (exchange(printed_something, true))
-        hp_output << ", ";
+        g2p_output << ", ";
 
       auto [eq, var1, var2, param] {vectorToTuple<4>(vidx)};
 
@@ -1801,29 +1801,29 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
       if (writeDetails)
-        hp_output << R"({"eq": )" << eq + 1;
+        g2p_output << R"({"eq": )" << eq + 1;
       else
-        hp_output << R"({"row": )" << eq + 1;
+        g2p_output << R"({"row": )" << eq + 1;
 
-      hp_output << R"(, "var1_col": )" << var1_col << R"(, "var2_col": )" << var2_col
-                << R"(, "param_col": )" << param_col;
+      g2p_output << R"(, "var1_col": )" << var1_col << R"(, "var2_col": )" << var2_col
+                 << R"(, "param_col": )" << param_col;
 
       if (writeDetails)
         {
-          hp_output << R"(, "var1": ")" << getNameByDerivID(var1) << R"(")";
+          g2p_output << R"(, "var1": ")" << getNameByDerivID(var1) << R"(")";
           if constexpr (dynamic)
-            hp_output << R"(, "lag1": )" << getLagByDerivID(var1);
-          hp_output << R"(, "var2": ")" << getNameByDerivID(var2) << R"(")";
+            g2p_output << R"(, "lag1": )" << getLagByDerivID(var1);
+          g2p_output << R"(, "var2": ")" << getNameByDerivID(var2) << R"(")";
           if constexpr (dynamic)
-            hp_output << R"(, "lag2": )" << getLagByDerivID(var2);
-          hp_output << R"(, "param": ")" << getNameByDerivID(param) << R"(")";
+            g2p_output << R"(, "lag2": )" << getLagByDerivID(var2);
+          g2p_output << R"(, "param": ")" << getNameByDerivID(param) << R"(")";
         }
 
-      hp_output << R"(, "val": ")";
-      d->writeJsonOutput(hp_output, temp_term_union, tef_terms);
-      hp_output << R"("})" << endl;
+      g2p_output << R"(, "val": ")";
+      d->writeJsonOutput(g2p_output, temp_term_union, tef_terms);
+      g2p_output << R"("})" << endl;
     }
-  hp_output << "]}" << endl;
+  g2p_output << "]}" << endl;
 
   if constexpr (dynamic)
     {
@@ -1869,8 +1869,8 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
       g3p_output << "]}" << endl;
     }
 
-  return {move(mlv_output), move(tt_output),  move(rp_output), move(gp_output),
-          move(rpp_output), move(gpp_output), move(hp_output), move(g3p_output)};
+  return {move(mlv_output), move(tt_output),   move(rp_output),  move(g1p_output),
+          move(rpp_output), move(g1pp_output), move(g2p_output), move(g3p_output)};
 }
 
 template<bool dynamic>

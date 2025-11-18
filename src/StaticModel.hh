@@ -210,7 +210,7 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
   constexpr ExprNodeOutputType output_type {julia ? ExprNodeOutputType::juliaSparseStaticModel
                                                   : ExprNodeOutputType::matlabSparseStaticModel};
 
-  auto [tt_output, rp_output, gp_output, rpp_output, gpp_output, hp_output,
+  auto [tt_output, rp_output, g1p_output, rpp_output, g1pp_output, g2p_output,
         g3p_output] {writeParamsDerivativesFileHelper<output_type>()};
   // g3p_output is ignored
 
@@ -224,7 +224,7 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
           exit(EXIT_FAILURE);
         }
       paramsDerivsFile
-          << "function [rp, gp, rpp, gpp, hp] = static_params_derivs(y, x, params)" << endl
+          << "function [rp, g1p, rpp, g1pp, g2p] = static_params_derivs(y, x, params)" << endl
           << "%" << endl
           << "% Status : Computes derivatives of the static model with respect to the parameters"
           << endl
@@ -247,7 +247,7 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
           << "%                                              Dynare may prepend or append "
              "auxiliary equations, see M_.aux_vars"
           << endl
-          << "%   gp        [#first_order_Jacobian_terms by 4] double    Derivative of the "
+          << "%   g1p       [#first_order_Jacobian_terms by 4] double    Derivative of the "
              "Jacobian matrix of the static model equations with respect to the parameters"
           << endl
           << "%                                                              rows: respective "
@@ -283,7 +283,7 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
           << "%                                                              4th column: value of "
              "the Hessian term"
           << endl
-          << "%   gpp      [#second_order_Jacobian_terms by 5] double   Hessian matrix of second "
+          << "%   g1pp     [#second_order_Jacobian_terms by 5] double   Hessian matrix of second "
              "derivatives of the Jacobian with respect to the parameters;"
           << endl
           << "%                                                              rows: respective "
@@ -316,15 +316,15 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
           << "rp_v = NaN(" << params_derivatives.at({0, 1}).size() << ", 1);" << endl
           << rp_output.str() << "rp = sparse(rp_i, rp_j, rp_v, " << equations.size() << ", "
           << symbol_table.param_nbr() << ");" << endl
-          << "gp = NaN(" << params_derivatives.at({1, 1}).size() << ",4);" << endl
-          << gp_output.str() << "if nargout >= 3" << endl
+          << "g1p = NaN(" << params_derivatives.at({1, 1}).size() << ",4);" << endl
+          << g1p_output.str() << "if nargout >= 3" << endl
           << "rpp = NaN(" << params_derivatives.at({0, 2}).size() << ",4);" << endl
-          << rpp_output.str() << "gpp = NaN(" << params_derivatives.at({1, 2}).size() << ",5);"
+          << rpp_output.str() << "g1pp = NaN(" << params_derivatives.at({1, 2}).size() << ",5);"
           << endl
-          << gpp_output.str() << "end" << endl
+          << g1pp_output.str() << "end" << endl
           << "if nargout >= 5" << endl
-          << "hp = NaN(" << params_derivatives.at({2, 1}).size() << ",5);" << endl
-          << hp_output.str() << "end" << endl
+          << "g2p = NaN(" << params_derivatives.at({2, 1}).size() << ",5);" << endl
+          << g2p_output.str() << "end" << endl
           << "end" << endl;
       paramsDerivsFile.close();
     }
@@ -342,15 +342,15 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
              << "rp_v = fill(NaN, " << params_derivatives.at({0, 1}).size() << ");" << endl
              << rp_output.str() << "rp = sparse(rp_i, rp_j, rp_v, " << equations.size() << ", "
              << symbol_table.param_nbr() << ");" << endl
-             << "gp = fill(NaN, " << params_derivatives.at({1, 1}).size() << ",4);" << endl
-             << gp_output.str() << "rpp = fill(NaN, " << params_derivatives.at({0, 2}).size()
+             << "g1p = fill(NaN, " << params_derivatives.at({1, 1}).size() << ",4);" << endl
+             << g1p_output.str() << "rpp = fill(NaN, " << params_derivatives.at({0, 2}).size()
              << ",4);" << endl
-             << rpp_output.str() << "gpp = fill(NaN, " << params_derivatives.at({1, 2}).size()
+             << rpp_output.str() << "g1pp = fill(NaN, " << params_derivatives.at({1, 2}).size()
              << ",5);" << endl
-             << gpp_output.str() << "hp = fill(NaN, " << params_derivatives.at({2, 1}).size()
+             << g1pp_output.str() << "g2p = fill(NaN, " << params_derivatives.at({2, 1}).size()
              << ",5);" << endl
-             << hp_output.str() << "end" << endl
-             << "return (rp, gp, rpp, gpp, hp)" << endl
+             << g2p_output.str() << "end" << endl
+             << "return (rp, g1p, rpp, g1pp, g2p)" << endl
              << "end" << endl;
 
       writeToFileIfModified(output, filesystem::path {basename} / "model" / "julia"
