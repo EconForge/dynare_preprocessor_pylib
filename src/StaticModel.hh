@@ -304,6 +304,27 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
           << "%                                                              5th column: value of "
              "the Hessian term"
           << endl
+          << "%   g2p     [#first_order_Hessian_terms by 5] double   Jacobian matrix of "
+             "derivatives of the static Hessian with respect to the parameters;"
+          << endl
+          << "%                                                              rows: respective "
+             "derivative term"
+          << endl
+          << "%                                                              1st column: equation "
+             "number of the term appearing"
+          << endl
+          << "%                                                              2nd column: column "
+             "number of first variable in Hessian of the static model"
+          << endl
+          << "%                                                              3rd column: column "
+             "number of second variable in Hessian of the static model"
+          << endl
+          << "%                                                              4th column: number of "
+             "the parameter in derivative"
+          << endl
+          << "%                                                              5th column: value of "
+             "the Hessian term"
+          << endl
           << "%" << endl
           << "%" << endl
           << "% Warning : this file is generated automatically by Dynare" << endl
