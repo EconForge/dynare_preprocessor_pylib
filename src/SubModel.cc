@@ -336,7 +336,7 @@ TrendComponentModelTable::writeOutput(const string& basename, ostream& output) c
           int colidx = static_cast<int>(ranges::distance(
               nontarget_lhs_vec.begin(), ranges::find(nontarget_lhs_vec, lhs_symb_id)));
           ar_ec_output << "    AR(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
-          expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
+          expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabSparseDynamicModel);
           ar_ec_output << ";" << endl;
         }
 
@@ -348,7 +348,7 @@ TrendComponentModelTable::writeOutput(const string& basename, ostream& output) c
         {
           auto [eqn, colidx] = key;
           ar_ec_output << "    A0(" << eqn + 1 << ", " << colidx + 1 << ") = ";
-          expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
+          expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabSparseDynamicModel);
           ar_ec_output << ";" << endl;
         }
 
@@ -360,7 +360,7 @@ TrendComponentModelTable::writeOutput(const string& basename, ostream& output) c
         {
           auto [eqn, colidx] = key;
           ar_ec_output << "    A0star(" << eqn + 1 << ", " << colidx + 1 << ") = ";
-          expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
+          expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabSparseDynamicModel);
           ar_ec_output << ";" << endl;
         }
 
@@ -486,7 +486,7 @@ VarModelTable::writeOutput(const string& basename, ostream& output) const
           int colidx
               = static_cast<int>(ranges::distance(lhs.begin(), ranges::find(lhs, lhs_symb_id)));
           ar_output << "    ar(" << eqn + 1 << "," << colidx + 1 << "," << lag << ") = ";
-          expr->writeOutput(ar_output, ExprNodeOutputType::matlabDynamicModel);
+          expr->writeOutput(ar_output, ExprNodeOutputType::matlabSparseDynamicModel);
           ar_output << ";" << endl;
         }
       ar_output << "    if nargout>1" << endl << "        a0 = eye(" << lhs.size() << ");" << endl;
@@ -498,7 +498,7 @@ VarModelTable::writeOutput(const string& basename, ostream& output) const
           if (eqn != colidx)
             {
               ar_output << "        a0(" << eqn + 1 << "," << colidx + 1 << ") = ";
-              expr->writeOutput(ar_output, ExprNodeOutputType::matlabDynamicModel);
+              expr->writeOutput(ar_output, ExprNodeOutputType::matlabSparseDynamicModel);
               ar_output << ";" << endl;
             }
         }
@@ -515,7 +515,7 @@ VarModelTable::writeOutput(const string& basename, ostream& output) const
       for (auto [eqn, expr] : constants.at(name))
         {
           ar_output << "            constants(" << eqn + 1 << ") = ";
-          expr->writeOutput(ar_output, ExprNodeOutputType::matlabDynamicModel);
+          expr->writeOutput(ar_output, ExprNodeOutputType::matlabSparseDynamicModel);
           ar_output << ";" << endl;
         }
       ar_output << "        end" << endl
@@ -1833,7 +1833,7 @@ PacModelTable::writeTargetCoefficientsFile(const string& basename) const
                   h_indices, original_growth_component, growth_component_info] : get<2>(val))
         {
           output << "    coeffs(" << i++ << ") = ";
-          coeff->writeOutput(output, ExprNodeOutputType::matlabDynamicModel);
+          coeff->writeOutput(output, ExprNodeOutputType::matlabSparseDynamicModel);
           output << ";" << endl;
         }
       output << "    return" << endl << "  end" << endl;
