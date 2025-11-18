@@ -1088,8 +1088,8 @@ ModelTree::writeParamsDerivativesFileHelper() const
       i++;
     }
 
-  if constexpr (output_type == ExprNodeOutputType::matlabSparseDynamicModel
-                || output_type == ExprNodeOutputType::juliaSparseDynamicModel)
+  if constexpr (output_type == ExprNodeOutputType::matlabDynamicModel
+                || output_type == ExprNodeOutputType::juliaDynamicModel)
     for (int i {1}; const auto& [indices, d2] : params_derivatives.at({3, 1}))
       {
         auto [eq, var1, var2, var3, param] {vectorToTuple<5>(indices)};
@@ -1978,8 +1978,8 @@ ModelTree::writeSparseModelJuliaFiles(const string& basename) const
   assert(heterogeneity_table.empty());
 
   auto [d_sparse_output, tt_sparse_output]
-      = writeModelFileHelper<dynamic ? ExprNodeOutputType::juliaSparseDynamicModel
-                                     : ExprNodeOutputType::juliaSparseStaticModel>();
+      = writeModelFileHelper<dynamic ? ExprNodeOutputType::juliaDynamicModel
+                                     : ExprNodeOutputType::juliaStaticModel>();
 
   filesystem::path julia_dir {filesystem::path {basename} / "model" / "julia"};
   const string prefix {dynamic ? "SparseDynamic" : "SparseStatic"};
@@ -2089,8 +2089,8 @@ void
 ModelTree::writeSparseModelMFiles(const string& basename,
                                   const optional<int>& heterogeneous_dimension) const
 {
-  constexpr ExprNodeOutputType output_type {dynamic ? ExprNodeOutputType::matlabSparseDynamicModel
-                                                    : ExprNodeOutputType::matlabSparseStaticModel};
+  constexpr ExprNodeOutputType output_type {dynamic ? ExprNodeOutputType::matlabDynamicModel
+                                                    : ExprNodeOutputType::matlabStaticModel};
   auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper<output_type>();
 
   const filesystem::path m_dir {packageDir(basename) / "+sparse"};
@@ -2264,8 +2264,8 @@ void
 ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
                                   const filesystem::path& matlabroot) const
 {
-  constexpr ExprNodeOutputType output_type {dynamic ? ExprNodeOutputType::CSparseDynamicModel
-                                                    : ExprNodeOutputType::CSparseStaticModel};
+  constexpr ExprNodeOutputType output_type {dynamic ? ExprNodeOutputType::CDynamicModel
+                                                    : ExprNodeOutputType::CStaticModel};
   auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper<output_type>();
 
   const filesystem::path mex_dir {packageDir(basename) / "+sparse"};
@@ -2651,8 +2651,8 @@ template<bool dynamic>
 void
 ModelTree::writeDebugModelMFiles(const string& basename) const
 {
-  constexpr ExprNodeOutputType output_type {dynamic ? ExprNodeOutputType::matlabSparseDynamicModel
-                                                    : ExprNodeOutputType::matlabSparseStaticModel};
+  constexpr ExprNodeOutputType output_type {dynamic ? ExprNodeOutputType::matlabDynamicModel
+                                                    : ExprNodeOutputType::matlabStaticModel};
 
   const filesystem::path m_dir {packageDir(basename) / "+debug"};
   const string prefix {dynamic ? "dynamic_" : "static_"};
@@ -2703,9 +2703,9 @@ void
 ModelTree::writeSetAuxiliaryVariablesFile(const string& basename, bool julia) const
 {
   const auto output_type {julia ? (dynamic ? ExprNodeOutputType::juliaTimeDataFrame
-                                           : ExprNodeOutputType::juliaSparseStaticModel)
+                                           : ExprNodeOutputType::juliaStaticModel)
                                 : (dynamic ? ExprNodeOutputType::matlabDseries
-                                           : ExprNodeOutputType::matlabSparseStaticModel)};
+                                           : ExprNodeOutputType::matlabStaticModel)};
 
   ostringstream output_func_body;
   writeAuxVarRecursiveDefinitions(output_func_body, output_type);
@@ -2774,7 +2774,7 @@ ModelTree::writeComplementarityConditionsFile(const string& basename,
   const filesystem::path filename {packageDir(basename) / (funcname + ".m")};
   /* Can’t use matlabOutsideModel for output type, since it uses M_.
      Static is ok even for the dynamic model, since there are no leads/lags. */
-  constexpr ExprNodeOutputType output_type {ExprNodeOutputType::matlabSparseStaticModel};
+  constexpr ExprNodeOutputType output_type {ExprNodeOutputType::matlabStaticModel};
 
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())

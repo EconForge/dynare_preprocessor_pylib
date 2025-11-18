@@ -745,8 +745,8 @@ DynamicModel::writeParamsDerivativesFile(const string& basename) const
   if (!params_derivatives.size())
     return;
 
-  constexpr ExprNodeOutputType output_type {julia ? ExprNodeOutputType::juliaSparseDynamicModel
-                                                  : ExprNodeOutputType::matlabSparseDynamicModel};
+  constexpr ExprNodeOutputType output_type {julia ? ExprNodeOutputType::juliaDynamicModel
+                                                  : ExprNodeOutputType::matlabDynamicModel};
 
   auto [tt_output, rp_output, g1p_output, rpp_output, g1pp_output, g2p_output,
         g3p_output] {writeParamsDerivativesFileHelper<output_type>()};

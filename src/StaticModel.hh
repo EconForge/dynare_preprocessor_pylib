@@ -207,8 +207,8 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
   if (!params_derivatives.size())
     return;
 
-  constexpr ExprNodeOutputType output_type {julia ? ExprNodeOutputType::juliaSparseStaticModel
-                                                  : ExprNodeOutputType::matlabSparseStaticModel};
+  constexpr ExprNodeOutputType output_type {julia ? ExprNodeOutputType::juliaStaticModel
+                                                  : ExprNodeOutputType::matlabStaticModel};
 
   auto [tt_output, rp_output, g1p_output, rpp_output, g1pp_output, g2p_output,
         g3p_output] {writeParamsDerivativesFileHelper<output_type>()};
