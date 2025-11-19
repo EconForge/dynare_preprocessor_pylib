@@ -117,6 +117,7 @@ str_tolower(string s)
 %token CONDITIONAL_LIKELIHOOD
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
 %token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SCHUR_VEC_TOL SUBSAMPLES OPTIONS TOLF TOLX PLOT_INIT_DATE PLOT_END_DATE
+%token SKEWED_KALMAN_PRUNE_TOL SKEWED_KALMAN_RANK_DEFICIENCY_TRANSFORM SKEWED_KALMAN_MVNLOGCDF SKEWED_KALMAN_SMOOTHER_SKIP
 %token LAPLACE LIK_INIT LINEAR LINEAR_DECOMPOSITION LOAD_IDENT_FILES LOAD_MH_FILE LOAD_RESULTS_AFTER_LOAD_MH LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
 %token LYAPUNOV_COMPLEX_THRESHOLD LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR
 %token MATCHED_MOMENTS MARKOWITZ MARGINAL_DENSITY MAX MAXIT
@@ -2445,6 +2446,10 @@ estimation_options : o_datafile
                    | o_diagonal_only
                    | o_no_init_estimation_check_first_obs
                    | o_heteroskedastic_filter
+                   | o_skewed_kalman_prune_tol
+                   | o_skewed_kalman_rank_deficiency_transform
+                   | o_skewed_kalman_mvnlogcdf
+                   | o_skewed_kalman_smoother_skip
                    ;
 
 name_value_pair : QUOTED_STRING COMMA QUOTED_STRING
@@ -4013,6 +4018,10 @@ o_kalman_algo : KALMAN_ALGO EQUAL INT_NUMBER { driver.option_num("kalman_algo", 
 o_kalman_tol : KALMAN_TOL EQUAL non_negative_number { driver.option_num("kalman_tol", $3); };
 o_diffuse_kalman_tol : DIFFUSE_KALMAN_TOL EQUAL non_negative_number { driver.option_num("diffuse_kalman_tol", $3); };
 o_schur_vec_tol : SCHUR_VEC_TOL EQUAL non_negative_number { driver.option_num("schur_vec_tol", $3); };
+o_skewed_kalman_prune_tol : SKEWED_KALMAN_PRUNE_TOL EQUAL non_negative_number { driver.option_num("skewed_kalman.prune_tol", $3); };
+o_skewed_kalman_rank_deficiency_transform : SKEWED_KALMAN_RANK_DEFICIENCY_TRANSFORM  { driver.option_num("skewed_kalman.rank_deficiency_transform", "true"); };
+o_skewed_kalman_mvnlogcdf : SKEWED_KALMAN_MVNLOGCDF EQUAL QUOTED_STRING { driver.option_str("skewed_kalman.mvnlogcdf", $3); };
+o_skewed_kalman_smoother_skip : SKEWED_KALMAN_SMOOTHER_SKIP { driver.option_num("skewed_kalman.skip_smoother", "true"); };
 o_marginal_density : MARGINAL_DENSITY EQUAL LAPLACE
                      { driver.option_str("mc_marginal_density", "laplace"); }
                    | MARGINAL_DENSITY EQUAL MODIFIEDHARMONICMEAN
