@@ -79,15 +79,22 @@ private:
   int getSymbIDByDerivID(int deriv_id) const noexcept(false) override;
   int getTypeSpecificIDByDerivID(int deriv_id) const override;
 
-  int
-  getJacobianCol(int deriv_id, [[maybe_unused]] bool sparse) const override
+  [[nodiscard]] int
+  getJacobianCol(int deriv_id) const override
   {
     return getTypeSpecificIDByDerivID(deriv_id);
   }
-  int
-  getJacobianColsNbr([[maybe_unused]] bool sparse) const override
+
+  [[nodiscard]] int
+  getJacobianColsNbr() const override
   {
     return symbol_table.endo_nbr();
+  }
+
+  [[nodiscard]] int
+  getLegacyJacobianCol(int deriv_id) const override
+  {
+    return getTypeSpecificIDByDerivID(deriv_id);
   }
 
   void computeChainRuleJacobian() override;

@@ -45,8 +45,9 @@ public:
   void writeModelFiles(const string& basename, bool julia) const;
   void writeDriverOutput(ostream& output) const;
 
-  [[nodiscard]] int getJacobianCol(int deriv_id, bool sparse) const override;
-  [[nodiscard]] int getJacobianColsNbr(bool sparse) const override;
+  [[nodiscard]] int getJacobianCol(int deriv_id) const override;
+  [[nodiscard]] int getJacobianColsNbr() const override;
+  [[nodiscard]] int getLegacyJacobianCol(int deriv_id) const override;
 
 #if 0
   void substituteEndoLeadGreaterThanTwo();

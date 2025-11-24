@@ -913,10 +913,9 @@ ModelTree::computeDerivatives(int order, const set<int>& vars)
 
   // Compute the CSC representation of the Jacobian
   for (const auto& [indices, d1] : derivatives[1])
-    jacobian_sparse_column_major_order.try_emplace({indices[0], getJacobianCol(indices[1], true)},
-                                                   d1);
+    jacobian_sparse_column_major_order.try_emplace({indices[0], getJacobianCol(indices[1])}, d1);
   jacobian_sparse_colptr
-      = computeCSCColPtr(jacobian_sparse_column_major_order, getJacobianColsNbr(true));
+      = computeCSCColPtr(jacobian_sparse_column_major_order, getJacobianColsNbr());
 
   // Higher-order derivatives
   for (int o = 2; o <= order; o++)
@@ -2168,7 +2167,7 @@ ModelTree::writeDriverSparseIndicesHelper(const string& prefix, ostream& output)
         {
           for (bool row_number {true}; // First element of vidx is row number
                int it : vidx)
-            output << (exchange(row_number, false) ? it : getJacobianCol(it, true)) + 1 << ' ';
+            output << (exchange(row_number, false) ? it : getJacobianCol(it)) + 1 << ' ';
           output << ';' << endl;
         }
       output << "]);" << endl;

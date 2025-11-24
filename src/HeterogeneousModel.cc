@@ -194,10 +194,8 @@ HeterogeneousModel::writeModelFiles(const string& basename, bool julia) const
 }
 
 int
-HeterogeneousModel::getJacobianCol(int deriv_id, bool sparse) const
+HeterogeneousModel::getJacobianCol(int deriv_id) const
 {
-  assert(sparse);
-
   SymbolType type {getTypeByDerivID(deriv_id)};
   int tsid {getTypeSpecificIDByDerivID(deriv_id)};
   int lag {getLagByDerivID(deriv_id)};
@@ -224,11 +222,17 @@ HeterogeneousModel::getJacobianCol(int deriv_id, bool sparse) const
 }
 
 int
-HeterogeneousModel::getJacobianColsNbr(bool sparse) const
+HeterogeneousModel::getJacobianColsNbr() const
 {
-  assert(sparse);
   return 3 * (symbol_table.het_endo_nbr(heterogeneity_dimension) + symbol_table.endo_nbr())
          + symbol_table.het_exo_nbr(heterogeneity_dimension) + symbol_table.exo_nbr();
+}
+
+int
+HeterogeneousModel::getLegacyJacobianCol([[maybe_unused]] int deriv_id) const
+{
+  cerr << "Heterogeneous::getLegacyJacobianCol(): unimplemented" << endl;
+  exit(EXIT_FAILURE);
 }
 
 SymbolType

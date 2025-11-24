@@ -106,8 +106,6 @@ private:
      representation. Still needed by bytecode and for M_.lead_lag_incidence.
      Contains only endogenous, exogenous and exogenous deterministic */
   map<int, int> legacy_jacobian_cols_table;
-  // Number of columns of the dynamic Jacobian (legacy representation)
-  int legacy_jacobian_ncols;
 
   //! Maximum lag and lead over all types of variables (positive values)
   /*! Set by computeDerivIDs() */
@@ -481,47 +479,44 @@ public:
 
   int getDerivID(int symb_id, int lag) const noexcept(false) override;
 
-  int
-  getJacobianCol(int deriv_id, bool sparse) const override
+  [[nodiscard]] int
+  getJacobianCol(int deriv_id) const override
   {
-    if (sparse)
+    SymbolType type {getTypeByDerivID(deriv_id)};
+    int tsid {getTypeSpecificIDByDerivID(deriv_id)};
+    int lag {getLagByDerivID(deriv_id)};
+    if (type == SymbolType::endogenous)
       {
-        SymbolType type {getTypeByDerivID(deriv_id)};
-        int tsid {getTypeSpecificIDByDerivID(deriv_id)};
-        int lag {getLagByDerivID(deriv_id)};
-        if (type == SymbolType::endogenous)
-          {
-            assert(lag >= -1 && lag <= 1);
-            return tsid + (lag + 1) * symbol_table.endo_nbr();
-          }
-        else if (type == SymbolType::exogenous)
-          {
-            assert(lag == 0);
-            return tsid + 3 * symbol_table.endo_nbr();
-          }
-        else if (type == SymbolType::exogenousDet)
-          {
-            assert(lag == 0);
-            return tsid + 3 * symbol_table.endo_nbr() + symbol_table.exo_nbr();
-          }
-        else
-          throw UnknownDerivIDException();
+        assert(lag >= -1 && lag <= 1);
+        return tsid + (lag + 1) * symbol_table.endo_nbr();
+      }
+    else if (type == SymbolType::exogenous)
+      {
+        assert(lag == 0);
+        return tsid + 3 * symbol_table.endo_nbr();
+      }
+    else if (type == SymbolType::exogenousDet)
+      {
+        assert(lag == 0);
+        return tsid + 3 * symbol_table.endo_nbr() + symbol_table.exo_nbr();
       }
     else
-      {
-        if (auto it = legacy_jacobian_cols_table.find(deriv_id);
-            it == legacy_jacobian_cols_table.end())
-          throw UnknownDerivIDException();
-        else
-          return it->second;
-      }
+      throw UnknownDerivIDException();
   }
-  int
-  getJacobianColsNbr(bool sparse) const override
+
+  [[nodiscard]] int
+  getJacobianColsNbr() const override
   {
-    return sparse
-               ? 3 * symbol_table.endo_nbr() + symbol_table.exo_nbr() + symbol_table.exo_det_nbr()
-               : legacy_jacobian_ncols;
+    return 3 * symbol_table.endo_nbr() + symbol_table.exo_nbr() + symbol_table.exo_det_nbr();
+  }
+
+  [[nodiscard]] int
+  getLegacyJacobianCol(int deriv_id) const override
+  {
+    if (auto it = legacy_jacobian_cols_table.find(deriv_id); it == legacy_jacobian_cols_table.end())
+      throw UnknownDerivIDException();
+    else
+      return it->second;
   }
 
   void addAllParamDerivId(set<int>& deriv_id_set) override;

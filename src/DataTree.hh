@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -331,24 +331,6 @@ public:
   getNameByDerivID(int deriv_id) const
   {
     return symbol_table.getName(getSymbIDByDerivID(deriv_id));
-  }
-
-  /* Returns the column of the Jacobian associated to a derivation ID.
-     The “sparse” argument selects between the legacy representation and the
-     sparse representation. */
-  [[nodiscard]] virtual int
-  getJacobianCol([[maybe_unused]] int deriv_id, [[maybe_unused]] bool sparse) const
-  {
-    throw UnknownDerivIDException();
-  }
-
-  /* Returns the number of columns of the Jacobian
-     The “sparse” argument selects between the legacy representation and the
-     sparse representation. */
-  [[nodiscard]] virtual int
-  getJacobianColsNbr([[maybe_unused]] bool sparse) const
-  {
-    throw UnknownDerivIDException();
   }
 
   //! Adds to the set all the deriv IDs corresponding to parameters

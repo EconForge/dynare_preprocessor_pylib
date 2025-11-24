@@ -70,7 +70,6 @@ DynamicModel::DynamicModel(const DynamicModel& m) :
     deriv_id_table {m.deriv_id_table},
     inv_deriv_id_table {m.inv_deriv_id_table},
     legacy_jacobian_cols_table {m.legacy_jacobian_cols_table},
-    legacy_jacobian_ncols {m.legacy_jacobian_ncols},
     max_lag {m.max_lag},
     max_lead {m.max_lead},
     max_endo_lag {m.max_endo_lag},
@@ -118,7 +117,6 @@ DynamicModel::operator=(const DynamicModel& m)
   deriv_id_table = m.deriv_id_table;
   inv_deriv_id_table = m.inv_deriv_id_table;
   legacy_jacobian_cols_table = m.legacy_jacobian_cols_table;
-  legacy_jacobian_ncols = m.legacy_jacobian_ncols;
   max_lag = m.max_lag;
   max_lead = m.max_lead;
   max_endo_lag = m.max_endo_lag;
@@ -712,7 +710,7 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
           try
             {
               int varID = getDerivID(symbol_table.getID(SymbolType::endogenous, endoID), lag);
-              output << " " << getJacobianCol(varID, false) + 1;
+              output << " " << getLegacyJacobianCol(varID) + 1;
               if (lag == -1)
                 {
                   sstatic = 0;
@@ -2920,11 +2918,6 @@ DynamicModel::computeLegacyJacobianCols()
         legacy_jacobian_cols_table[deriv_id]
             = ordered_dyn_endo.size() + symbol_table.exo_nbr() + tsid;
     }
-
-  /* NB: the following could differ from legacy_jacobian_cols_table.size() if
-     there are unused exogenous (and “nostrict” option is given) */
-  legacy_jacobian_ncols
-      = ordered_dyn_endo.size() + symbol_table.exo_nbr() + symbol_table.exo_det_nbr();
 }
 
 void
@@ -3811,7 +3804,7 @@ DynamicModel::writeJsonDynamicModelInfo(ostream& output) const
               if (lag != -max_endo_lag)
                 output << ",";
               int varID = getDerivID(symbol_table.getID(SymbolType::endogenous, endoID), lag);
-              output << " " << getJacobianCol(varID, false) + 1;
+              output << " " << getLegacyJacobianCol(varID) + 1;
               if (lag == -1)
                 {
                   sstatic = 0;

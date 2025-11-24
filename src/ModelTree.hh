@@ -731,6 +731,29 @@ public:
   /* Returns the minimum feedback set value (see the “mfs” option of the
      “model” block in the reference manual for the possible values) */
   virtual int getMFS() const = 0;
+
+  // Returns the column of the Jacobian associated to a derivation ID
+  [[nodiscard]] virtual int
+  getJacobianCol([[maybe_unused]] int deriv_id) const
+  {
+    throw UnknownDerivIDException();
+  }
+
+  // Returns the number of columns of the Jacobian
+  [[nodiscard]] virtual int
+  getJacobianColsNbr() const
+  {
+    throw UnknownDerivIDException();
+  }
+
+  /* Returns the column of the Jacobian associated to a derivation ID in the legacy representation.
+     Only used by bytecode and for M_.lead_lag_incidence. See dynare#1859 for the historical
+     background. */
+  [[nodiscard]] virtual int
+  getLegacyJacobianCol([[maybe_unused]] int deriv_id) const
+  {
+    throw UnknownDerivIDException();
+  }
 };
 
 template<ExprNodeOutputType output_type>
@@ -997,7 +1020,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
     {
       auto [eq, var, param] {vectorToTuple<3>(indices)};
 
-      int var_col {getJacobianCol(var, true) + 1};
+      int var_col {getJacobianCol(var) + 1};
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
       g1p_output << "g1p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
@@ -1041,7 +1064,7 @@ ModelTree::writeParamsDerivativesFileHelper() const
     {
       auto [eq, var, param1, param2] {vectorToTuple<4>(indices)};
 
-      int var_col {getJacobianCol(var, true) + 1};
+      int var_col {getJacobianCol(var) + 1};
       int param1_col {getTypeSpecificIDByDerivID(param1) + 1};
       int param2_col {getTypeSpecificIDByDerivID(param2) + 1};
 
@@ -1066,8 +1089,8 @@ ModelTree::writeParamsDerivativesFileHelper() const
     {
       auto [eq, var1, var2, param] {vectorToTuple<4>(indices)};
 
-      int var1_col {getJacobianCol(var1, true) + 1};
-      int var2_col {getJacobianCol(var2, true) + 1};
+      int var1_col {getJacobianCol(var1) + 1};
+      int var2_col {getJacobianCol(var2) + 1};
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
       g2p_output << "g2p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
@@ -1093,9 +1116,9 @@ ModelTree::writeParamsDerivativesFileHelper() const
       {
         auto [eq, var1, var2, var3, param] {vectorToTuple<5>(indices)};
 
-        int var1_col {getJacobianCol(var1, true) + 1};
-        int var2_col {getJacobianCol(var2, true) + 1};
-        int var3_col {getJacobianCol(var3, true) + 1};
+        int var1_col {getJacobianCol(var1) + 1};
+        int var2_col {getJacobianCol(var2) + 1};
+        int var3_col {getJacobianCol(var3) + 1};
         int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
         g3p_output << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
@@ -1326,7 +1349,7 @@ ModelTree::writeBytecodeHelper(Bytecode::Writer& code_file) const
       if constexpr (dynamic)
         {
           // Bytecode MEX uses a separate matrix for exogenous and exodet Jacobians
-          int jacob_col {type == SymbolType::endogenous ? getJacobianCol(deriv_id, false) : tsid};
+          int jacob_col {type == SymbolType::endogenous ? getLegacyJacobianCol(deriv_id) : tsid};
           code_file << Bytecode::FSTPG2 {eq, jacob_col};
         }
       else
@@ -1589,7 +1612,7 @@ ModelTree::writeJsonComputingPassOutputHelper(bool writeDetails) const
       d_output[i] << R"(, ")" << matrix_name << R"(": {)"
                   << R"("dims": [)" << equations.size();
       for (size_t j {1}; j <= i; j++)
-        d_output[i] << ", " << getJacobianColsNbr(true);
+        d_output[i] << ", " << getJacobianColsNbr();
       d_output[i] << R"(], "entries": [)";
 
       for (bool printed_something {false}; const auto& [vidx, d] : derivatives[i])
@@ -1601,7 +1624,7 @@ ModelTree::writeJsonComputingPassOutputHelper(bool writeDetails) const
 
           d_output[i] << R"({"indices": [)" << eq + 1;
           for (size_t j {1}; j < vidx.size(); j++)
-            d_output[i] << ", " << getJacobianCol(vidx[j], true) + 1;
+            d_output[i] << ", " << getJacobianCol(vidx[j]) + 1;
           d_output[i] << "]";
 
           if (writeDetails)
@@ -1678,9 +1701,8 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
   rp_output << "]}";
 
   g1p_output << R"("deriv_jacobian_wrt_params": {)"
-             << R"(  "neqs": )" << equations.size() << R"(, "nvarcols": )"
-             << getJacobianColsNbr(true) << R"(, "nparamcols": )" << symbol_table.param_nbr()
-             << R"(, "entries": [)";
+             << R"(  "neqs": )" << equations.size() << R"(, "nvarcols": )" << getJacobianColsNbr()
+             << R"(, "nparamcols": )" << symbol_table.param_nbr() << R"(, "entries": [)";
   for (bool printed_something {false}; const auto& [vidx, d] : params_derivatives.at({1, 1}))
     {
       if (exchange(printed_something, true))
@@ -1688,7 +1710,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       auto [eq, var, param] {vectorToTuple<3>(vidx)};
 
-      int var_col {getJacobianCol(var, true) + 1};
+      int var_col {getJacobianCol(var) + 1};
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
       if (writeDetails)
@@ -1743,9 +1765,9 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
   rpp_output << "]}";
 
   g1pp_output << R"("second_deriv_jacobian_wrt_params": {)"
-              << R"(  "neqs": )" << equations.size() << R"(, "nvarcols": )"
-              << getJacobianColsNbr(true) << R"(, "nparam1cols": )" << symbol_table.param_nbr()
-              << R"(, "nparam2cols": )" << symbol_table.param_nbr() << R"(, "entries": [)";
+              << R"(  "neqs": )" << equations.size() << R"(, "nvarcols": )" << getJacobianColsNbr()
+              << R"(, "nparam1cols": )" << symbol_table.param_nbr() << R"(, "nparam2cols": )"
+              << symbol_table.param_nbr() << R"(, "entries": [)";
   for (bool printed_something {false}; const auto& [vidx, d] : params_derivatives.at({1, 2}))
     {
       if (exchange(printed_something, true))
@@ -1753,7 +1775,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       auto [eq, var, param1, param2] {vectorToTuple<4>(vidx)};
 
-      int var_col {getJacobianCol(var, true) + 1};
+      int var_col {getJacobianCol(var) + 1};
       int param1_col {getTypeSpecificIDByDerivID(param1) + 1};
       int param2_col {getTypeSpecificIDByDerivID(param2) + 1};
 
@@ -1781,9 +1803,9 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
   g1pp_output << "]}" << endl;
 
   g2p_output << R"("derivative_hessian_wrt_params": {)"
-             << R"(  "neqs": )" << equations.size() << R"(, "nvar1cols": )"
-             << getJacobianColsNbr(true) << R"(, "nvar2cols": )" << getJacobianColsNbr(true)
-             << R"(, "nparamcols": )" << symbol_table.param_nbr() << R"(, "entries": [)";
+             << R"(  "neqs": )" << equations.size() << R"(, "nvar1cols": )" << getJacobianColsNbr()
+             << R"(, "nvar2cols": )" << getJacobianColsNbr() << R"(, "nparamcols": )"
+             << symbol_table.param_nbr() << R"(, "entries": [)";
   for (bool printed_something {false}; const auto& [vidx, d] : params_derivatives.at({2, 1}))
     {
       if (exchange(printed_something, true))
@@ -1791,8 +1813,8 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       auto [eq, var1, var2, param] {vectorToTuple<4>(vidx)};
 
-      int var1_col {getJacobianCol(var1, true) + 1};
-      int var2_col {getJacobianCol(var2, true) + 1};
+      int var1_col {getJacobianCol(var1) + 1};
+      int var2_col {getJacobianCol(var2) + 1};
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
       if (writeDetails)
@@ -1824,8 +1846,8 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
     {
       g3p_output << R"("derivative_g3_wrt_params": {)"
                  << R"(  "neqs": )" << equations.size() << R"(, "nvar1cols": )"
-                 << getJacobianColsNbr(true) << R"(, "nvar2cols": )" << getJacobianColsNbr(true)
-                 << R"(, "nvar3cols": )" << getJacobianColsNbr(true) << R"(, "nparamcols": )"
+                 << getJacobianColsNbr() << R"(, "nvar2cols": )" << getJacobianColsNbr()
+                 << R"(, "nvar3cols": )" << getJacobianColsNbr() << R"(, "nparamcols": )"
                  << symbol_table.param_nbr() << R"(, "entries": [)";
       for (bool printed_something {false}; const auto& [vidx, d] : params_derivatives.at({3, 1}))
         {
@@ -1834,9 +1856,9 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
           auto [eq, var1, var2, var3, param] {vectorToTuple<5>(vidx)};
 
-          int var1_col {getJacobianCol(var1, true) + 1};
-          int var2_col {getJacobianCol(var2, true) + 1};
-          int var3_col {getJacobianCol(var3, true) + 1};
+          int var1_col {getJacobianCol(var1) + 1};
+          int var2_col {getJacobianCol(var2) + 1};
+          int var3_col {getJacobianCol(var3) + 1};
           int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
           if (writeDetails)
@@ -1914,7 +1936,7 @@ ModelTree::writeJsonSparseIndicesHelper(ostream& output) const
               if (printed_something2)
                 output << ", ";
               // First element of vidx is row number
-              output << (exchange(printed_something2, true) ? getJacobianCol(it, true) : it) + 1;
+              output << (exchange(printed_something2, true) ? getJacobianCol(it) : it) + 1;
             }
           output << ']' << endl;
         }
@@ -2176,7 +2198,7 @@ ModelTree::writeModelMFiles(const string& basename,
          << "g1_v = NaN(" << jacobian_sparse_column_major_order.size() << ", 1);" << endl
          << d_output[1].str();
   output << "g1 = sparse(sparse_rowval, sparse_colval, g1_v, " << equations.size() << ", "
-         << getJacobianColsNbr(true) << ");" << endl
+         << getJacobianColsNbr() << ");" << endl
          << "end" << endl;
   output.close();
 
@@ -2445,7 +2467,7 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
       y_x_params_ss_yagg_inputs(true);
 
       if (i == 1)
-        sparse_indices_inputs(getJacobianColsNbr(true), jacobian_sparse_column_major_order.size());
+        sparse_indices_inputs(getJacobianColsNbr(), jacobian_sparse_column_major_order.size());
 
       output << "  mxArray *T_mx, *T_order_mx;" << endl
              << "  int T_order_on_input;" << endl
@@ -2494,7 +2516,7 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
         }
       output << "      }" << endl;
       if (i == 1)
-        sparse_jacobian_create(0, equations.size(), getJacobianColsNbr(true),
+        sparse_jacobian_create(0, equations.size(), getJacobianColsNbr(),
                                jacobian_sparse_column_major_order.size());
       else
         output << "  plhs[0] = mxCreateDoubleMatrix("
