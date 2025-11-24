@@ -2093,11 +2093,11 @@ ModelTree::writeSparseModelMFiles(const string& basename,
                                                     : ExprNodeOutputType::matlabStaticModel};
   auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper<output_type>();
 
-  const filesystem::path m_dir {packageDir(basename) / "+sparse"};
+  const filesystem::path m_dir {packageDir(basename)};
   const string prefix {
       (dynamic ? "dynamic_"s : "static_"s)
       + (heterogeneous_dimension ? "het"s + to_string(*heterogeneous_dimension + 1) + "_"s : ""s)};
-  const string full_prefix {basename + ".sparse." + prefix};
+  const string full_prefix {basename + "." + prefix};
   const string extra_args {(dynamic ? ", steady_state"s : ""s)
                            + (heterogeneous_dimension
                                   ? ", yh, xh, paramsh"s
@@ -2268,8 +2268,8 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
                                                     : ExprNodeOutputType::CStaticModel};
   auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper<output_type>();
 
-  const filesystem::path mex_dir {packageDir(basename) / "+sparse"};
-  const filesystem::path model_src_dir {filesystem::path {basename} / "model" / "src" / "sparse"};
+  const filesystem::path mex_dir {packageDir(basename)};
+  const filesystem::path model_src_dir {filesystem::path {basename} / "model" / "src"};
   const string prefix {dynamic ? "dynamic_" : "static_"};
   const string extra_argin {
       (dynamic ? ", const double *restrict steady_state"s : ""s)

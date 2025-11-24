@@ -264,9 +264,9 @@ StaticModel::writeStaticFile(const string& basename, bool use_dll, const string&
   model_dir /= "model";
   if (use_dll)
     {
-      create_directories(model_dir / "src" / "sparse");
+      create_directories(model_dir / "src");
       if (block_decomposed)
-        create_directories(model_dir / "src" / "sparse" / "block");
+        create_directories(model_dir / "src" / "block");
     }
   if (julia)
     create_directories(model_dir / "julia");
@@ -278,10 +278,8 @@ StaticModel::writeStaticFile(const string& basename, bool use_dll, const string&
          +objective subdirectory */
       create_directories(plusfolder);
 
-      auto sparsefolder {plusfolder / "+sparse"};
-      create_directories(sparsefolder);
       if (block_decomposed)
-        create_directories(sparsefolder / "+block");
+        create_directories(plusfolder / "+block");
 
       create_directories(plusfolder / "+debug");
     }
