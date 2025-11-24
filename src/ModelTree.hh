@@ -330,11 +330,11 @@ protected:
   template<ExprNodeOutputType output_type>
   void writePerBlockHelper(int blk, ostream& output, temporary_terms_t& temporary_terms) const;
 
-  // Writes per-block Jacobian (sparse representation)
+  // Writes per-block Jacobian
   // Assumes temporary terms for derivatives are already set.
   template<ExprNodeOutputType output_type>
-  void writeSparsePerBlockJacobianHelper(int blk, ostream& output,
-                                         temporary_terms_t& temporary_terms) const;
+  void writePerBlockJacobianHelper(int blk, ostream& output,
+                                   temporary_terms_t& temporary_terms) const;
 
   /* Helper for writing derivatives w.r.t. parameters.
      Returns { tt, rp, gp, rpp, gpp, hp, g3p }.
@@ -394,27 +394,26 @@ protected:
                                    const temporary_terms_t& temporary_terms,
                                    const deriv_node_temp_terms_t& tef_terms) const;
 
-  // Writes the sparse representation of the model in MATLAB/Octave
+  // Writes the representation of the model in MATLAB/Octave
   template<bool dynamic>
-  void writeSparseModelMFiles(const string& basename,
-                              const optional<int>& heterogeneous_dimension = nullopt) const;
+  void writeModelMFiles(const string& basename,
+                        const optional<int>& heterogeneous_dimension = nullopt) const;
 
-  // Writes and compiles the sparse representation of the model in C
+  // Writes and compiles the representation of the model in C
   template<bool dynamic>
-  void writeSparseModelCFiles(const string& basename, const string& mexext,
-                              const filesystem::path& matlabroot) const;
+  void writeModelCFiles(const string& basename, const string& mexext,
+                        const filesystem::path& matlabroot) const;
 
-  // Writes the sparse representation of the model in Julia
+  // Writes the representation of the model in Julia
   // Assumes that the directory <MODFILE>/model/julia/ already exists
   template<bool dynamic>
-  void writeSparseModelJuliaFiles(const string& basename) const;
+  void writeModelJuliaFiles(const string& basename) const;
 
   //! Writes LaTeX model file
   void writeLatexModelFile(const string& mod_basename, const string& latex_basename,
                            ExprNodeOutputType output_type, bool write_equation_tags) const;
 
-  /* Write files for helping a user to debug their model (MATLAB/Octave,
-     sparse representation).
+  /* Write files for helping a user to debug their model (MATLAB/Octave representation).
      Creates a dynamic/static files which evaluates separately the LHS and RHS
      of each equation.
      They are not optimized for performance (hence in particular the absence of
@@ -614,9 +613,9 @@ protected:
      in case of success. */
   virtual void computingPassBlock(const eval_context_t& eval_context, bool no_tmp_terms);
 
-  /* Get column number within Jacobian of a given block.
+  /* Get legacy column number within Jacobian of a given block.
      “var” is the block-specific endogenous variable index. */
-  virtual int getBlockJacobianEndoCol(int blk, int var, int lag) const = 0;
+  virtual int getLegacyBlockJacobianEndoCol(int blk, int var, int lag) const = 0;
 
   // Returns a human-readable string describing the model class (e.g. “dynamic model”…)
   virtual string modelClassName() const = 0;
@@ -1549,7 +1548,7 @@ ModelTree::writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
                              blocks_temporary_terms_idxs, tef_terms);
       assert(eq >= block_recursive);
       code_file << Bytecode::FSTPG2 {eq - block_recursive,
-                                     getBlockJacobianEndoCol(block, var, lag)};
+                                     getLegacyBlockJacobianEndoCol(block, var, lag)};
     }
 
   // Update jump offset for previous JMP
@@ -1948,10 +1947,10 @@ ModelTree::writeBlockDriverSparseIndicesHelper(ostream& output) const
 
 template<ExprNodeOutputType output_type>
 void
-ModelTree::writeSparsePerBlockJacobianHelper(int blk, ostream& output,
-                                             temporary_terms_t& temporary_terms) const
+ModelTree::writePerBlockJacobianHelper(int blk, ostream& output,
+                                       temporary_terms_t& temporary_terms) const
 {
-  // NB: stochastic mode is currently unsupported by sparse representation
+  // NB: stochastic mode is currently unsupported
   /* See also the comment above the definition of
      blocks_jacobian_sparse_column_major_order and
      blocks_jacobian_sparse_column_major_colptr */
@@ -1973,11 +1972,11 @@ ModelTree::writeSparsePerBlockJacobianHelper(int blk, ostream& output,
 
 template<bool dynamic>
 void
-ModelTree::writeSparseModelJuliaFiles(const string& basename) const
+ModelTree::writeModelJuliaFiles(const string& basename) const
 {
   assert(heterogeneity_table.empty());
 
-  auto [d_sparse_output, tt_sparse_output]
+  auto [d_output, tt_output]
       = writeModelFileHelper<dynamic ? ExprNodeOutputType::juliaDynamicModel
                                      : ExprNodeOutputType::juliaStaticModel>();
 
@@ -1997,7 +1996,7 @@ ModelTree::writeSparseModelJuliaFiles(const string& basename) const
          << "y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}" << ss_argin << ")"
          << endl
          << "@inbounds begin" << endl
-         << tt_sparse_output[0].str() << "end" << endl
+         << tt_output[0].str() << "end" << endl
          << "    return nothing" << endl
          << "end" << endl
          << endl;
@@ -2016,7 +2015,7 @@ ModelTree::writeSparseModelJuliaFiles(const string& basename) const
          << "    @assert length(x) == " << xlen << endl
          << "    @assert length(params) == " << symbol_table.param_nbr() << endl
          << "@inbounds begin" << endl
-         << d_sparse_output[0].str() << "end" << endl;
+         << d_output[0].str() << "end" << endl;
   output << "    return nothing" << endl << "end" << endl << endl;
   writeToFileIfModified(output, julia_dir / (prefix + "Resid!.jl"));
 
@@ -2026,7 +2025,7 @@ ModelTree::writeSparseModelJuliaFiles(const string& basename) const
          << "x::Vector{<: Real}, params::Vector{<: Real}" << ss_argin << ")" << endl
          << "    " << prefix << "ResidTT!(T, y, x, params" << ss_argout << ")" << endl
          << "@inbounds begin" << endl
-         << tt_sparse_output[1].str() << "end" << endl
+         << tt_output[1].str() << "end" << endl
          << "    return nothing" << endl
          << "end" << endl
          << endl;
@@ -2044,7 +2043,7 @@ ModelTree::writeSparseModelJuliaFiles(const string& basename) const
          << "    @assert length(x) == " << xlen << endl
          << "    @assert length(params) == " << symbol_table.param_nbr() << endl
          << "@inbounds begin" << endl
-         << d_sparse_output[1].str() << "end" << endl;
+         << d_output[1].str() << "end" << endl;
   output << "    return nothing" << endl << "end" << endl << endl;
   writeToFileIfModified(output, julia_dir / (prefix + "G1!.jl"));
 
@@ -2057,7 +2056,7 @@ ModelTree::writeSparseModelJuliaFiles(const string& basename) const
              << "    " << prefix << "G" << to_string(i - 1) << "TT!(T, y, x, params" << ss_argout
              << ")" << endl
              << "@inbounds begin" << endl
-             << tt_sparse_output[i].str() << "end" << endl
+             << tt_output[i].str() << "end" << endl
              << "    return nothing" << endl
              << "end" << endl
              << endl;
@@ -2076,7 +2075,7 @@ ModelTree::writeSparseModelJuliaFiles(const string& basename) const
              << "    @assert length(x) == " << xlen << endl
              << "    @assert length(params) == " << symbol_table.param_nbr() << endl
              << "@inbounds begin" << endl
-             << d_sparse_output[i].str() << "end" << endl
+             << d_output[i].str() << "end" << endl
              << "    return nothing" << endl
              << "end" << endl
              << endl;
@@ -2086,12 +2085,12 @@ ModelTree::writeSparseModelJuliaFiles(const string& basename) const
 
 template<bool dynamic>
 void
-ModelTree::writeSparseModelMFiles(const string& basename,
-                                  const optional<int>& heterogeneous_dimension) const
+ModelTree::writeModelMFiles(const string& basename,
+                            const optional<int>& heterogeneous_dimension) const
 {
   constexpr ExprNodeOutputType output_type {dynamic ? ExprNodeOutputType::matlabDynamicModel
                                                     : ExprNodeOutputType::matlabStaticModel};
-  auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper<output_type>();
+  auto [d_output, tt_output] = writeModelFileHelper<output_type>();
 
   const filesystem::path m_dir {packageDir(basename)};
   const string prefix {
@@ -2129,7 +2128,7 @@ ModelTree::writeSparseModelMFiles(const string& basename,
          << "if size(T, 1) < " << ttlen << endl
          << "    T = [T; NaN(" << ttlen << " - size(T, 1), 1)];" << endl
          << "end" << endl
-         << tt_sparse_output[0].str() << "end" << endl;
+         << tt_output[0].str() << "end" << endl;
   output.close();
 
   open_file(m_dir / (prefix + "resid.m"));
@@ -2142,7 +2141,7 @@ ModelTree::writeSparseModelMFiles(const string& basename,
          << "[T_order, T] = " << full_prefix << "resid_tt(y, x, params" << extra_args
          << ", T_order, T);" << endl
          << "residual = NaN(" << equations.size() << ", 1);" << endl
-         << d_sparse_output[0].str();
+         << d_output[0].str();
   output << "end" << endl;
   output.close();
 
@@ -2161,7 +2160,7 @@ ModelTree::writeSparseModelMFiles(const string& basename,
          << "if size(T, 1) < " << ttlen << endl
          << "    T = [T; NaN(" << ttlen << " - size(T, 1), 1)];" << endl
          << "end" << endl
-         << tt_sparse_output[1].str() << "end" << endl;
+         << tt_output[1].str() << "end" << endl;
   output.close();
 
   open_file(m_dir / (prefix + "g1.m"));
@@ -2175,7 +2174,7 @@ ModelTree::writeSparseModelMFiles(const string& basename,
          << "[T_order, T] = " << full_prefix << "g1_tt(y, x, params" << extra_args
          << ", T_order, T);" << endl
          << "g1_v = NaN(" << jacobian_sparse_column_major_order.size() << ", 1);" << endl
-         << d_sparse_output[1].str();
+         << d_output[1].str();
   output << "g1 = sparse(sparse_rowval, sparse_colval, g1_v, " << equations.size() << ", "
          << getJacobianColsNbr(true) << ");" << endl
          << "end" << endl;
@@ -2198,7 +2197,7 @@ ModelTree::writeSparseModelMFiles(const string& basename,
              << "if size(T, 1) < " << ttlen << endl
              << "    T = [T; NaN(" << ttlen << " - size(T, 1), 1)];" << endl
              << "end" << endl
-             << tt_sparse_output[i].str() << "end" << endl;
+             << tt_output[i].str() << "end" << endl;
       output.close();
 
       open_file(m_dir / (prefix + "g" + to_string(i) + ".m"));
@@ -2211,7 +2210,7 @@ ModelTree::writeSparseModelMFiles(const string& basename,
              << "[T_order, T] = " << full_prefix << "g" << i << "_tt(y, x, params" << extra_args
              << ", T_order, T);" << endl
              << "g" << i << "_v = NaN(" << derivatives[i].size() << ", 1);" << endl
-             << d_sparse_output[i].str() << "end" << endl;
+             << d_output[i].str() << "end" << endl;
       output.close();
     }
 
@@ -2247,7 +2246,7 @@ ModelTree::writeSparseModelMFiles(const string& basename,
               output << "if nargout > 3" << endl
                      << "    g1_v = NaN(" << blocks_jacobian_sparse_column_major_order[blk].size()
                      << ", 1);" << endl;
-              writeSparsePerBlockJacobianHelper<output_type>(blk, output, temporary_terms_written);
+              writePerBlockJacobianHelper<output_type>(blk, output, temporary_terms_written);
               output << "    g1 = sparse(sparse_rowval, sparse_colval, g1_v, "
                      << blocks[blk].mfs_size << ", "
                      << (one_boundary ? 1 : 3) * blocks[blk].mfs_size << ");" << endl
@@ -2261,12 +2260,12 @@ ModelTree::writeSparseModelMFiles(const string& basename,
 
 template<bool dynamic>
 void
-ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
-                                  const filesystem::path& matlabroot) const
+ModelTree::writeModelCFiles(const string& basename, const string& mexext,
+                            const filesystem::path& matlabroot) const
 {
   constexpr ExprNodeOutputType output_type {dynamic ? ExprNodeOutputType::CDynamicModel
                                                     : ExprNodeOutputType::CStaticModel};
-  auto [d_sparse_output, tt_sparse_output] = writeModelFileHelper<output_type>();
+  auto [d_output, tt_output] = writeModelFileHelper<output_type>();
 
   const filesystem::path mex_dir {packageDir(basename)};
   const filesystem::path model_src_dir {filesystem::path {basename} / "model" / "src"};
@@ -2389,7 +2388,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
       output << endl
              << prototype_tt << endl
              << "{" << endl
-             << tt_sparse_output[i].str() << "}" << endl
+             << tt_output[i].str() << "}" << endl
              << endl;
       output.close();
       tt_object_files.push_back(
@@ -2416,7 +2415,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
       output << endl
              << prototype_main << endl
              << "{" << endl
-             << d_sparse_output[i].str() << "}" << endl
+             << d_output[i].str() << "}" << endl
              << endl;
       output.close();
       auto main_object_file {
@@ -2561,7 +2560,7 @@ ModelTree::writeSparseModelCFiles(const string& basename, const string& mexext,
                         "*restrict params"
                      << extra_argin << ", double *restrict T, double *restrict g1_v)" << endl
                      << "{" << endl;
-              writeSparsePerBlockJacobianHelper<output_type>(blk, output, temporary_terms_written);
+              writePerBlockJacobianHelper<output_type>(blk, output, temporary_terms_written);
               output << "}" << endl;
             }
 

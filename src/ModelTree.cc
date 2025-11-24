@@ -911,7 +911,7 @@ ModelTree::computeDerivatives(int order, const set<int>& vars)
         derivatives[1][{eq, var}] = d1;
       }
 
-  // Compute the sparse representation of the Jacobian
+  // Compute the CSC representation of the Jacobian
   for (const auto& [indices, d1] : derivatives[1])
     jacobian_sparse_column_major_order.try_emplace({indices[0], getJacobianCol(indices[1], true)},
                                                    d1);

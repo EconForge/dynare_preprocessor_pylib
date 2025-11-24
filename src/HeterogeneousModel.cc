@@ -54,10 +54,11 @@ HeterogeneousModel::computeChainRuleJacobian()
 }
 
 int
-HeterogeneousModel::getBlockJacobianEndoCol([[maybe_unused]] int blk, [[maybe_unused]] int var,
-                                            [[maybe_unused]] int lead_lag) const
+HeterogeneousModel::getLegacyBlockJacobianEndoCol([[maybe_unused]] int blk,
+                                                  [[maybe_unused]] int var,
+                                                  [[maybe_unused]] int lead_lag) const
 {
-  cerr << "Heterogeneous::getBlockJacobianEndoCol(): unimplemented" << endl;
+  cerr << "Heterogeneous::getLegacyBlockJacobianEndoCol(): unimplemented" << endl;
   exit(EXIT_FAILURE);
 }
 
@@ -188,7 +189,7 @@ void
 HeterogeneousModel::writeModelFiles(const string& basename, bool julia) const
 {
   assert(!julia); // Not yet implemented
-  writeSparseModelMFiles<true>(basename, heterogeneity_dimension);
+  writeModelMFiles<true>(basename, heterogeneity_dimension);
   writeComplementarityConditionsFile<true>(basename, heterogeneity_dimension);
 }
 

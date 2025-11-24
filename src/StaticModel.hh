@@ -93,8 +93,8 @@ private:
   void computeChainRuleJacobian() override;
 
   int
-  getBlockJacobianEndoCol([[maybe_unused]] int blk, int var,
-                          [[maybe_unused]] int lag) const override
+  getLegacyBlockJacobianEndoCol([[maybe_unused]] int blk, int var,
+                                [[maybe_unused]] int lag) const override
   {
     assert(var >= blocks[blk].getRecursiveSize());
     return var - blocks[blk].getRecursiveSize();

@@ -293,13 +293,12 @@ StaticModel::writeStaticFile(const string& basename, bool use_dll, const string&
   if (block_decomposed)
     writeStaticBlockBytecode(basename);
 
-  // Sparse representation
   if (use_dll)
-    writeSparseModelCFiles<false>(basename, mexext, matlabroot);
+    writeModelCFiles<false>(basename, mexext, matlabroot);
   else if (julia)
-    writeSparseModelJuliaFiles<false>(basename);
+    writeModelJuliaFiles<false>(basename);
   else // MATLAB/Octave
-    writeSparseModelMFiles<false>(basename);
+    writeModelMFiles<false>(basename);
 
   writeSetAuxiliaryVariablesFile<false>(basename, julia);
 
@@ -489,7 +488,7 @@ StaticModel::computeChainRuleJacobian()
             }
         }
 
-      // Compute the sparse representation of the Jacobian
+      // Compute the CSC representation of the Jacobian
       if (simulation_type != BlockSimulationType::evaluateForward
           && simulation_type != BlockSimulationType::evaluateBackward)
         {

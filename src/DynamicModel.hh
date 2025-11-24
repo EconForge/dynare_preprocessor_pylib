@@ -103,11 +103,11 @@ private:
   vector<pair<int, int>> inv_deriv_id_table;
 
   /* Maps a deriv_id to the column index of the dynamic Jacobian, in the legacy
-     representation.
+     representation. Still needed by bytecode and for M_.lead_lag_incidence.
      Contains only endogenous, exogenous and exogenous deterministic */
-  map<int, int> dyn_jacobian_cols_table;
+  map<int, int> legacy_jacobian_cols_table;
   // Number of columns of the dynamic Jacobian (legacy representation)
-  int dyn_jacobian_ncols;
+  int legacy_jacobian_ncols;
 
   //! Maximum lag and lead over all types of variables (positive values)
   /*! Set by computeDerivIDs() */
@@ -142,9 +142,10 @@ private:
   //! Creates mapping for variables and equations they are present in
   map<int, set<int>> variableMapping;
 
-  /* For each block, and for each variable type, maps (variable ID, lag) to
-     Jacobian column. The variable ID is the index within the block. */
-  vector<map<pair<int, int>, int>> blocks_jacob_cols_endo;
+  /* For each block, and for each variable type, maps (variable ID, lag) to Jacobian column in the
+     legacy representation. Still needed by bytecode. The variable ID is the index within the
+     block. */
+  vector<map<pair<int, int>, int>> legacy_blocks_jacob_cols_endo;
 
   //! Used for var_expectation and var_model
   map<string, set<int>> var_expectation_functions_to_write;
@@ -187,8 +188,9 @@ private:
   int getSymbIDByDerivID(int deriv_id) const noexcept(false) override;
   int getTypeSpecificIDByDerivID(int deriv_id) const override;
 
-  //! Compute the column indices of the dynamic Jacobian
-  void computeDynJacobianCols();
+  /* Compute the column indices of the dynamic Jacobian, in the legacy representation; still needed
+     by bytecode and for M_.lead_lag_incidence */
+  void computeLegacyJacobianCols();
   //! Computes derivatives of the Jacobian w.r. to trend vars and tests that they are equal to zero
   void testTrendDerivativesEqualToZero(const eval_context_t& eval_context);
 
@@ -197,11 +199,9 @@ private:
    * dynamic endos */
   void computeDerivIDs();
 
-  /* Compute the Jacobian column indices in the block decomposition case
-     (stored in blocks_jacob_cols_*).
-     Also fills auxiliary structures related to “other” endogenous and
-     exogenous: blocks{,_derivatives}_{other_endo,exo_exo_det} */
-  void computeBlockDynJacobianCols();
+  /* Compute the legacy Jacobian column indices in the block decomposition case
+     (stored in legacy_blocks_jacob_cols_*), still needed by bytecode */
+  void computeLegacyBlockJacobianCols();
 
   //! Factorized code for substitutions of leads/lags
   /*! \param[in] type determines which type of variables is concerned
@@ -292,9 +292,9 @@ private:
   vector<int> getVARDerivIDs(int lhs_symb_id, int lead_lag) const;
 
   int
-  getBlockJacobianEndoCol(int blk, int var, int lag) const override
+  getLegacyBlockJacobianEndoCol(int blk, int var, int lag) const override
   {
-    return blocks_jacob_cols_endo[blk].at({var, lag});
+    return legacy_blocks_jacob_cols_endo[blk].at({var, lag});
   }
 
   // Used to check consistency of bind/relax tags; the keys are equation names
@@ -509,7 +509,8 @@ public:
       }
     else
       {
-        if (auto it = dyn_jacobian_cols_table.find(deriv_id); it == dyn_jacobian_cols_table.end())
+        if (auto it = legacy_jacobian_cols_table.find(deriv_id);
+            it == legacy_jacobian_cols_table.end())
           throw UnknownDerivIDException();
         else
           return it->second;
@@ -520,7 +521,7 @@ public:
   {
     return sparse
                ? 3 * symbol_table.endo_nbr() + symbol_table.exo_nbr() + symbol_table.exo_det_nbr()
-               : dyn_jacobian_ncols;
+               : legacy_jacobian_ncols;
   }
 
   void addAllParamDerivId(set<int>& deriv_id_set) override;

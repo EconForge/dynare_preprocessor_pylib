@@ -81,7 +81,7 @@ public:
 
 protected:
   void computeChainRuleJacobian() override;
-  int getBlockJacobianEndoCol(int blk, int var, int lead_lag) const override;
+  int getLegacyBlockJacobianEndoCol(int blk, int var, int lead_lag) const override;
   string
   modelClassName() const override
   {

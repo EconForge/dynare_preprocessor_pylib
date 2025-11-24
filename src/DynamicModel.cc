@@ -69,8 +69,8 @@ DynamicModel::DynamicModel(const DynamicModel& m) :
     static_only_equations_equation_tags {m.static_only_equations_equation_tags},
     deriv_id_table {m.deriv_id_table},
     inv_deriv_id_table {m.inv_deriv_id_table},
-    dyn_jacobian_cols_table {m.dyn_jacobian_cols_table},
-    dyn_jacobian_ncols {m.dyn_jacobian_ncols},
+    legacy_jacobian_cols_table {m.legacy_jacobian_cols_table},
+    legacy_jacobian_ncols {m.legacy_jacobian_ncols},
     max_lag {m.max_lag},
     max_lead {m.max_lead},
     max_endo_lag {m.max_endo_lag},
@@ -95,7 +95,7 @@ DynamicModel::DynamicModel(const DynamicModel& m) :
     xref_exo_det {m.xref_exo_det},
     nonzero_hessian_eqs {m.nonzero_hessian_eqs},
     variableMapping {m.variableMapping},
-    blocks_jacob_cols_endo {m.blocks_jacob_cols_endo},
+    legacy_blocks_jacob_cols_endo {m.legacy_blocks_jacob_cols_endo},
     var_expectation_functions_to_write {m.var_expectation_functions_to_write},
     mfs {m.mfs},
     static_mfs {m.static_mfs}
@@ -117,8 +117,8 @@ DynamicModel::operator=(const DynamicModel& m)
   static_only_complementarity_conditions.clear();
   deriv_id_table = m.deriv_id_table;
   inv_deriv_id_table = m.inv_deriv_id_table;
-  dyn_jacobian_cols_table = m.dyn_jacobian_cols_table;
-  dyn_jacobian_ncols = m.dyn_jacobian_ncols;
+  legacy_jacobian_cols_table = m.legacy_jacobian_cols_table;
+  legacy_jacobian_ncols = m.legacy_jacobian_ncols;
   max_lag = m.max_lag;
   max_lead = m.max_lead;
   max_endo_lag = m.max_endo_lag;
@@ -143,7 +143,7 @@ DynamicModel::operator=(const DynamicModel& m)
   xref_exo_det = m.xref_exo_det;
   nonzero_hessian_eqs = m.nonzero_hessian_eqs;
   variableMapping = m.variableMapping;
-  blocks_jacob_cols_endo = m.blocks_jacob_cols_endo;
+  legacy_blocks_jacob_cols_endo = m.legacy_blocks_jacob_cols_endo;
 
   var_expectation_functions_to_write = m.var_expectation_functions_to_write;
   mfs = m.mfs;
@@ -188,7 +188,7 @@ DynamicModel::writeDynamicBytecode(const string& basename) const
   auto endo_idx = views::iota(0, symbol_table.endo_nbr());
 
   int jacobian_ncols_endo {
-      static_cast<int>(ranges::count_if(dyn_jacobian_cols_table, [this](const auto& v) {
+      static_cast<int>(ranges::count_if(legacy_jacobian_cols_table, [this](const auto& v) {
         return getTypeByDerivID(v.first) == SymbolType::endogenous;
       }))};
 
@@ -240,15 +240,16 @@ DynamicModel::writeDynamicBlockBytecode(const string& basename) const
                              ? writeBlockBytecodeBinFile(bin_file, block)
                              : 0};
 
-      code_file << Bytecode::FBEGINBLOCK {blocks[block].mfs_size,
-                                          simulation_type,
-                                          blocks[block].first_equation,
-                                          blocks[block].size,
-                                          endo_idx_block2orig,
-                                          eq_idx_block2orig,
-                                          blocks[block].linear,
-                                          u_count,
-                                          static_cast<int>(blocks_jacob_cols_endo[block].size())};
+      code_file << Bytecode::FBEGINBLOCK {
+          blocks[block].mfs_size,
+          simulation_type,
+          blocks[block].first_equation,
+          blocks[block].size,
+          endo_idx_block2orig,
+          eq_idx_block2orig,
+          blocks[block].linear,
+          u_count,
+          static_cast<int>(legacy_blocks_jacob_cols_endo[block].size())};
 
       writeBlockBytecodeHelper<true>(code_file, block, temporary_terms_written);
     }
@@ -623,8 +624,8 @@ DynamicModel::writeBlockDriverOutput(ostream& output) const
          columns for two-boundaries blocks and n columns for one-boundary
          blocks). Columns unused in the sparse representation are indicated by
          a zero. */
-      vector<int> bytecode_jacob_cols_to_sparse(blocks_jacob_cols_endo[blk].size());
-      for (auto& [key, index] : blocks_jacob_cols_endo[blk])
+      vector<int> bytecode_jacob_cols_to_sparse(legacy_blocks_jacob_cols_endo[blk].size());
+      for (auto& [key, index] : legacy_blocks_jacob_cols_endo[blk])
         {
           auto [var, lag] {key};
           if (var >= blocks[blk].getRecursiveSize() // NB: this check can be removed once Jacobian
@@ -2174,8 +2175,8 @@ DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder,
   // Prepare for derivation
   computeDerivIDs();
 
-  // Computes dynamic jacobian columns, must be done after computeDerivIDs()
-  computeDynJacobianCols();
+  // Computes legacy dynamic jacobian columns, must be done after computeDerivIDs()
+  computeLegacyJacobianCols();
 
   // Compute derivatives w.r. to all endogenous, exogenous and exogenous deterministic
   set<int> vars;
@@ -2216,7 +2217,7 @@ DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder,
     }
   computingPassBlock(eval_context, no_tmp_terms);
   if (block_decomposed)
-    computeBlockDynJacobianCols();
+    computeLegacyBlockJacobianCols();
   if (!block_decomposed && block)
     {
       cerr << "ERROR: Block decomposition requested but failed." << endl;
@@ -2424,7 +2425,7 @@ DynamicModel::computeChainRuleJacobian()
             blocks_derivatives[blk][{eq, var, lag}] = d;
         }
 
-      // Compute the sparse representation of the Jacobian
+      // Compute the CSC representation of the Jacobian
       if (simulation_type != BlockSimulationType::evaluateForward
           && simulation_type != BlockSimulationType::evaluateBackward)
         {
@@ -2449,7 +2450,7 @@ DynamicModel::computeChainRuleJacobian()
 }
 
 void
-DynamicModel::computeBlockDynJacobianCols()
+DynamicModel::computeLegacyBlockJacobianCols()
 {
   size_t nb_blocks {blocks.size()};
   // Structure used for lexicographic ordering over (lag, var ID)
@@ -2466,10 +2467,10 @@ DynamicModel::computeBlockDynJacobianCols()
     }
 
   // Compute Jacobian column indices
-  blocks_jacob_cols_endo.resize(nb_blocks);
+  legacy_blocks_jacob_cols_endo.resize(nb_blocks);
   for (size_t blk {0}; blk < nb_blocks; blk++)
     for (int index {0}; auto [lag, var] : dynamic_endo[blk])
-      blocks_jacob_cols_endo[blk][{var, lag}] = index++;
+      legacy_blocks_jacob_cols_endo[blk][{var, lag}] = index++;
 }
 
 void
@@ -2508,13 +2509,12 @@ DynamicModel::writeDynamicFile(const string& basename, bool use_dll, const strin
   if (block_decomposed)
     writeDynamicBlockBytecode(basename);
 
-  // Sparse representation
   if (use_dll)
-    writeSparseModelCFiles<true>(basename, mexext, matlabroot);
+    writeModelCFiles<true>(basename, mexext, matlabroot);
   else if (julia)
-    writeSparseModelJuliaFiles<true>(basename);
+    writeModelJuliaFiles<true>(basename);
   else // MATLAB/Octave
-    writeSparseModelMFiles<true>(basename);
+    writeModelMFiles<true>(basename);
 
   writeSetAuxiliaryVariablesFile<true>(basename, julia);
 
@@ -2894,7 +2894,7 @@ DynamicModel::addAllParamDerivId(set<int>& deriv_id_set)
 }
 
 void
-DynamicModel::computeDynJacobianCols()
+DynamicModel::computeLegacyJacobianCols()
 {
   // Sort the dynamic endogenous variables by lexicographic order over (lag,
   // type_specific_symbol_id)
@@ -2906,7 +2906,7 @@ DynamicModel::computeDynJacobianCols()
 
   // Fill the dynamic jacobian columns for endogenous (legacy representation)
   for (int sorted_id {0}; const auto& [ignore, deriv_id] : ordered_dyn_endo)
-    dyn_jacobian_cols_table[deriv_id] = sorted_id++;
+    legacy_jacobian_cols_table[deriv_id] = sorted_id++;
 
   /* Fill the dynamic columns for exogenous and exogenous deterministic (legacy
      representation) */
@@ -2915,14 +2915,15 @@ DynamicModel::computeDynJacobianCols()
       int symb_id {symb_lag.first};
       int tsid {symbol_table.getTypeSpecificID(symb_id)}; // At this point, there is no trend_var
       if (SymbolType type {symbol_table.getType(symb_id)}; type == SymbolType::exogenous)
-        dyn_jacobian_cols_table[deriv_id] = ordered_dyn_endo.size() + tsid;
+        legacy_jacobian_cols_table[deriv_id] = ordered_dyn_endo.size() + tsid;
       else if (type == SymbolType::exogenousDet)
-        dyn_jacobian_cols_table[deriv_id] = ordered_dyn_endo.size() + symbol_table.exo_nbr() + tsid;
+        legacy_jacobian_cols_table[deriv_id]
+            = ordered_dyn_endo.size() + symbol_table.exo_nbr() + tsid;
     }
 
-  /* NB: the following could differ from dyn_jacobian_cols_table.size() if
+  /* NB: the following could differ from legacy_jacobian_cols_table.size() if
      there are unused exogenous (and “nostrict” option is given) */
-  dyn_jacobian_ncols
+  legacy_jacobian_ncols
       = ordered_dyn_endo.size() + symbol_table.exo_nbr() + symbol_table.exo_det_nbr();
 }
 
