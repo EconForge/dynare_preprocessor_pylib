@@ -900,9 +900,9 @@ ParsingDriver::end_model()
 void
 ParsingDriver::end_shocks(bool overwrite)
 {
-  mod_file->addStatement(make_unique<ShocksStatement>(overwrite, move(det_shocks), move(var_shocks),
-                                                      move(std_shocks), move(covar_shocks),
-                                                      move(corr_shocks), mod_file->symbol_table));
+  mod_file->addStatement(make_unique<ShocksStatement>(
+      overwrite, move(det_shocks), move(var_shocks), move(std_shocks), move(covar_shocks),
+      move(corr_shocks), move(skew_shocks), mod_file->symbol_table));
   det_shocks.clear();
   if (!learnt_shocks_add.empty())
     error("shocks: 'add' keyword not allowed unless 'learnt_in' option with value >1 is passed");
@@ -913,6 +913,7 @@ ParsingDriver::end_shocks(bool overwrite)
   std_shocks.clear();
   covar_shocks.clear();
   corr_shocks.clear();
+  skew_shocks.clear();
 }
 
 void
@@ -1257,6 +1258,61 @@ ParsingDriver::add_correl_shock(const string& var1, const string& var2, expr_t v
           + ") declared twice");
 
   corr_shocks[key] = value;
+}
+
+void
+ParsingDriver::add_skew_single_shock(const string& var, expr_t value)
+{
+  // Single shock skewness: store as (i, i, i)
+  if (nostrict && !mod_file->symbol_table.exists(var))
+    {
+      warning("discarding shocks block declaration of the skewness of '" + var
+              + "' as it was not declared");
+      return;
+    }
+
+  check_symbol_existence(var);
+  int symb_id = mod_file->symbol_table.getID(var);
+
+  tuple key {symb_id, symb_id, symb_id};
+
+  if (skew_shocks.contains(key))
+    error("shocks: skewness of " + var + " declared twice");
+
+  skew_shocks[key] = value;
+}
+
+void
+ParsingDriver::add_skew_triple_shock(const string& var1, const string& var2, const string& var3,
+                                     expr_t value)
+{
+  // Three-shock co-skewness
+  if (nostrict
+      && (!mod_file->symbol_table.exists(var1) || !mod_file->symbol_table.exists(var2)
+          || !mod_file->symbol_table.exists(var3)))
+    {
+      warning("discarding shocks block declaration of the co-skewness of ('" + var1 + "', '" + var2
+              + "', '" + var3 + "') as at least one was not declared");
+      return;
+    }
+
+  check_symbol_existence(var1);
+  check_symbol_existence(var2);
+  check_symbol_existence(var3);
+  int symb_id1 = mod_file->symbol_table.getID(var1);
+  int symb_id2 = mod_file->symbol_table.getID(var2);
+  int symb_id3 = mod_file->symbol_table.getID(var3);
+
+  // Check all permutations for duplicates
+  if (skew_shocks.contains({symb_id1, symb_id2, symb_id3})
+      || skew_shocks.contains({symb_id1, symb_id3, symb_id2})
+      || skew_shocks.contains({symb_id2, symb_id1, symb_id3})
+      || skew_shocks.contains({symb_id2, symb_id3, symb_id1})
+      || skew_shocks.contains({symb_id3, symb_id1, symb_id2})
+      || skew_shocks.contains({symb_id3, symb_id2, symb_id1}))
+    error("shocks: co-skewness of (" + var1 + ", " + var2 + ", " + var3 + ") declared twice");
+
+  skew_shocks[{symb_id1, symb_id2, symb_id3}] = value;
 }
 
 void

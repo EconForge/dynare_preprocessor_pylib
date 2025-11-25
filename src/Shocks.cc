@@ -129,13 +129,15 @@ ShocksStatement::ShocksStatement(bool overwrite_arg, det_shocks_t det_shocks_arg
                                  var_and_std_shocks_t std_shocks_arg,
                                  covar_and_corr_shocks_t covar_shocks_arg,
                                  covar_and_corr_shocks_t corr_shocks_arg,
+                                 skew_shocks_t skew_shocks_arg,
                                  const SymbolTable& symbol_table_arg) :
     AbstractShocksStatement {overwrite_arg, ShockType::level, move(det_shocks_arg),
                              symbol_table_arg},
     var_shocks {move(var_shocks_arg)},
     std_shocks {move(std_shocks_arg)},
     covar_shocks {move(covar_shocks_arg)},
-    corr_shocks {move(corr_shocks_arg)}
+    corr_shocks {move(corr_shocks_arg)},
+    skew_shocks {move(skew_shocks_arg)}
 {
 }
 
@@ -166,6 +168,7 @@ ShocksStatement::writeOutput(ostream& output, [[maybe_unused]] const string& bas
   writeDetShocks(output);
   writeVarAndStdShocks(output);
   writeCovarAndCorrShocks(output);
+  writeSkewShocks(output);
 
   /* M_.sigma_e_is_diagonal is initialized to 1 by ModFile.cc.
      If there are no off-diagonal elements, and we are not in overwrite mode,
@@ -231,6 +234,21 @@ ShocksStatement::writeJsonOutput(ostream& output) const
              << R"("name": ")" << symbol_table.getName(ids.first) << R"(", )"
              << R"("name2": ")" << symbol_table.getName(ids.second) << R"(", )"
              << R"("correlation": ")";
+      value->writeJsonOutput(output, {}, {});
+      output << R"("})";
+    }
+  output << "]"
+         << R"(, "skewness": [)";
+  for (bool printed_something {false}; auto& [ids, value] : skew_shocks)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      auto [id1, id2, id3] = ids;
+      output << "{"
+             << R"("name": ")" << symbol_table.getName(id1) << R"(", )"
+             << R"("name2": ")" << symbol_table.getName(id2) << R"(", )"
+             << R"("name3": ")" << symbol_table.getName(id3) << R"(", )"
+             << R"("skewness": ")";
       value->writeJsonOutput(output, {}, {});
       output << R"("})";
     }
@@ -331,6 +349,53 @@ ShocksStatement::writeCovarAndCorrShocks(ostream& output) const
 }
 
 void
+ShocksStatement::writeSkewShock(ostream& output, const pair<tuple<int, int, int>, expr_t>& it) const
+{
+  auto [id1, id2, id3] = it.first;
+
+  // All three must be exogenous (already checked in checkPass)
+  int tsid1 = symbol_table.getTypeSpecificID(id1) + 1;
+  int tsid2 = symbol_table.getTypeSpecificID(id2) + 1;
+  int tsid3 = symbol_table.getTypeSpecificID(id3) + 1;
+
+  // Write all 6 permutations to M_.Skew_e
+  output << "M_.Skew_e(" << tsid1 << ", " << tsid2 << ", " << tsid3 << ") = ";
+  it.second->writeOutput(output);
+  output << ";" << endl;
+
+  // Only write other permutations if they're different
+  if (!(tsid1 == tsid2 && tsid2 == tsid3))
+    {
+      output << "M_.Skew_e(" << tsid1 << ", " << tsid3 << ", " << tsid2 << ") = ";
+      it.second->writeOutput(output);
+      output << ";" << endl;
+
+      output << "M_.Skew_e(" << tsid2 << ", " << tsid1 << ", " << tsid3 << ") = ";
+      it.second->writeOutput(output);
+      output << ";" << endl;
+
+      output << "M_.Skew_e(" << tsid2 << ", " << tsid3 << ", " << tsid1 << ") = ";
+      it.second->writeOutput(output);
+      output << ";" << endl;
+
+      output << "M_.Skew_e(" << tsid3 << ", " << tsid1 << ", " << tsid2 << ") = ";
+      it.second->writeOutput(output);
+      output << ";" << endl;
+
+      output << "M_.Skew_e(" << tsid3 << ", " << tsid2 << ", " << tsid1 << ") = ";
+      it.second->writeOutput(output);
+      output << ";" << endl;
+    }
+}
+
+void
+ShocksStatement::writeSkewShocks(ostream& output) const
+{
+  for (const auto& it : skew_shocks)
+    writeSkewShock(output, it);
+}
+
+void
 ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
                            [[maybe_unused]] WarningConsolidation& warnings)
 {
@@ -397,6 +462,22 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
         }
     }
 
+  for (const auto& [ids, val] : skew_shocks)
+    {
+      auto [symb_id1, symb_id2, symb_id3] = ids;
+
+      if (!(symbol_table.getType(symb_id1) == SymbolType::exogenous
+            && symbol_table.getType(symb_id2) == SymbolType::exogenous
+            && symbol_table.getType(symb_id3) == SymbolType::exogenous))
+        {
+          cerr << "shocks: setting skewness for '" << symbol_table.getName(symb_id1) << "', '"
+               << symbol_table.getName(symb_id2) << "', '" << symbol_table.getName(symb_id3)
+               << "' is not allowed; skewness can only be specified for exogenous variables"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+
   // Determine if there is a calibrated measurement error
   mod_file_struct.calibrated_measurement_errors |= has_calibrated_measurement_errors();
 
@@ -408,6 +489,8 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
   for (const auto& [ids, val] : covar_shocks)
     val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
   for (const auto& [ids, val] : corr_shocks)
+    val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
+  for (const auto& [ids, val] : skew_shocks)
     val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
 }
 

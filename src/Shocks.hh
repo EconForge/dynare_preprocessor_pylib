@@ -67,22 +67,26 @@ class ShocksStatement : public AbstractShocksStatement
 public:
   using var_and_std_shocks_t = map<int, expr_t>;
   using covar_and_corr_shocks_t = map<pair<int, int>, expr_t>;
+  using skew_shocks_t = map<tuple<int, int, int>, expr_t>;
 
 private:
   const var_and_std_shocks_t var_shocks, std_shocks;
   const covar_and_corr_shocks_t covar_shocks, corr_shocks;
+  const skew_shocks_t skew_shocks;
   void writeVarOrStdShock(ostream& output, const pair<int, expr_t>& it, bool stddev) const;
   void writeVarAndStdShocks(ostream& output) const;
   void writeCovarOrCorrShock(ostream& output, const pair<pair<int, int>, expr_t>& it,
                              bool corr) const;
   void writeCovarAndCorrShocks(ostream& output) const;
+  void writeSkewShock(ostream& output, const pair<tuple<int, int, int>, expr_t>& it) const;
+  void writeSkewShocks(ostream& output) const;
   [[nodiscard]] bool has_calibrated_measurement_errors() const;
 
 public:
   ShocksStatement(bool overwrite_arg, det_shocks_t det_shocks_arg,
                   var_and_std_shocks_t var_shocks_arg, var_and_std_shocks_t std_shocks_arg,
                   covar_and_corr_shocks_t covar_shocks_arg, covar_and_corr_shocks_t corr_shocks_arg,
-                  const SymbolTable& symbol_table_arg);
+                  skew_shocks_t skew_shocks_arg, const SymbolTable& symbol_table_arg);
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
