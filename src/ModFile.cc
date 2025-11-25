@@ -1138,11 +1138,13 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
   var_expectation_model_table.writeOutput(mOutputFile);
   pac_model_table.writeOutput(mOutputFile);
 
-  // Initialize M_.Sigma_e, M_.Correlation_matrix, M_.H, and M_.Correlation_matrix_ME
+  // Initialize M_.Sigma_e, M_.Correlation_matrix, M_.Skew_e, M_.H, and M_.Correlation_matrix_ME
   mOutputFile << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", " << symbol_table.exo_nbr()
               << ");" << endl
               << "M_.Correlation_matrix = eye(" << symbol_table.exo_nbr() << ", "
-              << symbol_table.exo_nbr() << ");" << endl;
+              << symbol_table.exo_nbr() << ");" << endl
+              << "M_.Skew_e = zeros(" << symbol_table.exo_nbr() << ", " << symbol_table.exo_nbr()
+              << ", " << symbol_table.exo_nbr() << ");" << endl;
   for (int hd {0}; hd < heterogeneity_table.size(); hd++)
     mOutputFile << "M_.heterogeneity(" << hd + 1 << ").Sigma_e = zeros("
                 << symbol_table.het_exo_nbr(hd) << ", " << symbol_table.het_exo_nbr(hd) << ");"

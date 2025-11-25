@@ -101,7 +101,7 @@ str_tolower(string s)
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA INTERACTIVE SCREEN_SHOCKS STEADYSTATE
 %token BVAR_PRIOR_MU BVAR_PRIOR_OMEGA BVAR_PRIOR_TAU BVAR_PRIOR_TRAIN DETAIL_PLOT TYPE
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION REALTIME VINTAGE
-%token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
+%token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR SKEW CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
 %token COMMA CONSIDER_ALL_ENDOGENOUS CONSIDER_ALL_ENDOGENOUS_AND_AUXILIARY CONSIDER_ONLY_OBSERVED INITIAL_CONDITION_DECOMPOSITION
 %token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_CYCLE_REDUCTION_MAXITER DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DR_ALGO DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR EXPRESSION
@@ -1260,6 +1260,10 @@ stoch_shock_elem : VAR symbol ';' STDERR expression ';'
                    { driver.add_covar_shock($2, $4, $6); }
                  | CORR symbol COMMA symbol EQUAL expression ';'
                    { driver.add_correl_shock($2, $4, $6); }
+                 | SKEW symbol EQUAL expression ';'
+                   { driver.add_skew_single_shock($2, $4); }
+                 | SKEW symbol COMMA symbol COMMA symbol EQUAL expression ';'
+                   { driver.add_skew_triple_shock($2, $4, $6, $8); }
                  ;
 
 stoch_shock_list : stoch_shock_list stoch_shock_elem
@@ -1947,6 +1951,11 @@ estimated_elem1 : STDERR symbol
                     driver.estim_params.name = $2;
                     driver.estim_params.name2 = $4;
                   }
+                | SKEW symbol
+                  {
+                    driver.estim_params.type = 4;
+                    driver.estim_params.name = $2;
+                  }
                 | DSGE_PRIOR_WEIGHT
                   {
                     driver.estim_params.type = 2;
@@ -2037,6 +2046,12 @@ estimated_init_elem : STDERR symbol COMMA expression ';'
                         driver.estim_params.name2 = $4;
                         driver.estim_params.init_val = $6;
                       }
+                    | SKEW symbol COMMA expression ';'
+                      {
+                        driver.estim_params.type = 4;
+                        driver.estim_params.name = $2;
+                        driver.estim_params.init_val = $4;
+                      }
                     | symbol COMMA expression ';'
                       {
                         driver.estim_params.type = 2;
@@ -2068,6 +2083,13 @@ estimated_bounds_elem : STDERR symbol COMMA expression COMMA expression ';'
                           driver.estim_params.name2 = $4;
                           driver.estim_params.low_bound = $6;
                           driver.estim_params.up_bound = $8;
+                        }
+                      | SKEW symbol COMMA expression COMMA expression ';'
+                        {
+                          driver.estim_params.type = 4;
+                          driver.estim_params.name = $2;
+                          driver.estim_params.low_bound = $4;
+                          driver.estim_params.up_bound = $6;
                         }
                       | symbol COMMA expression COMMA expression ';'
                         {

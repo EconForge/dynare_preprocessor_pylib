@@ -173,6 +173,8 @@ private:
   ShocksStatement::covar_and_corr_shocks_t covar_shocks;
   //! Temporary storage for correlations of shocks
   ShocksStatement::covar_and_corr_shocks_t corr_shocks;
+  //! Temporary storage for skewness of shocks
+  ShocksStatement::skew_shocks_t skew_shocks;
   //! Temporary storage for values and scales of heteroskedastic_shocks
   HeteroskedasticShocksStatement::heteroskedastic_shocks_t heteroskedastic_shocks_values,
       heteroskedastic_shocks_scales;
@@ -498,6 +500,11 @@ public:
   void add_covar_shock(const string& var1, const string& var2, expr_t value);
   //! Adds a correlated shock
   void add_correl_shock(const string& var1, const string& var2, expr_t value);
+  //! Adds a skewness shock (single variable)
+  void add_skew_single_shock(const string& var, expr_t value);
+  //! Adds a co-skewness shock (three variables)
+  void add_skew_triple_shock(const string& var1, const string& var2, const string& var3,
+                             expr_t value);
   //! Adds a shock period range
   void add_period(const string& p1, const string& p2);
   //! Adds a shock period

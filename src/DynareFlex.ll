@@ -775,6 +775,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_BLOCK>stderr {return token::STDERR;}
 <DYNARE_BLOCK>values {return token::VALUES;}
 <DYNARE_BLOCK>corr {return token::CORR;}
+<DYNARE_BLOCK>skew {return token::SKEW;}
 <DYNARE_BLOCK>periods {return token::PERIODS;}
 <DYNARE_BLOCK>scales {return token::SCALES;}
 <DYNARE_BLOCK>add {
