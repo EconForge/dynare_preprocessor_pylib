@@ -1680,27 +1680,27 @@ EstimatedParamsRemoveStatement::writeOutput(ostream& output,
           if (symb_type == SymbolType::exogenous)
             output << "tmp1 = find(estim_params_.var_exo(:,1)==" << tsid << ");" << endl
                    << "if isempty(tmp1)" << endl
-                   << "    error(sprintf('estimated_params_remove: the standard deviation of %s is "
+                   << "    error('estimated_params_remove: the standard deviation of %s is "
                       "not estimated.', M_.exo_names{"
-                   << tsid << "}))" << endl
+                   << tsid << "})" << endl
                    << "else" << endl
                    << "    estim_params_.var_exo(tmp1,:) = [];"
                    << "end" << endl;
           else if (symb_type == SymbolType::endogenous)
             output << "tmp1 = find(estim_params_.var_endo(:,1)==" << tsid << ");" << endl
                    << "if isempty(tmp1)" << endl
-                   << "    error(sprintf('estimated_params_remove: the standard deviation of the "
+                   << "    error('estimated_params_remove: the standard deviation of the "
                       "measurement error on %s is not estimated.', M_.endo_names{"
-                   << tsid << "}))" << endl
+                   << tsid << "})" << endl
                    << "else" << endl
                    << "    estim_params_.var_endo(tmp1,:) = [];"
                    << "end" << endl;
           else if (symb_type == SymbolType::parameter)
             output << "tmp1 = find(estim_params_.param_vals(:,1)==" << tsid << ");" << endl
                    << "if isempty(tmp1)" << endl
-                   << "    error(sprintf('estimated_params_remove: parameter %s is not "
+                   << "    error('estimated_params_remove: parameter %s is not "
                       "estimated.', M_.param_names{"
-                   << tsid << "}))" << endl
+                   << tsid << "})" << endl
                    << "else" << endl
                    << "    estim_params_.param_vals(tmp1,:) = [];"
                    << "end" << endl;
@@ -1714,9 +1714,9 @@ EstimatedParamsRemoveStatement::writeOutput(ostream& output,
                    << "(estim_params_.corrx(:,2)==" << tsid
                    << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << endl
                    << "if isempty(tmp1)" << endl
-                   << "    error(sprintf('estimated_params_remove: the correlation between %s and "
+                   << "    error('estimated_params_remove: the correlation between %s and "
                       "%s is not estimated.', M_.exo_names{"
-                   << tsid << "}, M_.exo_names{" << tsid2 << "}))" << endl
+                   << tsid << "}, M_.exo_names{" << tsid2 << "})" << endl
                    << "else" << endl
                    << "    estim_params_.corrx(tmp1,:) = [];"
                    << "end" << endl;
@@ -1726,9 +1726,9 @@ EstimatedParamsRemoveStatement::writeOutput(ostream& output,
                    << "(estim_params_.corrn(:,2)==" << tsid
                    << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << endl
                    << "if isempty(tmp1)" << endl
-                   << "    error(sprintf('estimated_params_remove: the correlation between "
+                   << "    error('estimated_params_remove: the correlation between "
                       "measurement errors on %s and %s is not estimated.', M_.endo_names{"
-                   << tsid << "}, M_.endo_names{" << tsid2 << "}))" << endl
+                   << tsid << "}, M_.endo_names{" << tsid2 << "})" << endl
                    << "else" << endl
                    << "    estim_params_.corrn(tmp1,:) = [];"
                    << "end" << endl;
