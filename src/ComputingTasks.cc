@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1133,6 +1133,7 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
   /* In the case of the estimated_params block, there is a similar check across
      concatenated blocks that is implemented in the writeOutput() method. */
   set<string> already_declared;
+  set<string> already_declared_stderr;
   set<pair<string, string>> already_declared_corr;
   for (const auto& it : estim_params_list)
     {
@@ -1150,6 +1151,17 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
           else
             already_declared_corr.insert(x);
         }
+      else if (it.type == 1) // stderr
+        {
+          if (already_declared_stderr.contains(it.name))
+            {
+              cerr << "ERROR: in `" << blockName() << "' block, the stderr of " << it.name
+                   << " is declared twice." << endl;
+              exit(EXIT_FAILURE);
+            }
+          else
+            already_declared_stderr.insert(it.name);
+            }
       else
         {
           if (already_declared.contains(it.name))
