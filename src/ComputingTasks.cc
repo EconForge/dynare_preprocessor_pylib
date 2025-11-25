@@ -1134,6 +1134,7 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
      concatenated blocks that is implemented in the writeOutput() method. */
   set<string> already_declared;
   set<string> already_declared_stderr;
+  set<string> already_declared_skew;
   set<pair<string, string>> already_declared_corr;
   for (const auto& it : estim_params_list)
     {
@@ -1161,7 +1162,18 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
             }
           else
             already_declared_stderr.insert(it.name);
+        }
+      else if (it.type == 4) // skew
+        {
+          if (already_declared_skew.contains(it.name))
+            {
+              cerr << "ERROR: in `" << blockName() << "' block, the skewness of " << it.name
+                   << " is declared twice." << endl;
+              exit(EXIT_FAILURE);
             }
+          else
+            already_declared_skew.insert(it.name);
+        }
       else
         {
           if (already_declared.contains(it.name))
@@ -1202,6 +1214,8 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
                << symbol_table.getName(intersect[0]) << " is used in the declaration for ";
           if (it.type == 3)
             cerr << "correlation between " << it.name << " and " << it.name2;
+          else if (it.type == 4)
+            cerr << "skewness of " << it.name;
           else // either a parameter, the stderr of an exo, or the measurement error of an endo
             cerr << "symbol " << it.name;
           cerr << ". This behaviour is undefined." << endl;
@@ -1228,6 +1242,27 @@ EstimatedParamsStatement::checkPass(ModFileStructure& mod_file_struct,
     {
       if (it.name == "dsge_prior_weight")
         mod_file_struct.dsge_prior_weight_in_estimated_params = true;
+
+      // Check that skewness parameters are only for exogenous variables
+      if (it.type == 4)
+        {
+          // First check if symbol exists
+          try
+            {
+              if (symbol_table.getType(it.name) != SymbolType::exogenous)
+                {
+                  cerr << "ERROR: in `estimated_params' block, skewness can only be specified for "
+                          "exogenous variables, not for '"
+                       << it.name << "'." << endl;
+                  exit(EXIT_FAILURE);
+                }
+            }
+          catch (SymbolTable::UnknownSymbolNameException& e)
+            {
+              cerr << "ERROR: in `estimated_params' block, unknown symbol: " << it.name << endl;
+              exit(EXIT_FAILURE);
+            }
+        }
 
       // Handle case of degenerate beta prior
       if (it.prior == PriorDistributions::beta)
@@ -1267,7 +1302,8 @@ EstimatedParamsStatement::writeOutput(ostream& output, [[maybe_unused]] const st
          << indent << "estim_params_.var_endo = zeros(0, 10);" << endl
          << indent << "estim_params_.corrx = zeros(0, 11);" << endl
          << indent << "estim_params_.corrn = zeros(0, 11);" << endl
-         << indent << "estim_params_.param_vals = zeros(0, 10);" << endl;
+         << indent << "estim_params_.param_vals = zeros(0, 10);" << endl
+         << indent << "estim_params_.skew_exo = zeros(0, 10);" << endl;
   if (!overwrite)
     output << "end" << endl;
 
@@ -1327,6 +1363,13 @@ EstimatedParamsStatement::writeOutput(ostream& output, [[maybe_unused]] const st
                    << "estim_params_.corrn = [estim_params_.corrn; ";
           output << tsid << ", " << symbol_table.getTypeSpecificID(it.name2) + 1;
           break;
+        case 4: // Skewness (single shock name)
+          output << "if ~isempty(find(estim_params_.skew_exo(:,1)==" << tsid << "))" << endl
+                 << "    error('The skewness for " << it.name << errmsg << "')" << endl
+                 << "end" << endl
+                 << "estim_params_.skew_exo = [estim_params_.skew_exo; ";
+          output << tsid;
+          break;
         }
       output << ", ";
       it.init_val->writeOutput(output);
@@ -1369,6 +1412,10 @@ EstimatedParamsStatement::writeJsonOutput(ostream& output) const
         case 3:
           output << R"("var1": ")" << it.name << R"(",)"
                  << R"("var2": ")" << it.name2 << R"(")";
+          break;
+        case 4:
+          output << R"("var": ")" << it.name << R"(",)"
+                 << R"("type": "skewness")";
           break;
         }
 
@@ -1466,7 +1513,7 @@ EstimatedParamsInitStatement::writeOutput(ostream& output, [[maybe_unused]] cons
               output << ";" << endl << "end" << endl;
             }
         }
-      else
+      else if (it.type == 3)
         {
           int tsid2 = symbol_table.getTypeSpecificID(it.name2) + 1;
           if (symb_type == SymbolType::exogenous)
@@ -1501,6 +1548,18 @@ EstimatedParamsInitStatement::writeOutput(ostream& output, [[maybe_unused]] cons
               output << ";" << endl << "end" << endl;
             }
         }
+      else if (it.type == 4) // Skewness
+        {
+          output << "tmp1 = find(estim_params_.skew_exo(:,1)==" << tsid << ");" << endl
+                 << "if isempty(tmp1)" << endl
+                 << "    disp(sprintf('The skewness of %s is not estimated (the value provided in "
+                    "estimated_params_init is not used).', M_.exo_names{"
+                 << tsid << "}))" << endl;
+          skipline = true;
+          output << "else" << endl << "    estim_params_.skew_exo(tmp1,2) = ";
+          it.init_val->writeOutput(output);
+          output << ";" << endl << "end" << endl;
+        }
     }
   if (skipline == true)
     output << "skipline()" << endl;
@@ -1531,6 +1590,10 @@ EstimatedParamsInitStatement::writeJsonOutput(ostream& output) const
         case 3:
           output << R"("var1": ")" << it.name << R"(",)"
                  << R"("var2": ")" << it.name2 << R"(")";
+          break;
+        case 4:
+          output << R"("var": ")" << it.name << R"(",)"
+                 << R"("type": "skewness")";
           break;
         }
       output << R"(, "init_val": ")";
@@ -1594,7 +1657,7 @@ EstimatedParamsBoundsStatement::writeOutput(ostream& output,
               output << ";" << endl;
             }
         }
-      else
+      else if (it.type == 3) // Correlation
         {
           int tsid2 = symbol_table.getTypeSpecificID(it.name2) + 1;
           if (symb_type == SymbolType::exogenous)
@@ -1622,6 +1685,15 @@ EstimatedParamsBoundsStatement::writeOutput(ostream& output,
               output << ";" << endl;
             }
         }
+      else if (it.type == 4) // Skewness
+        {
+          output << "tmp1 = find(estim_params_.skew_exo(:,1)==" << tsid << ");" << endl
+                 << "estim_params_.skew_exo(tmp1,3) = ";
+          it.low_bound->writeOutput(output);
+          output << ";" << endl << "estim_params_.skew_exo(tmp1,4) = ";
+          it.up_bound->writeOutput(output);
+          output << ";" << endl;
+        }
     }
 }
 
@@ -1647,6 +1719,10 @@ EstimatedParamsBoundsStatement::writeJsonOutput(ostream& output) const
         case 3:
           output << R"("var1": ")" << it.name << R"(",)"
                  << R"("var2": ")" << it.name2 << R"(")";
+          break;
+        case 4:
+          output << R"("var": ")" << it.name << R"(",)"
+                 << R"("type": "skewness")";
           break;
         }
       output << R"(, "lower_bound": )";
@@ -1705,7 +1781,7 @@ EstimatedParamsRemoveStatement::writeOutput(ostream& output,
                    << "    estim_params_.param_vals(tmp1,:) = [];"
                    << "end" << endl;
         }
-      else
+      else if (it.type == 3) // Correlation
         {
           int tsid2 = symbol_table.getTypeSpecificID(it.name2) + 1;
           if (symb_type == SymbolType::exogenous)
@@ -1733,6 +1809,17 @@ EstimatedParamsRemoveStatement::writeOutput(ostream& output,
                    << "    estim_params_.corrn(tmp1,:) = [];"
                    << "end" << endl;
         }
+      else if (it.type == 4) // Skewness
+        {
+          output << "tmp1 = find(estim_params_.skew_exo(:,1)==" << tsid << ");" << endl
+                 << "if isempty(tmp1)" << endl
+                 << "    error('estimated_params_remove: the skewness of %s is not "
+                    "estimated.', M_.exo_names{"
+                 << tsid << "})" << endl
+                 << "else" << endl
+                 << "    estim_params_.skew_exo(tmp1,:) = [];"
+                 << "end" << endl;
+        }
     }
 }
 
@@ -1758,6 +1845,10 @@ EstimatedParamsRemoveStatement::writeJsonOutput(ostream& output) const
         case 3:
           output << R"("var1": ")" << it.name << R"(",)"
                  << R"("var2": ")" << it.name2 << R"(")";
+          break;
+        case 4:
+          output << R"("var": ")" << it.name << R"(",)"
+                 << R"("type": "skewness")";
           break;
         }
       output << "}";

@@ -1951,6 +1951,11 @@ estimated_elem1 : STDERR symbol
                     driver.estim_params.name = $2;
                     driver.estim_params.name2 = $4;
                   }
+                | SKEW symbol
+                  {
+                    driver.estim_params.type = 4;
+                    driver.estim_params.name = $2;
+                  }
                 | DSGE_PRIOR_WEIGHT
                   {
                     driver.estim_params.type = 2;
@@ -2041,6 +2046,12 @@ estimated_init_elem : STDERR symbol COMMA expression ';'
                         driver.estim_params.name2 = $4;
                         driver.estim_params.init_val = $6;
                       }
+                    | SKEW symbol COMMA expression ';'
+                      {
+                        driver.estim_params.type = 4;
+                        driver.estim_params.name = $2;
+                        driver.estim_params.init_val = $4;
+                      }
                     | symbol COMMA expression ';'
                       {
                         driver.estim_params.type = 2;
@@ -2072,6 +2083,13 @@ estimated_bounds_elem : STDERR symbol COMMA expression COMMA expression ';'
                           driver.estim_params.name2 = $4;
                           driver.estim_params.low_bound = $6;
                           driver.estim_params.up_bound = $8;
+                        }
+                      | SKEW symbol COMMA expression COMMA expression ';'
+                        {
+                          driver.estim_params.type = 4;
+                          driver.estim_params.name = $2;
+                          driver.estim_params.low_bound = $4;
+                          driver.estim_params.up_bound = $6;
                         }
                       | symbol COMMA expression COMMA expression ';'
                         {
