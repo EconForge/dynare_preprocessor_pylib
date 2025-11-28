@@ -1813,7 +1813,7 @@ ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_b
   ranges::copy_if(input_files, inserter(prerequisites, prerequisites.end()),
                   [](const auto& p) { return p.extension() == ".o"; });
 
-  unique_lock<mutex> lk {mex_compilation_mut};
+  unique_lock lk {mex_compilation_mut};
   mex_compilation_queue.emplace_back(output_filename, prerequisites, cmd.str());
   lk.unlock();
   mex_compilation_cv.notify_one();
@@ -1961,7 +1961,7 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
        https://stackoverflow.com/questions/72990607/const-stdstop-token-or-just-stdstop-token-as-parameter-for-thread-funct
      */
     mex_compilation_workers.emplace_back([](const stop_token& stoken) {
-      unique_lock<mutex> lk {mex_compilation_mut};
+      unique_lock lk {mex_compilation_mut};
       filesystem::path output;
       string cmd;
 
