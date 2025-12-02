@@ -197,6 +197,10 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <INITIAL>var_remove {BEGIN DYNARE_STATEMENT; return token::VAR_REMOVE;}
 <INITIAL>resid {BEGIN DYNARE_STATEMENT; return token::RESID;}
 
+<INITIAL>heterogeneity_load_steady_state {BEGIN DYNARE_STATEMENT; return token::HETEROGENEITY_LOAD_STEADY_STATE;}
+<INITIAL>heterogeneity_solve {BEGIN DYNARE_STATEMENT; return token::HETEROGENEITY_SOLVE;}
+<INITIAL>heterogeneity_simulate {BEGIN DYNARE_STATEMENT; return token::HETEROGENEITY_SIMULATE;}
+
 <DYNARE_STATEMENT>; {BEGIN INITIAL; return Dynare::parser::token_type (yytext[0]);}
 
 
@@ -767,6 +771,8 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>block_diagonal_lu_nlu {return token::BLOCK_DIAGONAL_LU_NLU;}
 <DYNARE_STATEMENT>block_diagonal_lu_relu {return token::BLOCK_DIAGONAL_LU_RELU;}
 <DYNARE_STATEMENT>check_jacobian_singularity {return token::CHECK_JACOBIAN_SINGULARITY;}
+
+<DYNARE_STATEMENT>truncation_horizon {return token::TRUNCATION_HORIZON;}
 
 <DYNARE_STATEMENT>\$[^$]*\$ {
   yylval->emplace<string>(yytext + 1).pop_back();

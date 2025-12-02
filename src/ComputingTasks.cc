@@ -5576,3 +5576,63 @@ MatchedIrfsWeightsStatement::writeJsonOutput(ostream& output) const
     }
   output << "]}";
 }
+
+HeterogeneitySolveStatement::HeterogeneitySolveStatement(OptionsList options_list_arg) :
+    options_list {move(options_list_arg)}
+{
+}
+
+void
+HeterogeneitySolveStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
+                                         [[maybe_unused]] bool minimal_workspace) const
+{
+  options_list.writeOutput(output, "options_.heterogeneity.solve");
+  output << "oo_.heterogeneity.dr = heterogeneity.solve(M_, "
+            "options_.heterogeneity.solve, oo_.heterogeneity);"
+         << endl;
+}
+
+void
+HeterogeneitySolveStatement::writeJsonOutput(ostream& output) const
+{
+  output << R"({"statementName": "heterogeneity_solve")";
+  if (!options_list.empty())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}
+
+HeterogeneitySimulateStatement::HeterogeneitySimulateStatement(SymbolList symbol_list_arg,
+                                                               OptionsList options_list_arg) :
+    symbol_list {move(symbol_list_arg)}, options_list {move(options_list_arg)}
+{
+}
+
+void
+HeterogeneitySimulateStatement::writeOutput(ostream& output,
+                                            [[maybe_unused]] const string& basename,
+                                            [[maybe_unused]] bool minimal_workspace) const
+{
+  options_list.writeOutput(output);
+  symbol_list.writeOutput("var_list_", output);
+  output << "[oo_, options_] = heterogeneity.simulate(M_, options_, oo_, var_list_);" << endl;
+}
+
+void
+HeterogeneitySimulateStatement::writeJsonOutput(ostream& output) const
+{
+  output << R"({"statementName": "heterogeneity_simulate")";
+  if (!options_list.empty())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  if (!symbol_list.empty())
+    {
+      output << ", ";
+      symbol_list.writeJsonOutput(output);
+    }
+  output << "}";
+}

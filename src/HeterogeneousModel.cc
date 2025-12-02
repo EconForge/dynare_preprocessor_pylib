@@ -213,7 +213,7 @@ HeterogeneousModel::getJacobianCol(int deriv_id) const
   if (type == SymbolType::endogenous)
     return shift + tsid + (lag + 1) * symbol_table.endo_nbr();
 
-  shift += symbol_table.endo_nbr();
+  shift += 3 * symbol_table.endo_nbr();
 
   if (type == SymbolType::exogenous)
     return shift + tsid;

@@ -667,6 +667,9 @@ public:
   void run_load_params_and_steady_state(const string& filename);
   void run_save_params_and_steady_state(string filename);
   void run_identification();
+  void heterogeneity_load_steady_state();
+  void heterogeneity_solve();
+  void heterogeneity_simulate(vector<string> symbol_list = {});
   void add_mc_filename(string filename, string prior = "1");
   void run_model_comparison();
   //! Begin a planner_objective statement
