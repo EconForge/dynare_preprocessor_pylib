@@ -235,7 +235,6 @@ CHECK_JACOBIAN_SINGULARITY
 %type <string> date_expr signed_inf signed_number_w_inf range
 %type <string> integer_range signed_integer_range boolean
 %type <string> name_value_pair name_value_pair_list
-%type <string> name_value_pair_with_boolean name_value_pair_with_boolean_list
 %type <string> name_value_pair_with_suboptions name_value_pair_with_suboptions_list
 %type <SymbolType> change_type_arg
 %type <vector<string>> vec_str vec_str_1
@@ -2482,23 +2481,14 @@ name_value_pair : QUOTED_STRING COMMA QUOTED_STRING
                   { $$ = "''" + $1 + "'',''" + $3 + "''"; }
                 | QUOTED_STRING COMMA signed_number
                   { $$ = "''" + $1 + "''," + $3; }
+                | QUOTED_STRING COMMA boolean
+                  { $$ = "''" + $1 + "''," + $3; }
                 ;
 
 name_value_pair_list : name_value_pair
                      | name_value_pair_list COMMA name_value_pair
                        { $$ = $1 + ',' + $3; }
                      ;
-
-name_value_pair_with_boolean : name_value_pair
-                             | QUOTED_STRING COMMA boolean
-                               { $$ = "''" + $1 + "''," + $3; }
-                             ;
-
-name_value_pair_with_boolean_list : name_value_pair_with_boolean
-                                  | name_value_pair_with_boolean_list COMMA name_value_pair_with_boolean
-                                    { $$ = $1 + ',' + $3; }
-                                  ;
-
 
 name_value_pair_with_suboptions : name_value_pair
                                 | QUOTED_STRING COMMA vec_str
@@ -4056,7 +4046,7 @@ o_mh_tune_jscale : MH_TUNE_JSCALE EQUAL non_negative_number
                  { driver.option_num("mh_tune_jscale.target", $3); driver.option_num("mh_tune_jscale.status", "true"); }
                  | MH_TUNE_JSCALE { driver.option_num("mh_tune_jscale.status", "true"); };
 o_mh_tune_guess : MH_TUNE_GUESS EQUAL non_negative_number { driver.option_num("mh_tune_jscale.guess", $3); };
-o_optim : OPTIM  EQUAL '(' name_value_pair_with_boolean_list ')' { driver.option_str("optim_opt", $4); };
+o_optim : OPTIM EQUAL '(' name_value_pair_list ')' { driver.option_str("optim_opt", $4); };
 o_posterior_sampler_options : POSTERIOR_SAMPLER_OPTIONS EQUAL '(' name_value_pair_with_suboptions_list ')' { driver.option_str("posterior_sampler_options.sampling_opt", $4); };
 o_proposal_distribution : PROPOSAL_DISTRIBUTION EQUAL symbol { driver.option_str("posterior_sampler_options.posterior_sampling_method.proposal_distribution", $3); };
 o_no_posterior_kernel_density : NO_POSTERIOR_KERNEL_DENSITY
@@ -4200,7 +4190,7 @@ o_bvar_replic : BVAR_REPLIC EQUAL INT_NUMBER { driver.option_num("bvar_replic", 
 o_stderr_multiples : STDERR_MULTIPLES { driver.option_num("irf_opt.stderr_multiples", "true"); };
 o_diagonal_only : DIAGONAL_ONLY { driver.option_num("irf_opt.diagonal_only", "true"); };
 o_number_of_particles : NUMBER_OF_PARTICLES EQUAL INT_NUMBER { driver.option_num("particle.number_of_particles", $3); };
-o_particle_filter_options : PARTICLE_FILTER_OPTIONS EQUAL '(' name_value_pair_with_boolean_list ')' { driver.option_str("particle.particle_filter_options", $4); }
+o_particle_filter_options : PARTICLE_FILTER_OPTIONS EQUAL '(' name_value_pair_list ')' { driver.option_str("particle.particle_filter_options", $4); }
 o_resampling : RESAMPLING EQUAL SYSTEMATIC
               | RESAMPLING EQUAL NONE { driver.option_num("particle.resampling.status.systematic", "false"); driver.option_num("particle.resampling.status.none", "true"); }
               | RESAMPLING EQUAL GENERIC { driver.option_num("particle.resampling.status.systematic", "false"); driver.option_num("particle.resampling.status.generic", "true"); };
@@ -4538,7 +4528,7 @@ o_icd_colormap : COLORMAP EQUAL symbol { driver.option_num("initial_condition_de
 o_no_init_estimation_check_first_obs : NO_INIT_ESTIMATION_CHECK_FIRST_OBS { driver.option_num("no_init_estimation_check_first_obs", "true"); };
 o_heteroskedastic_filter : HETEROSKEDASTIC_FILTER { driver.option_num("heteroskedastic_filter", "true"); };
 o_pfwee_constant_simulation_length : CONSTANT_SIMULATION_LENGTH { driver.option_num("pfwee.constant_simulation_length", "true"); };
-o_fsolve_options : FSOLVE_OPTIONS EQUAL '(' name_value_pair_with_boolean_list ')' { driver.option_str("fsolve_options", $4); };
+o_fsolve_options : FSOLVE_OPTIONS EQUAL '(' name_value_pair_list ')' { driver.option_str("fsolve_options", $4); };
 
 // Some options to "method_of_moments"
 o_bartlett_kernel_lag : BARTLETT_KERNEL_LAG EQUAL INT_NUMBER { driver.option_num("mom.bartlett_kernel_lag", $3); };
