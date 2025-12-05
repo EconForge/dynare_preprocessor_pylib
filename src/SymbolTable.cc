@@ -620,10 +620,12 @@ SymbolTable::addLogTransformAuxiliaryVar(int orig_symb_id, int orig_lead_lag,
                                          expr_t expr_arg) noexcept(false)
 {
   string varname = "LOG_" + getName(orig_symb_id);
+  string texname {R"(\log )" + getTeXName(orig_symb_id)};
+
   int symb_id;
   try
     {
-      symb_id = addSymbol(varname, SymbolType::endogenous);
+      symb_id = addSymbol(varname, SymbolType::endogenous, texname, {}, {});
     }
   catch (AlreadyDeclaredException& e)
     {
