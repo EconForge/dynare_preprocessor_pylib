@@ -2677,12 +2677,6 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel& planner_objective,
   return orig_endo_nbr;
 }
 
-bool
-DynamicModel::ParamUsedWithLeadLag() const
-{
-  return ParamUsedWithLeadLagInternal();
-}
-
 void
 DynamicModel::createVariableMapping()
 {

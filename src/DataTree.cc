@@ -171,13 +171,14 @@ DataTree::getVariable(int symb_id, int lag) const
   return it->second;
 }
 
-bool
-DataTree::ParamUsedWithLeadLagInternal() const
+set<string>
+DataTree::ParamUsedWithLeadLag() const
 {
+  set<string> r;
   for (const auto& [symb_lag, expr] : variable_node_map)
     if (symbol_table.getType(symb_lag.first) == SymbolType::parameter && symb_lag.second != 0)
-      return true;
-  return false;
+      r.insert(symbol_table.getName(symb_lag.first));
+  return r;
 }
 
 expr_t

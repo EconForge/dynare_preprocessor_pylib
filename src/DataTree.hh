@@ -115,9 +115,6 @@ protected:
   //! in #563
   vector<int> local_variables_vector;
 
-  //! Internal implementation of ParamUsedWithLeadLag()
-  [[nodiscard]] bool ParamUsedWithLeadLagInternal() const;
-
   /* Writes the contents of “new_contents” to the file “filename”. However, if
      the file already exists and would not be modified by this operation, then do
      nothing. */
@@ -363,6 +360,9 @@ public:
   {
     no_commutativity = true;
   }
+
+  // Returns the list of parameters used with a lead or lag
+  [[nodiscard]] set<string> ParamUsedWithLeadLag() const;
 
   /* Equivalent of MATLAB/Octave’s strsplit, except that it ignores empty
      substring components (MATLAB/Octave adds them to the output); in

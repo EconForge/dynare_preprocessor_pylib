@@ -150,9 +150,19 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   if (!mod_file_struct.order_option)
     mod_file_struct.order_option = 2;
 
-  param_used_with_lead_lag = dynamic_model.ParamUsedWithLeadLag();
-  if (param_used_with_lead_lag)
-    warnings << "WARNING: A parameter was used with a lead or a lag in the model block" << endl;
+  auto params_used_with_lead_lag = dynamic_model.ParamUsedWithLeadLag();
+  if (!params_used_with_lead_lag.empty())
+    {
+      warnings << "WARNING: The following parameter(s) are used with a lead or a lag in the model "
+                  "block: ";
+      for (bool printed_something {false}; auto& p : params_used_with_lead_lag)
+        {
+          if (exchange(printed_something, true))
+            warnings << " ";
+          warnings << p;
+        }
+      warnings << endl;
+    }
 
   bool stochastic_statement_present
       = mod_file_struct.stoch_simul_present || mod_file_struct.estimation_present
