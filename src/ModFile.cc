@@ -706,6 +706,26 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
           = ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(planner_objective,
                                                                        cloned_ramsey_constraints);
       ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
+
+      // Ensure that all Lagrange mutipliers are present in the FOC (see #102)
+      set<int> unusedLagrangeMultipliers;
+      ranges::set_intersection(
+          dynamic_model.findUnusedEndogenous(), symbol_table.getLagrangeMultipliers(),
+          inserter(unusedLagrangeMultipliers, unusedLagrangeMultipliers.begin()));
+      if (!unusedLagrangeMultipliers.empty())
+        {
+          cerr << "ERROR: the following Lagrange multiplier(s) do(es) not appear in first-order "
+                  "conditions: ";
+          for (bool printed_something {false}; int symb_id : unusedLagrangeMultipliers)
+            {
+              if (exchange(printed_something, true))
+                cerr << " ";
+              cerr << symbol_table.getName(symb_id);
+            }
+          cerr << "; most likely some constraint has been simplified out because it was trivial"
+               << endl;
+          exit(EXIT_FAILURE);
+        }
     }
 
   dynamic_model.createVariableMapping();
