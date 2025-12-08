@@ -3755,7 +3755,12 @@ matched_irfs_elem : matched_irfs_elem_var_varexo
                       if ($3.size() != $5.first.size())
                         driver.error("matched_irfs: the 'periods' and 'values' keywords are not followed by the same number of elements");
                       if ($3.size() != $5.second.size())
-                        driver.error("matched_irfs: the 'periods' and 'values' keywords are not followed by the same number of elements");
+                        {
+                          if ($5.second.size() == 1) // Broadcast the weight (see #142)
+                            $5.second = vector($3.size(), $5.second.front());
+                          else
+                            driver.error("matched_irfs: the 'periods' and 'weights' keywords are not followed by the same number of elements");
+                        }
                       vector<tuple<int, int, expr_t, expr_t>> v;
                       v.reserve($3.size());
                       for (size_t i {0}; i < $3.size(); i++)
