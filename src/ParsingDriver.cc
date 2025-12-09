@@ -333,9 +333,6 @@ ParsingDriver::add_inf_constant()
 expr_t
 ParsingDriver::add_model_variable(const string& name)
 {
-  if (name.find('.') != string::npos)
-    error(name + " treated as a variable, but it contains a '.'");
-
   check_symbol_existence_in_model_block(name);
   int symb_id;
   try
@@ -444,9 +441,6 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
 expr_t
 ParsingDriver::add_expression_variable(const string& name)
 {
-  if (name.find('.') != string::npos)
-    error(name + " treated as a variable, but it contains a '.'");
-
   /* If symbol doesn't exist, and we are not in the epilogue, declare it as a mod file local
      variable */
   if (!mod_file->symbol_table.exists(name))
@@ -3524,8 +3518,9 @@ ParsingDriver::add_model_var_or_external_function(const string& function_name,
           undeclared_model_vars.insert(function_name);
           undeclared_model_variable_error("Unknown symbol: " + function_name, function_name);
 
-          // If it has a single integer argument, assume that it’s a lead/lagged exogenous variable
-          if (arguments.size() == 1)
+          /* If it has a single integer argument and no namespace qualifier, assume that it’s a
+             lead/lagged exogenous variable */
+          if (arguments.size() == 1 && function_name.find('.') == string::npos)
             try
               {
                 auto lead_lag = arguments.front()->matchIntegerConstant();

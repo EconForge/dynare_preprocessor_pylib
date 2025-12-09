@@ -683,7 +683,7 @@ init_param : symbol EQUAL expression ';' { driver.init_param($1, $3); };
 
 expression : '(' expression ')'
              { $$ = $2; }
-           | namespace_qualified_symbol
+           | symbol
              { $$ = driver.add_expression_variable($1); }
            | non_negative_number
              { $$ = driver.add_non_negative_constant($1); }
@@ -1071,7 +1071,7 @@ tag_pair : symbol EQUAL QUOTED_STRING
 
 model_expression : '(' model_expression ')'
                    { $$ = $2; }
-                 | namespace_qualified_symbol
+                 | symbol
                    { $$ = driver.add_model_variable($1); }
                  | symbol PIPE_E
                    { $$ = driver.declare_or_change_type(SymbolType::endogenous, $1); }
