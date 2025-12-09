@@ -230,6 +230,7 @@ CHECK_JACOBIAN_SINGULARITY
 
 %type <expr_t> expression expression_or_empty
 %type <expr_t> model_equation model_expression
+%type <vector<expr_t>> model_expression_list_semicolon
 %type <string> non_negative_number signed_number signed_integer
 %type <string> filename symbol namespace_qualified_filename namespace_qualified_symbol
 %type <string> date_expr signed_inf signed_number_w_inf range
@@ -251,7 +252,7 @@ CHECK_JACOBIAN_SINGULARITY
 %type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
 %type <AbstractShocksStatement::period_range_t> period_range
 %type <vector<AbstractShocksStatement::period_range_t>> period_list
-%type <vector<expr_t>> matched_moments_list value_list ramsey_constraints_list
+%type <vector<expr_t>> value_list
 %type <tuple<string, BinaryOpNode*, BinaryOpNode*, expr_t, expr_t>> occbin_constraints_regime
 %type <vector<tuple<string, BinaryOpNode*, BinaryOpNode*, expr_t, expr_t>>> occbin_constraints_regimes_list
 %type <map<string, expr_t>> occbin_constraints_regime_options_list
@@ -887,17 +888,8 @@ compilation_setup_option : SUBSTITUTE_FLAGS EQUAL QUOTED_STRING
                          ;
 
 matched_moments : MATCHED_MOMENTS ';' { driver.begin_matched_moments(); }
-                  matched_moments_list END ';' { driver.end_matched_moments($4); }
+                  model_expression_list_semicolon END ';' { driver.end_matched_moments($4); }
                 ;
-
-matched_moments_list : model_expression ';'
-                       { $$ = {$1}; }
-                     | matched_moments_list model_expression ';'
-                       {
-                         $$ = $1;
-                         $$.push_back($2);
-                       }
-                     ;
 
 occbin_constraints : OCCBIN_CONSTRAINTS ';' { driver.begin_occbin_constraints(); }
                      occbin_constraints_regimes_list END ';' { driver.end_occbin_constraints($4); }
@@ -1194,6 +1186,15 @@ model_expression_list : model_expression
                       | model_expression_list COMMA model_expression
                         { driver.add_external_function_arg($3); }
                       ;
+
+model_expression_list_semicolon : model_expression ';'
+                                  { $$ = { $1 }; }
+                                | model_expression_list_semicolon model_expression ';'
+                                  {
+                                    $$ = $1;
+                                    $$.push_back($2);
+                                  }
+                                ;
 
 model_local_variable_definition : '#' symbol EQUAL model_expression ';'
                                   { driver.declare_and_init_model_local_variable($2, $4); };
@@ -2723,18 +2724,9 @@ ramsey_policy : RAMSEY_POLICY ';'
 
 ramsey_constraints : RAMSEY_CONSTRAINTS ';'
                      { driver.begin_ramsey_constraints(); }
-                     ramsey_constraints_list END ';'
+                     model_expression_list_semicolon END ';'
                      { driver.end_ramsey_constraints($4); }
 		   ;
-
-ramsey_constraints_list : ramsey_constraints_list model_expression ';'
-                          {
-                            $$ = $1;
-                            $$.push_back($2);
-                          }
-                        | model_expression ';'
-                          { $$ = { $1 }; }
-                        ;
 
 evaluate_planner_objective : EVALUATE_PLANNER_OBJECTIVE ';'
                              { driver.evaluate_planner_objective(); }
