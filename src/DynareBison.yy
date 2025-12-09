@@ -230,6 +230,7 @@ CHECK_JACOBIAN_SINGULARITY
 
 %type <expr_t> expression expression_or_empty
 %type <expr_t> model_equation model_expression
+%type <vector<expr_t>> expression_list model_expression_list
 %type <vector<expr_t>> model_expression_list_semicolon
 %type <string> non_negative_number signed_number signed_integer
 %type <string> filename symbol namespace_qualified_filename namespace_qualified_symbol
@@ -754,8 +755,8 @@ expression : '(' expression ')'
              { $$ = driver.add_max($3, $5); }
            | MIN '(' expression COMMA expression ')'
              { $$ = driver.add_min($3, $5); }
-           | namespace_qualified_symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' expression_list ')'
-             { $$ = driver.add_model_var_or_external_function($1, false); }
+           | namespace_qualified_symbol '(' expression_list ')'
+             { $$ = driver.add_model_var_or_external_function($1, $3, false); }
            | NORMCDF '(' expression COMMA expression COMMA expression ')'
              { $$ = driver.add_normcdf($3, $5, $7); }
            | NORMCDF '(' expression ')'
@@ -775,9 +776,12 @@ expression : '(' expression ')'
            ;
 
 expression_list : expression
-                  { driver.add_external_function_arg($1); }
+                  { $$ = { $1 }; }
                 | expression_list COMMA expression
-                  { driver.add_external_function_arg($3); }
+                  {
+                    $$ = $1;
+                    $$.push_back($3);
+                  }
                 ;
 
 expression_or_empty : %empty
@@ -1161,8 +1165,8 @@ model_expression : '(' model_expression ')'
                    { $$ = driver.add_max($3, $5); }
                  | MIN '(' model_expression COMMA model_expression ')'
                    { $$ = driver.add_min($3, $5); }
-                 | namespace_qualified_symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' model_expression_list ')'
-                   { $$ = driver.add_model_var_or_external_function($1, true); }
+                 | namespace_qualified_symbol '(' model_expression_list ')'
+                   { $$ = driver.add_model_var_or_external_function($1, $3, true); }
                  | NORMCDF '(' model_expression COMMA model_expression COMMA model_expression ')'
                    { $$ = driver.add_normcdf($3, $5, $7); }
                  | NORMCDF '(' model_expression ')'
@@ -1182,9 +1186,12 @@ model_expression : '(' model_expression ')'
                  ;
 
 model_expression_list : model_expression
-                        { driver.add_external_function_arg($1); }
+                        { $$ = { $1 }; }
                       | model_expression_list COMMA model_expression
-                        { driver.add_external_function_arg($3); }
+                        {
+                          $$ = $1;
+                          $$.push_back($3);
+                        }
                       ;
 
 model_expression_list_semicolon : model_expression ';'

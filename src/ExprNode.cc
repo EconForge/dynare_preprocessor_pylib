@@ -482,6 +482,12 @@ ExprNode::hasExogenous() const
   return !symbs_lags.empty();
 }
 
+int
+ExprNode::matchIntegerConstant() const
+{
+  throw MatchFailureException {"Unsupported expression"};
+}
+
 NumConstNode::NumConstNode(DataTree& datatree_arg, int idx_arg, int id_arg) :
     ExprNode {datatree_arg, idx_arg}, id {id_arg}
 {
@@ -875,6 +881,23 @@ NumConstNode::substituteAggregationOperators([[maybe_unused]] subst_table_t& sub
                                              [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
 {
   return const_cast<NumConstNode*>(this);
+}
+
+int
+NumConstNode::matchIntegerConstant() const
+{
+  try
+    {
+      return stoi(datatree.num_constants.get(id));
+    }
+  catch (std::invalid_argument&)
+    {
+      throw MatchFailureException {"This is a floating point constant"};
+    }
+  catch (std::out_of_range&)
+    {
+      throw MatchFailureException {"Too large integer"};
+    }
 }
 
 VariableNode::VariableNode(DataTree& datatree_arg, int idx_arg, int symb_id_arg, int lag_arg) :
@@ -4209,6 +4232,19 @@ UnaryOpNode::substituteAggregationOperators(subst_table_t& subst_table,
     }
   else
     return recurseTransform(&ExprNode::substituteAggregationOperators, subst_table, neweqs);
+}
+
+int
+UnaryOpNode::matchIntegerConstant() const
+{
+  if (op_code != UnaryOpcode::uminus)
+    throw MatchFailureException {"Unary operation should be unitary minus"};
+
+  auto carg = dynamic_cast<NumConstNode*>(arg);
+  if (!arg)
+    throw MatchFailureException {"Argument of unary minus is not a numerical constant"};
+
+  return -carg->matchIntegerConstant();
 }
 
 BinaryOpNode::BinaryOpNode(DataTree& datatree_arg, int idx_arg, const expr_t arg1_arg,

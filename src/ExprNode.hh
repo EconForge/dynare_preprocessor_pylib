@@ -894,6 +894,10 @@ public:
      constant will of course be equal to one). */
   [[nodiscard]] virtual pair<int, expr_t> matchEndogenousTimesConstant() const;
 
+  /* Matches an integer constant (i.e. a NumConstNode storing an integer, or a unary minus of the
+     latter). Throws a MatchFailureException is matching fails. */
+  [[nodiscard]] virtual int matchIntegerConstant() const;
+
   //! Exception thrown when matching fails
   struct MatchFailureException
   {
@@ -1043,6 +1047,7 @@ public:
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
   [[nodiscard]] expr_t substituteAggregationOperators(subst_table_t& subst_table,
                                                       vector<BinaryOpNode*>& neweqs) const override;
+  [[nodiscard]] int matchIntegerConstant() const override;
 };
 
 //! Symbol or variable node
@@ -1301,6 +1306,7 @@ public:
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
   [[nodiscard]] expr_t substituteAggregationOperators(subst_table_t& subst_table,
                                                       vector<BinaryOpNode*>& neweqs) const override;
+  [[nodiscard]] int matchIntegerConstant() const override;
 };
 
 //! Binary operator node

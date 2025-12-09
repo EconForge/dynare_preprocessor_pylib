@@ -269,7 +269,7 @@ public:
   //! Adds a model local variable with its value
   void AddLocalVariable(int symb_id, expr_t value) noexcept(false);
   //! Adds an external function node
-  expr_t AddExternalFunction(int symb_id, const vector<expr_t>& arguments);
+  expr_t AddExternalFunction(int symb_id, vector<expr_t> arguments);
   //! Adds an external function node for the first derivative of an external function
   expr_t AddFirstDerivExternalFunction(int top_level_symb_id, const vector<expr_t>& arguments,
                                        int input_index);

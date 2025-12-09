@@ -743,7 +743,7 @@ DataTree::AddLocalVariable(int symb_id, expr_t value) noexcept(false)
 }
 
 expr_t
-DataTree::AddExternalFunction(int symb_id, const vector<expr_t>& arguments)
+DataTree::AddExternalFunction(int symb_id, vector<expr_t> arguments)
 {
   assert(symbol_table.getType(symb_id) == SymbolType::externalFunction);
 
@@ -754,7 +754,7 @@ DataTree::AddExternalFunction(int symb_id, const vector<expr_t>& arguments)
   auto sp = make_unique<ExternalFunctionNode>(*this, node_list.size(), symb_id, arguments);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  external_function_node_map.try_emplace({arguments, symb_id}, p);
+  external_function_node_map.try_emplace({move(arguments), symb_id}, p);
   return p;
 }
 

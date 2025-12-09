@@ -224,8 +224,6 @@ private:
   vector<string> generate_irf_names;
   vector<map<string, double>> generate_irf_elements;
   map<string, double> generate_irf_exos;
-  //! Temporary storage for argument list of external function
-  stack<vector<expr_t>> stack_external_function_args;
   //! Temporary storage for parameters in joint prior statement
   vector<string> joint_parameters;
   //! Temporary storage for the symb_id associated with the "name" symbol of the current
@@ -859,14 +857,11 @@ public:
   expr_t add_steady_state(expr_t arg1);
   // Add a “sum(arg)” node to model tree
   expr_t add_sum(expr_t arg);
-  //! Pushes empty vector onto stack when a symbol is encountered (mod_var or ext_fun)
-  void push_external_function_arg_vector_onto_stack();
-  //! Adds an external function argument
-  void add_external_function_arg(expr_t arg);
-  //! Test to see if model/external function has exactly one integer argument
-  [[nodiscard]] optional<int> is_there_one_integer_argument() const;
-  //! Adds an external function call node
-  expr_t add_model_var_or_external_function(const string& function_name, bool in_model_block);
+  /* Adds a model variable with a lead/lag or an external function call.
+     If this is an external function call, function_name can be namespace-qualified, i.e. have one
+     or several dots separating the namespace(s) from the function name itself */
+  expr_t add_model_var_or_external_function(const string& function_name, vector<expr_t> arguments,
+                                            bool in_model_expression);
   //! Adds a native statement
   void add_native(string s);
   //! Adds a native statement, first removing the set of characters passed in token (and everything

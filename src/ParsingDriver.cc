@@ -3468,90 +3468,36 @@ ParsingDriver::external_function()
   reset_current_external_function_options();
 }
 
-void
-ParsingDriver::push_external_function_arg_vector_onto_stack()
-{
-  stack_external_function_args.emplace();
-}
-
-void
-ParsingDriver::add_external_function_arg(expr_t arg)
-{
-  stack_external_function_args.top().push_back(arg);
-}
-
-optional<int>
-ParsingDriver::is_there_one_integer_argument() const
-{
-  if (stack_external_function_args.top().size() != 1)
-    return nullopt;
-
-  auto numNode = dynamic_cast<NumConstNode*>(stack_external_function_args.top().front());
-  auto unaryNode = dynamic_cast<UnaryOpNode*>(stack_external_function_args.top().front());
-
-  if (!numNode && !unaryNode)
-    return nullopt;
-
-  eval_context_t ectmp;
-  double model_var_arg;
-  if (!unaryNode)
-    {
-      try
-        {
-          model_var_arg = numNode->eval(ectmp);
-        }
-      catch (ExprNode::EvalException& e)
-        {
-          return nullopt;
-        }
-    }
-  else if (unaryNode->op_code != UnaryOpcode::uminus)
-    return nullopt;
-  else
-    {
-      try
-        {
-          model_var_arg = unaryNode->eval(ectmp);
-        }
-      catch (ExprNode::EvalException& e)
-        {
-          return nullopt;
-        }
-    }
-
-  if (model_var_arg != floor(model_var_arg))
-    return nullopt;
-  return static_cast<int>(model_var_arg);
-}
-
 expr_t
-ParsingDriver::add_model_var_or_external_function(const string& function_name, bool in_model_block)
+ParsingDriver::add_model_var_or_external_function(const string& function_name,
+                                                  vector<expr_t> arguments,
+                                                  bool in_model_expression)
 {
-  expr_t nid;
+  assert(!arguments.empty());
+
   if (mod_file->symbol_table.exists(function_name))
     if (mod_file->symbol_table.getType(function_name) != SymbolType::externalFunction)
-      if (!in_model_block && !parsing_epilogue && !parsing_pac_model)
-        {
-          if (stack_external_function_args.top().size() > 0)
-            error("Symbol " + function_name + " cannot take arguments.");
-          else
-            return add_expression_variable(function_name);
-        }
-      else
-        { // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
-          if (undeclared_model_vars.contains(function_name))
-            undeclared_model_variable_error("Unknown symbol: " + function_name, function_name);
+      {
+        // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
+        if (undeclared_model_vars.contains(function_name))
+          undeclared_model_variable_error("Unknown symbol: " + function_name, function_name);
 
-          optional<int> rv {is_there_one_integer_argument()};
-          if (!rv)
+        if (arguments.size() > 1)
+          error("Symbol " + function_name
+                + " is being treated as if it were a function (it is given several arguments)");
+
+        try
+          {
+            auto lead_lag = arguments.front()->matchIntegerConstant();
+            return add_model_variable(mod_file->symbol_table.getID(function_name), lead_lag);
+          }
+        catch (ExprNode::MatchFailureException&)
+          {
             error("Symbol " + function_name
                   + " is being treated as if it were a function (i.e., takes an argument that is "
                     "not an integer).");
-
-          nid = add_model_variable(mod_file->symbol_table.getID(function_name), *rv);
-          stack_external_function_args.pop();
-          return nid;
-        }
+          }
+      }
     else
       { // e.g. this function has already been referenced (either ad hoc or through the
         // external_function() statement
@@ -3561,14 +3507,14 @@ ParsingDriver::add_model_var_or_external_function(const string& function_name, b
           error("Using a derivative of an external function (" + function_name
                 + ") in the model block is currently not allowed.");
 
-        if (in_model_block || parsing_epilogue)
+        if (in_model_expression || parsing_epilogue)
           {
             if (mod_file->external_functions_table.getNargs(symb_id)
                 == ExternalFunctionsTable::IDNotSet)
               error("Before using " + function_name
                     + "() in the model block, you must first declare it via the "
                       "external_function() statement");
-            else if (static_cast<int>(stack_external_function_args.top().size())
+            else if (static_cast<int>(arguments.size())
                      != mod_file->external_functions_table.getNargs(symb_id))
               error(
                   "The number of arguments passed to " + function_name
@@ -3576,42 +3522,45 @@ ParsingDriver::add_model_var_or_external_function(const string& function_name, b
           }
       }
   else
-    { // First time encountering this external function i.e., not previously declared or encountered
+    { /* First time encountering this external function or variable i.e., not previously declared or
+         encountered */
       if (parsing_epilogue)
         error("Variable " + function_name + " used in the epilogue block but was not declared.");
 
-      if (in_model_block)
+      if (in_model_expression)
         {
           // Continue processing, noting that it was not declared
           // Processing will end at the end of the model block if nostrict was not passed
           undeclared_model_vars.insert(function_name);
           undeclared_model_variable_error("Unknown symbol: " + function_name, function_name);
 
-          optional<int> rv {is_there_one_integer_argument()};
-          if (rv)
-            {
-              // assume it's a lead/lagged variable
-              int symb_id = declare_exogenous(function_name);
-              return add_model_variable(symb_id, *rv);
-            }
-          else
-            error("To use an external function (" + function_name
-                  + ") within the model block, you must first declare it via the "
-                    "external_function() statement.");
+          // If it has a single integer argument, assume that it’s a lead/lagged exogenous variable
+          if (arguments.size() == 1)
+            try
+              {
+                auto lead_lag = arguments.front()->matchIntegerConstant();
+                int symb_id = declare_exogenous(function_name);
+                return add_model_variable(symb_id, lead_lag);
+              }
+            catch (ExprNode::MatchFailureException&)
+              {
+              }
+
+          error("To use an external function (" + function_name
+                + ") within the model block, you must first declare it via the "
+                  "external_function() statement.");
         }
       int symb_id = declare_symbol(function_name, SymbolType::externalFunction, "", {}, {});
-      current_external_function_options.nargs = stack_external_function_args.top().size();
+      current_external_function_options.nargs = arguments.size();
       mod_file->external_functions_table.addExternalFunction(
-          symb_id, current_external_function_options, in_model_block);
+          symb_id, current_external_function_options, in_model_expression);
       reset_current_external_function_options();
     }
 
-  // By this point, we're sure that this function exists in the External Functions Table and is not
-  // a mod var
+  /* By this point, we're sure that this function exists in the External Functions Table and is not
+     a model var */
   int symb_id = mod_file->symbol_table.getID(function_name);
-  nid = data_tree->AddExternalFunction(symb_id, stack_external_function_args.top());
-  stack_external_function_args.pop();
-  return nid;
+  return data_tree->AddExternalFunction(symb_id, move(arguments));
 }
 
 void
