@@ -229,7 +229,7 @@ CHECK_JACOBIAN_SINGULARITY
 %token <vector<string>> SYMBOL_VEC
 
 %type <expr_t> expression expression_or_empty
-%type <expr_t> equation hand_side
+%type <expr_t> model_equation model_expression
 %type <string> non_negative_number signed_number signed_integer
 %type <string> filename symbol namespace_qualified_filename namespace_qualified_symbol
 %type <string> date_expr signed_inf signed_number_w_inf range
@@ -539,11 +539,11 @@ symbol_list_with_tex_and_partition : symbol_list_with_tex_and_partition symbol
 
 rplot : RPLOT symbol_list ';' { driver.rplot($2); };
 
-trend_var : TREND_VAR '(' GROWTH_FACTOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex ';'
+trend_var : TREND_VAR '(' GROWTH_FACTOR EQUAL { driver.begin_model(); } model_expression ')' symbol_list_with_tex ';'
             { driver.end_trend_var(false, $6, $8); }
           ;
 
-log_trend_var : LOG_TREND_VAR '(' LOG_GROWTH_FACTOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex ';'
+log_trend_var : LOG_TREND_VAR '(' LOG_GROWTH_FACTOR EQUAL { driver.begin_model(); } model_expression ')' symbol_list_with_tex ';'
                 { driver.end_trend_var(true, $6, $8); }
               ;
 
@@ -551,11 +551,11 @@ var : VAR symbol_list_with_tex_and_partition ';'
       { driver.var($2, {}, false); }
     | VAR '(' LOG ')' symbol_list_with_tex_and_partition ';'
       { driver.var($5, {}, true); }
-    | VAR '(' DEFLATOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex_and_partition ';'
+    | VAR '(' DEFLATOR EQUAL { driver.begin_model(); } model_expression ')' symbol_list_with_tex_and_partition ';'
       { driver.end_nonstationary_var(false, $6, $8, false); }
-    | VAR '(' LOG COMMA DEFLATOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex_and_partition ';'
+    | VAR '(' LOG COMMA DEFLATOR EQUAL { driver.begin_model(); } model_expression ')' symbol_list_with_tex_and_partition ';'
       { driver.end_nonstationary_var(false, $8, $10, true); }
-    | VAR '(' LOG_DEFLATOR EQUAL { driver.begin_model(); } hand_side ')' symbol_list_with_tex_and_partition ';'
+    | VAR '(' LOG_DEFLATOR EQUAL { driver.begin_model(); } model_expression ')' symbol_list_with_tex_and_partition ';'
       { driver.end_nonstationary_var(true, $6, $8, false); }
     /* The case LOG + LOG_DEFLATOR is omitted, because it does not make much sense
        from an economic point of view (amounts to taking the log two times) */
@@ -614,7 +614,7 @@ var_expectation_model_options_list : var_expectation_model_option
 
 var_expectation_model_option : VARIABLE EQUAL symbol
                                { driver.option_str("variable", $3); }
-                             | EXPRESSION EQUAL { driver.begin_model(); } hand_side
+                             | EXPRESSION EQUAL { driver.begin_model(); } model_expression
                                {
                                  driver.var_expectation_model_expression = $4;
                                  driver.reset_data_tree();
@@ -753,7 +753,7 @@ expression : '(' expression ')'
              { $$ = driver.add_max($3, $5); }
            | MIN '(' expression COMMA expression ')'
              { $$ = driver.add_min($3, $5); }
-           | namespace_qualified_symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' comma_expression ')'
+           | namespace_qualified_symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' expression_list ')'
              { $$ = driver.add_model_var_or_external_function($1, false); }
            | NORMCDF '(' expression COMMA expression COMMA expression ')'
              { $$ = driver.add_normcdf($3, $5, $7); }
@@ -773,11 +773,11 @@ expression : '(' expression ')'
              { $$ = driver.add_inf_constant(); }
            ;
 
-comma_expression : expression
-                   { driver.add_external_function_arg($1); }
-                 | comma_expression COMMA expression
-                   { driver.add_external_function_arg($3); }
-                 ;
+expression_list : expression
+                  { driver.add_external_function_arg($1); }
+                | expression_list COMMA expression
+                  { driver.add_external_function_arg($3); }
+                ;
 
 expression_or_empty : %empty
                       { $$ = driver.add_nan_constant(); }
@@ -890,9 +890,9 @@ matched_moments : MATCHED_MOMENTS ';' { driver.begin_matched_moments(); }
                   matched_moments_list END ';' { driver.end_matched_moments($4); }
                 ;
 
-matched_moments_list : hand_side ';'
+matched_moments_list : model_expression ';'
                        { $$ = {$1}; }
-                     | matched_moments_list hand_side ';'
+                     | matched_moments_list model_expression ';'
                        {
                          $$ = $1;
                          $$.push_back($2);
@@ -942,13 +942,13 @@ occbin_constraints_regime_options_list : occbin_constraints_regime_option
                                          }
                                        ;
 
-occbin_constraints_regime_option : BIND hand_side ';'
+occbin_constraints_regime_option : BIND model_expression ';'
                                    { $$ = {"bind", $2}; }
-                                 | RELAX hand_side ';'
+                                 | RELAX model_expression ';'
                                    { $$ = {"relax", $2}; }
-                                 | ERROR_BIND hand_side ';'
+                                 | ERROR_BIND model_expression ';'
                                    { $$ = {"error_bind", $2}; }
-                                 | ERROR_RELAX hand_side ';'
+                                 | ERROR_RELAX model_expression ';'
                                    { $$ = {"error_relax", $2}; }
                                  ;
 
@@ -963,14 +963,14 @@ pac_target_info_statement_list : pac_target_info_statement
                                | pac_target_info_statement_list pac_target_info_statement
                                ;
 
-pac_target_info_statement : TARGET hand_side ';'
+pac_target_info_statement : TARGET model_expression ';'
                             { driver.set_pac_target_info_target($2); }
                           | AUXNAME_TARGET_NONSTATIONARY symbol ';'
                             { driver.set_pac_target_info_auxname_target_nonstationary($2); }
                           | pac_target_info_component
                           ;
 
-pac_target_info_component : COMPONENT hand_side ';'
+pac_target_info_component : COMPONENT model_expression ';'
                             pac_target_info_component_list
                             { driver.add_pac_target_info_component($2); }
                           ;
@@ -979,7 +979,7 @@ pac_target_info_component_list : pac_target_info_component_elem
                                | pac_target_info_component_list pac_target_info_component_elem
                                ;
 
-pac_target_info_component_elem : GROWTH hand_side ';'
+pac_target_info_component_elem : GROWTH model_expression ';'
                                  { driver.set_pac_target_info_component_growth($2); }
                                | AUXNAME symbol ';'
                                  { driver.set_pac_target_info_component_auxname($2); }
@@ -1023,36 +1023,36 @@ model_options_list : model_options_list COMMA model_option
                    ;
 
 model : MODEL ';' { driver.begin_model(); }
-        equation_list END ';' { driver.end_model(); }
+        model_equation_list END ';' { driver.end_model(); }
       | MODEL '(' model_options_list ')' ';' { driver.begin_model(); }
-        equation_list END ';' { driver.end_model(); }
+        model_equation_list END ';' { driver.end_model(); }
       | MODEL '(' HETEROGENEITY EQUAL symbol ')' { driver.begin_heterogeneous_model($5); }';'
-        equation_list END ';' { driver.end_model(); }
+        model_equation_list END ';' { driver.end_model(); }
       ;
 
-equation_list : equation_list equation
-              | equation_list pound_expression
-              | equation
-              | pound_expression
-              ;
+model_equation_list : model_equation_list model_equation
+                    | model_equation_list model_local_variable_definition
+                    | model_equation
+                    | model_local_variable_definition
+                    ;
 
-equation : hand_side EQUAL hand_side ';'
-           { $$ = driver.add_model_equal($1, $3, {}); }
-         | hand_side ';'
-           { $$ = driver.add_model_equal_with_zero_rhs($1, {}); }
-         | '[' tag_pair_list ']' hand_side EQUAL hand_side ';'
-           { $$ = driver.add_model_equal($4, $6, $2); }
-         | '[' tag_pair_list ']' hand_side ';'
-           { $$ = driver.add_model_equal_with_zero_rhs($4, $2); }
-         | hand_side EQUAL hand_side PERPENDICULAR hand_side ';'
-           { $$ = driver.add_model_equal($1, $3, {}, $5); }
-         | hand_side PERPENDICULAR hand_side ';'
-           { $$ = driver.add_model_equal_with_zero_rhs($1, {}, $3); }
-         | '[' tag_pair_list ']' hand_side EQUAL hand_side PERPENDICULAR hand_side ';'
-           { $$ = driver.add_model_equal($4, $6, $2, $8); }
-         | '[' tag_pair_list ']' hand_side PERPENDICULAR hand_side ';'
-           { $$ = driver.add_model_equal_with_zero_rhs($4, $2, $6); }
-         ;
+model_equation : model_expression EQUAL model_expression ';'
+                 { $$ = driver.add_model_equal($1, $3, {}); }
+               | model_expression ';'
+                 { $$ = driver.add_model_equal_with_zero_rhs($1, {}); }
+               | '[' tag_pair_list ']' model_expression EQUAL model_expression ';'
+                 { $$ = driver.add_model_equal($4, $6, $2); }
+               | '[' tag_pair_list ']' model_expression ';'
+                 { $$ = driver.add_model_equal_with_zero_rhs($4, $2); }
+               | model_expression EQUAL model_expression PERPENDICULAR model_expression ';'
+                 { $$ = driver.add_model_equal($1, $3, {}, $5); }
+               | model_expression PERPENDICULAR model_expression ';'
+                 { $$ = driver.add_model_equal_with_zero_rhs($1, {}, $3); }
+               | '[' tag_pair_list ']' model_expression EQUAL model_expression PERPENDICULAR model_expression ';'
+                 { $$ = driver.add_model_equal($4, $6, $2, $8); }
+               | '[' tag_pair_list ']' model_expression PERPENDICULAR model_expression ';'
+                 { $$ = driver.add_model_equal_with_zero_rhs($4, $2, $6); }
+               ;
 
 tag_pair_list : tag_pair_list COMMA tag_pair
                 {
@@ -1071,140 +1071,140 @@ tag_pair : symbol EQUAL QUOTED_STRING
            { $$ = {str_tolower($1), ""}; }
          ;
 
-hand_side : '(' hand_side ')'
-            { $$ = $2; }
-          | namespace_qualified_symbol
-            { $$ = driver.add_model_variable($1); }
-          | symbol PIPE_E
-            { $$ = driver.declare_or_change_type(SymbolType::endogenous, $1); }
-          | symbol PIPE_X
-            { $$ = driver.declare_or_change_type(SymbolType::exogenous, $1); }
-          | symbol PIPE_P
-            { $$ = driver.declare_or_change_type(SymbolType::parameter, $1); }
-          | non_negative_number
-            { $$ = driver.add_non_negative_constant($1); }
-          | hand_side PLUS hand_side
-            { $$ = driver.add_plus($1, $3); }
-          | hand_side MINUS hand_side
-            { $$ = driver.add_minus($1, $3); }
-          | hand_side DIVIDE hand_side
-            { $$ = driver.add_divide($1, $3); }
-          | hand_side TIMES hand_side
-            { $$ = driver.add_times($1, $3); }
-          | hand_side LESS hand_side
-            { $$ = driver.add_less($1, $3); }
-          | hand_side GREATER hand_side
-            { $$ = driver.add_greater($1, $3); }
-          | hand_side LESS_EQUAL hand_side
-            { $$ = driver.add_less_equal($1, $3); }
-          | hand_side GREATER_EQUAL hand_side
-            { $$ = driver.add_greater_equal($1, $3); }
-          | hand_side EQUAL_EQUAL hand_side
-            { $$ = driver.add_equal_equal($1, $3); }
-          | hand_side EXCLAMATION_EQUAL hand_side
-            { $$ = driver.add_different($1, $3); }
-          | hand_side POWER hand_side
-            { $$ = driver.add_power($1, $3); }
-          | EXPECTATION '(' signed_integer ')''(' hand_side ')'
-	    { $$ = driver.add_expectation($3, $6); }
-          | VAR_EXPECTATION '(' symbol ')'
-            { $$ = driver.add_var_expectation($3); }
-          | PAC_EXPECTATION '(' symbol ')'
-            { $$ = driver.add_pac_expectation($3); }
-          | PAC_TARGET_NONSTATIONARY '(' symbol ')'
-            { $$ = driver.add_pac_target_nonstationary($3); }
-          | MINUS hand_side %prec UNARY
-            { $$ = driver.add_uminus($2); }
-          | PLUS hand_side %prec UNARY
-            { $$ = $2; }
-          | EXP '(' hand_side ')'
-            { $$ = driver.add_exp($3); }
-          | DIFF '(' hand_side ')'
-            { $$ = driver.add_diff($3); }
-          | ADL '(' hand_side COMMA QUOTED_STRING ')'
-            { $$ = driver.add_adl($3, $5, "1"); }
-          | ADL '(' hand_side COMMA QUOTED_STRING COMMA INT_NUMBER ')'
-            { $$ = driver.add_adl($3, $5, $7); }
-          | ADL '(' hand_side COMMA QUOTED_STRING COMMA vec_int ')'
-            { $$ = driver.add_adl($3, $5, $7); }
-          | LOG '(' hand_side ')'
-            { $$ = driver.add_log($3); }
-          | LN '(' hand_side ')'
-            { $$ = driver.add_log($3); }
-          | LOG10 '(' hand_side ')'
-            { $$ = driver.add_log10($3); }
-          | SIN '(' hand_side ')'
-            { $$ = driver.add_sin($3); }
-          | COS '(' hand_side ')'
-            { $$ = driver.add_cos($3); }
-          | TAN '(' hand_side ')'
-            { $$ = driver.add_tan($3); }
-          | ASIN '(' hand_side ')'
-            { $$ = driver.add_asin($3); }
-          | ACOS '(' hand_side ')'
-            { $$ = driver.add_acos($3); }
-          | ATAN '(' hand_side ')'
-            { $$ = driver.add_atan($3); }
-          | SINH '(' hand_side ')'
-            { $$ = driver.add_sinh($3); }
-          | COSH '(' hand_side ')'
-            { $$ = driver.add_cosh($3); }
-          | TANH '(' hand_side ')'
-            { $$ = driver.add_tanh($3); }
-          | ASINH '(' hand_side ')'
-            { $$ = driver.add_asinh($3); }
-          | ACOSH '(' hand_side ')'
-            { $$ = driver.add_acosh($3); }
-          | ATANH '(' hand_side ')'
-            { $$ = driver.add_atanh($3); }
-          | SQRT '(' hand_side ')'
-            { $$ = driver.add_sqrt($3); }
-          | CBRT '(' hand_side ')'
-             { $$ = driver.add_cbrt($3); }
-          | ABS '(' hand_side ')'
-            { $$ = driver.add_abs($3); }
-          | SIGN '(' hand_side ')'
-            { $$ = driver.add_sign($3); }
-          | MAX '(' hand_side COMMA hand_side ')'
-            { $$ = driver.add_max($3, $5); }
-          | MIN '(' hand_side COMMA hand_side ')'
-            { $$ = driver.add_min($3, $5); }
-          | namespace_qualified_symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' comma_hand_side ')'
-            { $$ = driver.add_model_var_or_external_function($1, true); }
-          | NORMCDF '(' hand_side COMMA hand_side COMMA hand_side ')'
-            { $$ = driver.add_normcdf($3, $5, $7); }
-          | NORMCDF '(' hand_side ')'
-            { $$ = driver.add_normcdf($3); }
-          | NORMPDF '(' hand_side COMMA hand_side COMMA hand_side ')'
-            { $$ = driver.add_normpdf($3, $5, $7); }
-          | NORMPDF '(' hand_side ')'
-            { $$ = driver.add_normpdf($3); }
-          | ERF '(' hand_side ')'
-            { $$ = driver.add_erf($3); }
-          | ERFC '(' hand_side ')'
-            { $$ = driver.add_erfc($3); }
-          | STEADY_STATE '(' hand_side ')'
-            { $$ = driver.add_steady_state($3); }
-          | SUM '(' hand_side ')'
-            { $$ = driver.add_sum($3); }
-          ;
+model_expression : '(' model_expression ')'
+                   { $$ = $2; }
+                 | namespace_qualified_symbol
+                   { $$ = driver.add_model_variable($1); }
+                 | symbol PIPE_E
+                   { $$ = driver.declare_or_change_type(SymbolType::endogenous, $1); }
+                 | symbol PIPE_X
+                   { $$ = driver.declare_or_change_type(SymbolType::exogenous, $1); }
+                 | symbol PIPE_P
+                   { $$ = driver.declare_or_change_type(SymbolType::parameter, $1); }
+                 | non_negative_number
+                   { $$ = driver.add_non_negative_constant($1); }
+                 | model_expression PLUS model_expression
+                   { $$ = driver.add_plus($1, $3); }
+                 | model_expression MINUS model_expression
+                   { $$ = driver.add_minus($1, $3); }
+                 | model_expression DIVIDE model_expression
+                   { $$ = driver.add_divide($1, $3); }
+                 | model_expression TIMES model_expression
+                   { $$ = driver.add_times($1, $3); }
+                 | model_expression LESS model_expression
+                   { $$ = driver.add_less($1, $3); }
+                 | model_expression GREATER model_expression
+                   { $$ = driver.add_greater($1, $3); }
+                 | model_expression LESS_EQUAL model_expression
+                   { $$ = driver.add_less_equal($1, $3); }
+                 | model_expression GREATER_EQUAL model_expression
+                   { $$ = driver.add_greater_equal($1, $3); }
+                 | model_expression EQUAL_EQUAL model_expression
+                   { $$ = driver.add_equal_equal($1, $3); }
+                 | model_expression EXCLAMATION_EQUAL model_expression
+                   { $$ = driver.add_different($1, $3); }
+                 | model_expression POWER model_expression
+                   { $$ = driver.add_power($1, $3); }
+                 | EXPECTATION '(' signed_integer ')''(' model_expression ')'
+                   { $$ = driver.add_expectation($3, $6); }
+                 | VAR_EXPECTATION '(' symbol ')'
+                   { $$ = driver.add_var_expectation($3); }
+                 | PAC_EXPECTATION '(' symbol ')'
+                   { $$ = driver.add_pac_expectation($3); }
+                 | PAC_TARGET_NONSTATIONARY '(' symbol ')'
+                   { $$ = driver.add_pac_target_nonstationary($3); }
+                 | MINUS model_expression %prec UNARY
+                   { $$ = driver.add_uminus($2); }
+                 | PLUS model_expression %prec UNARY
+                   { $$ = $2; }
+                 | EXP '(' model_expression ')'
+                   { $$ = driver.add_exp($3); }
+                 | DIFF '(' model_expression ')'
+                   { $$ = driver.add_diff($3); }
+                 | ADL '(' model_expression COMMA QUOTED_STRING ')'
+                   { $$ = driver.add_adl($3, $5, "1"); }
+                 | ADL '(' model_expression COMMA QUOTED_STRING COMMA INT_NUMBER ')'
+                   { $$ = driver.add_adl($3, $5, $7); }
+                 | ADL '(' model_expression COMMA QUOTED_STRING COMMA vec_int ')'
+                   { $$ = driver.add_adl($3, $5, $7); }
+                 | LOG '(' model_expression ')'
+                   { $$ = driver.add_log($3); }
+                 | LN '(' model_expression ')'
+                   { $$ = driver.add_log($3); }
+                 | LOG10 '(' model_expression ')'
+                   { $$ = driver.add_log10($3); }
+                 | SIN '(' model_expression ')'
+                   { $$ = driver.add_sin($3); }
+                 | COS '(' model_expression ')'
+                   { $$ = driver.add_cos($3); }
+                 | TAN '(' model_expression ')'
+                   { $$ = driver.add_tan($3); }
+                 | ASIN '(' model_expression ')'
+                   { $$ = driver.add_asin($3); }
+                 | ACOS '(' model_expression ')'
+                   { $$ = driver.add_acos($3); }
+                 | ATAN '(' model_expression ')'
+                   { $$ = driver.add_atan($3); }
+                 | SINH '(' model_expression ')'
+                   { $$ = driver.add_sinh($3); }
+                 | COSH '(' model_expression ')'
+                   { $$ = driver.add_cosh($3); }
+                 | TANH '(' model_expression ')'
+                   { $$ = driver.add_tanh($3); }
+                 | ASINH '(' model_expression ')'
+                   { $$ = driver.add_asinh($3); }
+                 | ACOSH '(' model_expression ')'
+                   { $$ = driver.add_acosh($3); }
+                 | ATANH '(' model_expression ')'
+                   { $$ = driver.add_atanh($3); }
+                 | SQRT '(' model_expression ')'
+                   { $$ = driver.add_sqrt($3); }
+                 | CBRT '(' model_expression ')'
+                    { $$ = driver.add_cbrt($3); }
+                 | ABS '(' model_expression ')'
+                   { $$ = driver.add_abs($3); }
+                 | SIGN '(' model_expression ')'
+                   { $$ = driver.add_sign($3); }
+                 | MAX '(' model_expression COMMA model_expression ')'
+                   { $$ = driver.add_max($3, $5); }
+                 | MIN '(' model_expression COMMA model_expression ')'
+                   { $$ = driver.add_min($3, $5); }
+                 | namespace_qualified_symbol { driver.push_external_function_arg_vector_onto_stack(); } '(' model_expression_list ')'
+                   { $$ = driver.add_model_var_or_external_function($1, true); }
+                 | NORMCDF '(' model_expression COMMA model_expression COMMA model_expression ')'
+                   { $$ = driver.add_normcdf($3, $5, $7); }
+                 | NORMCDF '(' model_expression ')'
+                   { $$ = driver.add_normcdf($3); }
+                 | NORMPDF '(' model_expression COMMA model_expression COMMA model_expression ')'
+                   { $$ = driver.add_normpdf($3, $5, $7); }
+                 | NORMPDF '(' model_expression ')'
+                   { $$ = driver.add_normpdf($3); }
+                 | ERF '(' model_expression ')'
+                   { $$ = driver.add_erf($3); }
+                 | ERFC '(' model_expression ')'
+                   { $$ = driver.add_erfc($3); }
+                 | STEADY_STATE '(' model_expression ')'
+                   { $$ = driver.add_steady_state($3); }
+                 | SUM '(' model_expression ')'
+                   { $$ = driver.add_sum($3); }
+                 ;
 
-comma_hand_side : hand_side
-                  { driver.add_external_function_arg($1); }
-                | comma_hand_side COMMA hand_side
-                  { driver.add_external_function_arg($3); }
-                ;
+model_expression_list : model_expression
+                        { driver.add_external_function_arg($1); }
+                      | model_expression_list COMMA model_expression
+                        { driver.add_external_function_arg($3); }
+                      ;
 
-pound_expression: '#' symbol EQUAL hand_side ';'
-                  { driver.declare_and_init_model_local_variable($2, $4); };
+model_local_variable_definition : '#' symbol EQUAL model_expression ';'
+                                  { driver.declare_and_init_model_local_variable($2, $4); };
 
 model_remove : MODEL_REMOVE '(' tag_pair_list_for_selection ')' ';'
                { driver.model_remove($3); };
 
 model_replace : MODEL_REPLACE '(' tag_pair_list_for_selection ')' ';'
-               { driver.begin_model_replace($3); }
-               equation_list END ';'
-               { driver.end_model(); };
+                { driver.begin_model_replace($3); }
+                model_equation_list END ';'
+                { driver.end_model(); };
 
 model_options : MODEL_OPTIONS '(' model_options_list ')' ';'
 
@@ -2703,7 +2703,7 @@ mc_filename_list : filename
                  ;
 
 planner_objective : PLANNER_OBJECTIVE { driver.begin_planner_objective(); }
-                    hand_side { driver.end_planner_objective($3); } ';';
+                    model_expression { driver.end_planner_objective($3); } ';';
 
 ramsey_model : RAMSEY_MODEL ';'
                 { driver.ramsey_model(); }
@@ -2727,12 +2727,12 @@ ramsey_constraints : RAMSEY_CONSTRAINTS ';'
                      { driver.end_ramsey_constraints($4); }
 		   ;
 
-ramsey_constraints_list : ramsey_constraints_list hand_side ';'
+ramsey_constraints_list : ramsey_constraints_list model_expression ';'
                           {
                             $$ = $1;
                             $$.push_back($2);
                           }
-                        | hand_side ';'
+                        | model_expression ';'
                           { $$ = { $1 }; }
                         ;
 
@@ -3909,7 +3909,7 @@ o_file : FILE EQUAL filename { driver.option_str("file", $3); };
 o_pac_name : MODEL_NAME EQUAL symbol { driver.option_str("pac.model_name", $3); };
 o_pac_aux_model_name : AUXILIARY_MODEL_NAME EQUAL symbol { driver.option_str("pac.aux_model_name", $3); };
 o_pac_discount : DISCOUNT EQUAL symbol { driver.option_str("pac.discount", $3); };
-o_pac_growth : GROWTH { driver.begin_model(); } EQUAL hand_side { driver.set_pac_growth($4); };
+o_pac_growth : GROWTH { driver.begin_model(); } EQUAL model_expression { driver.set_pac_growth($4); };
 o_pac_auxname : AUXNAME EQUAL symbol { driver.set_pac_auxname($3); };
 o_pac_kind : KIND EQUAL pac_target_kind { driver.set_pac_kind($3); };
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
