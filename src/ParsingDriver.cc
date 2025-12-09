@@ -457,12 +457,15 @@ ParsingDriver::add_expression_variable(const string& name)
   if (name.find('.') != string::npos)
     error(name + " treated as a variable, but it contains a '.'");
 
-  if (parsing_epilogue && !mod_file->symbol_table.exists(name))
-    error("Variable " + name + " used in the epilogue block but was not declared.");
-
-  // If symbol doesn't exist, then declare it as a mod file local variable
+  /* If symbol doesn't exist, and we are not in the epilogue, declare it as a mod file local
+     variable */
   if (!mod_file->symbol_table.exists(name))
-    mod_file->symbol_table.addSymbol(name, SymbolType::modFileLocalVariable);
+    {
+      if (parsing_epilogue)
+        error("Variable " + name + " used in the epilogue block but was not declared.");
+      else
+        mod_file->symbol_table.addSymbol(name, SymbolType::modFileLocalVariable);
+    }
 
   // This check must come after the previous one!
   if (mod_file->symbol_table.getType(name) == SymbolType::modelLocalVariable)
