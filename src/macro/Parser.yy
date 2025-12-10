@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /*
- * Copyright © 2019-2024 Dynare Team
+ * Copyright © 2019-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -90,7 +90,7 @@ using namespace macro;
 %nonassoc POWER
 
 %token EOL
-%token <string> NAME TEXT QUOTED_STRING NUMBER
+%token <string> IDENTIFIER TEXT QUOTED_STRING NUMBER
 
 %type <DirectivePtr> statement
 %type <DirectivePtr> directive directive_one_line directive_multiline for if ifdef ifndef text eval
@@ -101,7 +101,7 @@ using namespace macro;
 %type <VariablePtr> symbol
 
 %type <vector<ExpressionPtr>> comma_expr function_args tuple_comma_expr
-%type <vector<string>> name_list
+%type <vector<string>> identifier_list
 
 %%
 
@@ -146,11 +146,11 @@ directive_one_line : INCLUDE expr
                      { $$ = make_shared<Error>($2, @$); }
                    | ECHOMACROVARS
                      { $$ = make_shared<EchoMacroVars>(false, @$); }
-                   | ECHOMACROVARS name_list
+                   | ECHOMACROVARS identifier_list
                      { $$ = make_shared<EchoMacroVars>(false, $2, @$); }
                    | ECHOMACROVARS LPAREN SAVE RPAREN
                      { $$ = make_shared<EchoMacroVars>(true, @$); }
-                   | ECHOMACROVARS LPAREN SAVE RPAREN name_list
+                   | ECHOMACROVARS LPAREN SAVE RPAREN identifier_list
                      { $$ = make_shared<EchoMacroVars>(true, $5, @$); }
                    | LINE QUOTED_STRING NUMBER
                      {
@@ -160,14 +160,14 @@ directive_one_line : INCLUDE expr
                      }
                    ;
 
-name_list : NAME
-            { $$ = {$1}; }
-          | name_list NAME
-            {
-              $1.emplace_back($2);
-              $$ = $1;
-            }
-          ;
+identifier_list : IDENTIFIER
+                  { $$ = {$1}; }
+                | identifier_list IDENTIFIER
+                  {
+                    $1.emplace_back($2);
+                    $$ = $1;
+                  }
+                ;
 
 directive_multiline : for
                     | if
@@ -293,13 +293,13 @@ eval : BEGIN_EVAL expr END_EVAL
        { $$ = make_shared<Eval>($2, @$); }
      ;
 
-symbol : NAME
+symbol : IDENTIFIER
          { $$ = make_shared<Variable>($1, @$); }
        ;
 
-function : NAME LPAREN RPAREN
+function : IDENTIFIER LPAREN RPAREN
            { $$ = make_shared<Function>($1, vector<ExpressionPtr>(), @$); }
-         | NAME LPAREN function_args RPAREN
+         | IDENTIFIER LPAREN function_args RPAREN
            { $$ = make_shared<Function>($1, $3, @$); }
          ;
 
@@ -340,9 +340,9 @@ primary_expr : LPAREN expr RPAREN
                { $$ = $2; }
              | symbol
                { $$ = $1; } // Explicit rule needed for type conversion
-             | NAME LBRACKET comma_expr RBRACKET
+             | IDENTIFIER LBRACKET comma_expr RBRACKET
                { $$ = make_shared<Variable>($1, make_shared<Array>($3, @3), @$); }
-             | NAME LPAREN comma_expr RPAREN
+             | IDENTIFIER LPAREN comma_expr RPAREN
                { $$ = make_shared<Function>($1, $3, @$); }
              | TRUE
                { $$ = make_shared<Bool>(true, @$); }
@@ -434,7 +434,7 @@ primary_expr : LPAREN expr RPAREN
                { $$ = make_shared<TrinaryOp>(codes::TrinaryOp::normpdf, $3, $5, $7, @$); }
              | NORMCDF LPAREN expr COMMA expr COMMA expr RPAREN
                { $$ = make_shared<TrinaryOp>(codes::TrinaryOp::normcdf, $3, $5, $7, @$); }
-             | DEFINED LPAREN NAME RPAREN
+             | DEFINED LPAREN IDENTIFIER RPAREN
                { $$ = make_shared<UnaryOp>(codes::UnaryOp::defined, make_shared<String>($3, @3), @$); }
              ;
 
