@@ -244,12 +244,12 @@ CHECK_JACOBIAN_SINGULARITY
 %type <vector<string>> symbol_list symbol_list_or_wildcard
 %type <vector<int>> vec_int_elem vec_int_1 vec_int vec_int_number
 %type <PriorDistributions> prior_pdf prior_distribution
-%type <pair<expr_t,expr_t>> calibration_range
-%type <pair<string,string>> partition_elem subsamples_eq_opt integer_range_w_inf tag_pair matched_irfs_elem_var_varexo
-%type <vector<pair<string,string>>> partition partition_1 symbol_list_with_tex
+%type <pair<expr_t, expr_t>> calibration_range
+%type <pair<string, string>> partition_elem subsamples_eq_opt integer_range_w_inf tag_pair matched_irfs_elem_var_varexo
+%type <vector<pair<string, string>>> partition partition_1 symbol_list_with_tex
 %type <vector<map<string, string>>> tag_pair_list_for_selection
 %type <map<string, string>> tag_pair_list
-%type <tuple<string,string,string,string>> prior_eq_opt options_eq_opt
+%type <tuple<string, string, string, string>> prior_eq_opt options_eq_opt
 %type <AbstractShocksStatement::period_range_t> period_range
 %type <vector<AbstractShocksStatement::period_range_t>> period_list
 %type <vector<expr_t>> value_list
