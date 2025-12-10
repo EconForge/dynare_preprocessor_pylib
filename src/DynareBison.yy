@@ -128,7 +128,7 @@ str_tolower(string s)
 %token NUMBER_OF_PARTICLES RESAMPLING SYSTEMATIC GENERIC RESAMPLING_THRESHOLD RESAMPLING_METHOD KITAGAWA STRATIFIED SMOOTH MULTINOMIAL
 %token CPF_WEIGHTS AMISANOTRISTANI MURRAYJONESPARSLOW WRITE_EQUATION_TAGS FILTER_INITIAL_STATE
 %token NONLINEAR_FILTER_INITIALIZATION FILTER_ALGORITHM PROPOSAL_APPROXIMATION CUBATURE UNSCENTED MONTECARLO DISTRIBUTION_APPROXIMATION
-%token <string> NAME
+%token <string> IDENTIFIER
 %token USE_PENALIZED_OBJECTIVE_FOR_HESSIAN INIT_STATE FAST_REALTIME RESCALE_PREDICTION_ERROR_COVARIANCE GENERATE_IRFS
 %token NAN_CONSTANT NO_STATIC NOBS NOCONSTANT NODISPLAY NOCORR NODIAGNOSTIC NOFUNCTIONS NO_HOMOTOPY
 %token NOGRAPH POSTERIOR_NOGRAPH POSTERIOR_GRAPH NOMOMENTS NOMODELSUMMARY NOPRINT NORMAL_PDF SAVE_DRAWS MODEL_NAME STDERR_MULTIPLES DIAGONAL_ONLY
@@ -186,7 +186,8 @@ str_tolower(string s)
 %token SVAR_IDENTIFICATION EQUATION EXCLUSION LAG UPPER_CHOLESKY LOWER_CHOLESKY MONTHLY QUARTERLY
 %token MARKOV_SWITCHING CHAIN DURATION NUMBER_OF_REGIMES NUMBER_OF_LAGS EPILOGUE
 %token SVAR SVAR_GLOBAL_IDENTIFICATION_CHECK COEFF COEFFICIENTS VARIANCES CONSTANTS EQUATIONS
-%token EXTERNAL_FUNCTION EXT_FUNC_NAME EXT_FUNC_NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
+%token EXTERNAL_FUNCTION NARGS FIRST_DERIV_PROVIDED SECOND_DERIV_PROVIDED
+%token <string> NAME
 %token SELECTED_VARIABLES_ONLY COVA_COMPUTE SIMULATION_FILE_TAG FILE_TAG
 %token NO_ERROR_BANDS ERROR_BAND_PERCENTILES SHOCKS_PER_PARAMETER NO_CREATE_INIT
 %token SHOCK_DRAWS FREE_PARAMETERS MEDIAN DATA_OBS_NBR NEIGHBORHOOD_WIDTH PVALUE_KS PVALUE_CORR
@@ -871,7 +872,7 @@ epilogue_equation_list : epilogue_equation_list epilogue_equation
                        | epilogue_equation
                        ;
 
-epilogue_equation : NAME { driver.add_epilogue_variable($1); } EQUAL model_expression ';'
+epilogue_equation : IDENTIFIER { driver.add_epilogue_variable($1); } EQUAL model_expression ';'
                     { driver.add_epilogue_equal($1, $4); }
                   ;
 
@@ -3557,7 +3558,7 @@ generate_irfs_element_list : generate_irfs_element_list generate_irfs_element
                            | generate_irfs_element
                            ;
 
-generate_irfs_element : NAME COMMA generate_irfs_exog_element_list ';'
+generate_irfs_element : IDENTIFIER COMMA generate_irfs_exog_element_list ';'
                         { driver.add_generate_irfs_element($1); }
                       ;
 
@@ -4319,7 +4320,7 @@ o_data : DATA EQUAL filename { driver.option_str("ms.data", $3); };
 o_vlist : VLIST EQUAL INT_NUMBER { driver.option_num("ms.vlist", $3); };
 o_vlistlog : VLISTLOG EQUAL '(' symbol_list ')' { driver.option_symbol_list("ms.vlistlog", $4); };
 o_vlistper : VLISTPER EQUAL INT_NUMBER { driver.option_num("ms.vlistper", $3); };
-o_restriction_fname : RESTRICTION_FNAME EQUAL NAME
+o_restriction_fname : RESTRICTION_FNAME EQUAL IDENTIFIER
                       {
                         driver.warning("restriction_fname is now deprecated, and may be removed in a future version of Dynare. Use svar_identification instead.");
                         driver.option_str("ms.restriction_fname", $3);
@@ -4399,8 +4400,8 @@ o_equations : EQUATIONS EQUAL vec_int
 o_silent_optimizer : SILENT_OPTIMIZER { driver.option_num("silent_optimizer", "true"); };
 o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' { driver.option_symbol_list("instruments", $4); };
 
-o_ext_func_name : EXT_FUNC_NAME EQUAL namespace_qualified_filename { $$ = {"name", $3}; };
-o_ext_func_nargs : EXT_FUNC_NARGS EQUAL INT_NUMBER { $$ = {"nargs", $3}; };
+o_ext_func_name : NAME EQUAL namespace_qualified_filename { $$ = {"name", $3}; };
+o_ext_func_nargs : NARGS EQUAL INT_NUMBER { $$ = {"nargs", $3}; };
 o_first_deriv_provided : FIRST_DERIV_PROVIDED EQUAL namespace_qualified_filename
                          { $$ = {"first_deriv_provided", $3}; }
                        | FIRST_DERIV_PROVIDED
@@ -4758,7 +4759,7 @@ vec_of_vec_value : '[' vec_of_vec_value_1 ']'
                    { $$ = $2; }
                  ;
 
-symbol : NAME
+symbol : IDENTIFIER
        | ALPHA
        | BETA
        | NINV
@@ -4793,6 +4794,7 @@ symbol : NAME
        | MFS
        | RESIDUAL
        | AIM
+       | NAME
        ;
 
 %%

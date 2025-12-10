@@ -68,7 +68,7 @@ string eofbuff;
 #define YY_USER_ACTION location_increment(yylloc, yytext);
 %}
 
-NAME [a-z_][a-z0-9_]*
+IDENTIFIER [a-z_][a-z0-9_]*
 FLOAT_NUMBER ((([0-9]*\.[0-9]+)|([0-9]+\.))([ed][-+]?[0-9]+)?)|([0-9]+[ed][-+]?[0-9]+)
 DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 
@@ -378,8 +378,8 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>aim_solver {return token::AIM_SOLVER;}
 <DYNARE_STATEMENT>partial_information {return token::PARTIAL_INFORMATION;}
 <DYNARE_STATEMENT>conditional_variance_decomposition {return token::CONDITIONAL_VARIANCE_DECOMPOSITION;}
-<DYNARE_STATEMENT>name {return token::EXT_FUNC_NAME;}
-<DYNARE_STATEMENT>nargs {return token::EXT_FUNC_NARGS;}
+<DYNARE_STATEMENT,DYNARE_BLOCK>name {yylval->emplace<string>(yytext); return token::NAME;}
+<DYNARE_STATEMENT>nargs {return token::NARGS;}
 <DYNARE_STATEMENT>first_deriv_provided {return token::FIRST_DERIV_PROVIDED;}
 <DYNARE_STATEMENT>second_deriv_provided {return token::SECOND_DERIV_PROVIDED;}
 <DYNARE_STATEMENT>freq {return token::FREQ;}
@@ -1063,9 +1063,9 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>use_shock_groups {return token::USE_SHOCK_GROUPS;}
 <DYNARE_STATEMENT>colormap {return token::COLORMAP;}
 
-<DYNARE_STATEMENT,DYNARE_BLOCK>{NAME} {
+<DYNARE_STATEMENT,DYNARE_BLOCK>{IDENTIFIER} {
   yylval->emplace<string>(yytext);
-  return token::NAME;
+  return token::IDENTIFIER;
 }
 
 <DYNARE_STATEMENT,DYNARE_BLOCK>{FLOAT_NUMBER} {
@@ -1107,7 +1107,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 
 
  /* An instruction starting with a recognized symbol (which is not a modfile local
-    or an external function) is passed as NAME, otherwise it is a native statement
+    or an external function) is passed as IDENTIFIER, otherwise it is a native statement
     until the end of the line.
     We exclude modfile local vars because the user may want to modify their value
     using a Matlab assignment statement.
@@ -1115,12 +1115,12 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
     element in initval (in which case Dynare recognizes the matrix name as an external
     function symbol), and may want to modify the matrix later with Matlab statements.
  */
-<INITIAL>{NAME} {
+<INITIAL>{IDENTIFIER} {
   if (driver.symbol_exists_and_is_not_modfile_local_or_external_function(yytext))
     {
       BEGIN DYNARE_STATEMENT;
       yylval->emplace<string>(yytext);
-      return token::NAME;
+      return token::IDENTIFIER;
     }
   else
     {
@@ -1140,7 +1140,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
     be able to back out of the statement if we realize it's a native statement
     and move to the NATIVE context
  */
-<INITIAL>\[([[:space:]]*{NAME}[[:space:]]*,{1}[[:space:]]*)*([[:space:]]*{NAME}[[:space:]]*){1}\] {
+<INITIAL>\[([[:space:]]*{IDENTIFIER}[[:space:]]*,{1}[[:space:]]*)*([[:space:]]*{IDENTIFIER}[[:space:]]*){1}\] {
   string yytextcpy{yytext};
   yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), '['), yytextcpy.end());
   yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), ']'), yytextcpy.end());
