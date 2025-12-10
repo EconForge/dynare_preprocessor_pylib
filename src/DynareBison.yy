@@ -271,6 +271,8 @@ CHECK_JACOBIAN_SINGULARITY
 %type <map<tuple<string, string, string, string, string, string>, expr_t>> matched_irfs_weights_list
 %type <tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>, string>> perfect_foresight_controlled_paths_elem
 %type <vector<tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>, string>>> perfect_foresight_controlled_paths_list
+%type <pair<string, string>> o_ext_func_name o_ext_func_nargs o_first_deriv_provided o_second_deriv_provided external_function_options
+%type <map<string, string>> external_function_options_list
 %%
 
 %start statement_list;
@@ -1809,11 +1811,16 @@ simul_options : perfect_foresight_setup_options
               ;
 
 external_function : EXTERNAL_FUNCTION '(' external_function_options_list ')' ';'
-                    { driver.external_function(); }
+                    { driver.external_function($3); }
                   ;
 
-external_function_options_list : external_function_options_list COMMA external_function_options
-                               | external_function_options
+external_function_options_list : external_function_options
+                                 { $$ = {$1}; }
+                               | external_function_options_list COMMA external_function_options
+                                 {
+                                   $$ = $1;
+                                   $$.insert($3);
+                                 }
                                ;
 
 external_function_options : o_ext_func_name
@@ -4392,17 +4399,17 @@ o_equations : EQUATIONS EQUAL vec_int
 o_silent_optimizer : SILENT_OPTIMIZER { driver.option_num("silent_optimizer", "true"); };
 o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' { driver.option_symbol_list("instruments", $4); };
 
-o_ext_func_name : EXT_FUNC_NAME EQUAL namespace_qualified_filename { driver.external_function_option("name", $3); };
-o_ext_func_nargs : EXT_FUNC_NARGS EQUAL INT_NUMBER { driver.external_function_option("nargs", $3); };
+o_ext_func_name : EXT_FUNC_NAME EQUAL namespace_qualified_filename { $$ = {"name", $3}; };
+o_ext_func_nargs : EXT_FUNC_NARGS EQUAL INT_NUMBER { $$ = {"nargs", $3}; };
 o_first_deriv_provided : FIRST_DERIV_PROVIDED EQUAL namespace_qualified_filename
-                         { driver.external_function_option("first_deriv_provided", $3); }
+                         { $$ = {"first_deriv_provided", $3}; }
                        | FIRST_DERIV_PROVIDED
-                         { driver.external_function_option("first_deriv_provided", ""); }
+                         { $$ = {"first_deriv_provided", ""}; }
                        ;
 o_second_deriv_provided : SECOND_DERIV_PROVIDED EQUAL namespace_qualified_filename
-                          { driver.external_function_option("second_deriv_provided", $3); }
+                          { $$ = {"second_deriv_provided", $3}; }
                         | SECOND_DERIV_PROVIDED
-                          { driver.external_function_option("second_deriv_provided", ""); }
+                          { $$ = {"second_deriv_provided", ""}; }
                         ;
 o_filter_covariance : FILTER_COVARIANCE
                         { driver.option_num("filter_covariance", "true"); }

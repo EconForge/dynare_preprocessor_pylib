@@ -226,11 +226,6 @@ private:
   map<string, double> generate_irf_exos;
   //! Temporary storage for parameters in joint prior statement
   vector<string> joint_parameters;
-  //! Temporary storage for the symb_id associated with the "name" symbol of the current
-  //! external_function statement
-  int current_external_function_id;
-  //! Temporary storage for option list provided to external_function()
-  ExternalFunctionsTable::external_function_options current_external_function_options;
   //! Temporary storage for a variance declared in the prior statement
   expr_t prior_variance;
   SubsamplesStatement::subsample_declaration_map_t subsample_declaration_map;
@@ -248,8 +243,6 @@ private:
      options of ramsey_model, ramsey_policy, and discretionary_policy */
   expr_t planner_discount {nullptr};
   string planner_discount_latex_name;
-  //! reset the values for temporary storage
-  void reset_current_external_function_options();
   //! Adds a model lagged variable to ModelTree and VariableTable
   expr_t add_model_variable(int symb_id, int lag);
   //! For parsing the graph_format option
@@ -559,9 +552,7 @@ public:
   //! Add an estimated_params_remove block
   void estimated_params_remove();
   //! Adds a declaration for a user-defined external function
-  void external_function();
-  //! Sets an external_function option to a string value
-  void external_function_option(const string& name_option, const string& opt);
+  void external_function(const map<string, string>& options);
   //! Add a line in an estimated params block
   void add_estimated_params_element();
   //! Writes osr params bounds command

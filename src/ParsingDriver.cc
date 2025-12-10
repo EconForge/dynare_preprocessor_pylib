@@ -83,15 +83,6 @@ ParsingDriver::reset_data_tree()
   set_current_data_tree(&mod_file->expressions_tree);
 }
 
-void
-ParsingDriver::reset_current_external_function_options()
-{
-  current_external_function_options.nargs = ExternalFunctionsTable::defaultNargs;
-  current_external_function_options.firstDerivSymbID = ExternalFunctionsTable::IDNotSet;
-  current_external_function_options.secondDerivSymbID = ExternalFunctionsTable::IDNotSet;
-  current_external_function_id = ExternalFunctionsTable::IDNotSet;
-}
-
 unique_ptr<ModFile>
 ParsingDriver::parse(istream& in, bool debug)
 {
@@ -100,7 +91,6 @@ ParsingDriver::parse(istream& in, bool debug)
   reset_data_tree();
   estim_params.init(*data_tree);
   osr_params.init(*data_tree);
-  reset_current_external_function_options();
 
   lexer = make_unique<DynareFlex>(&in);
   lexer->set_debug(debug);
@@ -3406,66 +3396,66 @@ ParsingDriver::add_sum(expr_t arg)
 }
 
 void
-ParsingDriver::external_function_option(const string& name_option, const string& opt)
+ParsingDriver::external_function(const map<string, string>& options)
 {
-  if (name_option == "name")
-    {
-      if (opt.empty())
-        error("An argument must be passed to the 'name' option of the external_function() "
-              "statement.");
-      declare_symbol(opt, SymbolType::externalFunction, "", {}, {});
-      current_external_function_id = mod_file->symbol_table.getID(opt);
-    }
-  else if (name_option == "first_deriv_provided")
-    {
-      if (opt.empty())
-        current_external_function_options.firstDerivSymbID
-            = ExternalFunctionsTable::IDSetButNoNameProvided;
-      else
-        {
-          int symb_id = declare_symbol(opt, SymbolType::externalFunction, "", {}, {});
-          current_external_function_options.firstDerivSymbID = symb_id;
-        }
-    }
-  else if (name_option == "second_deriv_provided")
-    {
-      if (opt.empty())
-        current_external_function_options.secondDerivSymbID
-            = ExternalFunctionsTable::IDSetButNoNameProvided;
-      else
-        {
-          int symb_id = declare_symbol(opt, SymbolType::externalFunction, "", {}, {});
-          current_external_function_options.secondDerivSymbID = symb_id;
-        }
-    }
-  else if (name_option == "nargs")
-    current_external_function_options.nargs = stoi(opt);
-  else
-    error("Unexpected error in ParsingDriver::external_function_option(): Please inform Dynare "
-          "Team.");
-}
+  optional<int> external_function_id;
+  ExternalFunctionsTable::external_function_options_t external_function_options;
 
-void
-ParsingDriver::external_function()
-{
-  if (current_external_function_id == ExternalFunctionsTable::IDNotSet)
+  for (const auto& [key, value] : options)
+    if (key == "name")
+      {
+        if (value.empty())
+          error("An argument must be passed to the 'name' option of the external_function() "
+                "statement.");
+        declare_symbol(value, SymbolType::externalFunction, "", {}, {});
+        external_function_id = mod_file->symbol_table.getID(value);
+      }
+    else if (key == "first_deriv_provided")
+      {
+        if (value.empty())
+          external_function_options.firstDerivSymbID
+              = ExternalFunctionsTable::IDSetButNoNameProvided;
+        else
+          {
+            int symb_id = declare_symbol(value, SymbolType::externalFunction, "", {}, {});
+            external_function_options.firstDerivSymbID = symb_id;
+          }
+      }
+    else if (key == "second_deriv_provided")
+      {
+        if (value.empty())
+          external_function_options.secondDerivSymbID
+              = ExternalFunctionsTable::IDSetButNoNameProvided;
+        else
+          {
+            int symb_id = declare_symbol(value, SymbolType::externalFunction, "", {}, {});
+            external_function_options.secondDerivSymbID = symb_id;
+          }
+      }
+    else if (key == "nargs")
+      external_function_options.nargs = stoi(value);
+    else
+      {
+        std::cerr << "ParsingDriver::external_function_option(): unexpected error" << std::endl;
+        exit(EXIT_FAILURE);
+      }
+
+  if (!external_function_id)
     error("The 'name' option must be passed to external_function().");
 
-  if (current_external_function_options.secondDerivSymbID >= 0
-      && current_external_function_options.firstDerivSymbID == ExternalFunctionsTable::IDNotSet)
+  if (external_function_options.secondDerivSymbID >= 0
+      && external_function_options.firstDerivSymbID == ExternalFunctionsTable::IDNotSet)
     error("If the second derivative is provided to the external_function command, the first "
           "derivative must also be provided.");
 
-  if (current_external_function_options.secondDerivSymbID
-          == ExternalFunctionsTable::IDSetButNoNameProvided
-      && current_external_function_options.firstDerivSymbID
+  if (external_function_options.secondDerivSymbID == ExternalFunctionsTable::IDSetButNoNameProvided
+      && external_function_options.firstDerivSymbID
              != ExternalFunctionsTable::IDSetButNoNameProvided)
     error("If the second derivative is provided in the top-level function, the first derivative "
           "must also be provided in that function.");
 
-  mod_file->external_functions_table.addExternalFunction(current_external_function_id,
-                                                         current_external_function_options, true);
-  reset_current_external_function_options();
+  mod_file->external_functions_table.addExternalFunction(*external_function_id,
+                                                         external_function_options, true);
 }
 
 expr_t
@@ -3551,10 +3541,10 @@ ParsingDriver::add_model_var_or_external_function(const string& function_name,
                   "external_function() statement.");
         }
       int symb_id = declare_symbol(function_name, SymbolType::externalFunction, "", {}, {});
-      current_external_function_options.nargs = arguments.size();
-      mod_file->external_functions_table.addExternalFunction(
-          symb_id, current_external_function_options, in_model_expression);
-      reset_current_external_function_options();
+      ExternalFunctionsTable::external_function_options_t external_function_options;
+      external_function_options.nargs = arguments.size();
+      mod_file->external_functions_table.addExternalFunction(symb_id, external_function_options,
+                                                             in_model_expression);
     }
 
   /* By this point, we're sure that this function exists in the External Functions Table and is not

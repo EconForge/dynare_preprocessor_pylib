@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2023 Dynare Team
+ * Copyright © 2010-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -39,22 +39,23 @@ public:
     int id;
   };
 
-  /* For all arguments, -2 means not set
-   * For firstDerivSymbID and secondDerivSymbID, -1 means that the derivatives are
-   * provided in the main function given in the by the "name" option to the
-   * external_function() statement.
-   */
-  struct external_function_options
-  {
-    int nargs, firstDerivSymbID, secondDerivSymbID;
-  };
-  using external_function_table_type = map<int, external_function_options>;
   //! Symbol ID used when no external function exists that calculates the derivative
   constexpr static int IDNotSet = -1;
   //! Symbol ID used when the derivative is obtained from the top-level function
   constexpr static int IDSetButNoNameProvided = -2;
   //! Default number of arguments when nargs is not specified
   constexpr static int defaultNargs = 1;
+
+  /* For all arguments, -2 means not set
+   * For firstDerivSymbID and secondDerivSymbID, -1 means that the derivatives are
+   * provided in the main function given in the by the "name" option to the
+   * external_function() statement.
+   */
+  struct external_function_options_t
+  {
+    int nargs {defaultNargs}, firstDerivSymbID {IDNotSet}, secondDerivSymbID {IDNotSet};
+  };
+  using external_function_table_type = map<int, external_function_options_t>;
 
 private:
   //! Map containing options provided to external_functions()
@@ -63,7 +64,7 @@ private:
 public:
   //! Adds an external function to the table as well as its derivative functions
   void addExternalFunction(int symb_id,
-                           const external_function_options& external_function_options_arg,
+                           const external_function_options_t& external_function_options_arg,
                            bool track_nargs);
   //! See if the function exists in the External Functions Table
   [[nodiscard]] inline bool exists(int symb_id) const;

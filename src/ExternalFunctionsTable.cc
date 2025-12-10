@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2015 Dynare Team
+ * Copyright © 2010-2025 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -27,13 +27,13 @@
 
 void
 ExternalFunctionsTable::addExternalFunction(
-    int symb_id, const external_function_options& external_function_options_arg, bool track_nargs)
+    int symb_id, const external_function_options_t& external_function_options_arg, bool track_nargs)
 {
   assert(symb_id >= 0);
   assert(external_function_options_arg.nargs > 0);
 
   // Change options to be saved so the table is consistent
-  external_function_options external_function_options_chng = external_function_options_arg;
+  external_function_options_t external_function_options_chng = external_function_options_arg;
   if (external_function_options_arg.firstDerivSymbID == IDSetButNoNameProvided)
     external_function_options_chng.firstDerivSymbID = symb_id;
 
