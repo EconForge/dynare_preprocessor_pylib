@@ -3485,6 +3485,10 @@ ParsingDriver::add_model_var_or_external_function(const string& function_name,
   if (mod_file->symbol_table.exists(function_name))
     if (mod_file->symbol_table.getType(function_name) != SymbolType::externalFunction)
       {
+        if (!in_model_expression)
+          error("Using variable " + function_name
+                + " with a lead or a lag is not allowed in this context");
+
         // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
         if (undeclared_model_vars.contains(function_name))
           undeclared_model_variable_error("Unknown symbol: " + function_name, function_name);
