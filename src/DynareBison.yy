@@ -871,7 +871,7 @@ epilogue_equation_list : epilogue_equation_list epilogue_equation
                        | epilogue_equation
                        ;
 
-epilogue_equation : NAME { driver.add_epilogue_variable($1); } EQUAL expression ';'
+epilogue_equation : NAME { driver.add_epilogue_variable($1); } EQUAL model_expression ';'
                     { driver.add_epilogue_equal($1, $4); }
                   ;
 

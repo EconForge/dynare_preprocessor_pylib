@@ -265,9 +265,6 @@ private:
 
   vector<pair<string, string>> undeclared_model_variable_errors;
 
-  //! True when parsing the epilogue block
-  bool parsing_epilogue {false};
-
   //! True when parsing pac_model statement
   bool parsing_pac_model {false};
 
@@ -275,6 +272,12 @@ private:
   bool ramsey_model_seen {false};
   //! True if a ramsey_policy statement has already been seen
   bool ramsey_policy_seen {false};
+
+  bool
+  is_parsing_epilogue()
+  {
+    return data_tree == &mod_file->epilogue;
+  }
 
 public:
   ParsingDriver(WarningConsolidation& warnings_arg, bool nostrict_arg) :

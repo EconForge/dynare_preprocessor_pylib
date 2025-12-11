@@ -345,6 +345,9 @@ ParsingDriver::add_model_variable(const string& name)
     }
   catch (SymbolTable::UnknownSymbolNameException& e)
     {
+      if (is_parsing_epilogue())
+        error("Variable " + name + " used in the epilogue block but was not declared.");
+
       /* Declare variable as exogenous to continue parsing. Processing will end
          at end of model block (or planner_objective statement) if nostrict
          option was not passed. */
@@ -357,6 +360,10 @@ ParsingDriver::add_model_variable(const string& name)
 expr_t
 ParsingDriver::declare_or_change_type(SymbolType new_type, const string& name)
 {
+  if (is_parsing_epilogue())
+    error("Declaring or changing type of variables with the vertical bar (|) syntax is not allowed "
+          "in epilogue block");
+
   int symb_id;
   try
     {
@@ -441,15 +448,9 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
 expr_t
 ParsingDriver::add_expression_variable(const string& name)
 {
-  /* If symbol doesn't exist, and we are not in the epilogue, declare it as a mod file local
-     variable */
+  // If symbol doesn't exist declare it as a mod file local variable
   if (!mod_file->symbol_table.exists(name))
-    {
-      if (parsing_epilogue)
-        error("Variable " + name + " used in the epilogue block but was not declared.");
-      else
-        mod_file->symbol_table.addSymbol(name, SymbolType::modFileLocalVariable);
-    }
+    mod_file->symbol_table.addSymbol(name, SymbolType::modFileLocalVariable);
 
   // This check must come after the previous one!
   if (mod_file->symbol_table.getType(name) == SymbolType::modelLocalVariable)
@@ -815,14 +816,12 @@ ParsingDriver::end_homotopy(bool from_initval_to_endval)
 void
 ParsingDriver::begin_epilogue()
 {
-  parsing_epilogue = true;
   set_current_data_tree(&mod_file->epilogue);
 }
 
 void
 ParsingDriver::end_epilogue()
 {
-  parsing_epilogue = false;
   reset_data_tree();
 }
 
@@ -3092,6 +3091,9 @@ ParsingDriver::add_power(expr_t arg1, expr_t arg2)
 expr_t
 ParsingDriver::add_expectation(const string& arg1, expr_t arg2)
 {
+  if (is_parsing_epilogue())
+    error("The 'expectation' operator is forbidden in 'epilogue'.");
+
   if (data_tree == occbin_constraints_tree.get())
     error("The 'expectation' operator is forbidden in 'occbin_constraints'.");
 
@@ -3101,6 +3103,9 @@ ParsingDriver::add_expectation(const string& arg1, expr_t arg2)
 expr_t
 ParsingDriver::add_var_expectation(const string& model_name)
 {
+  if (is_parsing_epilogue())
+    error("The 'var_expectation' operator is forbidden in 'epilogue'.");
+
   if (data_tree == occbin_constraints_tree.get())
     error("The 'var_expectation' operator is forbidden in 'occbin_constraints'.");
 
@@ -3110,6 +3115,9 @@ ParsingDriver::add_var_expectation(const string& model_name)
 expr_t
 ParsingDriver::add_pac_expectation(const string& model_name)
 {
+  if (is_parsing_epilogue())
+    error("The 'pac_expectation' operator is forbidden in 'epilogue'.");
+
   if (data_tree == occbin_constraints_tree.get())
     error("The 'pac_expectation' operator is forbidden in 'occbin_constraints'.");
 
@@ -3119,6 +3127,9 @@ ParsingDriver::add_pac_expectation(const string& model_name)
 expr_t
 ParsingDriver::add_pac_target_nonstationary(const string& model_name)
 {
+  if (is_parsing_epilogue())
+    error("The 'pac_target_nonstationary' operator is forbidden in 'epilogue'.");
+
   if (data_tree == occbin_constraints_tree.get())
     error("The 'pac_target_nonstationary' operator is forbidden in 'occbin_constraints'.");
 
@@ -3190,6 +3201,9 @@ ParsingDriver::add_diff(expr_t arg1)
 expr_t
 ParsingDriver::add_adl(expr_t arg1, const string& name, const string& lag)
 {
+  if (is_parsing_epilogue())
+    error("The ADL() operator is forbidden in epilogue block");
+
   auto lags = views::iota(1, stoi(lag) + 1);
   return add_adl(arg1, name, vector<int> {lags.begin(), lags.end()});
 }
@@ -3197,6 +3211,9 @@ ParsingDriver::add_adl(expr_t arg1, const string& name, const string& lag)
 expr_t
 ParsingDriver::add_adl(expr_t arg1, const string& name, const vector<int>& lags)
 {
+  if (is_parsing_epilogue())
+    error("The ADL() operator is forbidden in epilogue block");
+
   expr_t id = data_tree->AddAdl(arg1, name, lags);
 
   // Declare parameters here so that parameters can be initialized after the model block
@@ -3365,6 +3382,9 @@ ParsingDriver::add_erfc(expr_t arg1)
 expr_t
 ParsingDriver::add_steady_state(expr_t arg1)
 {
+  if (is_parsing_epilogue())
+    error("The STEADY_STATE() operator is forbidden in epilogue block");
+
   // Forbid exogenous variables, see dynare#825
   if (arg1->hasExogenous())
     error("Exogenous variables are not allowed in the context of the STEADY_STATE() operator.");
@@ -3375,6 +3395,9 @@ ParsingDriver::add_steady_state(expr_t arg1)
 expr_t
 ParsingDriver::add_sum(expr_t arg)
 {
+  if (is_parsing_epilogue())
+    error("The SUM() operator is forbidden in epilogue block");
+
   if (heterogeneous_model)
     error("The SUM() operator cannot be used inside a model(heterogeneity=...) block");
 
@@ -3491,7 +3514,7 @@ ParsingDriver::add_model_var_or_external_function(const string& function_name,
           error("Using a derivative of an external function (" + function_name
                 + ") in the model block is currently not allowed.");
 
-        if (in_model_expression || parsing_epilogue)
+        if (in_model_expression)
           {
             if (mod_file->external_functions_table.getNargs(symb_id)
                 == ExternalFunctionsTable::IDNotSet)
@@ -3508,7 +3531,7 @@ ParsingDriver::add_model_var_or_external_function(const string& function_name,
   else
     { /* First time encountering this external function or variable i.e., not previously declared or
          encountered */
-      if (parsing_epilogue)
+      if (is_parsing_epilogue())
         error("Variable " + function_name + " used in the epilogue block but was not declared.");
 
       if (in_model_expression)
