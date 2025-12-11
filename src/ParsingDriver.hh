@@ -279,6 +279,18 @@ private:
     return data_tree == &mod_file->epilogue;
   }
 
+  bool
+  is_parsing_planner_objective()
+  {
+    return data_tree == planner_objective.get();
+  }
+
+  bool
+  is_parsing_occbin_constraints()
+  {
+    return data_tree == occbin_constraints_tree.get();
+  }
+
 public:
   ParsingDriver(WarningConsolidation& warnings_arg, bool nostrict_arg) :
       warnings {warnings_arg}, nostrict {nostrict_arg}

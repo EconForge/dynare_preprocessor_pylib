@@ -414,7 +414,7 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
     error("Exogenous deterministic variable " + mod_file->symbol_table.getName(symb_id)
           + " cannot be given a lead or a lag.");
 
-  if (data_tree == planner_objective.get())
+  if (is_parsing_planner_objective())
     {
       if (lag != 0)
         error("Leads and lags on variables are forbidden in 'planner_objective'.");
@@ -424,7 +424,7 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
               + " cannot be used in 'planner_objective'.");
     }
 
-  if (data_tree == occbin_constraints_tree.get())
+  if (is_parsing_occbin_constraints())
     {
       if (lag != 0)
         error("Leads and lags on variables are forbidden in 'occbin_constraints'. Note that you "
@@ -3094,7 +3094,7 @@ ParsingDriver::add_expectation(const string& arg1, expr_t arg2)
   if (is_parsing_epilogue())
     error("The 'expectation' operator is forbidden in 'epilogue'.");
 
-  if (data_tree == occbin_constraints_tree.get())
+  if (is_parsing_occbin_constraints())
     error("The 'expectation' operator is forbidden in 'occbin_constraints'.");
 
   return data_tree->AddExpectation(stoi(arg1), arg2);
@@ -3106,7 +3106,7 @@ ParsingDriver::add_var_expectation(const string& model_name)
   if (is_parsing_epilogue())
     error("The 'var_expectation' operator is forbidden in 'epilogue'.");
 
-  if (data_tree == occbin_constraints_tree.get())
+  if (is_parsing_occbin_constraints())
     error("The 'var_expectation' operator is forbidden in 'occbin_constraints'.");
 
   return data_tree->AddVarExpectation(model_name);
@@ -3118,7 +3118,7 @@ ParsingDriver::add_pac_expectation(const string& model_name)
   if (is_parsing_epilogue())
     error("The 'pac_expectation' operator is forbidden in 'epilogue'.");
 
-  if (data_tree == occbin_constraints_tree.get())
+  if (is_parsing_occbin_constraints())
     error("The 'pac_expectation' operator is forbidden in 'occbin_constraints'.");
 
   return data_tree->AddPacExpectation(model_name);
@@ -3130,7 +3130,7 @@ ParsingDriver::add_pac_target_nonstationary(const string& model_name)
   if (is_parsing_epilogue())
     error("The 'pac_target_nonstationary' operator is forbidden in 'epilogue'.");
 
-  if (data_tree == occbin_constraints_tree.get())
+  if (is_parsing_occbin_constraints())
     error("The 'pac_target_nonstationary' operator is forbidden in 'occbin_constraints'.");
 
   return data_tree->AddPacTargetNonstationary(model_name);
@@ -3397,6 +3397,12 @@ ParsingDriver::add_sum(expr_t arg)
 {
   if (is_parsing_epilogue())
     error("The SUM() operator is forbidden in epilogue block");
+
+  if (is_parsing_occbin_constraints())
+    error("The SUM() operator is forbidden in occbin_constraints block");
+
+  if (is_parsing_planner_objective())
+    error("The SUM() operator is forbidden in planner_objective statement");
 
   if (heterogeneous_model)
     error("The SUM() operator cannot be used inside a model(heterogeneity=...) block");
