@@ -3930,7 +3930,14 @@ o_one_sided_hp_filter : ONE_SIDED_HP_FILTER EQUAL non_negative_number { driver.o
 o_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("periods", $3); };
 o_solver_periods : SOLVER_PERIODS EQUAL INT_NUMBER { driver.option_num("ep.periods", $3); };
 o_extended_path_order : ORDER EQUAL INT_NUMBER { driver.option_num("ep.stochastic.order", $3); };
-o_hybrid : HYBRID { driver.option_num("ep.stochastic.hybrid_order", "2"); };
+o_hybrid : HYBRID { driver.option_num("ep.stochastic.hybrid_order", "2"); }
+         | HYBRID EQUAL INT_NUMBER
+           {
+             if (stoi($3) % 2 != 0)
+               driver.error("The 'hybrid' option in stochastic extended path must be an even integer");
+             driver.option_num("ep.stochastic.hybrid_order", $3);
+           }
+         ;
 o_use_first_order_solution : USE_FIRST_ORDER_SOLUTION { driver.option_num("ep.use_first_order_solution_as_initial_guess", "true"); };
 o_sep_integration : INTEGRATION EQUAL TENSOR_GAUSSIAN_QUADRATURE { driver.option_str("ep.stochastic.IntegrationAlgorithm", "Tensor-Gaussian-Quadrature"); }
                   | INTEGRATION EQUAL STROUD { driver.option_str("ep.stochastic.IntegrationAlgorithm", "Stroud-Cubature-5"); }

@@ -980,7 +980,8 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
           || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
           || mod_file_struct.estimation_present || mod_file_struct.osr_present
           || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
-          || mod_file_struct.calib_smoother_present || mod_file_struct.mom_estimation_present)
+          || mod_file_struct.calib_smoother_present || mod_file_struct.mom_estimation_present
+          || mod_file_struct.extended_path_present)
         {
           if (mod_file_struct.perfect_foresight_solver_present
               || mod_file_struct.perfect_foresight_with_expectation_errors_solver_present)
@@ -990,6 +991,12 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
                 derivsOrder = 2;
               else if (output == OutputType::third)
                 derivsOrder = 3;
+              dynamic_model.computingPass(derivsOrder, 0, global_eval_context, no_tmp_terms, block,
+                                          use_dll);
+            }
+          else if (mod_file_struct.extended_path_present)
+            {
+              int derivsOrder = max(1, mod_file_struct.extended_path_hybrid_order);
               dynamic_model.computingPass(derivsOrder, 0, global_eval_context, no_tmp_terms, block,
                                           use_dll);
             }
