@@ -421,6 +421,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>integration {return token::INTEGRATION;}
 <DYNARE_STATEMENT>tensor_gaussian_quadrature {return token::TENSOR_GAUSSIAN_QUADRATURE;}
 <DYNARE_STATEMENT>stroud {return token::STROUD;}
+<DYNARE_STATEMENT>number_of_quadrature_nodes {return token::NUMBER_OF_QUADRATURE_NODES;}
 <DYNARE_STATEMENT>default {return token::DEFAULT;}
 <DYNARE_STATEMENT>init2shocks {return token::INIT2SHOCKS;}
 

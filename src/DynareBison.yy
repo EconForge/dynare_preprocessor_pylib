@@ -112,7 +112,7 @@ str_tolower(string s)
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
 %token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID FILTERED_THEORETICAL_MOMENTS_GRID HYBRID USE_FIRST_ORDER_SOLUTION ONE_SIDED_HP_FILTER
-%token INTEGRATION TENSOR_GAUSSIAN_QUADRATURE STROUD
+%token INTEGRATION TENSOR_GAUSSIAN_QUADRATURE STROUD NUMBER_OF_QUADRATURE_NODES
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INFILE INVARS
 %token <string> INT_NUMBER
 %token CONDITIONAL_LIKELIHOOD
@@ -3588,6 +3588,7 @@ extended_path_option : o_periods
                      | o_use_first_order_solution
                      | o_lmmcp
                      | o_sep_integration
+                     | o_sep_quadrature_nodes
                      ;
 
 model_diagnostics : MODEL_DIAGNOSTICS ';'
@@ -3943,6 +3944,14 @@ o_sep_integration : INTEGRATION EQUAL TENSOR_GAUSSIAN_QUADRATURE { driver.option
                   | INTEGRATION EQUAL STROUD { driver.option_str("ep.stochastic.IntegrationAlgorithm", "Stroud-Cubature-5"); }
                   | INTEGRATION EQUAL UNSCENTED { driver.option_str("ep.stochastic.IntegrationAlgorithm", "Unscented"); }
                   ;
+o_sep_quadrature_nodes : NUMBER_OF_QUADRATURE_NODES EQUAL INT_NUMBER
+                         {
+                           int nodes = stoi($3);
+                           if (nodes <= 1 || nodes % 2 == 0)
+                             driver.error("The 'number_of_quadrature_nodes' option must be an odd integer greater than one");
+                           driver.option_num("ep.stochastic.quadrature.nodes", $3);
+                         }
+                       ;
 o_steady_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("steady.maxit", $3); };
 o_simul_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("simul.maxit", $3); };
 o_bandpass_filter : BANDPASS_FILTER { driver.option_num("bandpass.indicator", "true"); }
