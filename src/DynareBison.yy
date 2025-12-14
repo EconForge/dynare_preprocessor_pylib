@@ -3583,8 +3583,8 @@ extended_path_options_list : extended_path_option COMMA extended_path_options_li
 
 extended_path_option : o_periods
                      | o_solver_periods
-                     | o_extended_path_order
-                     | o_hybrid
+                     | o_sep_order
+                     | o_sep_hybrid
                      | o_use_first_order_solution
                      | o_lmmcp
                      | o_sep_integration
@@ -3929,8 +3929,8 @@ o_filtered_theoretical_moments_grid : FILTERED_THEORETICAL_MOMENTS_GRID EQUAL IN
 o_one_sided_hp_filter : ONE_SIDED_HP_FILTER EQUAL non_negative_number { driver.option_num("one_sided_hp_filter", $3); };
 o_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("periods", $3); };
 o_solver_periods : SOLVER_PERIODS EQUAL INT_NUMBER { driver.option_num("ep.periods", $3); };
-o_extended_path_order : ORDER EQUAL INT_NUMBER { driver.option_num("ep.stochastic.order", $3); };
-o_hybrid : HYBRID { driver.option_num("ep.stochastic.hybrid_order", "2"); }
+o_sep_order : ORDER EQUAL INT_NUMBER { driver.option_num("ep.stochastic.order", $3); };
+o_sep_hybrid : HYBRID { driver.option_num("ep.stochastic.hybrid_order", "2"); }
          | HYBRID EQUAL INT_NUMBER
            {
              if (stoi($3) % 2 != 0)
