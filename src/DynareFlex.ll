@@ -418,6 +418,9 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>use_univariate_filters_if_singularity_is_detected {return token::USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED;}
 <DYNARE_STATEMENT>hybrid {return token::HYBRID;}
 <DYNARE_STATEMENT>use_first_order_solution {return token::USE_FIRST_ORDER_SOLUTION;}
+<DYNARE_STATEMENT>integration {return token::INTEGRATION;}
+<DYNARE_STATEMENT>tensor_gaussian_quadrature {return token::TENSOR_GAUSSIAN_QUADRATURE;}
+<DYNARE_STATEMENT>stroud {return token::STROUD;}
 <DYNARE_STATEMENT>default {return token::DEFAULT;}
 <DYNARE_STATEMENT>init2shocks {return token::INIT2SHOCKS;}
 

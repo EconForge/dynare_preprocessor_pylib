@@ -112,6 +112,7 @@ str_tolower(string s)
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
 %token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID FILTERED_THEORETICAL_MOMENTS_GRID HYBRID USE_FIRST_ORDER_SOLUTION ONE_SIDED_HP_FILTER
+%token INTEGRATION TENSOR_GAUSSIAN_QUADRATURE STROUD
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INFILE INVARS
 %token <string> INT_NUMBER
 %token CONDITIONAL_LIKELIHOOD
@@ -3586,6 +3587,7 @@ extended_path_option : o_periods
                      | o_hybrid
                      | o_use_first_order_solution
                      | o_lmmcp
+                     | o_sep_integration
                      ;
 
 model_diagnostics : MODEL_DIAGNOSTICS ';'
@@ -3930,6 +3932,10 @@ o_solver_periods : SOLVER_PERIODS EQUAL INT_NUMBER { driver.option_num("ep.perio
 o_extended_path_order : ORDER EQUAL INT_NUMBER { driver.option_num("ep.stochastic.order", $3); };
 o_hybrid : HYBRID { driver.option_num("ep.stochastic.hybrid_order", "2"); };
 o_use_first_order_solution : USE_FIRST_ORDER_SOLUTION { driver.option_num("ep.use_first_order_solution_as_initial_guess", "true"); };
+o_sep_integration : INTEGRATION EQUAL TENSOR_GAUSSIAN_QUADRATURE { driver.option_str("ep.stochastic.IntegrationAlgorithm", "Tensor-Gaussian-Quadrature"); }
+                  | INTEGRATION EQUAL STROUD { driver.option_str("ep.stochastic.IntegrationAlgorithm", "Stroud-Cubature-5"); }
+                  | INTEGRATION EQUAL UNSCENTED { driver.option_str("ep.stochastic.IntegrationAlgorithm", "Unscented"); }
+                  ;
 o_steady_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("steady.maxit", $3); };
 o_simul_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("simul.maxit", $3); };
 o_bandpass_filter : BANDPASS_FILTER { driver.option_num("bandpass.indicator", "true"); }
