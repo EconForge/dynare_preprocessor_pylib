@@ -5064,6 +5064,10 @@ ExtendedPathStatement::checkPass(ModFileStructure& mod_file_struct,
   // Extract hybrid order if present
   if (auto opt = options_list.get_if<OptionsList::NumVal>("ep.stochastic.hybrid_order"))
     mod_file_struct.extended_path_hybrid_order = stoi(*opt);
+
+  // Extract stochastic order if present
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("ep.stochastic.order"))
+    mod_file_struct.extended_path_order = stoi(*opt);
 }
 
 void
