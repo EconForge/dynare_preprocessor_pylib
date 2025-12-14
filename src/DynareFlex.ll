@@ -862,8 +862,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 
  /* Inside Dynare statement */
 <DYNARE_STATEMENT>solve_algo {return token::SOLVE_ALGO;}
-<DYNARE_STATEMENT>dr_algo {return token::DR_ALGO;}
-<DYNARE_STATEMENT>simul_algo {return token::SIMUL_ALGO;}
 <DYNARE_STATEMENT>stack_solve_algo {return token::STACK_SOLVE_ALGO;}
 <DYNARE_STATEMENT>robust_lin_solve {return token::ROBUST_LIN_SOLVE;}
 <DYNARE_STATEMENT>allow_nonfinite_values {return token::ALLOW_NONFINITE_VALUES;}
@@ -891,7 +889,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>bandpass_filter {return token::BANDPASS_FILTER;}
 <DYNARE_STATEMENT>hp_ngrid {return token::HP_NGRID;}
 <DYNARE_STATEMENT>filtered_theoretical_moments_grid {return token::FILTERED_THEORETICAL_MOMENTS_GRID;}
-<DYNARE_STATEMENT>simul_seed {return token::SIMUL_SEED;}
 <DYNARE_STATEMENT>qz_criterium {return token::QZ_CRITERIUM;}
 <DYNARE_STATEMENT>qz_zero_threshold {return token::QZ_ZERO_THRESHOLD;}
 <DYNARE_STATEMENT>simul {return token::SIMUL;}
