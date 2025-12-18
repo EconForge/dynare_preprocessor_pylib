@@ -2740,6 +2740,25 @@ DynamicModel::findUnusedExogenous()
   return unusedExo;
 }
 
+set<int>
+DynamicModel::findUnusedParameters()
+{
+  set<int> usedParams, unusedParams;
+  auto collect_params = [&](BinaryOpNode* equation) {
+    equation->collectVariables(SymbolType::parameter, usedParams);
+    equation->collectVariables(SymbolType::heterogeneousParameter, usedParams);
+  };
+
+  for (auto& equation : equations)
+    collect_params(equation);
+  for (auto& equation : static_only_equations)
+    collect_params(equation);
+
+  set<int> allParams {symbol_table.getParameters()};
+  ranges::set_difference(allParams, usedParams, inserter(unusedParams, unusedParams.begin()));
+  return unusedParams;
+}
+
 void
 DynamicModel::setLeadsLagsOrig()
 {

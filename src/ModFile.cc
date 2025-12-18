@@ -419,6 +419,29 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
+  // Check if some parameter is not used in the model block
+  set<int> unusedParams {dynamic_model.findUnusedParameters()};
+  set<int> unusedParamsAfterSSM;
+  set<int> steadyStateParams {steady_state_model.getUsedParameters()};
+  ranges::set_difference(unusedParams, steadyStateParams,
+                         inserter(unusedParamsAfterSSM, unusedParamsAfterSSM.begin()));
+
+  // Exclude preprocessor-generated parameters (e.g., optimal_policy_discount_factor, OccBin
+  // parameters, heterogeneity parameters)
+  set<int> unusedParamsExcludingPreprocessorGenerated;
+  ranges::set_difference(unusedParamsAfterSSM, symbol_table.getPreprocessorGeneratedParameters(),
+                         inserter(unusedParamsExcludingPreprocessorGenerated,
+                                  unusedParamsExcludingPreprocessorGenerated.begin()));
+
+  if (!unusedParamsExcludingPreprocessorGenerated.empty())
+    {
+      string unused_params;
+      for (int it : unusedParamsAfterSSM)
+        unused_params += symbol_table.getName(it) + " ";
+
+      warnings << "WARNING: Parameter(s) " << unused_params << " not used in the model" << endl;
+    }
+
   // Check if some exogenous is not used in the model block, Issue #841
   set<int> unusedExo0 = dynamic_model.findUnusedExogenous();
   set<int> unusedExo;
@@ -426,16 +449,16 @@ ModFile::checkPass(bool nostrict, bool stochastic)
                          inserter(unusedExo, unusedExo.begin()));
   if (unusedExo.size() > 0)
     {
-      ostringstream unused_exos;
+      string unused_exos;
       for (int it : unusedExo)
-        unused_exos << symbol_table.getName(it) << " ";
+        unused_exos += symbol_table.getName(it) + " ";
 
       if (nostrict)
-        warnings << "WARNING: " << unused_exos.str()
+        warnings << "WARNING: " << unused_exos
                  << "not used in model block, removed by nostrict command-line option" << endl;
       else
         {
-          cerr << "ERROR: " << unused_exos.str()
+          cerr << "ERROR: " << unused_exos
                << "not used in model block. To bypass this error, use the `nostrict` option. This "
                   "may lead to crashes or unexpected behavior."
                << endl;
@@ -760,6 +783,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
     try
       {
         int sid = symbol_table.addSymbol("dsge_prior_weight", SymbolType::parameter);
+        symbol_table.markPreprocessorGeneratedParameter(sid);
         if (!mod_file_struct.dsge_var_calibrated.empty())
           addStatementAtFront(make_unique<InitParamStatement>(
               sid, expressions_tree.AddNonNegativeConstant(mod_file_struct.dsge_var_calibrated),

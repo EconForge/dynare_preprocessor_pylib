@@ -2271,7 +2271,11 @@ ParsingDriver::run_osr(vector<string> symbol_list)
      because we want to allow several instances of “osr” in
      the same .mod file. */
   if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
-    declare_parameter("optimal_policy_discount_factor", planner_discount_latex_name);
+    {
+      int symb_id
+          = declare_parameter("optimal_policy_discount_factor", planner_discount_latex_name);
+      mod_file->symbol_table.markPreprocessorGeneratedParameter(symb_id);
+    }
 
   if (!planner_discount)
     planner_discount = data_tree->One;
@@ -2410,7 +2414,9 @@ ParsingDriver::ramsey_model()
     {
       if (!planner_discount)
         planner_discount = data_tree->One;
-      declare_parameter("optimal_policy_discount_factor", planner_discount_latex_name);
+      int symb_id
+          = declare_parameter("optimal_policy_discount_factor", planner_discount_latex_name);
+      mod_file->symbol_table.markPreprocessorGeneratedParameter(symb_id);
       init_param("optimal_policy_discount_factor", planner_discount);
     }
   else if (planner_discount)
@@ -2445,7 +2451,8 @@ ParsingDriver::ramsey_policy(vector<string> symbol_list)
     {
       if (!planner_discount)
         planner_discount = data_tree->One;
-      declare_parameter("optimal_policy_discount_factor");
+      int symb_id = declare_parameter("optimal_policy_discount_factor");
+      mod_file->symbol_table.markPreprocessorGeneratedParameter(symb_id);
       init_param("optimal_policy_discount_factor", planner_discount);
     }
   else if (planner_discount)
@@ -2505,7 +2512,11 @@ ParsingDriver::discretionary_policy(vector<string> symbol_list)
      because we want to allow several instances of “discretionary_policy” in
      the same .mod file. */
   if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
-    declare_parameter("optimal_policy_discount_factor", planner_discount_latex_name);
+    {
+      int symb_id
+          = declare_parameter("optimal_policy_discount_factor", planner_discount_latex_name);
+      mod_file->symbol_table.markPreprocessorGeneratedParameter(symb_id);
+    }
 
   if (!planner_discount)
     planner_discount = data_tree->One;
@@ -2888,6 +2899,7 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
             {
               // Declare and initialize the new parameter
               int symb_id = mod_file->symbol_table.addSymbol(param_name, SymbolType::parameter);
+              mod_file->symbol_table.markPreprocessorGeneratedParameter(symb_id);
               mod_file->addStatement(make_unique<InitParamStatement>(symb_id, dynamic_model->Zero,
                                                                      mod_file->symbol_table));
             }

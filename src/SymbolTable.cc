@@ -926,6 +926,19 @@ SymbolTable::markWithLogTransform(int symb_id) noexcept(false)
   with_log_transform.insert(symb_id);
 }
 
+void
+SymbolTable::markPreprocessorGeneratedParameter(int symb_id) noexcept(false)
+{
+  validateSymbID(symb_id);
+
+  if (frozen)
+    throw FrozenException();
+
+  assert(getType(symb_id) == SymbolType::parameter);
+
+  preprocessor_generated_params.insert(symb_id);
+}
+
 bool
 SymbolTable::isPredetermined(int symb_id) const noexcept(false)
 {
@@ -1034,6 +1047,17 @@ SymbolTable::getEndogenous() const
     if (getType(it.second) == SymbolType::endogenous)
       endogs.insert(it.second);
   return endogs;
+}
+
+set<int>
+SymbolTable::getParameters() const
+{
+  set<int> params;
+  for (const auto& it : symbol_table)
+    if (auto type = getType(it.second);
+        type == SymbolType::parameter || type == SymbolType::heterogeneousParameter)
+      params.insert(it.second);
+  return params;
 }
 
 bool
@@ -1241,6 +1265,12 @@ const set<int>&
 SymbolTable::getVariablesWithLogTransform() const
 {
   return with_log_transform;
+}
+
+const set<int>&
+SymbolTable::getPreprocessorGeneratedParameters() const
+{
+  return preprocessor_generated_params;
 }
 
 set<int>
