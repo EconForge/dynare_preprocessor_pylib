@@ -173,6 +173,15 @@ struct ModFileStructure
   bool endval_learnt_in_present {false};
   // Whether an occbin_constraints block appears
   bool occbin_constraints_present {false};
+
+  // Returns true if we are in a stochastic context
+  [[nodiscard]] bool
+  isStochasticContext() const
+  {
+    return stoch_simul_present || estimation_present || osr_present || discretionary_policy_present
+           || calib_smoother_present || identification_present || mom_estimation_present
+           || sensitivity_present;
+  }
 };
 
 class Statement

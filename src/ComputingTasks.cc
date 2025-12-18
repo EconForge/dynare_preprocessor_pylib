@@ -2439,7 +2439,14 @@ PlannerObjectiveStatement::getPlannerObjective() const
 void
 PlannerObjectiveStatement::computingPass(const ModFileStructure& mod_file_struct)
 {
-  model_tree->computingPass(max(3, mod_file_struct.order_option), 0, {}, false, false, false);
+  // Only request higher-order derivatives in stochastic contexts. Perfect-foresight setups
+  // stick to first-order derivatives, while discretionary policy always needs a second order.
+  int deriv_order {
+      mod_file_struct.isStochasticContext()
+          ? (mod_file_struct.discretionary_policy_present ? 2 : mod_file_struct.order_option)
+          : 1};
+
+  model_tree->computingPass(max(deriv_order, 1), 0, {}, false, false, false);
   computing_pass_called = true;
 }
 
