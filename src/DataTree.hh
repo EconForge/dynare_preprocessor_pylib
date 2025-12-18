@@ -157,8 +157,10 @@ public:
     string name;
   };
 
-  class DivisionByZeroException
+  struct DivisionByZeroException
   {
+    // Optional human-readable context about where the division by zero occurred
+    const string message;
   };
 
   inline expr_t AddPossiblyNegativeConstant(double val);

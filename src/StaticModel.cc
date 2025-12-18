@@ -103,10 +103,12 @@ StaticModel::StaticModel(const DynamicModel& m) :
           addEquation(m.equations[i]->toStatic(*this), m.equations_lineno[i],
                       m.complementarity_conditions[i], m.equation_tags.getTagsByEqn(i));
       }
-    catch (DataTree::DivisionByZeroException)
+    catch (const DataTree::DivisionByZeroException& e)
       {
-        cerr << "...division by zero error encountered when converting equation " << i
-             << " to static" << endl;
+        cerr << "...division by zero error encountered when converting equation " << i;
+        if (!e.message.empty())
+          cerr << " (" << e.message << ")";
+        cerr << endl;
         exit(EXIT_FAILURE);
       }
 
