@@ -377,8 +377,14 @@ ModelTree::computeNonSingularNormalization(const eval_context_t& eval_context)
     }
   catch (ModelNormalizationFailed& e)
     {
-      cerr << "Could not normalize the " << modelClassName() << ". Variable " << e.unmatched_endo
-           << " is not in the maximum cardinality matching." << endl;
+      cerr
+          << "Could not normalize the " << modelClassName()
+          << ", i.e. it was not possible to construct a one-to-one matching between variables and "
+             "equations. More precisely, variable "
+          << e.unmatched_endo
+          << " could not be associated to an equation (either it appears nowhere, or the equations "
+             "in which it appears had to be matched with other variables that appear nowhere else)."
+          << endl;
     }
 
   return false;
