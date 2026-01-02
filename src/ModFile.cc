@@ -164,12 +164,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       warnings << endl;
     }
 
-  bool stochastic_statement_present
-      = mod_file_struct.stoch_simul_present || mod_file_struct.estimation_present
-        || mod_file_struct.osr_present || mod_file_struct.discretionary_policy_present
-        || mod_file_struct.calib_smoother_present || mod_file_struct.identification_present
-        || mod_file_struct.mom_estimation_present || mod_file_struct.sensitivity_present
-        || stochastic;
+  bool stochastic_statement_present = mod_file_struct.isStochasticContext() || stochastic;
 
   // Allow empty model only when doing a standalone BVAR estimation
   if (dynamic_model.equation_number() == 0
@@ -740,12 +735,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
      exos. The transformation is not exactly the same on stochastic and
      deterministic models, because there is no need to take into account the
      Jensen inequality on the latter. */
-  bool deterministic_model
-      = !(mod_file_struct.stoch_simul_present || mod_file_struct.estimation_present
-          || mod_file_struct.osr_present || mod_file_struct.discretionary_policy_present
-          || mod_file_struct.calib_smoother_present || mod_file_struct.identification_present
-          || mod_file_struct.mom_estimation_present || mod_file_struct.sensitivity_present
-          || stochastic);
+  bool deterministic_model = !(mod_file_struct.isStochasticContext() || stochastic);
   dynamic_model.substituteEndoLeadGreaterThanTwo(deterministic_model);
   dynamic_model.substituteExoLead(deterministic_model);
   dynamic_model.substituteEndoLagGreaterThanTwo(deterministic_model);
