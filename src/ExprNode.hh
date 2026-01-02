@@ -534,8 +534,6 @@ public:
   /*!
     Compute cross references for equations
   */
-  //  virtual void computeXrefs(set<int> &param, set<int> &endo, set<int> &exo, set<int> &exo_det)
-  //  const = 0;
   virtual void computeXrefs(EquationInfo& ei) const = 0;
 
   //! Helper for normalization of equations
