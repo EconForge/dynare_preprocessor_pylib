@@ -3139,7 +3139,6 @@ ParsingDriver::add_pac_target_nonstationary(const string& model_name)
 void
 ParsingDriver::begin_pac_model()
 {
-  parsing_pac_model = true;
   pac_growth = nullptr;
   pac_auxname.clear();
   pac_kind = PacTargetKind::unspecified;
@@ -3164,7 +3163,6 @@ ParsingDriver::pac_model()
     }
 
   options_list.clear();
-  parsing_pac_model = false;
 }
 
 void

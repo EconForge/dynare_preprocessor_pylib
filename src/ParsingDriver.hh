@@ -265,9 +265,6 @@ private:
 
   vector<pair<string, string>> undeclared_model_variable_errors;
 
-  //! True when parsing pac_model statement
-  bool parsing_pac_model {false};
-
   //! True if a ramsey_model statement has already been seen
   bool ramsey_model_seen {false};
   //! True if a ramsey_policy statement has already been seen
