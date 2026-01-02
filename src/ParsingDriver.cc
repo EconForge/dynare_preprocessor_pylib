@@ -3480,35 +3480,33 @@ ParsingDriver::external_function(const map<string, string>& options)
 }
 
 expr_t
-ParsingDriver::add_model_var_or_external_function(const string& function_name,
-                                                  vector<expr_t> arguments,
+ParsingDriver::add_model_var_or_external_function(const string& name, vector<expr_t> arguments,
                                                   bool in_model_expression)
 {
   assert(!arguments.empty());
 
-  if (mod_file->symbol_table.exists(function_name))
-    if (mod_file->symbol_table.getType(function_name) != SymbolType::externalFunction)
+  if (mod_file->symbol_table.exists(name))
+    if (mod_file->symbol_table.getType(name) != SymbolType::externalFunction)
       {
         if (!in_model_expression)
-          error("Using variable " + function_name
-                + " with a lead or a lag is not allowed in this context");
+          error("Using variable " + name + " with a lead or a lag is not allowed in this context");
 
         // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
-        if (undeclared_model_vars.contains(function_name))
-          undeclared_model_variable_error("Unknown symbol: " + function_name, function_name);
+        if (undeclared_model_vars.contains(name))
+          undeclared_model_variable_error("Unknown symbol: " + name, name);
 
         if (arguments.size() > 1)
-          error("Symbol " + function_name
+          error("Symbol " + name
                 + " is being treated as if it were a function (it is given several arguments)");
 
         try
           {
             auto lead_lag = arguments.front()->matchIntegerConstant();
-            return add_model_variable(mod_file->symbol_table.getID(function_name), lead_lag);
+            return add_model_variable(mod_file->symbol_table.getID(name), lead_lag);
           }
         catch (ExprNode::MatchFailureException&)
           {
-            error("Symbol " + function_name
+            error("Symbol " + name
                   + " is being treated as if it were a function (i.e., takes an argument that is "
                     "not an integer).");
           }
@@ -3517,22 +3515,22 @@ ParsingDriver::add_model_var_or_external_function(const string& function_name,
       { // e.g. this function has already been referenced (either ad hoc or through the
         // external_function() statement
         // => check that the information matches previously declared info
-        int symb_id = mod_file->symbol_table.getID(function_name);
+        int symb_id = mod_file->symbol_table.getID(name);
         if (!mod_file->external_functions_table.exists(symb_id))
-          error("Using a derivative of an external function (" + function_name
+          error("Using a derivative of an external function (" + name
                 + ") in the model block is currently not allowed.");
 
         if (in_model_expression)
           {
             if (mod_file->external_functions_table.getNargs(symb_id)
                 == ExternalFunctionsTable::IDNotSet)
-              error("Before using " + function_name
+              error("Before using " + name
                     + "() in the model block, you must first declare it via the "
                       "external_function() statement");
             else if (static_cast<int>(arguments.size())
                      != mod_file->external_functions_table.getNargs(symb_id))
               error(
-                  "The number of arguments passed to " + function_name
+                  "The number of arguments passed to " + name
                   + "() does not match those of a previous call or declaration of this function.");
           }
       }
@@ -3540,33 +3538,33 @@ ParsingDriver::add_model_var_or_external_function(const string& function_name,
     { /* First time encountering this external function or variable i.e., not previously declared or
          encountered */
       if (is_parsing_epilogue())
-        error("Variable " + function_name + " used in the epilogue block but was not declared.");
+        error("Variable " + name + " used in the epilogue block but was not declared.");
 
       if (in_model_expression)
         {
           // Continue processing, noting that it was not declared
           // Processing will end at the end of the model block if nostrict was not passed
-          undeclared_model_vars.insert(function_name);
-          undeclared_model_variable_error("Unknown symbol: " + function_name, function_name);
+          undeclared_model_vars.insert(name);
+          undeclared_model_variable_error("Unknown symbol: " + name, name);
 
           /* If it has a single integer argument and no namespace qualifier, assume that it’s a
              lead/lagged exogenous variable */
-          if (arguments.size() == 1 && function_name.find('.') == string::npos)
+          if (arguments.size() == 1 && name.find('.') == string::npos)
             try
               {
                 auto lead_lag = arguments.front()->matchIntegerConstant();
-                int symb_id = declare_exogenous(function_name);
+                int symb_id = declare_exogenous(name);
                 return add_model_variable(symb_id, lead_lag);
               }
             catch (ExprNode::MatchFailureException&)
               {
               }
 
-          error("To use an external function (" + function_name
+          error("To use an external function (" + name
                 + ") within the model block, you must first declare it via the "
                   "external_function() statement.");
         }
-      int symb_id = declare_symbol(function_name, SymbolType::externalFunction, "", {}, {});
+      int symb_id = declare_symbol(name, SymbolType::externalFunction, "", {}, {});
       ExternalFunctionsTable::external_function_options_t external_function_options;
       external_function_options.nargs = arguments.size();
       mod_file->external_functions_table.addExternalFunction(symb_id, external_function_options,
@@ -3575,7 +3573,7 @@ ParsingDriver::add_model_var_or_external_function(const string& function_name,
 
   /* By this point, we're sure that this function exists in the External Functions Table and is not
      a model var */
-  int symb_id = mod_file->symbol_table.getID(function_name);
+  int symb_id = mod_file->symbol_table.getID(name);
   return data_tree->AddExternalFunction(symb_id, move(arguments));
 }
 
