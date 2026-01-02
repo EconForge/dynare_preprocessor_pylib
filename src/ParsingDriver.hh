@@ -271,19 +271,19 @@ private:
   bool ramsey_policy_seen {false};
 
   bool
-  is_parsing_epilogue()
+  is_parsing_epilogue() const
   {
     return data_tree == &mod_file->epilogue;
   }
 
   bool
-  is_parsing_planner_objective()
+  is_parsing_planner_objective() const
   {
     return data_tree == planner_objective.get();
   }
 
   bool
-  is_parsing_occbin_constraints()
+  is_parsing_occbin_constraints() const
   {
     return data_tree == occbin_constraints_tree.get();
   }
