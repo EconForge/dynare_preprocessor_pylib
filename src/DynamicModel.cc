@@ -2549,8 +2549,10 @@ DynamicModel::replaceMyEquations(DynamicModel& dynamic_model) const
 
 int
 DynamicModel::computeRamseyPolicyFOCs(const StaticModel& planner_objective,
-                                      map<int, pair<expr_t, expr_t>> cloned_ramsey_constraints)
+                                      map<int, pair<expr_t, expr_t>> cloned_ramsey_constraints,
+                                      expr_t planner_discount)
 {
+  assert(planner_discount);
   cout << "Ramsey Problem: added " << equations.size() << " multipliers." << '\n';
 
   // Add aux LM to constraints in equations
@@ -2579,12 +2581,6 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel& planner_objective,
       max_eq_lag = max(-lag, max_eq_lag);
     }
 
-  // Get Discount Factor
-  assert(symbol_table.exists("optimal_policy_discount_factor"));
-  int symb_id = symbol_table.getID("optimal_policy_discount_factor");
-  assert(symbol_table.getType(symb_id) == SymbolType::parameter);
-  expr_t discount_factor_node = AddVariable(symb_id, 0);
-
   // Create (modified) Lagrangian (so that we can take the derivative once at time t)
   expr_t lagrangian = Zero;
   for (int i {0}; i < static_cast<int>(equations.size()); i++)
@@ -2601,7 +2597,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel& planner_objective,
           dfpower = AddMinus(Zero, AddNonNegativeConstant(lagstream.str()));
 
         lagrangian
-            = AddPlus(AddTimes(AddPower(discount_factor_node, dfpower),
+            = AddPlus(AddTimes(AddPower(planner_discount, dfpower),
                                equations[i]->getNonZeroPartofEquation()->decreaseLeadsLags(lag)),
                       lagrangian);
       }

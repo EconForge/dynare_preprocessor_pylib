@@ -253,10 +253,9 @@ private:
   vector<ShockGroupsStatement::Group> shock_groups;
   //! Temporary storage for init2shocks
   vector<pair<int, int>> init2shocks;
-  /* Temporary storage for planner_discount and planner_discount_latex_name
-     options of ramsey_model, ramsey_policy, and discretionary_policy */
+  /* Temporary storage for planner_discount option of ramsey_model, ramsey_policy, and
+    discretionary_policy */
   expr_t planner_discount {nullptr};
-  string planner_discount_latex_name;
   //! Adds a model lagged variable to ModelTree and VariableTable
   expr_t add_model_variable(int symb_id, int lag);
   //! For parsing the graph_format option
@@ -280,6 +279,10 @@ private:
   bool nostrict;
 
   vector<pair<string, string>> undeclared_model_variable_errors;
+
+  /* Registers the planner discount used by a policy command into the ModFile class.
+     Incidentally, clears the planner_discount temporary storage. */
+  void initialize_planner_discount(const string& caller);
 
   //! True if a ramsey_model statement has already been seen
   bool ramsey_model_seen {false};
@@ -443,9 +446,6 @@ public:
   void copy_subsamples(string to_name1, string to_name2, string from_name1, string from_name2);
   //! Sets the value of the planner_discount option of ramsey_{model,policy}, discretionary_policy
   void set_planner_discount(expr_t value);
-  //! Sets the value of the planner_discount_latex_name option of ramsey_model and
-  //! discretionary_policy
-  void set_planner_discount_latex_name(string tex_name);
   //! Handles a “predetermined_variables” statement
   void predetermined_variables(const vector<string>& symbol_list);
   //! Declares and initializes a local parameter

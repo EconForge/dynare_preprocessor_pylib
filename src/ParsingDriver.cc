@@ -269,15 +269,51 @@ ParsingDriver::declare_statement_local_variable(const string& name)
 }
 
 void
-ParsingDriver::set_planner_discount(expr_t value)
+ParsingDriver::initialize_planner_discount(const string& caller)
 {
-  planner_discount = value;
+  if (mod_file->symbol_table.exists("optimal_policy_discount_factor"))
+    {
+      if (planner_discount)
+        error("{}: the 'planner_discount' option cannot be used when the "
+              "'optimal_policy_discount_factor' parameter is explicitly declared.",
+              caller);
+      check_symbol_is_parameter("optimal_policy_discount_factor");
+      planner_discount = mod_file->expressions_tree.AddVariable(
+          mod_file->symbol_table.getID("optimal_policy_discount_factor"));
+    }
+  else if (!planner_discount)
+    planner_discount = mod_file->expressions_tree.One;
+
+  try
+    {
+      mod_file->setPlannerDiscount(planner_discount);
+    }
+  catch (ModFile::PlannerDiscountModificationAttemptException& e)
+    {
+      error("{}: the 'planner_discount' option has to be the same across the .mod file (was {}, "
+            "attempt was made to change it to {})",
+            caller, e.planner_discount_old->toString(), planner_discount->toString());
+    }
+
+  planner_discount = nullptr;
 }
 
 void
-ParsingDriver::set_planner_discount_latex_name(string tex_name)
+ParsingDriver::set_planner_discount(expr_t value)
 {
-  planner_discount_latex_name = move(tex_name);
+  // Check that the expression only contains parameters
+  set<int> referenced_symbols;
+  value->collectSymbols(referenced_symbols);
+  if (auto offending_symbol = ranges::find_if(referenced_symbols,
+                                              [&](int symb_id) {
+                                                return mod_file->symbol_table.getType(symb_id)
+                                                       != SymbolType::parameter;
+                                              });
+      offending_symbol != referenced_symbols.end())
+    error("planner_discount: '{}' is not a parameter.",
+          mod_file->symbol_table.getName(*offending_symbol));
+
+  planner_discount = value;
 }
 
 void
@@ -2530,25 +2566,11 @@ ParsingDriver::set_osr_params(vector<string> symbol_list)
 void
 ParsingDriver::run_osr(vector<string> symbol_list)
 {
-  /* The logic here is different from “ramsey_policy” and “ramsey_model”,
-     because we want to allow several instances of “osr” in
-     the same .mod file. */
-  if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
-    {
-      int symb_id
-          = declare_parameter("optimal_policy_discount_factor", planner_discount_latex_name);
-      mod_file->symbol_table.markPreprocessorGeneratedParameter(symb_id);
-    }
-
-  if (!planner_discount)
-    planner_discount = data_tree->One;
-  init_param("optimal_policy_discount_factor", planner_discount);
+  initialize_planner_discount("osr");
 
   mod_file->addStatement(
       make_unique<OsrStatement>(move(symbol_list), move(options_list), mod_file->symbol_table));
   options_list.clear();
-  planner_discount = nullptr;
-  planner_discount_latex_name.clear();
 }
 
 void
@@ -2678,18 +2700,7 @@ ParsingDriver::ramsey_model()
   if (exchange(ramsey_model_seen, true))
     error("Several 'ramsey_model' statements cannot appear in a given .mod file.");
 
-  if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
-    {
-      if (!planner_discount)
-        planner_discount = data_tree->One;
-      int symb_id
-          = declare_parameter("optimal_policy_discount_factor", planner_discount_latex_name);
-      mod_file->symbol_table.markPreprocessorGeneratedParameter(symb_id);
-      init_param("optimal_policy_discount_factor", planner_discount);
-    }
-  else if (planner_discount)
-    error("ramsey_model: the 'planner_discount' option cannot be used when the "
-          "'optimal_policy_discount_factor' parameter is explicitly declared.");
+  initialize_planner_discount("ramsey_model");
 
   // Check that instruments are declared endogenous (#72)
   if (options_list.contains("instruments"))
@@ -2698,8 +2709,6 @@ ParsingDriver::ramsey_model()
 
   mod_file->addStatement(make_unique<RamseyModelStatement>(move(options_list)));
   options_list.clear();
-  planner_discount = nullptr;
-  planner_discount_latex_name.clear();
 }
 
 void
@@ -2714,17 +2723,7 @@ ParsingDriver::ramsey_policy(vector<string> symbol_list)
   if (exchange(ramsey_policy_seen, true))
     error("Several 'ramsey_policy' statements cannot appear in a given .mod file.");
 
-  if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
-    {
-      if (!planner_discount)
-        planner_discount = data_tree->One;
-      int symb_id = declare_parameter("optimal_policy_discount_factor");
-      mod_file->symbol_table.markPreprocessorGeneratedParameter(symb_id);
-      init_param("optimal_policy_discount_factor", planner_discount);
-    }
-  else if (planner_discount)
-    error("ramsey_policy: the 'planner_discount' option cannot be used when the "
-          "'optimal_policy_discount_factor' parameter is explicitly declared.");
+  initialize_planner_discount("ramsey_policy");
 
   // Check that instruments are declared endogenous (#72)
   if (options_list.contains("instruments"))
@@ -2734,7 +2733,6 @@ ParsingDriver::ramsey_policy(vector<string> symbol_list)
   mod_file->addStatement(make_unique<RamseyPolicyStatement>(move(symbol_list), move(options_list),
                                                             mod_file->symbol_table));
   options_list.clear();
-  planner_discount = nullptr;
 }
 
 void
@@ -2775,19 +2773,7 @@ ParsingDriver::occbin_graph(vector<string> symbol_list)
 void
 ParsingDriver::discretionary_policy(vector<string> symbol_list)
 {
-  /* The logic here is different from “ramsey_policy” and “ramsey_model”,
-     because we want to allow several instances of “discretionary_policy” in
-     the same .mod file. */
-  if (!mod_file->symbol_table.exists("optimal_policy_discount_factor"))
-    {
-      int symb_id
-          = declare_parameter("optimal_policy_discount_factor", planner_discount_latex_name);
-      mod_file->symbol_table.markPreprocessorGeneratedParameter(symb_id);
-    }
-
-  if (!planner_discount)
-    planner_discount = data_tree->One;
-  init_param("optimal_policy_discount_factor", planner_discount);
+  initialize_planner_discount("discretionary_policy");
 
   // Check that instruments are declared endogenous (#72)
   if (options_list.contains("instruments"))
@@ -2797,8 +2783,6 @@ ParsingDriver::discretionary_policy(vector<string> symbol_list)
   mod_file->addStatement(make_unique<DiscretionaryPolicyStatement>(
       move(symbol_list), move(options_list), mod_file->symbol_table));
   options_list.clear();
-  planner_discount = nullptr;
-  planner_discount_latex_name.clear();
 }
 
 void

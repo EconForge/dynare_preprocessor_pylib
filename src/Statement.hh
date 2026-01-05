@@ -162,9 +162,6 @@ struct ModFileStructure
   /* Whether any of shock_decomposition, realtime_shock_decomposition and
      initial_condition_decomposition has the “with_epilogue” option */
   bool with_epilogue_option {false};
-  /* Lists symbol IDs of parameters that appear in a “planner_discount” option.
-     See dynare#1173 for more details. */
-  set<int> parameters_in_planner_discount;
   // Whether an endval block (without the learnt_it=… option) appears
   bool endval_present {false};
   // Whether a plain shocks block appears (no surprise, no learnt_in option)

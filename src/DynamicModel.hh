@@ -473,7 +473,8 @@ public:
      the number of endogenous before adding the Lagrange multipliers
      (internally called ramsey_endo_nbr). */
   int computeRamseyPolicyFOCs(const StaticModel& planner_objective,
-                              map<int, pair<expr_t, expr_t>> cloned_ramsey_constraints);
+                              map<int, pair<expr_t, expr_t>> cloned_ramsey_constraints,
+                              expr_t planner_discount);
 
   //! Clears all equations
   void clearEquations();

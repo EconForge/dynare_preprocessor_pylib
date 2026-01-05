@@ -4490,7 +4490,8 @@ o_aim_solver: AIM_SOLVER {
 o_partial_information : PARTIAL_INFORMATION { driver.option_num("partial_information", "true"); };
 o_sub_draws: SUB_DRAWS EQUAL INT_NUMBER { driver.option_num("sub_draws", $3); };
 o_planner_discount : PLANNER_DISCOUNT EQUAL expression { driver.set_planner_discount($3); };
-o_planner_discount_latex_name : PLANNER_DISCOUNT_LATEX_NAME EQUAL TEX_NAME { driver.set_planner_discount_latex_name($3); };
+o_planner_discount_latex_name : PLANNER_DISCOUNT_LATEX_NAME EQUAL TEX_NAME {
+  driver.warning("The 'planner_discount_latex_name' option is deprecated and ignored (value '{}').", $3); };
 o_lyapunov : LYAPUNOV EQUAL FIXED_POINT { driver.option_num("lyapunov_fp", "true"); }
               | LYAPUNOV EQUAL DOUBLING { driver.option_num("lyapunov_db", "true"); }
               | LYAPUNOV EQUAL SQUARE_ROOT_SOLVER { driver.option_num("lyapunov_srs", "true"); }
