@@ -20,6 +20,7 @@
 #ifndef MOD_FILE_HH
 #define MOD_FILE_HH
 
+#include <cstddef>
 #include <ctime>
 #include <filesystem>
 #include <iostream>
@@ -143,12 +144,27 @@ private:
   ModFileStructure mod_file_struct;
   //! Warnings Encountered
   WarningConsolidation& warnings;
+
+  /* Last value of transform_unary_ops passed to transformPass(), used when computing the
+     checksum */
+  bool transform_unary_ops;
+
+  /* Last value of no_tmp_terms passed to computingPass(), used when computing the
+     checksum */
+  bool no_tmp_terms;
+
+  /* Last value of params_derivs_order passed to computingPass(), used when computing the
+     checksum */
+  int params_derivs_order;
+
   //! Functions used in writing of JSON outut. See writeJsonOutput
   void writeJsonOutputParsingCheck(const string& basename, JsonFileOutputType json_output_mode,
                                    bool transformpass, bool computingpass) const;
   void writeJsonComputingPassOutput(const string& basename, JsonFileOutputType json_output_mode,
                                     bool jsonderivsimple) const;
   void writeJsonFileHelper(const filesystem::path& fname, ostringstream& output) const;
+  size_t computeModelChecksum(const string& mexext, const filesystem::path& matlabroot) const;
+  bool isChecksumMatching(const string& basename, size_t checksum) const;
 
 public:
   //! Add a statement
@@ -164,13 +180,14 @@ public:
   void checkPass(bool nostrict, bool stochastic);
   //! Perform some transformations on the model (creation of auxiliary vars and equations)
   /*! \param compute_xrefs if true, equation cross references will be computed */
-  void transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool transform_unary_ops,
-                     const string& exclude_eqs, const string& include_eqs);
+  void transformPass(bool nostrict, bool stochastic, bool compute_xrefs,
+                     bool transform_unary_ops_arg, const string& exclude_eqs,
+                     const string& include_eqs);
   //! Execute computations
   /*! \param no_tmp_terms if true, no temporary terms will be computed in the static and dynamic
    * files */
   /*! \param params_derivs_order compute this order of derivs wrt parameters */
-  void computingPass(bool no_tmp_terms, OutputType output, int params_derivs_order);
+  void computingPass(bool no_tmp_terms_arg, OutputType output, int params_derivs_order_arg);
   //! Writes Matlab/Octave output files
   /*!
     \param basename The base name used for writing output files. Should be the name of the mod file

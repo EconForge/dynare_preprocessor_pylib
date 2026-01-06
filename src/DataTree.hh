@@ -371,6 +371,12 @@ public:
     no_commutativity = true;
   }
 
+  static bool
+  isNoCommutativityEnabled()
+  {
+    return no_commutativity;
+  }
+
   // Returns the list of parameters used with a lead or lag
   [[nodiscard]] set<string> ParamUsedWithLeadLag() const;
 };

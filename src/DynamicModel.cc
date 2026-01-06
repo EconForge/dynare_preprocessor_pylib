@@ -3588,11 +3588,9 @@ DynamicModel::addOccbinEquation(expr_t eq, const optional<int>& lineno, map<stri
     }
 }
 
-bool
-DynamicModel::isChecksumMatching(const string& basename) const
+void
+DynamicModel::writeChecksumPayload(ostream& buffer) const
 {
-  stringstream buffer;
-
   // Write equation tags
   equation_tags.writeCheckSumInfo(buffer);
 
@@ -3605,36 +3603,6 @@ DynamicModel::isChecksumMatching(const string& basename) const
                                    temporary_terms_idxs, buffer, tef_terms);
 
   writeModelEquations<buffer_type>(buffer, temp_term_union);
-
-  size_t result = hash<string> {}(buffer.str());
-
-  // check whether basename directory exist. If not, create it.
-  // If it does, read old checksum if it exists, return if equal to result
-  fstream checksum_file;
-  auto filename = filesystem::path {basename} / "checksum";
-  if (!filesystem::create_directory(basename))
-    {
-      checksum_file.open(filename, ios::in | ios::binary);
-      if (checksum_file.is_open())
-        {
-          size_t old_checksum;
-          checksum_file >> old_checksum;
-          checksum_file.close();
-          if (old_checksum == result)
-            return true;
-        }
-    }
-
-  // write new checksum file if none or different from old checksum
-  checksum_file.open(filename, ios::out | ios::binary);
-  if (!checksum_file.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename.string() << '\n';
-      exit(EXIT_FAILURE);
-    }
-  checksum_file << result;
-  checksum_file.close();
-  return false;
 }
 
 void

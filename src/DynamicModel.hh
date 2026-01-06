@@ -723,7 +723,7 @@ public:
                   static_only_complementarity_conditions, static_only_equations_equation_tags};
   }
 
-  bool isChecksumMatching(const string& basename) const;
+  void writeChecksumPayload(ostream& output) const;
 
   //! Simplify model equations: if a variable is equal to a constant, replace that variable
   //! elsewhere in the model

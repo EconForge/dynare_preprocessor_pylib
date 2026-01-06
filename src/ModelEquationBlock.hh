@@ -123,6 +123,8 @@ public:
   void writeLatexSteadyStateFile(const string& basename) const;
   //! Writes JSON output
   void writeJsonSteadyStateFile(ostream& output, bool transformComputingPass) const;
+  //! Writes checksum payload describing the steady_state_model block
+  void writeChecksumPayload(ostream& output) const;
   //! Collect all parameters referenced (lhs or rhs) in the steady_state_model block
   [[nodiscard]] set<int> getUsedParameters() const;
 };

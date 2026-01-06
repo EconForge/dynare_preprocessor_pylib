@@ -36,6 +36,25 @@ PlannerObjective::PlannerObjective(SymbolTable& symbol_table_arg,
 }
 
 void
+SteadyStateModel::writeChecksumPayload(ostream& output) const
+{
+  output << "steady_state_definition_count=" << def_table.size() << '\n';
+  for (const auto& [symb_ids, value] : def_table)
+    {
+      output << "steady_state_lhs=";
+      for (size_t idx = 0; idx < symb_ids.size(); idx++)
+        {
+          if (idx != 0)
+            output << ',';
+          output << symb_ids[idx];
+        }
+      output << ";steady_state_rhs=";
+      value->writeOutput(output, ExprNodeOutputType::steadyStateFile);
+      output << '\n';
+    }
+}
+
+void
 PlannerObjective::writeDriverOutput(ostream& output) const
 {
   output << "M_.objective_tmp_nbr = [";

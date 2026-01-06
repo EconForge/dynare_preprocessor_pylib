@@ -20,7 +20,9 @@
 #include <cassert>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <iostream>
+#include <string>
 #include <typeinfo>
 
 #include <filesystem>
@@ -557,9 +559,13 @@ ModFile::checkPass(bool nostrict, bool stochastic)
 }
 
 void
-ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool transform_unary_ops,
-                       const string& exclude_eqs, const string& include_eqs)
+ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs,
+                       bool transform_unary_ops_arg, const string& exclude_eqs,
+                       const string& include_eqs)
 {
+  // Save value for checksum computation
+  transform_unary_ops = transform_unary_ops_arg;
+
   /* Save the original model (must be done before any model transformations by preprocessor)
      — except predetermined variables (which must be handled before the call to
        setLeadsLagsOrig(), see #47, and also before equation simplification,
@@ -962,8 +968,12 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
 }
 
 void
-ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_order)
+ModFile::computingPass(bool no_tmp_terms_arg, OutputType output, int params_derivs_order_arg)
 {
+  // Save values for checksum computation
+  no_tmp_terms = no_tmp_terms_arg;
+  params_derivs_order = params_derivs_order_arg;
+
   // Mod file may have no equation (for example in a standalone BVAR estimation)
   if (dynamic_model.equation_number() > 0)
     {
@@ -1144,7 +1154,8 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
       cerr << "ERROR: the 'fast' option is not supported for heterogeneous models" << '\n';
       exit(EXIT_FAILURE);
     }
-  bool hasModelChanged = !dynamic_model.isChecksumMatching(basename) || !check_model_changes;
+  size_t checksum_value = computeModelChecksum(mexext, matlabroot);
+  bool hasModelChanged = !check_model_changes || !isChecksumMatching(basename, checksum_value);
   if (hasModelChanged)
     {
       // Erase possible remnants of previous runs
@@ -1477,6 +1488,76 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
       for (const auto& hm : heterogeneous_models)
         hm.writeModelFiles(basename, false);
     }
+}
+
+size_t
+ModFile::computeModelChecksum(const string& mexext, const filesystem::path& matlabroot) const
+{
+  stringstream buffer;
+  dynamic_model.writeChecksumPayload(buffer);
+
+  buffer << "use_dll=" << use_dll << '\n'
+         << "mexext=" << mexext << '\n'
+         << "matlabroot=" << matlabroot.string() << '\n'
+         << "user_set_compiler=" << dynamic_model.user_set_compiler << '\n'
+         << "user_set_add_flags=" << dynamic_model.user_set_add_flags << '\n'
+         << "user_set_subst_flags=" << dynamic_model.user_set_subst_flags << '\n'
+         << "user_set_add_libs=" << dynamic_model.user_set_add_libs << '\n'
+         << "user_set_subst_libs=" << dynamic_model.user_set_subst_libs << '\n'
+         << "dynamic_mfs=" << dynamic_model.getMFS() << '\n'
+         << "static_mfs=" << static_model.getMFS() << '\n'
+         << "dynamic_cutoff=" << dynamic_model.cutoff << '\n'
+         << "static_cutoff=" << static_model.cutoff << '\n'
+         << "no_tmp_terms=" << no_tmp_terms << '\n'
+         << "transform_unary_ops=" << transform_unary_ops << '\n'
+         << "nocommutativity=" << DataTree::isNoCommutativityEnabled() << '\n'
+         << "steady_state_model_present=" << mod_file_struct.steady_state_model_present << '\n';
+  if (mod_file_struct.steady_state_model_present)
+    steady_state_model.writeChecksumPayload(buffer);
+  buffer << "params_derivs_order=" << params_derivs_order << '\n'
+         << "identification_present=" << mod_file_struct.identification_present << '\n'
+         << "estimation_analytic_derivation=" << mod_file_struct.estimation_analytic_derivation
+         << '\n'
+         << "osr_analytic_derivation=" << mod_file_struct.osr_analytic_derivation << '\n'
+         << "GMM_present=" << mod_file_struct.GMM_present << '\n'
+         << "analytic_standard_errors_present=" << mod_file_struct.analytic_standard_errors_present
+         << '\n'
+         << "analytic_jacobian_present=" << mod_file_struct.analytic_jacobian_present << '\n'
+         << "mom_estimation_present=" << mod_file_struct.mom_estimation_present << '\n'
+         << "identification_order=" << mod_file_struct.identification_order << '\n'
+         << "mom_order=" << mod_file_struct.mom_order << '\n'
+         << "order_option=" << mod_file_struct.order_option << '\n';
+
+  return hash<string> {}(buffer.str());
+}
+
+bool
+ModFile::isChecksumMatching(const string& basename, size_t checksum) const
+{
+  fstream checksum_file;
+  auto filename = filesystem::path {basename} / "checksum";
+  if (!filesystem::create_directory(basename))
+    {
+      checksum_file.open(filename, ios::in | ios::binary);
+      if (checksum_file.is_open())
+        {
+          size_t old_checksum;
+          checksum_file >> old_checksum;
+          checksum_file.close();
+          if (old_checksum == checksum)
+            return true;
+        }
+    }
+
+  checksum_file.open(filename, ios::out | ios::binary);
+  if (!checksum_file.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename.string() << endl;
+      exit(EXIT_FAILURE);
+    }
+  checksum_file << checksum;
+  checksum_file.close();
+  return false;
 }
 
 void
