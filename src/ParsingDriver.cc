@@ -3052,9 +3052,11 @@ ParsingDriver::add_divide(expr_t arg1, expr_t arg2)
     {
       return data_tree->AddDivide(arg1, arg2);
     }
-  catch (DataTree::DivisionByZeroException)
+  catch (const DataTree::DivisionByZeroException& e)
     {
-      error("Division by zero error encountered when reading model from .mod file");
+      error(e.message.empty()
+                ? "Division by zero error encountered when reading model from .mod file"s
+                : e.message);
     }
 }
 

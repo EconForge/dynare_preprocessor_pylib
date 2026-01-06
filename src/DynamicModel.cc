@@ -26,10 +26,13 @@
 #include <ranges>
 #include <regex>
 #include <sstream>
+#include <string>
 #include <string_view>
 
 #include "DynamicModel.hh"
 #include "ParsingDriver.hh"
+
+using namespace std::string_literals;
 
 void
 DynamicModel::copyHelper(const DynamicModel& m)
@@ -3940,11 +3943,81 @@ DynamicModel::simplifyEquations()
     {
       last_subst_table_size = subst_table.size();
       for (auto& [id, definition] : local_variables_table)
-        definition = definition->replaceVarsInEquation(subst_table);
-      for (auto& equation : equations)
-        equation = dynamic_cast<BinaryOpNode*>(equation->replaceVarsInEquation(subst_table));
-      for (auto& equation : static_only_equations)
-        equation = dynamic_cast<BinaryOpNode*>(equation->replaceVarsInEquation(subst_table));
+        try
+          {
+            definition = definition->replaceVarsInEquation(subst_table);
+          }
+        catch (const DataTree::DivisionByZeroException& e)
+          {
+            string msg {"Division by zero when substituting constants into model-local variable '"s
+                        + symbol_table.getName(id) + "' defined as " + definition->toString()};
+            if (!subst_table.empty())
+              {
+                msg += "; substitutions: ";
+                for (bool first {true}; const auto& [var, val] : subst_table)
+                  {
+                    if (!exchange(first, false))
+                      msg += ", ";
+                    msg += var->toString() + " -> " + val->toString();
+                  }
+              }
+            if (!e.message.empty())
+              msg += "; detail: " + e.message;
+            cerr << "ERROR: " << msg << endl;
+            exit(EXIT_FAILURE);
+          }
+      for (size_t eq {0}; eq < equations.size(); eq++)
+        try
+          {
+            auto& equation = equations[eq];
+            equation = dynamic_cast<BinaryOpNode*>(equation->replaceVarsInEquation(subst_table));
+          }
+        catch (const DataTree::DivisionByZeroException& e)
+          {
+            string msg {"Division by zero when substituting constants in equation "s
+                        + to_string(eq + 1)};
+            if (auto name = equation_tags.getTagValueByEqnAndKey(static_cast<int>(eq), "name"))
+              msg += " ['" + *name + "']";
+            if (!subst_table.empty())
+              {
+                msg += "; substitutions: ";
+                for (bool first {true}; const auto& [var, val] : subst_table)
+                  {
+                    if (!exchange(first, false))
+                      msg += ", ";
+                    msg += var->toString() + " -> " + val->toString();
+                  }
+              }
+            if (!e.message.empty())
+              msg += "; detail: " + e.message;
+            cerr << "ERROR: " << msg << endl;
+            exit(EXIT_FAILURE);
+          }
+      for (size_t eq {0}; eq < static_only_equations.size(); eq++)
+        try
+          {
+            auto& equation = static_only_equations[eq];
+            equation = dynamic_cast<BinaryOpNode*>(equation->replaceVarsInEquation(subst_table));
+          }
+        catch (const DataTree::DivisionByZeroException& e)
+          {
+            string msg {"Division by zero when substituting constants in [static] equation "s
+                        + to_string(eq + 1)};
+            if (!subst_table.empty())
+              {
+                msg += "; substitutions: ";
+                for (bool first {true}; const auto& [var, val] : subst_table)
+                  {
+                    if (!exchange(first, false))
+                      msg += ", ";
+                    msg += var->toString() + " -> " + val->toString();
+                  }
+              }
+            if (!e.message.empty())
+              msg += "; detail: " + e.message;
+            cerr << "ERROR: " << msg << endl;
+            exit(EXIT_FAILURE);
+          }
       subst_table.clear();
       findConstantEquationsWithoutComplementarityCondition(subst_table);
     }

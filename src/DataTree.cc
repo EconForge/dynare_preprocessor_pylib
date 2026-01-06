@@ -25,8 +25,11 @@
 #include <iostream>
 #include <iterator>
 #include <ranges>
+#include <string>
 
 #include "DataTree.hh"
+
+using namespace std::string_literals;
 
 bool DataTree::no_commutativity = false;
 
@@ -304,8 +307,9 @@ DataTree::AddDivide(expr_t iArg1, expr_t iArg2) noexcept(false)
   // This test should be before the next two, otherwise 0/0 won't be rejected
   if (iArg2 == Zero)
     {
-      cerr << "ERROR: Division by zero!" << endl;
-      throw DivisionByZeroException();
+      throw DivisionByZeroException(
+          "Division by zero when forming ("s + iArg1->toString() + ")/(" + iArg2->toString()
+          + "); denominator simplified to 0 (possibly after substituting a variable set to 0).");
     }
 
   if (iArg1 == Zero)

@@ -5292,7 +5292,7 @@ BinaryOpNode::normalizeEquationHelper(const set<expr_t>& contain_var, expr_t rhs
           else
             rhs = datatree.AddDivide(rhs, arg1);
         }
-      catch (DataTree::DivisionByZeroException)
+      catch (const DataTree::DivisionByZeroException&)
         {
           throw NormalizationFailed {};
         }
@@ -5308,7 +5308,7 @@ BinaryOpNode::normalizeEquationHelper(const set<expr_t>& contain_var, expr_t rhs
           {
             rhs = datatree.AddDivide(arg1, rhs);
           }
-        catch (DataTree::DivisionByZeroException)
+        catch (const DataTree::DivisionByZeroException&)
           {
             throw NormalizationFailed {};
           }
@@ -5327,7 +5327,7 @@ BinaryOpNode::normalizeEquationHelper(const set<expr_t>& contain_var, expr_t rhs
           {
             rhs = datatree.AddDivide(datatree.AddLog(rhs), datatree.AddLog(arg1));
           }
-        catch (DataTree::DivisionByZeroException)
+        catch (const DataTree::DivisionByZeroException&)
           {
             throw NormalizationFailed {};
           }
