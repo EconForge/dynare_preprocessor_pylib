@@ -41,6 +41,7 @@ using token = Dynare::parser::token;
 
 int comment_caller, line_caller;
 string eofbuff;
+Dynare::parser::location_type block_comment_start_loc;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -97,7 +98,15 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
  /* Comments */
 <INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>%.*
 <INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>"//".*
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>"/*"   {comment_caller = YY_START; BEGIN COMMENT;}
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>"/*"   {
+                                                comment_caller = YY_START;
+                                                block_comment_start_loc = *yylloc;
+                                                BEGIN COMMENT;
+                                              }
+
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK>"*/"   {
+                                                driver.error(*yylloc, "block comment closing delimiter '*/' without matching '/*'");
+                                              }
 
 <COMMENT>"*/"        {BEGIN comment_caller;}
 <COMMENT>.
@@ -1201,6 +1210,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
   "/*"                        {
                                 driver.add_native_remove_charset(yytext, "/*");
                                 comment_caller = NATIVE;
+                                block_comment_start_loc = *yylloc;
                                 BEGIN COMMENT;
                               }
 }
@@ -1208,7 +1218,12 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <NATIVE_COMMENT>"*/"[[:space:]]*\n   { BEGIN NATIVE; }
 <NATIVE_COMMENT>.
 
-<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,COMMENT,LINE1,LINE2,LINE3,NATIVE_COMMENT><<EOF>> { yyterminate(); }
+<COMMENT><<EOF>> {
+  driver.error(block_comment_start_loc, "unterminated block comment (missing '*/')");
+  yyterminate();
+}
+
+<INITIAL,DYNARE_STATEMENT,DYNARE_BLOCK,LINE1,LINE2,LINE3,NATIVE_COMMENT><<EOF>> { yyterminate(); }
 
 <*>.      { driver.error(*yylloc, "character unrecognized by lexer"); }
 %%
