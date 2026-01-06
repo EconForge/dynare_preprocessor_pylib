@@ -784,17 +784,87 @@ DynamicModel::writeParamsDerivativesFile(const string& basename) const
 
   if constexpr (!julia)
     {
-      filesystem::path filename {packageDir(basename) / "dynamic_params_derivs.m"};
-      ofstream paramsDerivsFile {filename, ios::out | ios::binary};
-      if (!paramsDerivsFile.is_open())
-        {
-          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
-          exit(EXIT_FAILURE);
-        }
+      /* The output is split over several files to avoid hitting MATLAB limits on large models (see
+         #123). */
+      filesystem::path output_dir {packageDir(basename)};
+      ofstream paramsDerivsFile;
+      auto open_file = [&paramsDerivsFile](const filesystem::path& filepath) {
+        paramsDerivsFile.open(filepath, ios::out | ios::binary);
+        if (!paramsDerivsFile.is_open())
+          {
+            cerr << "ERROR: Can't open file " << filepath.string() << " for writing" << '\n';
+            exit(EXIT_FAILURE);
+          }
+      };
+
+      string function_args {"y, x, params, steady_state, ss_param_deriv, ss_param_2nd_deriv"};
+      string function_args_with_T {function_args + ", T"};
+      string helper_prefix {basename + ".dynamic_params_derivs_"};
+
+      size_t tt_size {params_derivs_temporary_terms_idxs.size()};
+      size_t rp_size {params_derivatives.at({0, 1}).size()};
+      size_t g1p_size {params_derivatives.at({1, 1}).size()};
+      size_t rpp_size {params_derivatives.at({0, 2}).size()};
+      size_t g1pp_size {params_derivatives.at({1, 2}).size()};
+      size_t g2p_size {params_derivatives.at({2, 1}).size()};
+      size_t g3p_size {params_derivatives.at({3, 1}).size()};
+
+      open_file(output_dir / "dynamic_params_derivs_tt.m");
+      paramsDerivsFile << "function T = dynamic_params_derivs_tt(" << function_args << ")" << '\n'
+                       << "T = NaN(" << tt_size << ", 1);" << '\n'
+                       << tt_output.str() << "end" << '\n';
+      paramsDerivsFile.close();
+
+      open_file(output_dir / "dynamic_params_derivs_rp.m");
+      paramsDerivsFile << "function rp = dynamic_params_derivs_rp(" << function_args_with_T << ")"
+                       << '\n'
+                       << "rp_i = NaN(" << rp_size << ", 1);" << '\n'
+                       << "rp_j = NaN(" << rp_size << ", 1);" << '\n'
+                       << "rp_v = NaN(" << rp_size << ", 1);" << '\n'
+                       << rp_output.str() << "rp = sparse(rp_i, rp_j, rp_v, " << equations.size()
+                       << ", " << symbol_table.param_nbr() << ");" << '\n'
+                       << "end" << '\n';
+      paramsDerivsFile.close();
+
+      open_file(output_dir / "dynamic_params_derivs_g1p.m");
+      paramsDerivsFile << "function g1p = dynamic_params_derivs_g1p(" << function_args_with_T << ")"
+                       << '\n'
+                       << "g1p = NaN(" << g1p_size << ", 4);" << '\n'
+                       << g1p_output.str() << "end" << '\n';
+      paramsDerivsFile.close();
+
+      open_file(output_dir / "dynamic_params_derivs_rpp.m");
+      paramsDerivsFile << "function rpp = dynamic_params_derivs_rpp(" << function_args_with_T << ")"
+                       << '\n'
+                       << "rpp = NaN(" << rpp_size << ", 4);" << '\n'
+                       << rpp_output.str() << "end" << '\n';
+      paramsDerivsFile.close();
+
+      open_file(output_dir / "dynamic_params_derivs_g1pp.m");
+      paramsDerivsFile << "function g1pp = dynamic_params_derivs_g1pp(" << function_args_with_T
+                       << ")" << '\n'
+                       << "g1pp = NaN(" << g1pp_size << ", 5);" << '\n'
+                       << g1pp_output.str() << "end" << '\n';
+      paramsDerivsFile.close();
+
+      open_file(output_dir / "dynamic_params_derivs_g2p.m");
+      paramsDerivsFile << "function g2p = dynamic_params_derivs_g2p(" << function_args_with_T << ")"
+                       << '\n'
+                       << "g2p = NaN(" << g2p_size << ", 5);" << '\n'
+                       << g2p_output.str() << "end" << '\n';
+      paramsDerivsFile.close();
+
+      open_file(output_dir / "dynamic_params_derivs_g3p.m");
+      paramsDerivsFile << "function g3p = dynamic_params_derivs_g3p(" << function_args_with_T << ")"
+                       << '\n'
+                       << "g3p = NaN(" << g3p_size << ", 6);" << '\n'
+                       << g3p_output.str() << "end" << '\n';
+      paramsDerivsFile.close();
+
+      open_file(output_dir / "dynamic_params_derivs.m");
       paramsDerivsFile
-          << "function [rp, g1p, rpp, g1pp, g2p, g3p] = dynamic_params_derivs(y, x, params, "
-             "steady_state, ss_param_deriv, ss_param_2nd_deriv)"
-          << '\n'
+          << "function [rp, g1p, rpp, g1pp, g2p, g3p] = dynamic_params_derivs(" << function_args
+          << ")" << '\n'
           << "%" << '\n'
           << "% Compute the derivatives of the dynamic model with respect to the parameters" << '\n'
           << "% Inputs :" << '\n'
@@ -934,26 +1004,20 @@ DynamicModel::writeParamsDerivativesFile(const string& basename) const
           << "% Warning : this file is generated automatically by Dynare" << '\n'
           << "%           from model file (.mod)" << '\n'
           << '\n'
-          << "T = NaN(" << params_derivs_temporary_terms_idxs.size() << ",1);" << '\n'
-          << tt_output.str() << "rp_i = NaN(" << params_derivatives.at({0, 1}).size() << ", 1);"
-          << endl
-          << "rp_j = NaN(" << params_derivatives.at({0, 1}).size() << ", 1);" << endl
-          << "rp_v = NaN(" << params_derivatives.at({0, 1}).size() << ", 1);" << endl
-          << rp_output.str() << "rp = sparse(rp_i, rp_j, rp_v, " << equations.size() << ", "
-          << symbol_table.param_nbr() << ");" << endl
-          << "g1p = NaN(" << params_derivatives.at({1, 1}).size() << ",4);" << endl
-          << g1p_output.str() << "if nargout >= 3" << endl
-          << "rpp = NaN(" << params_derivatives.at({0, 2}).size() << ",4);" << endl
-          << rpp_output.str() << "g1pp = NaN(" << params_derivatives.at({1, 2}).size() << ",5);"
-          << endl
-          << g1pp_output.str() << "end" << endl
-          << "if nargout >= 5" << endl
-          << "g2p = NaN(" << params_derivatives.at({2, 1}).size() << ",5);" << endl
-          << g2p_output.str() << "end" << endl
-          << "if nargout >= 6" << endl
-          << "g3p = NaN(" << params_derivatives.at({3, 1}).size() << ",6);" << endl
-          << g3p_output.str() << "end" << endl
-          << "end" << endl;
+          << "T = " << helper_prefix << "tt(" << function_args << ");" << '\n'
+          << "rp = " << helper_prefix << "rp(" << function_args_with_T << ");" << '\n'
+          << "g1p = " << helper_prefix << "g1p(" << function_args_with_T << ");" << '\n'
+          << "if nargout >= 3" << '\n'
+          << "    rpp = " << helper_prefix << "rpp(" << function_args_with_T << ");" << '\n'
+          << "    g1pp = " << helper_prefix << "g1pp(" << function_args_with_T << ");" << '\n'
+          << "end" << '\n'
+          << "if nargout >= 5" << '\n'
+          << "    g2p = " << helper_prefix << "g2p(" << function_args_with_T << ");" << '\n'
+          << "end" << '\n'
+          << "if nargout >= 6" << '\n'
+          << "    g3p = " << helper_prefix << "g3p(" << function_args_with_T << ");" << '\n'
+          << "end" << '\n'
+          << "end" << '\n';
       paramsDerivsFile.close();
     }
   else
