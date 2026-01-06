@@ -421,6 +421,8 @@ public:
   set<int> findUnusedEndogenous();
   //! Find exogenous variables not used in model
   set<int> findUnusedExogenous();
+  //! Find parameters not used in model equations
+  set<int> findUnusedParameters();
 
   //! Set the max leads/lags of the original model
   void setLeadsLagsOrig();

@@ -116,6 +116,8 @@ public:
   void writeLatexSteadyStateFile(const string& basename) const;
   //! Writes JSON output
   void writeJsonSteadyStateFile(ostream& output, bool transformComputingPass) const;
+  //! Collect all parameters referenced (lhs or rhs) in the steady_state_model block
+  [[nodiscard]] set<int> getUsedParameters() const;
 };
 
 class Epilogue : public DynamicModel

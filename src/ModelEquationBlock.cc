@@ -334,6 +334,25 @@ SteadyStateModel::writeJsonSteadyStateFile(ostream& output, bool transformComput
   output << "]}";
 }
 
+set<int>
+SteadyStateModel::getUsedParameters() const
+{
+  set<int> used;
+
+  for (const auto& [symb_ids, expr] : def_table)
+    {
+      for (int symb_id : symb_ids)
+        if (auto type = symbol_table.getType(symb_id);
+            type == SymbolType::parameter || type == SymbolType::heterogeneousParameter)
+          used.insert(symb_id);
+
+      expr->collectVariables(SymbolType::parameter, used);
+      expr->collectVariables(SymbolType::heterogeneousParameter, used);
+    }
+
+  return used;
+}
+
 Epilogue::Epilogue(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                    ExternalFunctionsTable& external_functions_table_arg,
                    HeterogeneityTable& heterogeneity_table_arg,
