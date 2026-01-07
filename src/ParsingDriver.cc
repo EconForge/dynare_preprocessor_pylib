@@ -3469,8 +3469,8 @@ ParsingDriver::external_function(const map<string, string>& options)
 }
 
 expr_t
-ParsingDriver::add_model_var_or_external_function(const string& name, vector<expr_t> arguments,
-                                                  bool in_model_expression)
+ParsingDriver::add_lead_lag_var_or_external_function(const string& name, vector<expr_t> arguments,
+                                                     bool in_model_expression)
 {
   assert(!arguments.empty());
 

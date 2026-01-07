@@ -858,11 +858,12 @@ public:
   expr_t add_steady_state(expr_t arg1);
   // Add a “sum(arg)” node to model tree
   expr_t add_sum(expr_t arg);
-  /* Adds a model variable with a lead/lag or an external function call.
+  /* Adds a variable with a lead/lag or an external function call.
+     Can be called from both an expression context and a model expression context.
      If this is an external function call, name can be namespace-qualified, i.e. have one
      or several dots separating the namespace(s) from the function name itself */
-  expr_t add_model_var_or_external_function(const string& name, vector<expr_t> arguments,
-                                            bool in_model_expression);
+  expr_t add_lead_lag_var_or_external_function(const string& name, vector<expr_t> arguments,
+                                               bool in_model_expression);
   //! Adds a native statement
   void add_native(string s);
   //! Adds a native statement, first removing the set of characters passed in token (and everything

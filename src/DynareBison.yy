@@ -759,7 +759,7 @@ expression : '(' expression ')'
            | MIN '(' expression COMMA expression ')'
              { $$ = driver.add_min($3, $5); }
            | namespace_qualified_symbol '(' expression_list ')'
-             { $$ = driver.add_model_var_or_external_function($1, $3, false); }
+             { $$ = driver.add_lead_lag_var_or_external_function($1, $3, false); }
            | NORMCDF '(' expression COMMA expression COMMA expression ')'
              { $$ = driver.add_normcdf($3, $5, $7); }
            | NORMCDF '(' expression ')'
@@ -1163,7 +1163,7 @@ model_expression : '(' model_expression ')'
                  | MIN '(' model_expression COMMA model_expression ')'
                    { $$ = driver.add_min($3, $5); }
                  | namespace_qualified_symbol '(' model_expression_list ')'
-                   { $$ = driver.add_model_var_or_external_function($1, $3, true); }
+                   { $$ = driver.add_lead_lag_var_or_external_function($1, $3, true); }
                  | NORMCDF '(' model_expression COMMA model_expression COMMA model_expression ')'
                    { $$ = driver.add_normcdf($3, $5, $7); }
                  | NORMCDF '(' model_expression ')'
