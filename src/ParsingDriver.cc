@@ -3644,7 +3644,7 @@ ParsingDriver::add_steady_state_model_equal(const string& varname, expr_t expr)
       && type != SymbolType::parameter)
     error(varname + " has incorrect type");
 
-  mod_file->steady_state_model.addDefinition(id, expr);
+  mod_file->steady_state_model.addDefinition(id, expr, location.begin.line);
 }
 
 void
@@ -3671,7 +3671,7 @@ ParsingDriver::add_steady_state_model_equal_multiple(const vector<string>& symbo
       ids.push_back(id);
     }
 
-  mod_file->steady_state_model.addMultipleDefinitions(ids, expr);
+  mod_file->steady_state_model.addMultipleDefinitions(ids, expr, location.begin.line);
 }
 
 void
