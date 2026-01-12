@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -3208,31 +3208,6 @@ expr_t
 ParsingDriver::add_diff(expr_t arg1)
 {
   return data_tree->AddDiff(arg1);
-}
-
-expr_t
-ParsingDriver::add_adl(expr_t arg1, const string& name, const string& lag)
-{
-  if (is_parsing_epilogue())
-    error("The ADL() operator is forbidden in epilogue block");
-
-  auto lags = views::iota(1, stoi(lag) + 1);
-  return add_adl(arg1, name, vector<int> {lags.begin(), lags.end()});
-}
-
-expr_t
-ParsingDriver::add_adl(expr_t arg1, const string& name, const vector<int>& lags)
-{
-  if (is_parsing_epilogue())
-    error("The ADL() operator is forbidden in epilogue block");
-
-  expr_t id = data_tree->AddAdl(arg1, name, lags);
-
-  // Declare parameters here so that parameters can be initialized after the model block
-  for (auto i : lags)
-    declare_parameter(name + "_lag_" + to_string(i));
-
-  return id;
 }
 
 expr_t

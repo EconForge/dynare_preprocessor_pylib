@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2025 Dynare Team
+ * Copyright © 2007-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -728,12 +728,6 @@ expr_t
 NumConstNode::substituteExpectation([[maybe_unused]] subst_table_t& subst_table,
                                     [[maybe_unused]] vector<BinaryOpNode*>& neweqs,
                                     [[maybe_unused]] bool partial_information_model) const
-{
-  return const_cast<NumConstNode*>(this);
-}
-
-expr_t
-NumConstNode::substituteAdl() const
 {
   return const_cast<NumConstNode*>(this);
 }
@@ -1817,14 +1811,6 @@ VariableNode::VarMaxLag(const set<expr_t>& lhs_lag_equiv) const
 }
 
 expr_t
-VariableNode::substituteAdl() const
-{
-  /* Do not recurse into model-local variables definition, rather do it at the
-     DynamicModel method level (see the comment there) */
-  return const_cast<VariableNode*>(this);
-}
-
-expr_t
 VariableNode::substituteModelLocalVariables() const
 {
   if (get_type() == SymbolType::modelLocalVariable)
@@ -2327,16 +2313,13 @@ VariableNode::substituteAggregationOperators(subst_table_t& subst_table,
 
 UnaryOpNode::UnaryOpNode(DataTree& datatree_arg, int idx_arg, UnaryOpcode op_code_arg,
                          const expr_t arg_arg, int expectation_information_set_arg,
-                         int param1_symb_id_arg, int param2_symb_id_arg, string adl_param_name_arg,
-                         vector<int> adl_lags_arg) :
+                         int param1_symb_id_arg, int param2_symb_id_arg) :
     ExprNode {datatree_arg, idx_arg},
     arg {arg_arg},
     expectation_information_set {expectation_information_set_arg},
     param1_symb_id {param1_symb_id_arg},
     param2_symb_id {param2_symb_id_arg},
-    op_code {op_code_arg},
-    adl_param_name {move(adl_param_name_arg)},
-    adl_lags {move(adl_lags_arg)}
+    op_code {op_code_arg}
 {
 }
 
@@ -2529,9 +2512,6 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
     case UnaryOpcode::diff:
       cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::diff" << endl;
       exit(EXIT_FAILURE);
-    case UnaryOpcode::adl:
-      cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::adl" << endl;
-      exit(EXIT_FAILURE);
     case UnaryOpcode::sum:
       cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::sum" << endl;
       exit(EXIT_FAILURE);
@@ -2625,9 +2605,6 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
       case UnaryOpcode::diff:
         cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::diff" << endl;
         exit(EXIT_FAILURE);
-      case UnaryOpcode::adl:
-        cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::adl" << endl;
-        exit(EXIT_FAILURE);
       case UnaryOpcode::sum:
         return 0; // In the generated files, the SUM() operator behaves like a variable
       }
@@ -2676,9 +2653,6 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
         return cost;
       case UnaryOpcode::diff:
         cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::diff" << endl;
-        exit(EXIT_FAILURE);
-      case UnaryOpcode::adl:
-        cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::adl" << endl;
         exit(EXIT_FAILURE);
       case UnaryOpcode::sum:
         return 0; // In the generated files, the SUM() operator behaves like a variable
@@ -2805,9 +2779,6 @@ UnaryOpNode::writeJsonAST(ostream& output) const
     case UnaryOpcode::diff:
       output << "diff";
       break;
-    case UnaryOpcode::adl:
-      output << "adl";
-      break;
     case UnaryOpcode::steadyState:
       output << "steady_state";
       break;
@@ -2832,22 +2803,6 @@ UnaryOpNode::writeJsonAST(ostream& output) const
     }
   output << R"(", "arg" : )";
   arg->writeJsonAST(output);
-  switch (op_code)
-    {
-    case UnaryOpcode::adl:
-      output << R"(, "adl_param_name" : ")" << adl_param_name << R"(")"
-             << R"(, "lags" : [)";
-      for (bool printed_something {false}; int lag : adl_lags)
-        {
-          if (exchange(printed_something, true))
-            output << ", ";
-          output << lag;
-        }
-      output << "]";
-      break;
-    default:
-      break;
-    }
   output << "}";
 }
 
@@ -2930,18 +2885,6 @@ UnaryOpNode::writeJsonOutput(ostream& output, const temporary_terms_t& temporary
     case UnaryOpcode::diff:
       output << "diff";
       break;
-    case UnaryOpcode::adl:
-      output << "adl(";
-      arg->writeJsonOutput(output, temporary_terms, tef_terms);
-      output << ", '" << adl_param_name << "', [";
-      for (bool printed_something {false}; int lag : adl_lags)
-        {
-          if (exchange(printed_something, true))
-            output << ", ";
-          output << lag;
-        }
-      output << "])";
-      return;
     case UnaryOpcode::steadyState:
       output << "STEADY_STATE";
       break;
@@ -3206,9 +3149,6 @@ UnaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case UnaryOpcode::diff:
       output << "diff";
       break;
-    case UnaryOpcode::adl:
-      output << "adl";
-      break;
     case UnaryOpcode::sum:
       if (isLatexOutput(output_type))
         output << "sum";
@@ -3348,9 +3288,6 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) noexcept(false)
       return erfc(v);
     case UnaryOpcode::diff:
       cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::diff" << endl;
-      exit(EXIT_FAILURE);
-    case UnaryOpcode::adl:
-      cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::adl" << endl;
       exit(EXIT_FAILURE);
     case UnaryOpcode::sum:
       cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::sum" << endl;
@@ -3610,8 +3547,6 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree& alt_datatree) con
       return alt_datatree.AddErfc(alt_arg);
     case UnaryOpcode::diff:
       return alt_datatree.AddDiff(alt_arg);
-    case UnaryOpcode::adl:
-      return alt_datatree.AddAdl(alt_arg, adl_param_name, adl_lags);
     case UnaryOpcode::sum:
       return alt_datatree.AddSum(alt_arg);
     }
@@ -3698,25 +3633,6 @@ UnaryOpNode::VarMaxLag(const set<expr_t>& lhs_lag_equiv) const
     return arg->maxLag();
   else
     return 0;
-}
-
-expr_t
-UnaryOpNode::substituteAdl() const
-{
-  if (op_code != UnaryOpcode::adl)
-    return recurseTransform(&ExprNode::substituteAdl);
-
-  expr_t arg1subst = arg->substituteAdl();
-
-  return transform_reduce(
-      adl_lags.begin(), adl_lags.end(), static_cast<expr_t>(datatree.Zero),
-      [&](expr_t e1, expr_t e2) { return datatree.AddPlus(e1, e2); },
-      [&](int lag) {
-        return datatree.AddTimes(
-            datatree.AddVariable(
-                datatree.symbol_table.getID(adl_param_name + "_lag_" + to_string(lag)), 0),
-            arg1subst->decreaseLeadsLags(lag));
-      });
 }
 
 expr_t
@@ -5627,12 +5543,6 @@ BinaryOpNode::substituteExpectation(subst_table_t& subst_table, vector<BinaryOpN
 }
 
 expr_t
-BinaryOpNode::substituteAdl() const
-{
-  return recurseTransform(&ExprNode::substituteAdl);
-}
-
-expr_t
 BinaryOpNode::substituteModelLocalVariables() const
 {
   return recurseTransform(&ExprNode::substituteModelLocalVariables);
@@ -6859,12 +6769,6 @@ TrinaryOpNode::substituteExpectation(subst_table_t& subst_table, vector<BinaryOp
 }
 
 expr_t
-TrinaryOpNode::substituteAdl() const
-{
-  return recurseTransform(&ExprNode::substituteAdl);
-}
-
-expr_t
 TrinaryOpNode::substituteModelLocalVariables() const
 {
   return recurseTransform(&ExprNode::substituteModelLocalVariables);
@@ -7261,12 +7165,6 @@ AbstractExternalFunctionNode::substituteExpectation(subst_table_t& subst_table,
 {
   return recurseTransform(&ExprNode::substituteExpectation, subst_table, neweqs,
                           partial_information_model);
-}
-
-expr_t
-AbstractExternalFunctionNode::substituteAdl() const
-{
-  return recurseTransform(&ExprNode::substituteAdl);
 }
 
 expr_t
@@ -8811,12 +8709,6 @@ expr_t
 SubModelNode::substituteExpectation([[maybe_unused]] subst_table_t& subst_table,
                                     [[maybe_unused]] vector<BinaryOpNode*>& neweqs,
                                     [[maybe_unused]] bool partial_information_model) const
-{
-  return const_cast<SubModelNode*>(this);
-}
-
-expr_t
-SubModelNode::substituteAdl() const
 {
   return const_cast<SubModelNode*>(this);
 }

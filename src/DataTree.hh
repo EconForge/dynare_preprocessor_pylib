@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -65,10 +65,8 @@ private:
   using variable_node_map_t = map<pair<int, int>, VariableNode*>;
   variable_node_map_t variable_node_map;
 
-  //! (arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags) ->
-  //! UnaryOpNode
-  using unary_op_node_map_t
-      = map<tuple<expr_t, UnaryOpcode, int, int, int, string, vector<int>>, UnaryOpNode*>;
+  //! (arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id) -> UnaryOpNode
+  using unary_op_node_map_t = map<tuple<expr_t, UnaryOpcode, int, int, int>, UnaryOpNode*>;
   unary_op_node_map_t unary_op_node_map;
 
   //! ( arg1, arg2, opCode, order of Power Derivative) -> BinaryOpNode
@@ -127,9 +125,7 @@ private:
   vector<unique_ptr<ExprNode>> node_list;
 
   inline expr_t AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set = 0,
-                           int param1_symb_id = 0, int param2_symb_id = 0,
-                           const string& adl_param_name = "",
-                           const vector<int>& adl_lags = vector<int>());
+                           int param1_symb_id = 0, int param2_symb_id = 0);
   inline expr_t AddBinaryOp(expr_t arg1, BinaryOpcode op_code, expr_t arg2,
                             int powerDerivOrder = 0);
   inline expr_t AddTrinaryOp(expr_t arg1, TrinaryOpcode op_code, expr_t arg2, expr_t arg3);
@@ -202,8 +198,6 @@ public:
   expr_t AddExpectation(int iArg1, expr_t iArg2);
   //! Adds "diff(arg)" to model tree
   expr_t AddDiff(expr_t iArg1);
-  //! Adds "adl(arg1, name, lag/lags)" to model tree
-  expr_t AddAdl(expr_t iArg1, const string& name, const vector<int>& lags);
   //! Adds "exp(arg)" to model tree
   expr_t AddExp(expr_t iArg1);
   //! Adds "log(arg)" to model tree
@@ -407,11 +401,11 @@ DataTree::AddPossiblyNegativeConstant(double v)
 
 inline expr_t
 DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int param1_symb_id,
-                     int param2_symb_id, const string& adl_param_name, const vector<int>& adl_lags)
+                     int param2_symb_id)
 {
   // If the node already exists in tree, share it
-  if (auto it = unary_op_node_map.find({arg, op_code, arg_exp_info_set, param1_symb_id,
-                                        param2_symb_id, adl_param_name, adl_lags});
+  if (auto it
+      = unary_op_node_map.find({arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id});
       it != unary_op_node_map.end())
     return it->second;
 
@@ -432,12 +426,11 @@ DataTree::AddUnaryOp(UnaryOpcode op_code, expr_t arg, int arg_exp_info_set, int 
     }
 
   auto sp = make_unique<UnaryOpNode>(*this, node_list.size(), op_code, arg, arg_exp_info_set,
-                                     param1_symb_id, param2_symb_id, adl_param_name, adl_lags);
+                                     param1_symb_id, param2_symb_id);
   auto p = sp.get();
   node_list.push_back(move(sp));
-  unary_op_node_map.try_emplace(
-      {arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id, adl_param_name, adl_lags},
-      p);
+  unary_op_node_map.try_emplace({arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id},
+                                p);
   return p;
 }
 

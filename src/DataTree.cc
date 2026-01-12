@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -405,12 +405,6 @@ DataTree::AddDiff(expr_t iArg1)
     // Issue preprocessor#21: always expand diffs with leads
     return AddMinus(iArg1, iArg1->decreaseLeadsLags(1));
   return AddUnaryOp(UnaryOpcode::diff, iArg1);
-}
-
-expr_t
-DataTree::AddAdl(expr_t iArg1, const string& name, const vector<int>& lags)
-{
-  return AddUnaryOp(UnaryOpcode::adl, iArg1, 0, 0, 0, name, lags);
 }
 
 expr_t

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -571,9 +571,6 @@ public:
   {
     return trend_symbols_map;
   }
-
-  //! Substitutes adl operator
-  void substituteAdl();
 
   //! Substitutes out all model-local variables
   void substituteModelLocalVariables();

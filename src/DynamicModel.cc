@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -3124,23 +3124,6 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
         }
       cout << ": added " << neweqs.size() << " auxiliary variables and equations." << endl;
     }
-}
-
-void
-DynamicModel::substituteAdl()
-{
-  /* Contrary to other substitution methods, we do the substitution in MLV
-     definitions here, instead of doing it at the ExprNode method level,
-     because otherwise this would substitute MLV in the original model (see
-     #65). */
-  for (auto& [id, definition] : local_variables_table)
-    definition = definition->substituteAdl();
-
-  for (auto& equation : equations)
-    equation = dynamic_cast<BinaryOpNode*>(equation->substituteAdl());
-
-  for (auto& equation : static_only_equations)
-    equation = dynamic_cast<BinaryOpNode*>(equation->substituteAdl());
 }
 
 void

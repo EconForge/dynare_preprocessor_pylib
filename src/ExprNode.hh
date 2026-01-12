@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2025 Dynare Team
+ * Copyright © 2007-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -593,9 +593,6 @@ public:
   //! Type for the substitution map used in the process of creating auxiliary vars
   using subst_table_t = map<const ExprNode*, const VariableNode*>;
 
-  //! Type for the substitution map used in the process of substituting adl expressions
-  using subst_table_adl_t = map<const ExprNode*, const expr_t>;
-
   //! Creates auxiliary endo lead variables corresponding to this expression
   /*!
     If maximum endogenous lead >= 3, this method will also create intermediary auxiliary var, and
@@ -736,9 +733,6 @@ public:
     \return the new binary op pointing to a detrended variable
   */
   virtual expr_t detrend(int symb_id, bool log_trend, expr_t trend) const = 0;
-
-  //! Substitute adl operator
-  [[nodiscard]] virtual expr_t substituteAdl() const = 0;
 
   //! Substitute out model-local variables
   [[nodiscard]] virtual expr_t substituteModelLocalVariables() const = 0;
@@ -1012,7 +1006,6 @@ public:
   expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const override;
   expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                                bool partial_information_model) const override;
-  [[nodiscard]] expr_t substituteAdl() const override;
   [[nodiscard]] expr_t substituteModelLocalVariables() const override;
   [[nodiscard]] expr_t
   substituteVarExpectation(const map<string, expr_t>& subst_table) const override;
@@ -1119,7 +1112,6 @@ public:
   expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const override;
   expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                                bool partial_information_model) const override;
-  [[nodiscard]] expr_t substituteAdl() const override;
   [[nodiscard]] expr_t substituteModelLocalVariables() const override;
   [[nodiscard]] expr_t
   substituteVarExpectation(const map<string, expr_t>& subst_table) const override;
@@ -1187,8 +1179,6 @@ public:
   //! Only used for UnaryOpcode::steadyStateParamDeriv and UnaryOpcode::steadyStateParam2ndDeriv
   const int param1_symb_id, param2_symb_id;
   const UnaryOpcode op_code;
-  const string adl_param_name;
-  const vector<int> adl_lags;
 
 private:
   expr_t computeDerivative(int deriv_id) override;
@@ -1206,8 +1196,7 @@ private:
 
 public:
   UnaryOpNode(DataTree& datatree_arg, int idx_arg, UnaryOpcode op_code_arg, const expr_t arg_arg,
-              int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg,
-              string adl_param_name_arg, vector<int> adl_lags_arg);
+              int expectation_information_set_arg, int param1_symb_id_arg, int param2_symb_id_arg);
   void computeTemporaryTerms(const pair<int, int>& derivOrder,
                              map<pair<int, int>, unordered_set<expr_t>>& temp_terms_map,
                              unordered_map<expr_t, pair<int, pair<int, int>>>& reference_count,
@@ -1269,7 +1258,6 @@ public:
   expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const override;
   expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                                bool partial_information_model) const override;
-  [[nodiscard]] expr_t substituteAdl() const override;
   [[nodiscard]] expr_t substituteModelLocalVariables() const override;
   [[nodiscard]] expr_t
   substituteVarExpectation(const map<string, expr_t>& subst_table) const override;
@@ -1324,7 +1312,6 @@ public:
   const expr_t arg1, arg2;
   const BinaryOpcode op_code;
   const int powerDerivOrder;
-  const string adlparam;
 
 private:
   expr_t computeDerivative(int deriv_id) override;
@@ -1423,7 +1410,6 @@ public:
   expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const override;
   expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                                bool partial_information_model) const override;
-  [[nodiscard]] expr_t substituteAdl() const override;
   [[nodiscard]] expr_t substituteModelLocalVariables() const override;
   [[nodiscard]] expr_t
   substituteVarExpectation(const map<string, expr_t>& subst_table) const override;
@@ -1618,7 +1604,6 @@ public:
   expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const override;
   expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                                bool partial_information_model) const override;
-  [[nodiscard]] expr_t substituteAdl() const override;
   [[nodiscard]] expr_t substituteModelLocalVariables() const override;
   [[nodiscard]] expr_t
   substituteVarExpectation(const map<string, expr_t>& subst_table) const override;
@@ -1787,7 +1772,6 @@ public:
   expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const override;
   expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                                bool partial_information_model) const override;
-  [[nodiscard]] expr_t substituteAdl() const override;
   [[nodiscard]] expr_t substituteModelLocalVariables() const override;
   [[nodiscard]] expr_t
   substituteVarExpectation(const map<string, expr_t>& subst_table) const override;
@@ -2000,7 +1984,6 @@ public:
   void computeXrefs(EquationInfo& ei) const override;
   expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                                bool partial_information_model) const override;
-  [[nodiscard]] expr_t substituteAdl() const override;
   [[nodiscard]] expr_t substituteModelLocalVariables() const override;
   void findDiffNodes(lag_equivalence_table_t& nodes) const override;
   void findUnaryOpNodesForAuxVarCreation(lag_equivalence_table_t& nodes) const override;

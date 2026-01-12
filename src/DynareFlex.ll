@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -397,7 +397,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>restriction_fname {return token::RESTRICTION_FNAME;}
 <DYNARE_STATEMENT>nlags {return token::NLAGS;}
 <DYNARE_STATEMENT>restrictions {return token::RESTRICTIONS;}
-<DYNARE_BLOCK>adl {return token::ADL;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>diff {return token::DIFF;}
 <DYNARE_STATEMENT>cross_restrictions {return token::CROSS_RESTRICTIONS;}
 <DYNARE_STATEMENT>contemp_reduced_form {return token::CONTEMP_REDUCED_FORM;}

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2025 Dynare Team
+ * Copyright © 2006-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -595,7 +595,6 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   if (symbol_table.predeterminedNbr() > 0)
     dynamic_model.transformPredeterminedVariables();
   dynamic_model.simplifyEquations();
-  dynamic_model.substituteAdl();
   dynamic_model.setLeadsLagsOrig();
   original_model = dynamic_model;
   dynamic_model.expandEqTags();

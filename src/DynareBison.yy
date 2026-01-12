@@ -1,6 +1,6 @@
 // -*- C++ -*-
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -162,7 +162,7 @@ str_tolower(string s)
 %left TIMES DIVIDE
 %precedence UNARY
 %nonassoc POWER
-%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ASINH ACOSH ATANH ERF ERFC DIFF ADL AUXILIARY_MODEL_NAME
+%token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ASINH ACOSH ATANH ERF ERFC DIFF AUXILIARY_MODEL_NAME
 %token SQRT CBRT NORMCDF NORMPDF STEADY_STATE EXPECTATION
 /* GSA analysis */
 %token SENSITIVITY DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
@@ -1120,12 +1120,6 @@ model_expression : '(' model_expression ')'
                    { $$ = driver.add_exp($3); }
                  | DIFF '(' model_expression ')'
                    { $$ = driver.add_diff($3); }
-                 | ADL '(' model_expression COMMA QUOTED_STRING ')'
-                   { $$ = driver.add_adl($3, $5, "1"); }
-                 | ADL '(' model_expression COMMA QUOTED_STRING COMMA INT_NUMBER ')'
-                   { $$ = driver.add_adl($3, $5, $7); }
-                 | ADL '(' model_expression COMMA QUOTED_STRING COMMA vec_int ')'
-                   { $$ = driver.add_adl($3, $5, $7); }
                  | LOG '(' model_expression ')'
                    { $$ = driver.add_log($3); }
                  | LN '(' model_expression ')'

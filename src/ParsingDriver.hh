@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -799,9 +799,6 @@ public:
   void set_pac_kind(PacTargetKind kind);
   //! Writes token "diff(arg1)" to model tree
   expr_t add_diff(expr_t arg1);
-  //! Writes token "adl(arg1, lag)" to model tree
-  expr_t add_adl(expr_t arg1, const string& name, const string& lag);
-  expr_t add_adl(expr_t arg1, const string& name, const vector<int>& lags);
   //! Writes token "exp(arg1)" to model tree
   expr_t add_exp(expr_t arg1);
   //! Writes token "log(arg1)" to model tree

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2007-2024 Dynare Team
+ * Copyright © 2007-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -85,7 +85,6 @@ enum class UnaryOpcode
   erf,
   erfc,
   diff,
-  adl,
   sum
 };
 
