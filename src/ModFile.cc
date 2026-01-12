@@ -245,6 +245,14 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
+  if (bytecode) // Cf. dynare#1998
+    warnings << "WARNING: the 'bytecode' option is deprecated and will be removed in a future "
+                "release of Dynare."
+             << endl
+             << "If you really depend on that option, please get in touch with the Dynare Team "
+                "before it is too late."
+             << endl;
+
   if ((stochastic_statement_present || mod_file_struct.check_present
        || mod_file_struct.steady_present)
       && no_static)
