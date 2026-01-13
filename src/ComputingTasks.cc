@@ -919,6 +919,29 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
+  if (auto opt_filter = options_list.get_if<OptionsList::StringVal>("particle.filter_algorithm");
+      opt_filter && *opt_filter == "gmf")
+    {
+      if (auto opt_proposal
+          = options_list.get_if<OptionsList::NumVal>("particle.proposal_approximation.montecarlo");
+          opt_proposal && *opt_proposal == "true")
+        {
+          cerr << "ERROR: The filter_algorithm=gmf option is incompatible with "
+                  "proposal_approximation=montecarlo in the estimation statement."
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+      if (auto opt_distribution = options_list.get_if<OptionsList::NumVal>(
+              "particle.distribution_approximation.montecarlo");
+          opt_distribution && *opt_distribution == "true")
+        {
+          cerr << "ERROR: The filter_algorithm=gmf option is incompatible with "
+                  "distribution_approximation=montecarlo in the estimation statement."
+               << endl;
+          exit(EXIT_FAILURE);
+        }
+    }
+
   /* Check that we are not trying to estimate a parameter appearing in the
      planner discount factor (see dynare#1173) */
   vector<int> estimated_params_in_planner_discount;
