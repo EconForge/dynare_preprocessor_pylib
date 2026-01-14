@@ -270,19 +270,19 @@ private:
   //! True if a ramsey_policy statement has already been seen
   bool ramsey_policy_seen {false};
 
-  bool
+  [[nodiscard]] bool
   is_parsing_epilogue() const
   {
     return data_tree == &mod_file->epilogue;
   }
 
-  bool
+  [[nodiscard]] bool
   is_parsing_planner_objective() const
   {
     return data_tree == planner_objective.get();
   }
 
-  bool
+  [[nodiscard]] bool
   is_parsing_occbin_constraints() const
   {
     return data_tree == occbin_constraints_tree.get();
@@ -332,7 +332,8 @@ public:
   void undeclared_model_variable_error(const string& m, const string& var);
 
   //! Check if a given symbol exists in the parsing context, and is not a mod file local variable
-  bool symbol_exists_and_is_not_modfile_local_or_external_function(const string& s);
+  [[nodiscard]] bool
+  symbol_exists_and_is_not_modfile_local_or_external_function(const string& s) const;
   //! Sets mode of ModelTree class to use C output
   void use_dll();
   //! the modelis block decomposed

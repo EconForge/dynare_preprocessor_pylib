@@ -33,7 +33,7 @@
 #include "WarningConsolidation.hh"
 
 bool
-ParsingDriver::symbol_exists_and_is_not_modfile_local_or_external_function(const string& s)
+ParsingDriver::symbol_exists_and_is_not_modfile_local_or_external_function(const string& s) const
 {
   if (!mod_file->symbol_table.exists(s))
     return false;
