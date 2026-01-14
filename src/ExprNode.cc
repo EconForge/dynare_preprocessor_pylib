@@ -1061,59 +1061,7 @@ void
 VariableNode::writeJsonAST(ostream& output) const
 {
   output << R"({"node_type" : "VariableNode", )"
-         << R"("name" : ")" << getName() << R"(", "type" : ")";
-  switch (get_type())
-    {
-    case SymbolType::endogenous:
-      output << "endogenous";
-      break;
-    case SymbolType::exogenous:
-      output << "exogenous";
-      break;
-    case SymbolType::exogenousDet:
-      output << "exogenousDet";
-      break;
-    case SymbolType::parameter:
-      output << "parameter";
-      break;
-    case SymbolType::modelLocalVariable:
-      output << "modelLocalVariable";
-      break;
-    case SymbolType::modFileLocalVariable:
-      output << "modFileLocalVariable";
-      break;
-    case SymbolType::externalFunction:
-      output << "externalFunction";
-      break;
-    case SymbolType::trend:
-      output << "trend";
-      break;
-    case SymbolType::statementDeclaredVariable:
-      output << "statementDeclaredVariable";
-      break;
-    case SymbolType::logTrend:
-      output << "logTrend:";
-      break;
-    case SymbolType::unusedEndogenous:
-      output << "unusedEndogenous";
-      break;
-    case SymbolType::epilogue:
-      output << "epilogue";
-      break;
-    case SymbolType::excludedVariable:
-      cerr << "VariableNode::computeDerivative: Impossible case!" << endl;
-      exit(EXIT_FAILURE);
-    case SymbolType::heterogeneousEndogenous:
-      output << "heterogeneousEndogenous";
-      break;
-    case SymbolType::heterogeneousExogenous:
-      output << "heterogeneousExogenous";
-      break;
-    case SymbolType::heterogeneousParameter:
-      output << "heterogeneousParameter";
-      break;
-    }
-  output << '"';
+         << R"("name" : ")" << getName() << R"(", "type" : ")" << to_string(get_type()) << '"';
   if (isHeterogeneous(get_type()))
     output << R"(, "heterogeneity_dimension" : ")"
            << datatree.heterogeneity_table.getName(

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -60,61 +60,15 @@ SymbolList::checkPass(WarningConsolidation& warnings, const vector<SymbolType>& 
       if (ranges::none_of(types,
                           [&](SymbolType type) { return symbol_table.getType(symbol) == type; }))
         {
-          string valid_types;
-          for (auto type : types)
-            switch (type)
-              {
-              case SymbolType::endogenous:
-                valid_types += "endogenous, ";
-                break;
-              case SymbolType::exogenous:
-                valid_types += "exogenous, ";
-                break;
-              case SymbolType::epilogue:
-                valid_types += "epilogue, ";
-                break;
-              case SymbolType::parameter:
-                valid_types += "parameter, ";
-                break;
-              case SymbolType::exogenousDet:
-                valid_types += "exogenousDet, ";
-                break;
-              case SymbolType::trend:
-                valid_types += "trend, ";
-                break;
-              case SymbolType::logTrend:
-                valid_types += "logTrend, ";
-                break;
-              case SymbolType::modFileLocalVariable:
-                valid_types += "modFileLocalVariable, ";
-                break;
-              case SymbolType::modelLocalVariable:
-                valid_types += "modelLocalVariable, ";
-                break;
-              case SymbolType::externalFunction:
-                valid_types += "externalFunction, ";
-                break;
-              case SymbolType::statementDeclaredVariable:
-                valid_types += "statementDeclaredVariable, ";
-                break;
-              case SymbolType::unusedEndogenous:
-                valid_types += "unusedEndogenous, ";
-                break;
-              case SymbolType::excludedVariable:
-                valid_types += "excludedVariable, ";
-                break;
-              case SymbolType::heterogeneousEndogenous:
-                valid_types += "heterogeneousEndogenous, ";
-                break;
-              case SymbolType::heterogeneousExogenous:
-                valid_types += "heterogeneousExogenous, ";
-                break;
-              case SymbolType::heterogeneousParameter:
-                valid_types += "heterogeneousParameter, ";
-                break;
-              }
-          valid_types = valid_types.erase(valid_types.size() - 2, 2);
-          throw SymbolListException {"Variable " + symbol + " is not one of {" + valid_types + "}"};
+          string msg {"Variable " + symbol + " is not one of {"};
+          for (bool printed_something {false}; auto type : types)
+            {
+              if (exchange(printed_something, true))
+                msg += ", ";
+              msg += to_string(type);
+            }
+          msg += "}";
+          throw SymbolListException {msg};
         }
     }
 }

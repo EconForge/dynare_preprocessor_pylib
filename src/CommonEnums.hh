@@ -20,6 +20,10 @@
 #ifndef COMMON_ENUMS_HH
 #define COMMON_ENUMS_HH
 
+#include <string>
+
+using namespace std;
+
 //! Enumeration of possible symbol types
 /*! Warning: do not to change existing values for 0 to 4: the values matter for homotopy_setup
  * command */
@@ -53,6 +57,48 @@ isHeterogeneous(SymbolType type)
 {
   return type == SymbolType::heterogeneousEndogenous || type == SymbolType::heterogeneousExogenous
          || type == SymbolType::heterogeneousParameter;
+}
+
+constexpr string
+to_string(SymbolType type)
+{
+  using enum SymbolType;
+  switch (type)
+    {
+    case endogenous:
+      return "endogenous";
+    case exogenous:
+      return "exogenous";
+    case exogenousDet:
+      return "exogenousDet";
+    case parameter:
+      return "parameter";
+    case modelLocalVariable:
+      return "modelLocalVariable";
+    case modFileLocalVariable:
+      return "modFileLocalVariable";
+    case externalFunction:
+      return "externalFunction";
+    case trend:
+      return "trend";
+    case statementDeclaredVariable:
+      return "statementDeclaredVariable";
+    case logTrend:
+      return "logTrend:";
+    case unusedEndogenous:
+      return "unusedEndogenous";
+    case epilogue:
+      return "epilogue";
+    case excludedVariable:
+      return "excludedVariable";
+    case heterogeneousEndogenous:
+      return "heterogeneousEndogenous";
+    case heterogeneousExogenous:
+      return "heterogeneousExogenous";
+    case heterogeneousParameter:
+      return "heterogeneousParameter";
+    }
+  __builtin_unreachable(); // Silence GCC warning
 }
 
 enum class UnaryOpcode
