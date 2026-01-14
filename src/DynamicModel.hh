@@ -715,6 +715,12 @@ public:
     return mfs;
   }
 
+  [[nodiscard]] int
+  getMaxLead() const
+  {
+    return max_lead;
+  }
+
   void
   setMFS(int mfs_arg)
   {

@@ -999,6 +999,17 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
               int derivsOrder = max(1, mod_file_struct.extended_path_hybrid_order);
               dynamic_model.computingPass(derivsOrder, 0, global_eval_context, no_tmp_terms, block,
                                           use_dll);
+              if (mod_file_struct.extended_path_order > 0 && dynamic_model.getMaxLead() == 0)
+                {
+                  cerr
+                      << "ERROR: The 'order' option of 'extended_path' cannot have a positive "
+                         "value with a backward model. Since agents do not form expectations about "
+                         "the future, future uncertainty cannot influence their current behavior; "
+                         "a positive order would just add computational cost without changing the "
+                         "results."
+                      << endl;
+                  exit(EXIT_FAILURE);
+                }
             }
           else
             {
