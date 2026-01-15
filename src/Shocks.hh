@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -186,7 +186,7 @@ private:
                              bool corr) const;
   void writeCovarAndCorrShocks(ostream& output) const;
 
-  string
+  [[nodiscard]] string
   sigmaeName() const
   {
     return "M_.heterogeneity("s + to_string(heterogeneity_dimension + 1) + ").Sigma_e"s;

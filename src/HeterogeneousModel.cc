@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024-2025 Dynare Team
+ * Copyright © 2024-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -281,6 +281,8 @@ HeterogeneousModel::writeDriverOutput(ostream& output) const
   for (int endoID = 0; endoID < symbol_table.het_endo_nbr(heterogeneity_dimension); endoID++)
     try
       {
+        // The return value of the following call is ignored, since we care about the exception
+        // NOLINTNEXTLINE(clang-diagnostic-unused-result)
         getDerivID(symbol_table.getID(SymbolType::heterogeneousEndogenous, endoID,
                                       heterogeneity_dimension),
                    -1);

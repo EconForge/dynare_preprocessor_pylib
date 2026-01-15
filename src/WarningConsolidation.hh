@@ -1,5 +1,5 @@
 /*
- * Copyright © 2012-2024 Dynare Team
+ * Copyright © 2012-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -58,7 +58,7 @@ public:
      need for this specialization. */
   friend WarningConsolidation& operator<<(WarningConsolidation& wcc, ostream& (*pf)(ostream&));
 
-  int
+  [[nodiscard]] int
   numWarnings() const
   {
     return num_warnings;
