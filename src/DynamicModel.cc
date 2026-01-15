@@ -1658,15 +1658,17 @@ DynamicModel::getPacTargetSymbId(const string& pac_model_name) const
         set<pair<int, int>> lhss;
         equation->arg1->collectDynamicVariables(SymbolType::endogenous, lhss);
         if (lhss.size() != 1)
-          throw PacTargetNotIdentifiedException {pac_model_name,
-                                                 "LHS must contain a single endogenous"};
+          throw PacTargetNotIdentifiedException {.model_name = pac_model_name,
+                                                 .message = "LHS must contain a single endogenous"};
         int lhs_symb_id = lhss.begin()->first;
         if (!symbol_table.isDiffAuxiliaryVariable(lhs_symb_id))
-          throw PacTargetNotIdentifiedException {pac_model_name, "LHS must be a diff operator"};
+          throw PacTargetNotIdentifiedException {.model_name = pac_model_name,
+                                                 .message = "LHS must be a diff operator"};
         int undiff_lhs_symb_id = symbol_table.getOrigSymbIdForAuxVar(lhs_symb_id);
         auto barg2 = dynamic_cast<BinaryOpNode*>(equation->arg2);
         if (!barg2)
-          throw PacTargetNotIdentifiedException {pac_model_name, "RHS must be a binary operator"};
+          throw PacTargetNotIdentifiedException {.model_name = pac_model_name,
+                                                 .message = "RHS must be a binary operator"};
         auto [optim_share_index, optim_part, non_optim_part, additive_part]
             = barg2->getPacOptimizingShareAndExprNodes(undiff_lhs_symb_id);
         /* If there is an optimization part, restrict the search to that part,
@@ -1685,11 +1687,13 @@ DynamicModel::getPacTargetSymbId(const string& pac_model_name) const
           catch (ExprNode::MatchFailureException&)
             {
             }
-        throw PacTargetNotIdentifiedException {pac_model_name,
-                                               "No term of the form parameter*(target-LHS_level)"};
+        throw PacTargetNotIdentifiedException {
+            .model_name = pac_model_name,
+            .message = "No term of the form parameter*(target-LHS_level)"};
       }
   throw PacTargetNotIdentifiedException {
-      pac_model_name, "No equation with the corresponding pac_expectation operator"};
+      .model_name = pac_model_name,
+      .message = "No equation with the corresponding pac_expectation operator"};
 }
 
 void
@@ -4145,8 +4149,8 @@ DynamicModel::OccbinRegimeTracker::addRegime(const vector<string>& constraints_b
         {
           auto [constraints_bind_duplicate, constraints_relax_duplicate]
               = convertBitVectorToRegimes(r);
-          throw RegimeAlreadyPresentException {constraints_bind_duplicate,
-                                               constraints_relax_duplicate};
+          throw RegimeAlreadyPresentException {.constraints_bind = constraints_bind_duplicate,
+                                               .constraints_relax = constraints_relax_duplicate};
         }
     }
 }
@@ -4160,7 +4164,8 @@ DynamicModel::OccbinRegimeTracker::checkAllRegimesPresent() const
       if (!regimes_present.contains(r))
         {
           auto [constraints_bind, constraints_relax] = convertBitVectorToRegimes(r);
-          throw MissingRegimeException {constraints_bind, constraints_relax};
+          throw MissingRegimeException {.constraints_bind = constraints_bind,
+                                        .constraints_relax = constraints_relax};
         }
       auto it = ranges::find(r, false);
       if (it == r.end())

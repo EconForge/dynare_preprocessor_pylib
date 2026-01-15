@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -40,9 +40,9 @@ SymbolTable::addSymbol(const string& name, SymbolType type, const string& tex_na
   if (exists(name))
     {
       if (type_table[getID(name)] == type)
-        throw AlreadyDeclaredException {name, true};
+        throw AlreadyDeclaredException {.name = name, .same_type = true};
       else
-        throw AlreadyDeclaredException {name, false};
+        throw AlreadyDeclaredException {.name = name, .same_type = false};
     }
 
   string final_tex_name = tex_name;
@@ -186,44 +186,52 @@ SymbolTable::getID(SymbolType type, int tsid, const optional<int>& heterogeneity
     {
     case SymbolType::endogenous:
       if (tsid < 0 || tsid >= static_cast<int>(endo_ids.size()))
-        throw UnknownTypeSpecificIDException {tsid, type, {}};
+        throw UnknownTypeSpecificIDException {
+            .tsid = tsid, .type = type, .heterogeneity_dimension = {}};
       else
         return endo_ids[tsid];
     case SymbolType::exogenous:
       if (tsid < 0 || tsid >= static_cast<int>(exo_ids.size()))
-        throw UnknownTypeSpecificIDException {tsid, type, {}};
+        throw UnknownTypeSpecificIDException {
+            .tsid = tsid, .type = type, .heterogeneity_dimension = {}};
       else
         return exo_ids[tsid];
     case SymbolType::exogenousDet:
       if (tsid < 0 || tsid >= static_cast<int>(exo_det_ids.size()))
-        throw UnknownTypeSpecificIDException {tsid, type, {}};
+        throw UnknownTypeSpecificIDException {
+            .tsid = tsid, .type = type, .heterogeneity_dimension = {}};
       else
         return exo_det_ids[tsid];
     case SymbolType::parameter:
       if (tsid < 0 || tsid >= static_cast<int>(param_ids.size()))
-        throw UnknownTypeSpecificIDException {tsid, type, {}};
+        throw UnknownTypeSpecificIDException {
+            .tsid = tsid, .type = type, .heterogeneity_dimension = {}};
       else
         return param_ids[tsid];
     case SymbolType::heterogeneousEndogenous:
       assert(heterogeneity_dimension.has_value());
       if (tsid < 0 || tsid >= static_cast<int>(het_endo_ids.at(*heterogeneity_dimension).size()))
-        throw UnknownTypeSpecificIDException {tsid, type, *heterogeneity_dimension};
+        throw UnknownTypeSpecificIDException {
+            .tsid = tsid, .type = type, .heterogeneity_dimension = *heterogeneity_dimension};
       else
         return het_endo_ids.at(*heterogeneity_dimension).at(tsid);
     case SymbolType::heterogeneousExogenous:
       assert(heterogeneity_dimension.has_value());
       if (tsid < 0 || tsid >= static_cast<int>(het_exo_ids.at(*heterogeneity_dimension).size()))
-        throw UnknownTypeSpecificIDException {tsid, type, *heterogeneity_dimension};
+        throw UnknownTypeSpecificIDException {
+            .tsid = tsid, .type = type, .heterogeneity_dimension = *heterogeneity_dimension};
       else
         return het_exo_ids.at(*heterogeneity_dimension).at(tsid);
     case SymbolType::heterogeneousParameter:
       assert(heterogeneity_dimension.has_value());
       if (tsid < 0 || tsid >= static_cast<int>(het_param_ids.at(*heterogeneity_dimension).size()))
-        throw UnknownTypeSpecificIDException {tsid, type, *heterogeneity_dimension};
+        throw UnknownTypeSpecificIDException {
+            .tsid = tsid, .type = type, .heterogeneity_dimension = *heterogeneity_dimension};
       else
         return het_param_ids.at(*heterogeneity_dimension).at(tsid);
     default:
-      throw UnknownTypeSpecificIDException {tsid, type, {}};
+      throw UnknownTypeSpecificIDException {
+          .tsid = tsid, .type = type, .heterogeneity_dimension = {}};
     }
 }
 
