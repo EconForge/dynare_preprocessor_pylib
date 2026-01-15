@@ -6604,44 +6604,44 @@ TrinaryOpNode::clone(DataTree& alt_datatree) const
 int
 TrinaryOpNode::maxEndoLead() const
 {
-  return max(arg1->maxEndoLead(), max(arg2->maxEndoLead(), arg3->maxEndoLead()));
+  return max({arg1->maxEndoLead(), arg2->maxEndoLead(), arg3->maxEndoLead()});
 }
 
 int
 TrinaryOpNode::maxExoLead() const
 {
-  return max(arg1->maxExoLead(), max(arg2->maxExoLead(), arg3->maxExoLead()));
+  return max({arg1->maxExoLead(), arg2->maxExoLead(), arg3->maxExoLead()});
 }
 
 int
 TrinaryOpNode::maxEndoLag() const
 {
-  return max(arg1->maxEndoLag(), max(arg2->maxEndoLag(), arg3->maxEndoLag()));
+  return max({arg1->maxEndoLag(), arg2->maxEndoLag(), arg3->maxEndoLag()});
 }
 
 int
 TrinaryOpNode::maxExoLag() const
 {
-  return max(arg1->maxExoLag(), max(arg2->maxExoLag(), arg3->maxExoLag()));
+  return max({arg1->maxExoLag(), arg2->maxExoLag(), arg3->maxExoLag()});
 }
 
 int
 TrinaryOpNode::maxLead() const
 {
-  return max(arg1->maxLead(), max(arg2->maxLead(), arg3->maxLead()));
+  return max({arg1->maxLead(), arg2->maxLead(), arg3->maxLead()});
 }
 
 int
 TrinaryOpNode::maxLag() const
 {
-  return max(arg1->maxLag(), max(arg2->maxLag(), arg3->maxLag()));
+  return max({arg1->maxLag(), arg2->maxLag(), arg3->maxLag()});
 }
 
 int
 TrinaryOpNode::maxLagWithDiffsExpanded() const
 {
-  return max(arg1->maxLagWithDiffsExpanded(),
-             max(arg2->maxLagWithDiffsExpanded(), arg3->maxLagWithDiffsExpanded()));
+  return max({arg1->maxLagWithDiffsExpanded(), arg2->maxLagWithDiffsExpanded(),
+              arg3->maxLagWithDiffsExpanded()});
 }
 
 expr_t
@@ -6653,8 +6653,8 @@ TrinaryOpNode::undiff() const
 int
 TrinaryOpNode::VarMaxLag(const set<expr_t>& lhs_lag_equiv) const
 {
-  return max(arg1->VarMaxLag(lhs_lag_equiv),
-             max(arg2->VarMaxLag(lhs_lag_equiv), arg3->VarMaxLag(lhs_lag_equiv)));
+  return max({arg1->VarMaxLag(lhs_lag_equiv), arg2->VarMaxLag(lhs_lag_equiv),
+              arg3->VarMaxLag(lhs_lag_equiv)});
 }
 
 expr_t
@@ -6773,7 +6773,7 @@ TrinaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t& nodes,
 int
 TrinaryOpNode::countDiffs() const
 {
-  return max(arg1->countDiffs(), max(arg2->countDiffs(), arg3->countDiffs()));
+  return max({arg1->countDiffs(), arg2->countDiffs(), arg3->countDiffs()});
 }
 
 expr_t
