@@ -17,6 +17,7 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <ranges>
 #include <regex>
 
 #include "SymbolList.hh"
@@ -110,7 +111,7 @@ SymbolList::removeDuplicates(const string& dynare_command, WarningConsolidation&
 {
   vector<string> unique_symbols;
   for (const auto& it : symbols)
-    if (find(unique_symbols.begin(), unique_symbols.end(), it) == unique_symbols.end())
+    if (ranges::find(unique_symbols, it) == unique_symbols.end())
       unique_symbols.push_back(it);
     else
       warnings << "WARNING: In " << dynare_command << ": " << it
