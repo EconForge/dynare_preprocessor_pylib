@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -19,7 +19,6 @@
 
 #include <cassert>
 #include <cstdlib>
-#include <functional>
 #include <iostream>
 #include <utility>
 
@@ -77,7 +76,7 @@ AbstractShocksStatement::writeDetShocks(ostream& output) const
                << boolalpha << "struct('exo_det'," << exo_det << ",'exo_id',"
                << symbol_table.getTypeSpecificID(id) + 1 << ",'type','" << typeToString(type) << "'"
                << ",'periods',";
-        visit(bind(print_matlab_period_range, ref(output), placeholders::_1), period_range);
+        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
         output << ",'value',";
         value->writeOutput(output);
         output << ") ];" << endl;
@@ -99,7 +98,7 @@ AbstractShocksStatement::writeJsonDetShocks(ostream& output) const
           if (exchange(printed_something2, true))
             output << ", ";
           output << "{";
-          visit(bind(print_json_period_range, ref(output), placeholders::_1), period_range);
+          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
           output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
@@ -669,7 +668,7 @@ ShocksLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
       output << "') || x ~= ";
       /* NB: date expression not parenthesized since it can only contain a + operator, which has
          higher precedence than ~= and || */
-      visit(bind(print_matlab_learnt_in, ref(output), placeholders::_1), learnt_in_period);
+      visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
       output << ", {M_.learnt_shocks.learnt_in}));" << endl << "end" << endl;
     }
 
@@ -678,9 +677,9 @@ ShocksLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
     for (const auto& [type, period_range, value] : shock_vec)
       {
         output << "struct('learnt_in',";
-        visit(bind(print_matlab_learnt_in, ref(output), placeholders::_1), learnt_in_period);
+        visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
         output << ",'exo_id'," << symbol_table.getTypeSpecificID(id) + 1 << ",'periods',";
-        visit(bind(print_matlab_period_range, ref(output), placeholders::_1), period_range);
+        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
         output << ",'type','" << typeToString(type) << "'"
                << ",'value',";
         value->writeOutput(output);
@@ -694,7 +693,7 @@ ShocksLearntInStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "shocks")"
          << R"(, "learnt_in": )";
-  visit(bind(print_json_learnt_in, ref(output), placeholders::_1), learnt_in_period);
+  visit([&](const auto& p) { print_json_learnt_in(output, p); }, learnt_in_period);
   output << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "learnt_shocks": [)";
   for (bool printed_something {false}; const auto& [id, shock_vec] : learnt_shocks)
     {
@@ -707,7 +706,7 @@ ShocksLearntInStatement::writeJsonOutput(ostream& output) const
           if (exchange(printed_something2, true))
             output << ", ";
           output << "{";
-          visit(bind(print_json_period_range, ref(output), placeholders::_1), period_range);
+          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
           output << R"(, "type": ")" << typeToString(type) << R"(", )"
                  << R"("value": ")";
           value->writeJsonOutput(output, {}, {});
@@ -989,7 +988,7 @@ ConditionalForecastPathsStatement::writeJsonOutput(ostream& output) const
           if (exchange(printed_something2, true))
             output << ", ";
           output << "{";
-          visit(bind(print_json_period_range, ref(output), placeholders::_1), period_range);
+          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
           output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
@@ -1021,12 +1020,12 @@ PerfectForesightControlledPathsStatement::writeOutput(ostream& output,
                << endl
                << "struct('exogenize_id'," << symbol_table.getTypeSpecificID(exogenize_id) + 1
                << ",'periods',";
-        visit(bind(print_matlab_period_range, ref(output), placeholders::_1), period_range);
+        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
         output << ",'value',";
         value->writeOutput(output);
         output << ",'endogenize_id'," << symbol_table.getTypeSpecificID(endogenize_id) + 1
                << ",'learnt_in',";
-        visit(bind(print_matlab_learnt_in, ref(output), placeholders::_1), learnt_in_period);
+        visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
         output << ") ];" << endl;
       }
 }
@@ -1048,7 +1047,7 @@ PerfectForesightControlledPathsStatement::writeJsonOutput(ostream& output) const
           if (exchange(printed_something2, true))
             output << ", ";
           output << "{";
-          visit(bind(print_json_period_range, ref(output), placeholders::_1), period_range);
+          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
           output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
