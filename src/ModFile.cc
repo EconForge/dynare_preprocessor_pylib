@@ -797,6 +797,15 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   dynamic_model.reorderAuxiliaryEquations();
 
   symbol_table.resizeHetAuxVars();
+
+  for (auto& hm : heterogeneous_models)
+    {
+      hm.substituteEndoLeadGreaterThanTwo(dynamic_model);
+      hm.substituteExoLead(dynamic_model);
+      hm.substituteEndoLagGreaterThanTwo(dynamic_model);
+      hm.substituteExoLag(dynamic_model);
+    }
+
   for (auto& hm : heterogeneous_models)
     hm.transformPass();
 

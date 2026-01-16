@@ -26,6 +26,8 @@
 
 using namespace std;
 
+class DynamicModel;
+
 class HeterogeneousModel : public ModelTree
 {
 public:
@@ -49,29 +51,24 @@ public:
   [[nodiscard]] int getJacobianColsNbr() const override;
   [[nodiscard]] int getLegacyJacobianCol(int deriv_id) const override;
 
-#if 0
-  void substituteEndoLeadGreaterThanTwo();
+  /* These methods substitute both aggregate and heterogeneous variables with leads/lags
+   beyond the standard range (leads >= 2, lags >= 2 for endos; any lead/lag for exos).
+   For lead substitution, aggregate variables are treated as known and the
+   substitution operates in deterministic mode. As for heterogeneous variables,
+   a substitution in stochastic mode is necessary to properly handle the
+   expectation operator */
+  //! Transforms the model by removing all leads on aggregate and het endos >= 2
+  void substituteEndoLeadGreaterThanTwo(DynamicModel& dynamic_model);
 
-  //! Transforms the model by removing all lags greater or equal than 2 on endos
-  void substituteEndoLagGreaterThanTwo();
+  //! Transforms the model by removing all lags >= 2 on aggregate and het endos
+  void substituteEndoLagGreaterThanTwo(DynamicModel& dynamic_model);
 
-  //! Transforms the model by removing all leads on exos
+  //! Transforms the model by removing all leads on aggregate and het exos
   /*! Note that this can create new lags on endos and exos */
-  void substituteExoLead();
+  void substituteExoLead(DynamicModel& dynamic_model);
 
-  //! Transforms the model by removing all lags on exos
-  void substituteExoLag();
-
-  //! Transforms the model by removing all UnaryOpcode::expectation
-  void substituteExpectation(bool partial_information_model);
-
-  //! Transforms the model by decreasing the lead/lag of predetermined variables in model equations
-  //! by one
-  void transformPredeterminedVariables();
-
-  //! Substitutes out all model-local variables
-  void substituteModelLocalVariables();
-#endif
+  //! Transforms the model by removing all lags on aggregate and het exos
+  void substituteExoLag(DynamicModel& dynamic_model);
 
   // FIXME: the following 5 functions are identical to those in DynamicModel. Factorization?
   [[nodiscard]] int getDerivID(int symb_id, int lead_lag) const noexcept(false) override;
@@ -97,8 +94,26 @@ private:
   // Maps a deriv ID to a pair (symbol ID, lead/lag)
   vector<pair<int, int>> inv_deriv_id_table;
 
+  // Auxiliary equations created by nonlinear expectation substitution
+  vector<BinaryOpNode*> het_nonlinear_expectation_aux_equations;
+
+  // Information about MCP multipliers for output generation
+  struct MCPMultiplierInfo
+  {
+    const int multiplier_symb_id; // Symbol ID of the multiplier (MULT_L_* or MULT_U_*)
+    const int bound_var_symb_id;  // Symbol ID of the bound variable (e.g., 'a' in a >= 0)
+    const expr_t bound_expr;      // The bound expression (lb or ub)
+    const bool is_lower_bound;    // true for lower bound (>=), false for upper bound (<=)
+    const expr_t
+        original_residual; // The original equation's residual (LHS - RHS) before MCP transformation
+  };
+  vector<MCPMultiplierInfo> mcp_multiplier_info;
+
   // Allocates the derivation IDs for all endogenous variables for this heterogeneity dimension
   void computeDerivIDs();
+
+  // Writes the file for setting heterogeneous auxiliary variables
+  void writeSetHetAuxiliaryVariablesFile(const string& basename) const;
 };
 
 #endif

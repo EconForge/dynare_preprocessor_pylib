@@ -536,6 +536,8 @@ public:
   void option_vec_str(string name_option, vector<string> opt);
   //! Sets an option to a celll array of strings
   void option_vec_cellstr(string name_option, vector<string> opt);
+  //! Sets an option to a mixed string/integer list (outputs as MATLAB cell array)
+  void option_str_or_int_list(string name_option, vector<string> opt);
   //! Sets an option to a vector of (numerical) values
   void option_vec_value(string name_option, vector<string> opt);
   //! Sets an option to a vector of vectors of (numerical) values
@@ -670,6 +672,7 @@ public:
   void run_save_params_and_steady_state(string filename);
   void run_identification();
   void heterogeneity_load_steady_state();
+  void heterogeneity_compute_steady_state();
   void heterogeneity_solve();
   void heterogeneity_simulate(vector<string> symbol_list = {});
   void add_mc_filename(string filename, string prior = "1");

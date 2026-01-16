@@ -252,6 +252,25 @@ OptionsList::writeOutputCommon(ostream& output, const string& option_group) cons
                     output << it << ',';
                   output << ']';
                 }
+              else if constexpr (is_same_v<T, StrOrIntListVal>)
+                {
+                  /* Output as MATLAB cell array with proper typing:
+                     - numeric strings become integers: 3
+                     - non-numeric strings get quotes: 'eq_name' */
+                  output << '{';
+                  for (bool first {true}; const auto& it : v)
+                    {
+                      if (!exchange(first, false))
+                        output << ", ";
+                      // Check if string is purely numeric (integer)
+                      bool is_numeric = !it.empty() && all_of(it.begin(), it.end(), ::isdigit);
+                      if (is_numeric)
+                        output << it; // No quotes for integers
+                      else
+                        output << "'" << it << "'"; // Quotes for strings
+                    }
+                  output << '}';
+                }
               else if constexpr (is_same_v<T, vector<vector<string>>>)
                 {
                   // Same remark as for VecValueVal
@@ -325,6 +344,22 @@ OptionsList::writeJsonOutput(ostream& output) const
                           }
                         output << ']';
                       }
+                  }
+                output << ']';
+              }
+            else if constexpr (is_same_v<T, StrOrIntListVal>)
+              {
+                output << '[';
+                for (bool printed_something {false}; const auto& it : v)
+                  {
+                    if (exchange(printed_something, true))
+                      output << ", ";
+                    // Check if string is purely numeric
+                    bool is_numeric = !it.empty() && all_of(it.begin(), it.end(), ::isdigit);
+                    if (is_numeric)
+                      output << it; // No quotes for integers
+                    else
+                      output << '"' << it << '"';
                   }
                 output << ']';
               }

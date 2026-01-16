@@ -1617,6 +1617,18 @@ ParsingDriver::option_vec_cellstr(string name_option, vector<string> opt)
 }
 
 void
+ParsingDriver::option_str_or_int_list(string name_option, vector<string> opt)
+{
+  if (options_list.contains(name_option))
+    error("option " + name_option + " declared twice");
+
+  if (opt.empty())
+    return;
+
+  options_list.set(move(name_option), OptionsList::StrOrIntListVal {move(opt)});
+}
+
+void
 ParsingDriver::option_vec_value(string name_option, vector<string> opt)
 {
   if (options_list.contains(name_option))
@@ -2327,6 +2339,13 @@ void
 ParsingDriver::heterogeneity_load_steady_state()
 {
   mod_file->addStatement(make_unique<HeterogeneityLoadSteadyStateStatement>(move(options_list)));
+  options_list.clear();
+}
+
+void
+ParsingDriver::heterogeneity_compute_steady_state()
+{
+  mod_file->addStatement(make_unique<HeterogeneityComputeSteadyStateStatement>(move(options_list)));
   options_list.clear();
 }
 

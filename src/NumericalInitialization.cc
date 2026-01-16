@@ -770,3 +770,34 @@ HeterogeneityLoadSteadyStateStatement::writeJsonOutput(ostream& output) const
     }
   output << "}";
 }
+
+HeterogeneityComputeSteadyStateStatement::HeterogeneityComputeSteadyStateStatement(
+    OptionsList options_list_arg) :
+    options_list {move(options_list_arg)}
+{
+}
+
+void
+HeterogeneityComputeSteadyStateStatement::writeOutput(ostream& output,
+                                                      [[maybe_unused]] const string& basename,
+                                                      [[maybe_unused]] bool minimal_workspace) const
+{
+  options_list.writeOutput(output, "options_.heterogeneity");
+  output << "oo_.heterogeneity = struct;" << endl
+         << "[oo_.heterogeneity, M_.params] = heterogeneity.compute_steady_state(M_, "
+            "options_.heterogeneity, oo_.heterogeneity);"
+         << endl;
+}
+
+void
+HeterogeneityComputeSteadyStateStatement::writeJsonOutput(ostream& output) const
+{
+  output << R"({"statementName": "heterogeneity_compute_steady_state", )"
+         << R"("output": ["oo_.heterogeneity", "M_.params"])";
+  if (!options_list.empty())
+    {
+      output << ", ";
+      options_list.writeJsonOutput(output);
+    }
+  output << "}";
+}

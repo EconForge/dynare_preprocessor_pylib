@@ -225,7 +225,12 @@ str_tolower(string s)
 %token HETEROGENEITY HETEROGENEITY_DIMENSION SUM PERFECT_FORESIGHT_CONTROLLED_PATHS EXOGENIZE ENDOGENIZE
 %token PRECONDITIONER FIRST_ITER_LU BLOCK_DIAGONAL_LU INCOMPLETE_LU ITER_TOL ITER_MAXIT GMRES_RESTART BLOCK_DIAGONAL_LU_MAXLU BLOCK_DIAGONAL_LU_NPERIODS BLOCK_DIAGONAL_LU_NLU BLOCK_DIAGONAL_LU_RELU
 CHECK_JACOBIAN_SINGULARITY
-%token TRUNCATION_HORIZON HETEROGENEITY_LOAD_STEADY_STATE HETEROGENEITY_SOLVE HETEROGENEITY_SIMULATE
+%token TRUNCATION_HORIZON HETEROGENEITY_LOAD_STEADY_STATE HETEROGENEITY_COMPUTE_STEADY_STATE HETEROGENEITY_SOLVE HETEROGENEITY_SIMULATE
+%token FORWARD_MAX_ITER FORWARD_TOL FORWARD_CHECK_EVERY FORWARD_VERBOSITY
+%token TIME_ITERATION_MAX_ITER TIME_ITERATION_TOL TIME_ITERATION_LEARNING_RATE TIME_ITERATION_VERBOSITY
+%token TIME_ITERATION_SOLVER_TOLF TIME_ITERATION_SOLVER_TOLX TIME_ITERATION_SOLVER_FACTOR
+%token TIME_ITERATION_SOLVER_MAX_ITER TIME_ITERATION_SOLVER_STOP_ON_ERROR TIME_ITERATION_EARLY_STOPPING
+%token CALIBRATION_TOLF CALIBRATION_MAX_ITER CALIBRATION_VERBOSITY CALIBRATION_TARGET_EQUATIONS
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -244,6 +249,7 @@ CHECK_JACOBIAN_SINGULARITY
 %type <vector<string>> vec_value vec_value_1 vec_value_w_inf vec_value_w_inf_1
 %type <vector<vector<string>>> vec_of_vec_value vec_of_vec_value_1
 %type <vector<string>> symbol_list symbol_list_or_wildcard
+%type <vector<string>> string_or_int_list
 %type <vector<int>> vec_int_elem vec_int_1 vec_int vec_int_number
 %type <PriorDistributions> prior_pdf prior_distribution
 %type <pair<expr_t, expr_t>> calibration_range
@@ -414,6 +420,7 @@ statement : parameters
           | matched_irfs
           | matched_irfs_weights
           | heterogeneity_load_steady_state
+          | heterogeneity_compute_steady_state
           | heterogeneity_solve
           | heterogeneity_simulate
           ;
@@ -3659,6 +3666,54 @@ heterogeneity_load_steady_state_options : o_heterogeneity_steady_state_filename
                                         | o_heterogeneity_steady_state_variable
                                         ;
 
+heterogeneity_compute_steady_state : HETEROGENEITY_COMPUTE_STEADY_STATE ';'
+                                    { driver.heterogeneity_compute_steady_state(); }
+                                   | HETEROGENEITY_COMPUTE_STEADY_STATE '(' heterogeneity_compute_steady_state_options_list ')' ';'
+                                    { driver.heterogeneity_compute_steady_state(); }
+                                   ;
+
+heterogeneity_compute_steady_state_options_list : heterogeneity_compute_steady_state_options_list COMMA heterogeneity_compute_steady_state_options
+                                                | heterogeneity_compute_steady_state_options
+                                                ;
+
+heterogeneity_compute_steady_state_options : o_heterogeneity_steady_state_filename
+                                           | o_heterogeneity_steady_state_variable
+                                           | o_forward_max_iter
+                                           | o_forward_tol
+                                           | o_forward_check_every
+                                           | o_forward_verbosity
+                                           | o_time_iteration_max_iter
+                                           | o_time_iteration_tol
+                                           | o_time_iteration_learning_rate
+                                           | o_time_iteration_verbosity
+                                           | o_time_iteration_solver_tolf
+                                           | o_time_iteration_solver_tolx
+                                           | o_time_iteration_solver_factor
+                                           | o_time_iteration_solver_max_iter
+                                           | o_time_iteration_solver_stop_on_error
+                                           | o_time_iteration_early_stopping
+                                           | o_calibration_tolf
+                                           | o_calibration_max_iter
+                                           | o_calibration_verbosity
+                                           | o_calibration_target_equations
+                                           ;
+
+string_or_int_list : string_or_int_list COMMA QUOTED_STRING
+                     {
+                       $$ = $1;
+                       $$.push_back($3);
+                     }
+                   | string_or_int_list COMMA INT_NUMBER
+                     {
+                       $$ = $1;
+                       $$.push_back($3);
+                     }
+                   | QUOTED_STRING
+                     { $$ = { $1 }; }
+                   | INT_NUMBER
+                     { $$ = { $1 }; }
+                   ;
+
 heterogeneity_solve : HETEROGENEITY_SOLVE ';'
                      { driver.heterogeneity_solve(); }
                     | HETEROGENEITY_SOLVE '(' heterogeneity_solve_options_list ')' ';'
@@ -3921,6 +3976,25 @@ o_filename : FILENAME EQUAL filename { driver.option_str("filename", $3); };
 o_heterogeneity_steady_state_filename : FILENAME EQUAL filename { driver.option_str("steady_state_file_name", $3); };
 o_heterogeneity_steady_state_variable : VARIABLE EQUAL symbol { driver.option_str("steady_state_variable_name", $3); };
 o_truncation_horizon : TRUNCATION_HORIZON EQUAL INT_NUMBER { driver.option_num("truncation_horizon", $3); };
+o_forward_max_iter : FORWARD_MAX_ITER EQUAL INT_NUMBER { driver.option_num("forward.max_iter", $3); };
+o_forward_tol : FORWARD_TOL EQUAL non_negative_number { driver.option_num("forward.tol", $3); };
+o_forward_check_every : FORWARD_CHECK_EVERY EQUAL INT_NUMBER { driver.option_num("forward.check_every", $3); };
+o_forward_verbosity : FORWARD_VERBOSITY EQUAL INT_NUMBER { driver.option_num("forward.verbosity", $3); };
+o_time_iteration_max_iter : TIME_ITERATION_MAX_ITER EQUAL INT_NUMBER { driver.option_num("time_iteration.max_iter", $3); };
+o_time_iteration_tol : TIME_ITERATION_TOL EQUAL non_negative_number { driver.option_num("time_iteration.tol", $3); };
+o_time_iteration_learning_rate : TIME_ITERATION_LEARNING_RATE EQUAL non_negative_number { driver.option_num("time_iteration.learning_rate", $3); };
+o_time_iteration_verbosity : TIME_ITERATION_VERBOSITY EQUAL INT_NUMBER { driver.option_num("time_iteration.verbosity", $3); };
+o_time_iteration_solver_tolf : TIME_ITERATION_SOLVER_TOLF EQUAL non_negative_number { driver.option_num("time_iteration.solver_tolf", $3); };
+o_time_iteration_solver_tolx : TIME_ITERATION_SOLVER_TOLX EQUAL non_negative_number { driver.option_num("time_iteration.solver_tolx", $3); };
+o_time_iteration_solver_factor : TIME_ITERATION_SOLVER_FACTOR EQUAL non_negative_number { driver.option_num("time_iteration.solver_factor", $3); };
+o_time_iteration_solver_max_iter : TIME_ITERATION_SOLVER_MAX_ITER EQUAL INT_NUMBER { driver.option_num("time_iteration.solver_max_iter", $3); };
+o_time_iteration_solver_stop_on_error : TIME_ITERATION_SOLVER_STOP_ON_ERROR { driver.option_num("time_iteration.solver_stop_on_error", "true"); };
+o_time_iteration_early_stopping : TIME_ITERATION_EARLY_STOPPING EQUAL INT_NUMBER { driver.option_num("time_iteration.early_stopping", $3); };
+o_calibration_tolf : CALIBRATION_TOLF EQUAL non_negative_number { driver.option_num("calibration.tolf", $3); };
+o_calibration_max_iter : CALIBRATION_MAX_ITER EQUAL INT_NUMBER { driver.option_num("calibration.max_iter", $3); };
+o_calibration_verbosity : CALIBRATION_VERBOSITY EQUAL INT_NUMBER { driver.option_num("calibration.verbosity", $3); };
+o_calibration_target_equations : CALIBRATION_TARGET_EQUATIONS EQUAL '[' string_or_int_list ']'
+                                 { driver.option_str_or_int_list("calibration.target_equations", $4); };
 o_var_eq_tags : EQTAGS EQUAL vec_str { driver.option_vec_str("var.eqtags", $3); }
 o_var_structural : STRUCTURAL { driver.option_num("var.structural", "true"); }
 o_dirname : DIRNAME EQUAL filename { driver.option_str("dirname", $3); };
