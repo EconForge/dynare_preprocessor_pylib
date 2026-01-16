@@ -148,7 +148,7 @@ ShocksStatement::writeOutput(ostream& output, [[maybe_unused]] const string& bas
 
   if (overwrite)
     {
-      output << "M_.det_shocks = [];" << endl;
+      output << "M_.det_shocks = struct([]);" << endl;
 
       output << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", " << symbol_table.exo_nbr()
              << ");" << endl
@@ -533,7 +533,7 @@ MShocksStatement::writeOutput(ostream& output, [[maybe_unused]] const string& ba
   output << "%" << endl << "% MSHOCKS instructions" << endl << "%" << endl;
 
   if (overwrite)
-    output << "M_.det_shocks = [];" << endl;
+    output << "M_.det_shocks = struct([]);" << endl;
 
   writeDetShocks(output);
 }
@@ -1294,8 +1294,8 @@ HeteroskedasticShocksStatement::writeOutput(ostream& output,
 {
   // NB: The first initialization of the fields is done in ModFile::writeMOutput()
   if (overwrite)
-    output << "M_.heteroskedastic_shocks.Qvalue_orig = [];" << endl
-           << "M_.heteroskedastic_shocks.Qscale_orig = [];" << endl;
+    output << "M_.heteroskedastic_shocks.Qvalue_orig = struct([]);" << endl
+           << "M_.heteroskedastic_shocks.Qscale_orig = struct([]);" << endl;
 
   for (const auto& [symb_id, vec] : values)
     for (int tsid = symbol_table.getTypeSpecificID(symb_id);

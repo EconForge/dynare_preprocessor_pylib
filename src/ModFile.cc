@@ -1213,16 +1213,17 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
   mOutputFile << "M_.sigma_e_is_diagonal = true;" << endl;
 
   /* Initialize the structures created for several blocks, as part of the implementation of the
-     “overwrite” option */
-  mOutputFile << "M_.det_shocks = [];" << endl
-              << "M_.surprise_shocks = [];" << endl
-              << "M_.learnt_shocks = [];" << endl
-              << "M_.learnt_endval = [];" << endl
-              << "M_.heteroskedastic_shocks.Qvalue_orig = [];" << endl
-              << "M_.heteroskedastic_shocks.Qscale_orig = [];" << endl
+     “overwrite” option.
+     Note that struct() creates a 1×1 struct array, so we have to use struct([]). */
+  mOutputFile << "M_.det_shocks = struct([]);" << endl
+              << "M_.surprise_shocks = struct([]);" << endl
+              << "M_.learnt_shocks = struct([]);" << endl
+              << "M_.learnt_endval = struct([]);" << endl
+              << "M_.heteroskedastic_shocks.Qvalue_orig = struct([]);" << endl
+              << "M_.heteroskedastic_shocks.Qscale_orig = struct([]);" << endl
               << "M_.matched_irfs = {};" << endl
               << "M_.matched_irfs_weights = {};" << endl
-              << "M_.perfect_foresight_controlled_paths = [];" << endl;
+              << "M_.perfect_foresight_controlled_paths = struct([]);" << endl;
 
   // NB: options_.{ramsey,discretionary}_policy should rather be fields of M_
   mOutputFile << boolalpha << "options_.linear = " << linear << ";" << endl
