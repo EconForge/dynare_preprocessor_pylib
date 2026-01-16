@@ -68,19 +68,23 @@ AbstractShocksStatement::AbstractShocksStatement(bool overwrite_arg, ShockType t
 void
 AbstractShocksStatement::writeDetShocks(ostream& output) const
 {
+  if (det_shocks.empty())
+    return;
+
+  output << "M_.det_shocks = [ M_.det_shocks;" << endl;
   for (const auto& [id, shock_vec] : det_shocks)
     for (bool exo_det = (symbol_table.getType(id) == SymbolType::exogenousDet);
          const auto& [period_range, value] : shock_vec)
       {
-        output << "M_.det_shocks = [ M_.det_shocks;" << endl
-               << boolalpha << "struct('exo_det'," << exo_det << ",'exo_id',"
+        output << "struct('exo_det'," << boolalpha << exo_det << ",'exo_id',"
                << symbol_table.getTypeSpecificID(id) + 1 << ",'type','" << typeToString(type) << "'"
                << ",'periods',";
         visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
         output << ",'value',";
         value->writeOutput(output);
-        output << ") ];" << endl;
+        output << ");" << endl;
       }
+  output << "];" << endl;
 }
 
 void
@@ -1012,13 +1016,12 @@ PerfectForesightControlledPathsStatement::writeOutput(ostream& output,
                                                       [[maybe_unused]] const string& basename,
                                                       [[maybe_unused]] bool minimal_workspace) const
 {
+  output << "M_.perfect_foresight_controlled_paths = [ M_.perfect_foresight_controlled_paths;"
+         << endl;
   for (const auto& [exogenize_id, constraints, endogenize_id] : paths)
     for (const auto& [period_range, value] : constraints)
       {
-        output << "M_.perfect_foresight_controlled_paths = [ "
-                  "M_.perfect_foresight_controlled_paths;"
-               << endl
-               << "struct('exogenize_id'," << symbol_table.getTypeSpecificID(exogenize_id) + 1
+        output << "struct('exogenize_id'," << symbol_table.getTypeSpecificID(exogenize_id) + 1
                << ",'periods',";
         visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
         output << ",'value',";
@@ -1026,8 +1029,9 @@ PerfectForesightControlledPathsStatement::writeOutput(ostream& output,
         output << ",'endogenize_id'," << symbol_table.getTypeSpecificID(endogenize_id) + 1
                << ",'learnt_in',";
         visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
-        output << ") ];" << endl;
+        output << ");" << endl;
       }
+  output << "];" << endl;
 }
 
 void
@@ -1297,26 +1301,30 @@ HeteroskedasticShocksStatement::writeOutput(ostream& output,
     output << "M_.heteroskedastic_shocks.Qvalue_orig = struct([]);" << endl
            << "M_.heteroskedastic_shocks.Qscale_orig = struct([]);" << endl;
 
+  output << "M_.heteroskedastic_shocks.Qvalue_orig = [M_.heteroskedastic_shocks.Qvalue_orig;"
+         << endl;
   for (const auto& [symb_id, vec] : values)
     for (int tsid = symbol_table.getTypeSpecificID(symb_id);
          const auto& [period1, period2, value] : vec)
       {
-        output << "M_.heteroskedastic_shocks.Qvalue_orig = [M_.heteroskedastic_shocks.Qvalue_orig; "
-                  "struct('exo_id', "
-               << tsid + 1 << ",'periods'," << period1 << ":" << period2 << ",'value',";
+        output << "struct('exo_id', " << tsid + 1 << ",'periods'," << period1 << ":" << period2
+               << ",'value',";
         value->writeOutput(output);
-        output << ")];" << endl;
+        output << ");" << endl;
       }
+  output << "];" << endl
+         << "M_.heteroskedastic_shocks.Qscale_orig = [M_.heteroskedastic_shocks.Qscale_orig;"
+         << endl;
   for (const auto& [symb_id, vec] : scales)
     for (int tsid = symbol_table.getTypeSpecificID(symb_id);
          const auto& [period1, period2, scale] : vec)
       {
-        output << "M_.heteroskedastic_shocks.Qscale_orig = [M_.heteroskedastic_shocks.Qscale_orig; "
-                  "struct('exo_id', "
-               << tsid + 1 << ",'periods'," << period1 << ":" << period2 << ",'scale',";
+        output << "struct('exo_id', " << tsid + 1 << ",'periods'," << period1 << ":" << period2
+               << ",'scale',";
         scale->writeOutput(output);
-        output << ")];" << endl;
+        output << ");" << endl;
       }
+  output << "];" << endl;
 }
 
 void
