@@ -29,6 +29,7 @@
 #include "ComputingTasks.hh"
 #include "ModFile.hh"
 #include "Shocks.hh"
+#include "Utils.hh"
 
 ModFile::ModFile(WarningConsolidation& warnings_arg) :
     symbol_table {heterogeneity_table},
@@ -1100,7 +1101,7 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
       exit(EXIT_FAILURE);
     }
 
-  auto plusfolder {DataTree::packageDir(basename)};
+  auto plusfolder {packageDir(basename)};
 
   if (check_model_changes && !heterogeneity_table.empty())
     {

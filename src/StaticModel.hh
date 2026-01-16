@@ -25,6 +25,7 @@
 
 #include "Bytecode.hh"
 #include "ModelTree.hh"
+#include "Utils.hh"
 
 using namespace std;
 

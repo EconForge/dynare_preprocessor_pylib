@@ -23,6 +23,7 @@
 
 #include "DynamicModel.hh"
 #include "SubModel.hh"
+#include "Utils.hh"
 
 TrendComponentModelTable::TrendComponentModelTable(SymbolTable& symbol_table_arg) :
     symbol_table {symbol_table_arg}
@@ -250,7 +251,7 @@ TrendComponentModelTable::writeOutput(const string& basename, ostream& output) c
   if (names.empty())
     return;
 
-  const filesystem::path filename {DataTree::packageDir(basename) / "trend_component_ar_a0.m"};
+  const filesystem::path filename {packageDir(basename) / "trend_component_ar_a0.m"};
   ofstream ar_ec_output {filename, ios::out | ios::binary};
   if (!ar_ec_output.is_open())
     {
@@ -422,7 +423,7 @@ VarModelTable::writeOutput(const string& basename, ostream& output) const
   if (names.empty())
     return;
 
-  const filesystem::path filename {DataTree::packageDir(basename) / "varmatrices.m"};
+  const filesystem::path filename {packageDir(basename) / "varmatrices.m"};
   ofstream ar_output {filename, ios::out | ios::binary};
   if (!ar_output.is_open())
     {
@@ -1816,7 +1817,7 @@ PacModelTable::writeTargetCoefficientsFile(const string& basename) const
   if (target_info.empty())
     return;
 
-  filesystem::path filename {DataTree::packageDir(basename) / "pac_target_coefficients.m"};
+  filesystem::path filename {packageDir(basename) / "pac_target_coefficients.m"};
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {

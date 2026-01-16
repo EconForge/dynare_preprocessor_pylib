@@ -28,6 +28,7 @@
 #include "ExprNode.hh"
 #include "ParsingDriver.hh"
 #include "Statement.hh"
+#include "Utils.hh"
 /* NB: the following also imports our specialization of operator<< for location class,
    used below in error() and undeclared_model_variable_error() */
 #include "WarningConsolidation.hh"
@@ -2877,8 +2878,8 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
       // If the equation has a “bind” or “relax” tag (occbin case)
       if (!eq_tags.contains("name"))
         error("An equation with a 'bind' or 'relax' tag must have a 'name' tag");
-      auto constraints_bind = DataTree::strsplit(eq_tags["bind"], ',');
-      auto constraints_relax = DataTree::strsplit(eq_tags["relax"], ',');
+      auto constraints_bind = strsplit(eq_tags["bind"], ',');
+      auto constraints_relax = strsplit(eq_tags["relax"], ',');
       auto constraints_all = constraints_bind;
       constraints_all.insert(constraints_all.end(), constraints_relax.begin(),
                              constraints_relax.end()); // Concatenate the two vectors

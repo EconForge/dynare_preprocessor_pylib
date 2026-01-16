@@ -1,0 +1,72 @@
+/*
+ * Copyright © 2026 Dynare Team
+ *
+ * This file is part of Dynare.
+ *
+ * Dynare is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Dynare is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#include "Utils.hh"
+
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+
+vector<string>
+strsplit(string_view str, char delim)
+{
+  vector<string> result;
+  while (true)
+    {
+      size_t idx {str.find(delim)};
+      if (auto sub {str.substr(0, idx)}; !sub.empty())
+        result.emplace_back(sub);
+      if (idx == string_view::npos)
+        break;
+      str.remove_prefix(idx + 1);
+    }
+  return result;
+}
+
+filesystem::path
+packageDir(const string_view& package)
+{
+  filesystem::path d;
+  for (const auto& it : strsplit(package, '.'))
+    d /= "+" + it;
+  return d;
+}
+
+void
+writeToFileIfModified(stringstream& new_contents, const filesystem::path& filename)
+{
+  ifstream old_file {filename, ios::in | ios::binary};
+  if (old_file.is_open()
+      && ranges::equal(istreambuf_iterator<char> {old_file}, istreambuf_iterator<char> {},
+                       istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {}))
+    return;
+  old_file.close();
+
+  new_contents.seekg(0);
+
+  ofstream new_file {filename, ios::out | ios::binary};
+  if (!new_file.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+  ranges::copy(istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {},
+               ostreambuf_iterator<char> {new_file});
+  new_file.close();
+}

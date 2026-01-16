@@ -23,6 +23,7 @@
 #include <sstream>
 
 #include "ModelEquationBlock.hh"
+#include "Utils.hh"
 
 PlannerObjective::PlannerObjective(SymbolTable& symbol_table_arg,
                                    NumericalConstants& num_constants_arg,

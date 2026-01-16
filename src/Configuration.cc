@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2024 Dynare Team
+ * Copyright © 2010-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -26,7 +26,7 @@
 #endif
 
 #include "Configuration.hh"
-#include "DataTree.hh" // For strsplit()
+#include "Utils.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -795,7 +795,7 @@ Configuration::findConfigFile(const string& filename)
     xdg_config_dirs = xdg_config_dirs_env;
   if (xdg_config_dirs.empty())
     xdg_config_dirs = "/etc/xdg";
-  for (const auto& dir : DataTree::strsplit(xdg_config_dirs, ':'))
+  for (const auto& dir : strsplit(xdg_config_dirs, ':'))
     {
       filesystem::path candidate {filesystem::path {dir} / "dynare" / filename};
       if (exists(candidate))

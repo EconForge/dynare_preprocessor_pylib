@@ -21,13 +21,11 @@
 #define DATA_TREE_HH
 
 #include <cmath>
-#include <filesystem>
 #include <iomanip>
 #include <map>
 #include <memory>
 #include <sstream>
 #include <string>
-#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -112,11 +110,6 @@ protected:
   //! Stores the order of appearance of local variables in the model block. Needed following change
   //! in #563
   vector<int> local_variables_vector;
-
-  /* Writes the contents of “new_contents” to the file “filename”. However, if
-     the file already exists and would not be modified by this operation, then do
-     nothing. */
-  static void writeToFileIfModified(stringstream& new_contents, const filesystem::path& filename);
 
 private:
   constexpr static int constants_precision {16};
@@ -359,17 +352,6 @@ public:
 
   // Returns the list of parameters used with a lead or lag
   [[nodiscard]] set<string> ParamUsedWithLeadLag() const;
-
-  /* Equivalent of MATLAB/Octave’s strsplit, except that it ignores empty
-     substring components (MATLAB/Octave adds them to the output); in
-     particular, returns an empty vector given an empty string. */
-  static vector<string> strsplit(string_view str, char delim);
-
-  /*! Takes a MATLAB/Octave package name (possibly with several levels nested using dots),
-    and returns the path to the corresponding filesystem directory.
-    In practice the package nesting is used for the planner_objective (stored
-    inside +objective subdir). */
-  static filesystem::path packageDir(const string_view& package);
 };
 
 inline expr_t

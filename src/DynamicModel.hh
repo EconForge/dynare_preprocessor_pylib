@@ -25,6 +25,7 @@
 
 #include "Bytecode.hh"
 #include "StaticModel.hh"
+#include "Utils.hh"
 
 using namespace std;
 

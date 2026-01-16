@@ -21,7 +21,6 @@
 #include <cassert>
 #include <cstdlib>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <iterator>
 #include <ranges>
@@ -938,52 +937,4 @@ DataTree::writeCHelpersDeclaration(ostream& output) const
     output << "extern inline double getPowerDeriv(double x, double p, int k);" << endl;
   if (isUnaryOpUsed(UnaryOpcode::sign))
     output << "extern inline double sign(double x);" << endl;
-}
-
-vector<string>
-DataTree::strsplit(string_view str, char delim)
-{
-  vector<string> result;
-  while (true)
-    {
-      size_t idx {str.find(delim)};
-      if (auto sub {str.substr(0, idx)}; !sub.empty())
-        result.emplace_back(sub);
-      if (idx == string_view::npos)
-        break;
-      str.remove_prefix(idx + 1);
-    }
-  return result;
-}
-
-filesystem::path
-DataTree::packageDir(const string_view& package)
-{
-  filesystem::path d;
-  for (const auto& it : strsplit(package, '.'))
-    d /= "+" + it;
-  return d;
-}
-
-void
-DataTree::writeToFileIfModified(stringstream& new_contents, const filesystem::path& filename)
-{
-  ifstream old_file {filename, ios::in | ios::binary};
-  if (old_file.is_open()
-      && ranges::equal(istreambuf_iterator<char> {old_file}, istreambuf_iterator<char> {},
-                       istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {}))
-    return;
-  old_file.close();
-
-  new_contents.seekg(0);
-
-  ofstream new_file {filename, ios::out | ios::binary};
-  if (!new_file.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
-      exit(EXIT_FAILURE);
-    }
-  ranges::copy(istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {},
-               ostreambuf_iterator<char> {new_file});
-  new_file.close();
 }

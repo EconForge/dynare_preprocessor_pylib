@@ -37,6 +37,7 @@
 #include "DataTree.hh"
 #include "EquationTags.hh"
 #include "ExtendedPreprocessorTypes.hh"
+#include "Utils.hh"
 
 using namespace std;
 
