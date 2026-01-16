@@ -721,6 +721,12 @@ public:
     return max_lead;
   }
 
+  [[nodiscard]] int
+  getMaxLag() const
+  {
+    return max_lag;
+  }
+
   void
   setMFS(int mfs_arg)
   {

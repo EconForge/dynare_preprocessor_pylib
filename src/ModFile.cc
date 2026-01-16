@@ -1010,6 +1010,13 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
                       << endl;
                   exit(EXIT_FAILURE);
                 }
+              if (dynamic_model.getMaxLag() == 0)
+                {
+                  cerr << "ERROR: The 'extended_path' command cannot be used with a purely "
+                          "forward model."
+                       << endl;
+                  exit(EXIT_FAILURE);
+                }
             }
           else
             {
