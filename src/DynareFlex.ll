@@ -668,6 +668,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>qoq {return token::QOQ; }
 <DYNARE_STATEMENT>yoy {return token::YOY; }
 <DYNARE_STATEMENT>aoa {return token::AOA; }
+<DYNARE_STATEMENT>forecast_type {return token::FORECAST_TYPE; }
 <DYNARE_STATEMENT>unconditional {return token::UNCONDITIONAL; }
 <DYNARE_STATEMENT>conditional {return token::CONDITIONAL; }
 <DYNARE_STATEMENT>fig_name {return token::FIG_NAME;}
