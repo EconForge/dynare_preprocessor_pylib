@@ -20,6 +20,8 @@
 #ifndef MODEL_EQUATION_BLOCK_HH
 #define MODEL_EQUATION_BLOCK_HH
 
+#include <optional>
+
 #include "DataTree.hh"
 #include "DynamicModel.hh"
 #include "Statement.hh"
@@ -87,6 +89,8 @@ private:
   //! Associates a set of symbol IDs (the variable(s) assigned in a given statement) to an
   //! expression (their assigned value)
   vector<pair<vector<int>, expr_t>> def_table;
+  //! Line numbers matching entries in def_table (1-based source lines when available)
+  vector<optional<int>> def_table_lineno;
 
   //! Reference to static model (for writing auxiliary equations)
   const StaticModel& static_model;
@@ -101,9 +105,10 @@ public:
   SteadyStateModel& operator=(const SteadyStateModel& m);
 
   //! Add an expression of the form "var = expr;"
-  void addDefinition(int symb_id, expr_t expr);
+  void addDefinition(int symb_id, expr_t expr, optional<int> lineno = nullopt);
   //! Add an expression of the form "[ var1, var2, ... ] = expr;"
-  void addMultipleDefinitions(const vector<int>& symb_ids, expr_t expr);
+  void addMultipleDefinitions(const vector<int>& symb_ids, expr_t expr,
+                              optional<int> lineno = nullopt);
   //! Checks that definitions are in a recursive order, and that no variable is declared twice
   /*!
     \param[in] ramsey_model Is there a Ramsey model in the MOD file? If yes, then disable the check

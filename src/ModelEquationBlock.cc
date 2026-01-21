@@ -86,8 +86,13 @@ SteadyStateModel::SteadyStateModel(SymbolTable& symbol_table_arg,
 SteadyStateModel::SteadyStateModel(const SteadyStateModel& m) :
     DataTree {m}, static_model {m.static_model}
 {
-  for (const auto& it : m.def_table)
-    def_table.emplace_back(it.first, it.second->clone(*this));
+  assert(m.def_table.size() == m.def_table_lineno.size());
+  for (size_t i {0}; i < m.def_table.size(); i++)
+    {
+      const auto& [ids, expr] = m.def_table[i];
+      def_table.emplace_back(ids, expr->clone(*this));
+      def_table_lineno.push_back(m.def_table_lineno[i]);
+    }
 }
 
 SteadyStateModel&
@@ -98,14 +103,21 @@ SteadyStateModel::operator=(const SteadyStateModel& m)
   assert(&static_model == &m.static_model);
 
   def_table.clear();
-  for (const auto& it : m.def_table)
-    def_table.emplace_back(it.first, it.second->clone(*this));
+  def_table_lineno.clear();
+
+  assert(m.def_table.size() == m.def_table_lineno.size());
+  for (size_t i {0}; i < m.def_table.size(); i++)
+    {
+      const auto& [ids, expr] = m.def_table[i];
+      def_table.emplace_back(ids, expr->clone(*this));
+      def_table_lineno.push_back(m.def_table_lineno[i]);
+    }
 
   return *this;
 }
 
 void
-SteadyStateModel::addDefinition(int symb_id, expr_t expr)
+SteadyStateModel::addDefinition(int symb_id, expr_t expr, optional<int> lineno)
 {
   AddVariable(symb_id); // Create the variable node to be used in write method
 
@@ -116,10 +128,12 @@ SteadyStateModel::addDefinition(int symb_id, expr_t expr)
   // Add the variable
   vector v {symb_id};
   def_table.emplace_back(v, expr);
+  def_table_lineno.push_back(lineno);
 }
 
 void
-SteadyStateModel::addMultipleDefinitions(const vector<int>& symb_ids, expr_t expr)
+SteadyStateModel::addMultipleDefinitions(const vector<int>& symb_ids, expr_t expr,
+                                         optional<int> lineno)
 {
   for (int symb_id : symb_ids)
     {
@@ -129,6 +143,7 @@ SteadyStateModel::addMultipleDefinitions(const vector<int>& symb_ids, expr_t exp
              || symbol_table.getType(symb_id) == SymbolType::parameter);
     }
   def_table.emplace_back(symb_ids, expr);
+  def_table_lineno.push_back(lineno);
 }
 
 void
@@ -137,11 +152,16 @@ SteadyStateModel::checkPass(ModFileStructure& mod_file_struct, WarningConsolidat
   if (def_table.size() == 0)
     return;
 
+  assert(def_table.size() == def_table_lineno.size());
+
   mod_file_struct.steady_state_model_present = true;
   set<int> so_far_defined;
 
-  for (const auto& [symb_ids, expr] : def_table)
+  for (size_t def_idx {0}; def_idx < def_table.size(); def_idx++)
     {
+      const auto& [symb_ids, expr] = def_table[def_idx];
+      const auto& lineno = def_table_lineno[def_idx];
+
       // Check that symbols are not already defined
       for (int symb_id : symb_ids)
         if (so_far_defined.contains(symb_id))
@@ -157,8 +177,10 @@ SteadyStateModel::checkPass(ModFileStructure& mod_file_struct, WarningConsolidat
           for (int used_symbol : used_symbols)
             if (!so_far_defined.contains(used_symbol))
               {
-                cerr << "ERROR: in the 'steady_state_model' block, variable '"
-                     << symbol_table.getName(used_symbol)
+                cerr << "ERROR: in the 'steady_state_model' block";
+                if (lineno)
+                  cerr << ", line " << *lineno;
+                cerr << ", variable '" << symbol_table.getName(used_symbol)
                      << "' is undefined in the declaration of variable '"
                      << symbol_table.getName(symb_ids[0]) << "'" << endl;
                 exit(EXIT_FAILURE);
