@@ -198,6 +198,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <INITIAL>resid {BEGIN DYNARE_STATEMENT; return token::RESID;}
 
 <INITIAL>heterogeneity_load_steady_state {BEGIN DYNARE_STATEMENT; return token::HETEROGENEITY_LOAD_STEADY_STATE;}
+<INITIAL>heterogeneity_compute_steady_state {BEGIN DYNARE_STATEMENT; return token::HETEROGENEITY_COMPUTE_STEADY_STATE;}
 <INITIAL>heterogeneity_solve {BEGIN DYNARE_STATEMENT; return token::HETEROGENEITY_SOLVE;}
 <INITIAL>heterogeneity_simulate {BEGIN DYNARE_STATEMENT; return token::HETEROGENEITY_SIMULATE;}
 
@@ -775,6 +776,25 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>check_jacobian_singularity {return token::CHECK_JACOBIAN_SINGULARITY;}
 
 <DYNARE_STATEMENT>truncation_horizon {return token::TRUNCATION_HORIZON;}
+
+<DYNARE_STATEMENT>forward_max_iter {return token::FORWARD_MAX_ITER;}
+<DYNARE_STATEMENT>forward_tol {return token::FORWARD_TOL;}
+<DYNARE_STATEMENT>forward_check_every {return token::FORWARD_CHECK_EVERY;}
+<DYNARE_STATEMENT>forward_verbosity {return token::FORWARD_VERBOSITY;}
+<DYNARE_STATEMENT>time_iteration_max_iter {return token::TIME_ITERATION_MAX_ITER;}
+<DYNARE_STATEMENT>time_iteration_tol {return token::TIME_ITERATION_TOL;}
+<DYNARE_STATEMENT>time_iteration_learning_rate {return token::TIME_ITERATION_LEARNING_RATE;}
+<DYNARE_STATEMENT>time_iteration_verbosity {return token::TIME_ITERATION_VERBOSITY;}
+<DYNARE_STATEMENT>time_iteration_solver_tolf {return token::TIME_ITERATION_SOLVER_TOLF;}
+<DYNARE_STATEMENT>time_iteration_solver_tolx {return token::TIME_ITERATION_SOLVER_TOLX;}
+<DYNARE_STATEMENT>time_iteration_solver_factor {return token::TIME_ITERATION_SOLVER_FACTOR;}
+<DYNARE_STATEMENT>time_iteration_solver_max_iter {return token::TIME_ITERATION_SOLVER_MAX_ITER;}
+<DYNARE_STATEMENT>time_iteration_solver_stop_on_error {return token::TIME_ITERATION_SOLVER_STOP_ON_ERROR;}
+<DYNARE_STATEMENT>time_iteration_early_stopping {return token::TIME_ITERATION_EARLY_STOPPING;}
+<DYNARE_STATEMENT>calibration_tolf {return token::CALIBRATION_TOLF;}
+<DYNARE_STATEMENT>calibration_max_iter {return token::CALIBRATION_MAX_ITER;}
+<DYNARE_STATEMENT>calibration_verbosity {return token::CALIBRATION_VERBOSITY;}
+<DYNARE_STATEMENT>calibration_target_equations {return token::CALIBRATION_TARGET_EQUATIONS;}
 
 <DYNARE_STATEMENT>\$[^$]*\$ {
   yylval->emplace<string>(yytext + 1).pop_back();

@@ -264,12 +264,17 @@ public:
   struct VecValueVal : vector<string>
   {
   };
+  struct StrOrIntListVal : vector<string>
+  {
+    /* Mixed list of strings and integers, for calibration_target_equations.
+       Outputs as MATLAB cell array with proper typing: {'str', 1, 'str2'} */
+  };
 
   // pair<string, string> corresponds to a pair of numerical values
   // vector<vector<string>> corresponds to a vector of vectors of numerical values
   using OptionValue
       = variant<NumVal, pair<string, string>, StringVal, DateVal, SymbolListVal, vector<int>,
-                VecStrVal, VecCellStrVal, VecValueVal, vector<vector<string>>>;
+                VecStrVal, VecCellStrVal, VecValueVal, StrOrIntListVal, vector<vector<string>>>;
 
   [[nodiscard]] bool empty() const;
   void clear();
