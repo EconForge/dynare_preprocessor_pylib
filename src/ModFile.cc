@@ -980,7 +980,8 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
           || mod_file_struct.check_present || mod_file_struct.stoch_simul_present
           || mod_file_struct.estimation_present || mod_file_struct.osr_present
           || mod_file_struct.ramsey_model_present || mod_file_struct.identification_present
-          || mod_file_struct.calib_smoother_present || mod_file_struct.mom_estimation_present)
+          || mod_file_struct.calib_smoother_present || mod_file_struct.mom_estimation_present
+          || mod_file_struct.extended_path_present)
         {
           if (mod_file_struct.perfect_foresight_solver_present
               || mod_file_struct.perfect_foresight_with_expectation_errors_solver_present)
@@ -992,6 +993,30 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
                 derivsOrder = 3;
               dynamic_model.computingPass(derivsOrder, 0, global_eval_context, no_tmp_terms, block,
                                           use_dll);
+            }
+          else if (mod_file_struct.extended_path_present)
+            {
+              int derivsOrder = max(1, mod_file_struct.extended_path_hybrid_order);
+              dynamic_model.computingPass(derivsOrder, 0, global_eval_context, no_tmp_terms, block,
+                                          use_dll);
+              if (mod_file_struct.extended_path_order > 0 && dynamic_model.getMaxLead() == 0)
+                {
+                  cerr
+                      << "ERROR: The 'order' option of 'extended_path' cannot have a positive "
+                         "value with a backward model. Since agents do not form expectations about "
+                         "the future, future uncertainty cannot influence their current behavior; "
+                         "a positive order would just add computational cost without changing the "
+                         "results."
+                      << endl;
+                  exit(EXIT_FAILURE);
+                }
+              if (dynamic_model.getMaxLag() == 0)
+                {
+                  cerr << "ERROR: The 'extended_path' command cannot be used with a purely "
+                          "forward model."
+                       << endl;
+                  exit(EXIT_FAILURE);
+                }
             }
           else
             {

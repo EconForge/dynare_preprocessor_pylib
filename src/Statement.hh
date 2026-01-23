@@ -62,6 +62,10 @@ struct ModFileStructure
   bool planner_objective_present {false};
   //! Whether an extended_path statement is present
   bool extended_path_present {false};
+  //! The hybrid order for extended_path (0 if not specified)
+  int extended_path_hybrid_order {0};
+  //! The stochastic order for extended_path (0 means deterministic)
+  int extended_path_order {0};
   //! The value of the "order" option of stoch_simul, estimation, osr, ramsey_policy
   //! Derivation order
   /*! First initialized to zero. If user sets order option somewhere in the MOD file, it will be
@@ -180,7 +184,7 @@ struct ModFileStructure
   {
     return stoch_simul_present || estimation_present || osr_present || discretionary_policy_present
            || calib_smoother_present || identification_present || mom_estimation_present
-           || sensitivity_present;
+           || sensitivity_present || (extended_path_present && order_option > 0);
   }
 };
 

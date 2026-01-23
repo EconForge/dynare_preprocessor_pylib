@@ -307,6 +307,11 @@ protected:
   }
 
 public:
+  //! Thrown when trying to access max_lag/max_lead before computeDerivIDs() has been called
+  struct MaxLeadLagNotComputedException
+  {
+  };
+
   DynamicModel(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                ExternalFunctionsTable& external_functions_table_arg,
                HeterogeneityTable& heterogeneity_table_arg,
@@ -713,6 +718,24 @@ public:
   getMFS() const override
   {
     return mfs;
+  }
+
+  [[nodiscard]] int
+  getMaxLead() const
+  {
+    if (deriv_id_table.empty())
+      // max_lead not yet computed (default value is 0)
+      throw MaxLeadLagNotComputedException();
+    return max_lead;
+  }
+
+  [[nodiscard]] int
+  getMaxLag() const
+  {
+    if (deriv_id_table.empty())
+      // max_lag not yet computed (default value is 0)
+      throw MaxLeadLagNotComputedException();
+    return max_lag;
   }
 
   void

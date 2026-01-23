@@ -5060,6 +5060,14 @@ ExtendedPathStatement::checkPass(ModFileStructure& mod_file_struct,
       cerr << "ERROR: the 'periods' option of 'extended_path' is mandatory" << endl;
       exit(EXIT_FAILURE);
     }
+
+  // Extract hybrid order if present
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("ep.stochastic.hybrid_order"))
+    mod_file_struct.extended_path_hybrid_order = stoi(*opt);
+
+  // Extract stochastic order if present
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("ep.stochastic.order"))
+    mod_file_struct.extended_path_order = stoi(*opt);
 }
 
 void
@@ -5072,6 +5080,11 @@ ExtendedPathStatement::writeOutput(ostream& output, [[maybe_unused]] const strin
   OptionsList options_list_new {options_list};
   options_list_new.erase("periods");
   options_list_new.writeOutput(output);
+
+  // Set k_order_solver if hybrid > 2
+  if (auto opt = options_list.get_if<OptionsList::NumVal>("ep.stochastic.hybrid_order");
+      opt && stoi(*opt) > 2)
+    output << "options_.k_order_solver = true;" << endl;
 
   output << "[Simulated_time_series, oo_] = extended_path([], " << periods
          << ", [], options_, M_, oo_);" << endl;

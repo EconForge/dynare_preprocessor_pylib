@@ -112,6 +112,7 @@ str_tolower(string s)
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
 %token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID FILTERED_THEORETICAL_MOMENTS_GRID HYBRID USE_FIRST_ORDER_SOLUTION ONE_SIDED_HP_FILTER
+%token INTEGRATION TENSOR_GAUSSIAN_QUADRATURE STROUD NUMBER_OF_QUADRATURE_NODES TREE SPARSE PERFECT
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INFILE INVARS
 %token <string> INT_NUMBER
 %token CONDITIONAL_LIKELIHOOD
@@ -3582,10 +3583,13 @@ extended_path_options_list : extended_path_option COMMA extended_path_options_li
 
 extended_path_option : o_periods
                      | o_solver_periods
-                     | o_extended_path_order
-                     | o_hybrid
+                     | o_sep_order
+                     | o_sep_hybrid
                      | o_use_first_order_solution
                      | o_lmmcp
+                     | o_sep_integration
+                     | o_sep_quadrature_nodes
+                     | o_sep_tree
                      ;
 
 model_diagnostics : MODEL_DIAGNOSTICS ';'
@@ -3927,9 +3931,30 @@ o_filtered_theoretical_moments_grid : FILTERED_THEORETICAL_MOMENTS_GRID EQUAL IN
 o_one_sided_hp_filter : ONE_SIDED_HP_FILTER EQUAL non_negative_number { driver.option_num("one_sided_hp_filter", $3); };
 o_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("periods", $3); };
 o_solver_periods : SOLVER_PERIODS EQUAL INT_NUMBER { driver.option_num("ep.periods", $3); };
-o_extended_path_order : ORDER EQUAL INT_NUMBER { driver.option_num("ep.stochastic.order", $3); };
-o_hybrid : HYBRID { driver.option_num("ep.stochastic.hybrid_order", "2"); };
+o_sep_order : ORDER EQUAL INT_NUMBER { driver.option_num("ep.stochastic.order", $3); };
+o_sep_hybrid : HYBRID { driver.option_num("ep.stochastic.hybrid_order", "2"); }
+         | HYBRID EQUAL INT_NUMBER
+           {
+             if (stoi($3) % 2 != 0)
+               driver.error("The 'hybrid' option in stochastic extended path must be an even integer");
+             driver.option_num("ep.stochastic.hybrid_order", $3);
+           }
+         ;
 o_use_first_order_solution : USE_FIRST_ORDER_SOLUTION { driver.option_num("ep.use_first_order_solution_as_initial_guess", "true"); };
+o_sep_integration : INTEGRATION EQUAL TENSOR_GAUSSIAN_QUADRATURE { driver.option_str("ep.stochastic.IntegrationAlgorithm", "Tensor-Gaussian-Quadrature"); }
+                  | INTEGRATION EQUAL STROUD { driver.option_str("ep.stochastic.IntegrationAlgorithm", "Stroud-Cubature-5"); }
+                  | INTEGRATION EQUAL UNSCENTED { driver.option_str("ep.stochastic.IntegrationAlgorithm", "Unscented"); }
+                  ;
+o_sep_quadrature_nodes : NUMBER_OF_QUADRATURE_NODES EQUAL INT_NUMBER
+                         {
+                           int nodes = stoi($3);
+                           if (nodes <= 1 || nodes % 2 == 0)
+                             driver.error("The 'number_of_quadrature_nodes' option must be an odd integer greater than one");
+                           driver.option_num("ep.stochastic.quadrature.nodes", $3);
+                         }
+                       ;
+o_sep_tree : TREE EQUAL SPARSE { driver.option_num("ep.stochastic.algo", "1"); }
+           | TREE EQUAL PERFECT { driver.option_num("ep.stochastic.algo", "0"); };
 o_steady_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("steady.maxit", $3); };
 o_simul_maxit : MAXIT EQUAL INT_NUMBER { driver.option_num("simul.maxit", $3); };
 o_bandpass_filter : BANDPASS_FILTER { driver.option_num("bandpass.indicator", "true"); }
