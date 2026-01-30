@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -288,9 +288,12 @@ EndValStatement::writeOutput(ostream& output, [[maybe_unused]] const string& bas
                              [[maybe_unused]] bool minimal_workspace) const
 {
   output << "%" << endl << "% ENDVAL instructions" << endl << "%" << endl;
-  // Writing endval block to set terminal values for variables
-  output << "oo_.initial_steady_state = oo_.steady_state;" << endl
-         << "oo_.initial_exo_steady_state = oo_.exo_steady_state;" << endl;
+  /* Do not overwrite oo_.initial_steady_state (and oo_.initial_exo_steady_state) if they already
+     exist, so as to support the concatenation of several “endval” blocks */
+  output << "if isempty(oo_.initial_steady_state)" << endl
+         << "  oo_.initial_steady_state = oo_.steady_state;" << endl
+         << "  oo_.initial_exo_steady_state = oo_.exo_steady_state;" << endl
+         << "end" << endl;
 
   writeInitValues(output);
 }
