@@ -4227,7 +4227,9 @@ o_mh_initialize_from_previous_mcmc_directory : MH_INITIALIZE_FROM_PREVIOUS_MCMC_
 o_mh_initialize_from_previous_mcmc_record : MH_INITIALIZE_FROM_PREVIOUS_MCMC_RECORD EQUAL filename { driver.option_str("mh_initialize_from_previous_mcmc.record", $3); };
 o_mh_initialize_from_previous_mcmc_prior : MH_INITIALIZE_FROM_PREVIOUS_MCMC_PRIOR EQUAL filename { driver.option_str("mh_initialize_from_previous_mcmc.prior", $3); };
 o_diffuse_filter: DIFFUSE_FILTER { driver.option_num("diffuse_filter", "true"); };
-o_estimate_initial_states_diffuse_prior: ESTIMATE_INITIAL_STATES_DIFFUSE_PRIOR EQUAL INT_NUMBER { driver.option_num("estimate_initial_states_diffuse_prior", $3); };
+o_estimate_initial_states_diffuse_prior: ESTIMATE_INITIAL_STATES_DIFFUSE_PRIOR { driver.option_num("estimate_initial_states_diffuse_prior", "true"); }
+                                       | ESTIMATE_INITIAL_STATES_DIFFUSE_PRIOR EQUAL boolean { driver.option_num("estimate_initial_states_diffuse_prior", $3); }
+                                       | ESTIMATE_INITIAL_STATES_DIFFUSE_PRIOR EQUAL INT_NUMBER { driver.option_num("estimate_initial_states_diffuse_prior", $3); };
 
 o_plot_priors: PLOT_PRIORS EQUAL INT_NUMBER { driver.option_num("plot_priors", $3); };
 o_aim_solver: AIM_SOLVER { 
