@@ -134,12 +134,12 @@ HeterogeneousModel::transformPass()
   // E.g., beta*rk(+1)/c(+1) → AUX(+1) with defining equation AUX = beta*rk/c
   ExprNode::subst_table_t het_lead_subst_table;
 
-  for (int i = 0; i < static_cast<int>(equations.size()); ++i)
+  for (auto& eq : equations)
     {
-      auto subst = equations[i]->substituteHetEndoLeadNonlinear(
-          heterogeneity_dimension, het_lead_subst_table, het_nonlinear_expectation_aux_equations);
+      auto subst = eq->substituteHetEndoLeadNonlinear(heterogeneity_dimension, het_lead_subst_table,
+                                                      het_nonlinear_expectation_aux_equations);
       if (auto substeq = dynamic_cast<BinaryOpNode*>(subst))
-        equations[i] = substeq;
+        eq = substeq;
     }
 
   for (auto& eq : het_nonlinear_expectation_aux_equations)
