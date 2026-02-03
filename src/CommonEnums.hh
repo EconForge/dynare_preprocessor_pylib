@@ -45,11 +45,9 @@ enum class SymbolType
   logTrend = 15, //!< Log-trend variable
   unusedEndogenous
   = 16, //!< Type to mark unused endogenous variables when `nostrict` option is passed
-
-  // Value 17 is unused for the time being (but could be reused)
-
-  epilogue = 18,        //!< Variables created in epilogue block
-  excludedVariable = 19 //!< Variable excluded via model_remove/var_remove/include_eqs/exclude_eqs
+  databaseVariable = 17, // Variable inside a database namespace
+  epilogue = 18,         //!< Variables created in epilogue block
+  excludedVariable = 19  //!< Variable excluded via model_remove/var_remove/include_eqs/exclude_eqs
 };
 
 constexpr bool
@@ -87,6 +85,8 @@ to_string(SymbolType type)
       return "logTrend:";
     case unusedEndogenous:
       return "unusedEndogenous";
+    case databaseVariable:
+      return "databaseVariable";
     case epilogue:
       return "epilogue";
     case excludedVariable:

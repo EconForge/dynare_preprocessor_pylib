@@ -985,6 +985,12 @@ NumConstNode::containsPacTargetNonstationary([[maybe_unused]] const string& pac_
   return false;
 }
 
+bool
+NumConstNode::containsDate() const
+{
+  return false;
+}
+
 expr_t
 NumConstNode::replaceTrendVar() const
 {
@@ -1100,6 +1106,7 @@ VariableNode::prepareForDerivation()
       break;
     case SymbolType::externalFunction:
     case SymbolType::epilogue:
+    case SymbolType::databaseVariable:
       cerr << "VariableNode::prepareForDerivation: impossible case" << endl;
       exit(EXIT_FAILURE);
     case SymbolType::excludedVariable:
@@ -1159,6 +1166,7 @@ VariableNode::prepareForChainRuleDerivation(
     case SymbolType::externalFunction:
     case SymbolType::epilogue:
     case SymbolType::excludedVariable:
+    case SymbolType::databaseVariable:
       cerr << "VariableNode::prepareForChainRuleDerivation: impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -1201,6 +1209,7 @@ VariableNode::computeDerivative(int deriv_id)
     case SymbolType::externalFunction:
     case SymbolType::epilogue:
     case SymbolType::excludedVariable:
+    case SymbolType::databaseVariable:
       cerr << "VariableNode::computeDerivative: Impossible case!" << endl;
       exit(EXIT_FAILURE);
     }
@@ -1508,6 +1517,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case SymbolType::logTrend:
     case SymbolType::statementDeclaredVariable:
     case SymbolType::excludedVariable:
+    case SymbolType::databaseVariable:
       cerr << "VariableNode::writeOutput: Impossible case" << endl;
       exit(EXIT_FAILURE);
 
@@ -1711,6 +1721,7 @@ VariableNode::computeChainRuleDerivative(
     case SymbolType::externalFunction:
     case SymbolType::epilogue:
     case SymbolType::excludedVariable:
+    case SymbolType::databaseVariable:
       cerr << "VariableNode::computeChainRuleDerivative: Impossible case" << endl;
       exit(EXIT_FAILURE);
     }
@@ -1754,6 +1765,7 @@ VariableNode::computeXrefs(EquationInfo& ei) const
     case SymbolType::heterogeneousEndogenous:
     case SymbolType::heterogeneousExogenous:
     case SymbolType::heterogeneousParameter:
+    case SymbolType::databaseVariable:
       break;
     }
 }
@@ -2461,6 +2473,12 @@ VariableNode::containsPacExpectation(const string& pac_model_name) const
   if (get_type() == SymbolType::modelLocalVariable)
     return datatree.getLocalVariable(symb_id, lag)->containsPacExpectation(pac_model_name);
 
+  return false;
+}
+
+bool
+VariableNode::containsDate() const
+{
   return false;
 }
 
@@ -4488,6 +4506,12 @@ UnaryOpNode::containsPacTargetNonstationary(const string& pac_model_name) const
   return arg->containsPacTargetNonstationary(pac_model_name);
 }
 
+bool
+UnaryOpNode::containsDate() const
+{
+  return arg->containsDate();
+}
+
 expr_t
 UnaryOpNode::replaceTrendVar() const
 {
@@ -6228,6 +6252,12 @@ BinaryOpNode::containsPacTargetNonstationary(const string& pac_model_name) const
          || arg2->containsPacTargetNonstationary(pac_model_name);
 }
 
+bool
+BinaryOpNode::containsDate() const
+{
+  return arg1->containsDate() || arg2->containsDate();
+}
+
 expr_t
 BinaryOpNode::replaceTrendVar() const
 {
@@ -7534,6 +7564,12 @@ TrinaryOpNode::containsPacTargetNonstationary(const string& pac_model_name) cons
          || arg3->containsPacTargetNonstationary(pac_model_name);
 }
 
+bool
+TrinaryOpNode::containsDate() const
+{
+  return arg1->containsDate() || arg2->containsDate() || arg3->containsDate();
+}
+
 expr_t
 TrinaryOpNode::replaceTrendVar() const
 {
@@ -8074,6 +8110,12 @@ AbstractExternalFunctionNode::containsPacTargetNonstationary(const string& pac_m
 {
   return ranges::any_of(
       arguments, [&](expr_t e) { return e->containsPacTargetNonstationary(pac_model_name); });
+}
+
+bool
+AbstractExternalFunctionNode::containsDate() const
+{
+  return ranges::any_of(arguments, &ExprNode::containsDate);
 }
 
 expr_t
@@ -9644,6 +9686,12 @@ SubModelNode::substituteAggregationOperators([[maybe_unused]] subst_table_t& sub
   return const_cast<SubModelNode*>(this);
 }
 
+bool
+SubModelNode::containsDate() const
+{
+  return false;
+}
+
 VarExpectationNode::VarExpectationNode(DataTree& datatree_arg, int idx_arg, string model_name_arg) :
     SubModelNode {datatree_arg, idx_arg, move(model_name_arg)}
 {
@@ -10320,4 +10368,123 @@ BinaryOpNode::matchComplementarityCondition(const optional<int>& heterogeneity_d
   check_bound_constant(arg2);
 
   return {*id, is_greater ? arg2 : barg1->arg1, is_greater ? barg1->arg1 : arg2};
+}
+
+NamespaceQualifiedVariableNode::NamespaceQualifiedVariableNode(
+    DataTree& datatree_arg, int idx_arg, NamespaceType Namespace_arg, int symb_id_arg, int lag_arg,
+    int database_id_arg, variant<int, string> learnt_in_period_arg) :
+    VariableNode {datatree_arg, idx_arg, symb_id_arg, lag_arg},
+    Namespace {Namespace_arg},
+    database_id {database_id_arg},
+    learnt_in_period {move(learnt_in_period_arg)}
+{
+  using enum NamespaceType;
+  assert(Namespace == database || database_id == -1);
+  assert(Namespace == learnt_in
+         || (holds_alternative<int>(learnt_in_period) && get<int>(learnt_in_period) == 1));
+  if (Namespace == initval)
+    {
+      assert(lag == 0);
+      assert(get_type() == SymbolType::exogenous || get_type() == SymbolType::endogenous);
+    }
+  if (Namespace == self || Namespace == prev || Namespace == learnt_in)
+    assert(get_type() == SymbolType::exogenous);
+  if (Namespace == self)
+    assert(lag < 0);
+}
+
+string
+NamespaceQualifiedVariableNode::getNamespace() const
+{
+  using enum NamespaceType;
+  switch (Namespace)
+    {
+    case self:
+      return "self";
+    case initval:
+      return "initval";
+    case prev:
+      return "prev";
+    case learnt_in:
+      return "learnt_in("
+             + (holds_alternative<int>(learnt_in_period) ? to_string(get<int>(learnt_in_period))
+                                                         : get<string>(learnt_in_period))
+             + ")";
+    case database:
+      return datatree.database_table.getName(database_id);
+    }
+  __builtin_unreachable(); // Silence GCC warning
+}
+
+void
+NamespaceQualifiedVariableNode::writeOutput(
+    ostream& output, ExprNodeOutputType output_type,
+    [[maybe_unused]] const temporary_terms_t& temporary_terms,
+    [[maybe_unused]] const temporary_terms_idxs_t& temporary_terms_idxs,
+    [[maybe_unused]] const deriv_node_temp_terms_t& tef_terms) const
+{
+  assert(output_type == ExprNodeOutputType::matlabOutsideModel);
+  using enum NamespaceType;
+  // Symbols of type databaseVariable have no type-specific ID
+  int tsid {Namespace == database ? -1 : getTypeSpecificID() + ARRAY_SUBSCRIPT_OFFSET(output_type)};
+  switch (Namespace)
+    {
+    case self:
+      output << "shock_paths(" << tsid << ",p+" << lag << ",info_period)";
+      break;
+    case initval:
+      if (get_type() == SymbolType::endogenous)
+        output << "oo_.steady_state(";
+      else // exogenous
+        output << "oo_.exo_steady_state(";
+      output << tsid << ")";
+      break;
+    case prev:
+      output << "shock_paths(" << tsid << ",p+" << lag << ",info_period-1)";
+      break;
+    case learnt_in:
+      output << "shock_paths(" << tsid << ",p+" << lag << ",";
+      if (holds_alternative<int>(learnt_in_period))
+        output << get<int>(learnt_in_period);
+      else
+        output << get<string>(learnt_in_period) << "-first_simulation_period+1";
+      output << ")";
+      break;
+    case database:
+      output << "extract_from_database(" << database_id + 1 << ", '" << getName() << "', p+" << lag
+             << ", first_simulation_period, M_)";
+      break;
+    }
+}
+
+void
+NamespaceQualifiedVariableNode::writeJsonAST(ostream& output) const
+{
+  output << R"({"node_type" : "NamespaceQualifiedVariableNode", "namespace" : ")" << getNamespace()
+         << R"(", "name" : ")" << getName() << R"(", "type" : ")" << to_string(get_type()) << '"';
+  if (isHeterogeneous(get_type()))
+    output << R"(, "heterogeneity_dimension" : ")"
+           << datatree.heterogeneity_table.getName(
+                  datatree.symbol_table.getHeterogeneityDimension(symb_id))
+           << '"';
+  if (Namespace == NamespaceType::self || Namespace == NamespaceType::database)
+    output << R"(, "lag" : )" << lag;
+  output << "}";
+}
+
+void
+NamespaceQualifiedVariableNode::writeJsonOutput(
+    ostream& output, [[maybe_unused]] const temporary_terms_t& temporary_terms,
+    [[maybe_unused]] const deriv_node_temp_terms_t& tef_terms,
+    [[maybe_unused]] bool isdynamic) const
+{
+  output << getNamespace() << '.' << getName();
+  if (Namespace == NamespaceType::self || Namespace == NamespaceType::database)
+    output << "(" << lag << ")";
+}
+
+bool
+NamespaceQualifiedVariableNode::containsDate() const
+{
+  return Namespace == NamespaceType::learnt_in && holds_alternative<string>(learnt_in_period);
 }

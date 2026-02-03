@@ -175,6 +175,8 @@ private:
   ShocksStatement::covar_and_corr_shocks_t corr_shocks;
   //! Temporary storage for skewness of shocks
   ShocksStatement::skew_shocks_t skew_shocks;
+  // Temporary storage for shock_paths block
+  ShockPathsStatement::shock_paths_t shock_paths;
   //! Temporary storage for values and scales of heteroskedastic_shocks
   HeteroskedasticShocksStatement::heteroskedastic_shocks_t heteroskedastic_shocks_values,
       heteroskedastic_shocks_scales;
@@ -289,6 +291,12 @@ private:
   }
 
 public:
+  bool
+  is_parsing_shock_paths() const
+  {
+    return data_tree == &mod_file->shock_paths_tree;
+  }
+
   ParsingDriver(WarningConsolidation& warnings_arg, bool nostrict_arg) :
       warnings {warnings_arg}, nostrict {nostrict_arg}
   {
@@ -425,6 +433,18 @@ public:
   expr_t declare_or_change_type(SymbolType new_type, const string& name);
   //! Adds an Expression's variable
   expr_t add_expression_variable(const string& name);
+  // Adds a variable in the “self” namespace
+  expr_t add_self_variable(const string& name, expr_t lag);
+  // Adds a variable in the “initval” or “init” namespace
+  expr_t add_initval_variable(const string& name);
+  // Adds a variable in the “prev” namespace
+  expr_t add_prev_variable(const string& name, expr_t lag = nullptr);
+  // Adds a variable in a database namespace
+  expr_t add_database_variable(const string& database_name, const string& symbol_name,
+                               expr_t lag = nullptr);
+  // Adds a variable in the “learnt_in” namespace
+  expr_t add_learnt_in_variable(const variant<int, string>& learnt_in_period, const string& name,
+                                expr_t lag = nullptr);
   //! Adds a "dsample" statement
   void dsample(const string& arg1);
   //! Adds a "dsample" statement
@@ -492,6 +512,10 @@ public:
   void add_det_shock(const string& var,
                      const vector<AbstractShocksStatement::period_range_t>& periods,
                      const vector<expr_t>& values, DetShockType type);
+  // Adds an element inside a shock_paths block
+  void add_shock_paths_elem(const string& var,
+                            const vector<ShockPathsStatement::period_range_t>& periods,
+                            const vector<expr_t>& values);
   //! Adds a heteroskedastic shock (either values or scales)
   void add_heteroskedastic_shock(const string& var,
                                  const vector<AbstractShocksStatement::period_range_t>& periods,
@@ -972,6 +996,10 @@ public:
   void matched_irfs_weights(MatchedIrfsWeightsStatement::matched_irfs_weights_t weights,
                             bool overwrite);
   void heterogeneity_dimension(const vector<string>& dims);
+  void database(const vector<string>& names);
+  [[nodiscard]] bool database_exists(const string& name) const;
+  void begin_shock_paths();
+  void end_shock_paths(const variant<int, string>& learnt_in_period, bool overwrite);
 
   // Returns true iff the string is a legal symbol identifier (see NAME token in lexer)
   static bool isSymbolIdentifier(const string& str);

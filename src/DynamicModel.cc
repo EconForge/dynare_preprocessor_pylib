@@ -54,10 +54,11 @@ DynamicModel::copyHelper(const DynamicModel& m)
 DynamicModel::DynamicModel(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                            ExternalFunctionsTable& external_functions_table_arg,
                            HeterogeneityTable& heterogeneity_table_arg,
+                           DatabaseTable& database_table_arg,
                            TrendComponentModelTable& trend_component_model_table_arg,
                            VarModelTable& var_model_table_arg) :
-    ModelTree {symbol_table_arg, num_constants_arg, external_functions_table_arg,
-               heterogeneity_table_arg, true},
+    ModelTree {symbol_table_arg,        num_constants_arg,  external_functions_table_arg,
+               heterogeneity_table_arg, database_table_arg, true},
     trend_component_model_table {trend_component_model_table_arg},
     var_model_table {var_model_table_arg}
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2024 Dynare Team
+ * Copyright © 2006-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -27,6 +27,7 @@
 #include <sstream>
 
 #include "Configuration.hh"
+#include "DatabaseTable.hh"
 #include "DynamicModel.hh"
 #include "ExtendedPreprocessorTypes.hh"
 #include "ExternalFunctionsTable.hh"
@@ -64,8 +65,15 @@ public:
   VarExpectationModelTable var_expectation_model_table;
   //! PAC Model Table used for storing info about pac models
   PacModelTable pac_model_table;
-  //! Expressions outside model block
+  // For databases (as e.g. used in “shock_paths” block)
+  DatabaseTable database_table;
+  /* Expressions outside:
+     + model, steady_state_model, epilogue and shock_paths blocks
+     + planner_objective statement
+     + trends in var statements */
   DataTree expressions_tree;
+  // Expressions inside shock_paths blocks
+  DataTree shock_paths_tree;
   //! Original model, as declared in the "model" block, that won't be modified by the preprocessor
   DynamicModel original_model;
   //! Dynamic model, as declared in the "model" block

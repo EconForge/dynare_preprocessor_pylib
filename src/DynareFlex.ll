@@ -42,6 +42,11 @@ using token = Dynare::parser::token;
 int comment_caller, line_caller;
 string eofbuff;
 
+/* Whether we are inside the “periods” statement of a “shock_paths” block (such statements can
+   contain “end” tokens, which must not be confused with the end of the whole block). This flag
+   behaves like a subcondition of the DYNARE_BLOCK start condition. */
+bool is_parsing_shock_paths_periods{false};
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 %}
@@ -196,6 +201,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <INITIAL>model_options {BEGIN DYNARE_STATEMENT; return token::MODEL_OPTIONS;}
 <INITIAL>var_remove {BEGIN DYNARE_STATEMENT; return token::VAR_REMOVE;}
 <INITIAL>resid {BEGIN DYNARE_STATEMENT; return token::RESID;}
+<INITIAL>database {BEGIN DYNARE_STATEMENT; return token::DATABASE;}
 
 <INITIAL>heterogeneity_load_steady_state {BEGIN DYNARE_STATEMENT; return token::HETEROGENEITY_LOAD_STEADY_STATE;}
 <INITIAL>heterogeneity_compute_steady_state {BEGIN DYNARE_STATEMENT; return token::HETEROGENEITY_COMPUTE_STEADY_STATE;}
@@ -217,6 +223,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <INITIAL>shock_groups {BEGIN DYNARE_BLOCK; return token::SHOCK_GROUPS;}
 <INITIAL>init2shocks {BEGIN DYNARE_BLOCK; return token::INIT2SHOCKS;}
 <INITIAL>mshocks {BEGIN DYNARE_BLOCK; return token::MSHOCKS;}
+<INITIAL>shock_paths {BEGIN DYNARE_BLOCK; return token::SHOCK_PATHS;}
 <INITIAL>estimated_params {BEGIN DYNARE_BLOCK; return token::ESTIMATED_PARAMS;}
 <INITIAL>epilogue {BEGIN DYNARE_BLOCK; return token::EPILOGUE;}
  /* priors is an alias for estimated_params */
@@ -246,8 +253,14 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
  /* For the semicolon after an "end" keyword */
 <INITIAL>; {return Dynare::parser::token_type (yytext[0]);}
 
- /* End of a Dynare block */
-<DYNARE_BLOCK>end 	{BEGIN INITIAL; return token::END;}
+ /* End of a Dynare block (or, inside a shock_paths block, an indicator for the terminal period) */
+<DYNARE_BLOCK>end 	{
+                          if (!is_parsing_shock_paths_periods)
+                            {
+                              BEGIN INITIAL;
+                            }
+                          return token::END;
+                        }
 
 <DYNARE_STATEMENT>subsamples {return token::SUBSAMPLES;}
 <DYNARE_STATEMENT>options {return token::OPTIONS;}
@@ -815,7 +828,11 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_BLOCK>values {return token::VALUES;}
 <DYNARE_BLOCK>corr {return token::CORR;}
 <DYNARE_BLOCK>skew {return token::SKEW;}
-<DYNARE_BLOCK>periods {return token::PERIODS;}
+<DYNARE_BLOCK>periods {
+  if (driver.is_parsing_shock_paths())
+    is_parsing_shock_paths_periods = true;
+  return token::PERIODS;
+}
 <DYNARE_BLOCK>scales {return token::SCALES;}
 <DYNARE_BLOCK>add {
   yylval->emplace<string>(yytext);
@@ -861,7 +878,10 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 }
 <DYNARE_BLOCK>relative_to_initval {return token::RELATIVE_TO_INITVAL;}
 
-<DYNARE_BLOCK>; {return Dynare::parser::token_type (yytext[0]);}
+<DYNARE_BLOCK>; {
+  is_parsing_shock_paths_periods = false;
+  return Dynare::parser::token_type (yytext[0]);
+}
 <DYNARE_BLOCK># {return Dynare::parser::token_type (yytext[0]);}
 
 <DYNARE_BLOCK>restriction {return token::RESTRICTION;}

@@ -157,6 +157,7 @@ str_tolower(string s)
 %token VALUES SCALES VAR VAREXO VAREXO_DET VARIABLE VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL WRITE_LATEX_STEADY_STATE_MODEL
 %token XLS_SHEET XLS_RANGE LMMCP BANDPASS_FILTER COLORMAP VAR_MODEL PAC_MODEL QOQ YOY AOA PAC_EXPECTATION TREND_COMPONENT_MODEL
+%token DATABASE SHOCK_PATHS
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
 %left PLUS MINUS
@@ -262,6 +263,8 @@ CHECK_JACOBIAN_SINGULARITY
 %type <AbstractShocksStatement::period_range_t> period_range
 %type <vector<AbstractShocksStatement::period_range_t>> period_list
 %type <vector<expr_t>> value_list
+%type <ShockPathsStatement::period_range_t> period_w_end_range
+%type <vector<ShockPathsStatement::period_range_t>> period_w_end_list
 %type <tuple<string, BinaryOpNode*, BinaryOpNode*, expr_t, expr_t>> occbin_constraints_regime
 %type <vector<tuple<string, BinaryOpNode*, BinaryOpNode*, expr_t, expr_t>>> occbin_constraints_regimes_list
 %type <map<string, expr_t>> occbin_constraints_regime_options_list
@@ -269,8 +272,8 @@ CHECK_JACOBIAN_SINGULARITY
 %type <PacTargetKind> pac_target_kind
 %type <vector<tuple<string, string, vector<pair<string, string>>>>> symbol_list_with_tex_and_partition
 %type <variant<int, string>> integer_or_date
-%type <map<string, variant<bool, variant<int, string>>>> mshocks_options_list
-%type <pair<string, variant<bool, variant<int, string>>>> mshocks_option
+%type <map<string, variant<bool, variant<int, string>>>> mshocks_options_list shock_paths_options_list
+%type <pair<string, variant<bool, variant<int, string>>>> mshocks_option shock_paths_option
 %type <pair<vector<expr_t>, vector<expr_t>>> matched_irfs_elem_values_weights
 %type <pair<pair<string, string>, vector<tuple<int, int, expr_t, expr_t>>>> matched_irfs_elem
 %type <map<pair<string, string>, vector<tuple<int, int, expr_t, expr_t>>>> matched_irfs_list
@@ -297,6 +300,7 @@ statement : parameters
           | model_local_variable
           | change_type
           | heterogeneity_dimension
+          | database
           | model
           | initval
           | initval_file
@@ -305,6 +309,7 @@ statement : parameters
           | init_param
           | shocks
           | mshocks
+          | shock_paths
           | heteroskedastic_shocks
           | steady
           | check
@@ -688,12 +693,38 @@ heterogeneity_dimension : HETEROGENEITY_DIMENSION symbol_list ';'
                           { driver.heterogeneity_dimension($2); }
                         ;
 
+database : DATABASE symbol_list ';' { driver.database($2); };
+
 init_param : symbol EQUAL expression ';' { driver.init_param($1, $3); };
 
 expression : '(' expression ')'
              { $$ = $2; }
-           | symbol
-             { $$ = driver.add_expression_variable($1); }
+           | namespace_qualified_symbol
+             {
+               if (auto pos = $1.find_last_of('.'); pos != string::npos)
+                 {
+                   // Namespace-qualified symbol
+                   if (driver.is_parsing_shock_paths())
+                     {
+                       auto namespace_name = $1.substr(0, pos);
+                       auto symbol_name = $1.substr(pos + 1);
+                       if (namespace_name == "initval" || namespace_name == "init")
+                         $$ = driver.add_initval_variable(symbol_name);
+                       else if (namespace_name == "prev")
+                         $$ = driver.add_prev_variable(symbol_name);
+                       else
+                         $$ = driver.add_database_variable(namespace_name, symbol_name);
+                     }
+                   else
+                     driver.error("Namespace-qualified symbol " + $1 + " not allowed in this context");
+                 }
+               else
+                 $$ = driver.add_expression_variable($1);
+             }
+           | LEARNT_IN '(' integer_or_date ')' '.' symbol
+             { $$ = driver.add_learnt_in_variable($3, $6); }
+           | LEARNT_IN '(' integer_or_date ')' '.' symbol '(' expression ')'
+             { $$ = driver.add_learnt_in_variable($3, $6, $8); }
            | non_negative_number
              { $$ = driver.add_non_negative_constant($1); }
            | expression PLUS expression
@@ -767,7 +798,27 @@ expression : '(' expression ')'
            | MIN '(' expression COMMA expression ')'
              { $$ = driver.add_min($3, $5); }
            | namespace_qualified_symbol '(' expression_list ')'
-             { $$ = driver.add_lead_lag_var_or_external_function($1, $3, false); }
+             {
+               auto pos = $1.find_last_of('.');
+               if (auto namespace_name = $1.substr(0, pos);
+                   driver.is_parsing_shock_paths() && pos != string::npos &&
+                   (namespace_name == "self" || namespace_name == "prev" ||
+                    driver.database_exists(namespace_name)))
+                 {
+                   if ($3.size() != 1)
+                     driver.error("The parenthesis after " + $1 + " should only include a lag, since it references a variable inside a namespace");
+
+                   auto symbol_name = $1.substr(pos + 1);
+                   if (namespace_name == "self")
+                     $$ = driver.add_self_variable(symbol_name, $3.front());
+                   else if (namespace_name == "prev")
+                     $$ = driver.add_prev_variable(symbol_name, $3.front());
+                   else
+                     $$ = driver.add_database_variable(namespace_name, symbol_name, $3.front());
+                 }
+               else
+                 $$ = driver.add_lead_lag_var_or_external_function($1, $3, false);
+             }
            | NORMCDF '(' expression COMMA expression COMMA expression ')'
              { $$ = driver.add_normcdf($3, $5, $7); }
            | NORMCDF '(' expression ')'
@@ -1502,6 +1553,88 @@ value_list : value_list COMMA '(' expression ')'
                      : driver.add_non_negative_constant($1)};
              }
            ;
+
+shock_paths : SHOCK_PATHS ';' { driver.begin_shock_paths(); }
+              shock_paths_list
+              { driver.end_shock_paths(1, false); }
+              END ';'
+            | SHOCK_PATHS '(' shock_paths_options_list ')' ';' { driver.begin_shock_paths(); }
+              shock_paths_list
+              {
+                variant<int, string> learnt_in_period {1};
+                if (auto it = $3.find("learnt_in"); it != $3.end())
+                  learnt_in_period = get<variant<int, string>>(it->second);
+                /* NB: the following relies on the fact that bool is the first
+                   alternative in the variant, so that default initialization of the
+                   variant by the [] operator will give false */
+                driver.end_shock_paths(learnt_in_period, get<bool>($3["overwrite"]));
+              }
+              END ';'
+            ;
+
+shock_paths_options_list : shock_paths_option
+                           { $$ = {$1}; }
+                         | shock_paths_options_list shock_paths_option
+                           {
+                             $$ = $1;
+                             auto [it, success] = $$.insert($2);
+                             if (!success)
+                               driver.error("The '" + $2.first + "' option is declared multiple times");
+                           }
+                         ;
+
+shock_paths_option : OVERWRITE
+                     { $$ = {"overwrite", true}; }
+                   | LEARNT_IN EQUAL integer_or_date
+                     { $$ = {"learnt_in", $3}; }
+                   ;
+
+shock_paths_list : shock_paths_list shock_paths_elem
+                 | shock_paths_elem
+                 ;
+
+shock_paths_elem : VAR symbol ';' PERIODS period_w_end_list ';' VALUES expression_list ';'
+                   { driver.add_shock_paths_elem($2, $5, $8); }
+                 ;
+
+// Similar to period_list, but allowing “end” as a period, and making comma mandatories
+period_w_end_list : period_w_end_range
+                    { $$ = { $1 }; }
+                  | period_w_end_list COMMA period_w_end_range
+                    {
+                      $$ = $1;
+                      $$.emplace_back($3);
+                    }
+                  ;
+
+period_w_end_range : INT_NUMBER
+                     {
+                       int p = stoi($1);
+                       $$ = { p };
+                     }
+                   | INT_NUMBER ':' INT_NUMBER
+                     {
+                       int p1 = stoi($1), p2 = stoi($3);
+                       if (p1 > p2)
+                         driver.error("Can't have first period index greater than second index in range specification");
+                       $$ = { p1, p2 };
+                     }
+                   | date_expr
+                     { $$ = { $1 }; }
+                   | date_expr ':' date_expr
+                     { $$ = { $1, $3 }; }
+                   | END
+                     {
+                       $$ = { monostate{} };
+                     }
+                   | INT_NUMBER ':' END
+                     {
+                       int p = stoi($1);
+                       $$ = { p, monostate{} };
+                     }
+                   | date_expr ':' END
+                     { $$ = { $1, monostate{} }; }
+                   ;
 
 steady : STEADY ';'
          { driver.steady(); }

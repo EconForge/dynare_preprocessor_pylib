@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -32,9 +32,10 @@
 
 StaticModel::StaticModel(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                          ExternalFunctionsTable& external_functions_table_arg,
-                         HeterogeneityTable& heterogeneity_table_arg) :
+                         HeterogeneityTable& heterogeneity_table_arg,
+                         DatabaseTable& database_table_arg) :
     ModelTree {symbol_table_arg, num_constants_arg, external_functions_table_arg,
-               heterogeneity_table_arg}
+               heterogeneity_table_arg, database_table_arg}
 {
 }
 
@@ -74,7 +75,8 @@ StaticModel::operator=(const StaticModel& m)
 }
 
 StaticModel::StaticModel(const DynamicModel& m) :
-    ModelTree {m.symbol_table, m.num_constants, m.external_functions_table, m.heterogeneity_table}
+    ModelTree {m.symbol_table, m.num_constants, m.external_functions_table, m.heterogeneity_table,
+               m.database_table}
 {
   // Convert model local variables (need to be done first)
   for (int it : m.local_variables_vector)

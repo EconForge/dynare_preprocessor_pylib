@@ -20,6 +20,7 @@
 #ifndef SHOCKS_HH
 #define SHOCKS_HH
 
+#include <cassert>
 #include <map>
 #include <string>
 #include <variant>
@@ -98,6 +99,7 @@ public:
   const bool relative_to_initval;
   MShocksStatement(bool overwrite_arg, bool relative_to_initval_arg, det_shocks_t det_shocks_arg,
                    const SymbolTable& symbol_table_arg);
+  void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
 };
@@ -337,6 +339,79 @@ public:
                                  const SymbolTable& symbol_table_arg);
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
+};
+
+class ShockPathsStatement : public Statement
+{
+public:
+  /* A period is either an index (1-based), a date (from dseries), or std::monostate (means the
+     terminal condition, “end”). Constructors are provided for the authorized combinations. */
+  class period_range_t
+  {
+  public:
+    using period_t = variant<int, string, monostate>;
+
+    // Default constructor, needed by Bison for any semantic value
+    period_range_t() : first {1}, last {1}
+    {
+    }
+
+    period_range_t(period_t p) : first {p}, last {move(p)}
+    {
+    }
+    period_range_t(int first_arg, int last_arg) : first {first_arg}, last {last_arg}
+    {
+      assert(last_arg >= first_arg);
+    }
+    period_range_t(string first_arg, string last_arg) :
+        first {move(first_arg)}, last {move(last_arg)}
+    {
+    }
+    period_range_t(int first_arg, monostate last_arg) : first {first_arg}, last {last_arg}
+    {
+    }
+    period_range_t(string first_arg, monostate last_arg) : first {move(first_arg)}, last {last_arg}
+    {
+    }
+
+    const period_t&
+    get_first() const
+    {
+      return first;
+    }
+    const period_t&
+    get_last() const
+    {
+      return last;
+    }
+
+  private:
+    // Cannot be made const because we need operator=() in Bison semantic actions
+    period_t first, last;
+  };
+
+  // Maps a symbol ID to a list of periods/value pairs
+  using shock_paths_t = map<int, vector<pair<period_range_t, expr_t>>>;
+
+  ShockPathsStatement(variant<int, string> learnt_in_period_arg, bool overwrite_arg,
+                      shock_paths_t shock_paths_arg, const SymbolTable& symbol_table_arg);
+  void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
+  void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream& output) const override;
+
+private:
+  const variant<int, string> learnt_in_period;
+  const bool overwrite; // Does this “shock_paths” block replace the previous ones?
+  const shock_paths_t shock_paths;
+  const SymbolTable& symbol_table;
+  int index {-1};
+
+  [[nodiscard]] string
+  evaluationFunctionName() const
+  {
+    return "shock_paths_" + to_string(index);
+  }
+  void writeEvaluationFunctionFile(const string& basename) const;
 };
 
 #endif

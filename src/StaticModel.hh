@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -130,7 +130,7 @@ protected:
 public:
   StaticModel(SymbolTable& symbol_table_arg, NumericalConstants& num_constants,
               ExternalFunctionsTable& external_functions_table_arg,
-              HeterogeneityTable& heterogeneity_table_arg);
+              HeterogeneityTable& heterogeneity_table_arg, DatabaseTable& database_table_arg);
 
   StaticModel(const StaticModel& m);
   StaticModel& operator=(const StaticModel& m);

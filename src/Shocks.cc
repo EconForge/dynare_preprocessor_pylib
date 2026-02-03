@@ -23,6 +23,7 @@
 #include <utility>
 
 #include "Shocks.hh"
+#include "Utils.hh"
 
 static auto print_matlab_period_range = []<class T>(ostream& output, const T& arg) {
   if constexpr (is_same_v<T, pair<int, int>>)
@@ -402,6 +403,8 @@ void
 ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
                            [[maybe_unused]] WarningConsolidation& warnings)
 {
+  mod_file_struct.shocks_present = true;
+
   /* Error out if variables are not of the right type. This must be done here
      and not at parsing time (see #448).
      Also Determine if there is a calibrated measurement error */
@@ -528,6 +531,13 @@ MShocksStatement::MShocksStatement(bool overwrite_arg, bool relative_to_initval_
                              move(det_shocks_arg), symbol_table_arg},
     relative_to_initval {relative_to_initval_arg}
 {
+}
+
+void
+MShocksStatement::checkPass(ModFileStructure& mod_file_struct,
+                            [[maybe_unused]] WarningConsolidation& warnings)
+{
+  mod_file_struct.mshocks_present = true;
 }
 
 void
@@ -1370,4 +1380,178 @@ HeteroskedasticShocksStatement::writeJsonOutput(ostream& output) const
       output << "]}";
     }
   output << "]}";
+}
+
+ShockPathsStatement::ShockPathsStatement(variant<int, string> learnt_in_period_arg,
+                                         bool overwrite_arg, shock_paths_t shock_paths_arg,
+                                         const SymbolTable& symbol_table_arg) :
+    learnt_in_period {move(learnt_in_period_arg)},
+    overwrite {overwrite_arg},
+    shock_paths {move(shock_paths_arg)},
+    symbol_table {symbol_table_arg}
+{
+}
+
+void
+ShockPathsStatement::checkPass(ModFileStructure& mod_file_struct,
+                               [[maybe_unused]] WarningConsolidation& warnings)
+{
+  index = ++mod_file_struct.shock_paths_number;
+}
+
+void
+ShockPathsStatement::writeOutput(ostream& output, const string& basename,
+                                 [[maybe_unused]] bool minimal_workspace) const
+{
+  if (overwrite)
+    {
+      output << "if ~isempty(M_.shock_paths)" << endl
+             << "  M_.shock_paths = M_.shock_paths(cellfun(@(x) ~isa(x, '";
+      if (holds_alternative<int>(learnt_in_period))
+        output << "numeric";
+      else
+        output << "dates";
+      output << "') || x ~= ";
+      /* NB: date expression not parenthesized since it can only contain a + operator, which has
+         higher precedence than ~= and || */
+      visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
+      output << ", {M_.shock_paths.learnt_in}));" << endl << "end" << endl;
+    }
+
+  /* Whether this block has a date somewhere:
+     – in the “learnt_in” option
+     – in the “periods” statement
+     – in the “learnt_in()” namespace of a variable inside the expressions */
+  bool contains_date {holds_alternative<string>(learnt_in_period)
+                      || ranges::any_of(shock_paths, [](const auto& symb_vec) {
+                           return ranges::any_of(symb_vec.second, [](const auto& period_value) {
+                             auto& [period, value] = period_value;
+                             return holds_alternative<string>(period.get_first())
+                                    || holds_alternative<string>(period.get_last())
+                                    || value->containsDate();
+                           });
+                         })};
+
+  // Whether this block has an “end” period (and thus triggers a permanent shock)
+  bool contains_endval {ranges::any_of(shock_paths, [](const auto& symb_vec) {
+    return ranges::any_of(symb_vec.second, [](const auto& period_value) {
+      auto& [period, value] = period_value;
+      return holds_alternative<monostate>(period.get_last());
+    });
+  })};
+
+  output << "M_.shock_paths = [M_.shock_paths; struct('learnt_in', ";
+  visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
+  output << ", 'evaluation_function', '" << basename << "." << evaluationFunctionName()
+         << "', 'contains_date', " << boolalpha << contains_date << ", 'contains_endval', "
+         << contains_endval << ")];" << endl;
+
+  writeEvaluationFunctionFile(basename);
+}
+
+void
+ShockPathsStatement::writeJsonOutput(ostream& output) const
+{
+  auto print_json_period_t = [&output](const auto& arg) {
+    if (holds_alternative<int>(arg))
+      output << get<int>(arg);
+    else if (holds_alternative<string>(arg))
+      output << '"' << get<string>(arg) << '"';
+    else // monostate
+      output << R"("end")";
+  };
+
+  output << R"({"statementName": "shock_paths")"
+         << R"(, "learnt_in": )";
+  visit([&](const auto& p) { print_json_learnt_in(output, p); }, learnt_in_period);
+  output << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "shock_paths": [)";
+  for (bool printed_something {false}; const auto& [id, shock_vec] : shock_paths)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << R"({"var": ")" << symbol_table.getName(id) << R"(", )"
+             << R"("values": [)";
+      for (bool printed_something2 {false}; const auto& [period_range, value] : shock_vec)
+        {
+          if (exchange(printed_something2, true))
+            output << ", ";
+          output << R"({"period1" :)";
+          print_json_period_t(period_range.get_first());
+          output << R"(, "period2" :)";
+          print_json_period_t(period_range.get_last());
+          output << R"(", "value": ")";
+          value->writeJsonOutput(output, {}, {});
+          output << R"("})";
+        }
+      output << "]}";
+    }
+  output << "]}";
+}
+
+void
+ShockPathsStatement::writeEvaluationFunctionFile(const string& basename) const
+{
+  filesystem::path filename {packageDir(basename) / (evaluationFunctionName() + ".m")};
+  ofstream output {filename, ios::out | ios::binary};
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  // M_ is there for parameters, oo_ for initval namespace
+  output << "function shock_paths = " << evaluationFunctionName()
+         << "(shock_paths, p, periods, first_simulation_period, M_, oo_)" << endl
+         << "info_period = ";
+  if (holds_alternative<int>(learnt_in_period))
+    output << get<int>(learnt_in_period);
+  else
+    output << get<string>(learnt_in_period) << "-first_simulation_period+1";
+  output << ";" << endl;
+
+  auto print_matlab_period_shock_paths = [&output](const auto& p) {
+    if (holds_alternative<int>(p))
+      output << get<int>(p);
+    else if (holds_alternative<string>(p))
+      output << get<string>(p) << "-first_simulation_period+1";
+    else // monostate
+      output << "periods+1";
+  };
+
+  for (const auto& [symb_id, shock_vec] : shock_paths)
+    for (const auto& [period_range, value] : shock_vec)
+      {
+        auto p1 = period_range.get_first();
+        auto p2 = period_range.get_last();
+        if (p1 == p2)
+          {
+            output << "if p == ";
+            print_matlab_period_shock_paths(p1);
+          }
+        else if (holds_alternative<monostate>(p2))
+          {
+            output << "if p >= ";
+            print_matlab_period_shock_paths(p1);
+          }
+        else if (holds_alternative<int>(p1) && get<int>(p1) == 1)
+          {
+            output << "if p <= ";
+            print_matlab_period_shock_paths(p2);
+          }
+        else
+          {
+            output << "if p >= ";
+            print_matlab_period_shock_paths(p1);
+            output << " && p <= ";
+            print_matlab_period_shock_paths(p2);
+          }
+        output << endl
+               << "shock_paths(" << symbol_table.getTypeSpecificID(symb_id) + 1
+               << ",p,info_period) = ";
+        value->writeOutput(output);
+        output << ";" << endl << "end" << endl;
+      }
+
+  output << "end" << endl;
+  output.close();
 }

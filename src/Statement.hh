@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2024 Dynare Team
+ * Copyright © 2006-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -169,12 +169,19 @@ struct ModFileStructure
   set<int> parameters_in_planner_discount;
   // Whether an endval block (without the learnt_it=… option) appears
   bool endval_present {false};
+  // Whether a plain shocks block appears (no surprise, no learnt_in option)
+  bool shocks_present {false};
+  // Whether an mshocks block appears
+  bool mshocks_present {false};
   // Whether a shocks(surprise) block appears
   bool shocks_surprise_present {false};
   // Whether a shocks(learnt_in=…) block appears
   bool shocks_learnt_in_present {false};
   // Whether an endval(learnt_in=…) block appears
   bool endval_learnt_in_present {false};
+  /* Number of shock_paths blocks. Also used during checkPass() to compute a unique index for each
+     shock_paths block*/
+  int shock_paths_number {0};
   // Whether an occbin_constraints block appears
   bool occbin_constraints_present {false};
 

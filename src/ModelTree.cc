@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -145,9 +145,10 @@ ModelTree::copyHelper(const ModelTree& m)
 
 ModelTree::ModelTree(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                      ExternalFunctionsTable& external_functions_table_arg,
-                     HeterogeneityTable& heterogeneity_table_arg, bool is_dynamic_arg) :
-    DataTree {symbol_table_arg, num_constants_arg, external_functions_table_arg,
-              heterogeneity_table_arg, is_dynamic_arg},
+                     HeterogeneityTable& heterogeneity_table_arg, DatabaseTable& database_table_arg,
+                     bool is_dynamic_arg) :
+    DataTree {symbol_table_arg,        num_constants_arg,  external_functions_table_arg,
+              heterogeneity_table_arg, database_table_arg, is_dynamic_arg},
     derivatives(4),
     temporary_terms_derivatives(4)
 {

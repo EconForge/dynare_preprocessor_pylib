@@ -37,39 +37,30 @@ ModFile::ModFile(WarningConsolidation& warnings_arg) :
     trend_component_model_table {symbol_table},
     var_expectation_model_table {symbol_table},
     pac_model_table {symbol_table},
-    expressions_tree {symbol_table, num_constants, external_functions_table, heterogeneity_table},
-    original_model {symbol_table,
-                    num_constants,
-                    external_functions_table,
-                    heterogeneity_table,
-                    trend_component_model_table,
+    expressions_tree {symbol_table, num_constants, external_functions_table, heterogeneity_table,
+                      database_table},
+    shock_paths_tree {symbol_table, num_constants, external_functions_table, heterogeneity_table,
+                      database_table},
+    original_model {symbol_table,        num_constants,  external_functions_table,
+                    heterogeneity_table, database_table, trend_component_model_table,
                     var_model_table},
-    dynamic_model {symbol_table,
-                   num_constants,
-                   external_functions_table,
-                   heterogeneity_table,
-                   trend_component_model_table,
+    dynamic_model {symbol_table,        num_constants,  external_functions_table,
+                   heterogeneity_table, database_table, trend_component_model_table,
                    var_model_table},
-    trend_dynamic_model {symbol_table,
-                         num_constants,
-                         external_functions_table,
-                         heterogeneity_table,
-                         trend_component_model_table,
+    trend_dynamic_model {symbol_table,        num_constants,  external_functions_table,
+                         heterogeneity_table, database_table, trend_component_model_table,
                          var_model_table},
-    orig_ramsey_dynamic_model {symbol_table,
-                               num_constants,
-                               external_functions_table,
-                               heterogeneity_table,
-                               trend_component_model_table,
+    orig_ramsey_dynamic_model {symbol_table,        num_constants,  external_functions_table,
+                               heterogeneity_table, database_table, trend_component_model_table,
                                var_model_table},
-    epilogue {symbol_table,
-              num_constants,
-              external_functions_table,
-              heterogeneity_table,
-              trend_component_model_table,
+    epilogue {symbol_table,        num_constants,  external_functions_table,
+              heterogeneity_table, database_table, trend_component_model_table,
               var_model_table},
-    static_model {symbol_table, num_constants, external_functions_table, heterogeneity_table},
-    steady_state_model {symbol_table, num_constants, external_functions_table, heterogeneity_table,
+    static_model {symbol_table, num_constants, external_functions_table, heterogeneity_table,
+                  database_table},
+    steady_state_model {symbol_table,        num_constants,  external_functions_table,
+                        heterogeneity_table, database_table,
+
                         static_model},
     warnings {warnings_arg}
 {
@@ -715,12 +706,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       */
       if (linear)
         orig_ramsey_dynamic_model = dynamic_model;
-      DynamicModel ramsey_FOC_equations_dynamic_model {symbol_table,
-                                                       num_constants,
-                                                       external_functions_table,
-                                                       heterogeneity_table,
-                                                       trend_component_model_table,
-                                                       var_model_table};
+      DynamicModel ramsey_FOC_equations_dynamic_model {
+          symbol_table,        num_constants,  external_functions_table,
+          heterogeneity_table, database_table, trend_component_model_table,
+          var_model_table};
       ramsey_FOC_equations_dynamic_model = dynamic_model;
       auto clone_if_not_null
           = [&](expr_t e) { return e ? e->clone(ramsey_FOC_equations_dynamic_model) : nullptr; };
@@ -890,6 +879,17 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
     {
       cerr << "ERROR: the 'endval(learnt_in=…)' block can only be used in conjunction with the "
               "'perfect_foresight_with_expectation_errors_solver' command."
+           << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (mod_file_struct.shock_paths_number > 0
+      && (mod_file_struct.shocks_present || mod_file_struct.mshocks_present
+          || mod_file_struct.endval_present || mod_file_struct.shocks_learnt_in_present
+          || mod_file_struct.endval_learnt_in_present))
+    {
+      cerr << "ERROR: the 'shock_paths' block cannot be used in conjunction with either 'shocks', "
+              "'mshocks' or 'endval' blocks."
            << endl;
       exit(EXIT_FAILURE);
     }
@@ -1224,6 +1224,8 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
   var_expectation_model_table.writeOutput(mOutputFile);
   pac_model_table.writeOutput(mOutputFile);
 
+  database_table.writeOutput(mOutputFile);
+
   // Initialize M_.Sigma_e, M_.Correlation_matrix, M_.Skew_e, M_.H, and M_.Correlation_matrix_ME
   mOutputFile << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", " << symbol_table.exo_nbr()
               << ");" << endl
@@ -1254,6 +1256,7 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
               << "M_.surprise_shocks = struct([]);" << endl
               << "M_.learnt_shocks = struct([]);" << endl
               << "M_.learnt_endval = struct([]);" << endl
+              << "M_.shock_paths = struct([]);" << endl
               << "M_.heteroskedastic_shocks.Qvalue_orig = struct([]);" << endl
               << "M_.heteroskedastic_shocks.Qscale_orig = struct([]);" << endl
               << "M_.matched_irfs = {};" << endl
@@ -1559,6 +1562,11 @@ ModFile::writeJsonOutputParsingCheck(const string& basename, JsonFileOutputType 
   if (!heterogeneity_table.empty())
     {
       heterogeneity_table.writeJsonOutput(output);
+      output << ", ";
+    }
+  if (!database_table.empty())
+    {
+      database_table.writeJsonOutput(output);
       output << ", ";
     }
   dynamic_model.writeJsonOutput(output);

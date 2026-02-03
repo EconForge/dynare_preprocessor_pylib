@@ -29,6 +29,7 @@
 #include <utility>
 #include <vector>
 
+#include "DatabaseTable.hh"
 #include "ExprNode.hh"
 #include "ExternalFunctionsTable.hh"
 #include "HeterogeneityTable.hh"
@@ -49,6 +50,8 @@ public:
   ExternalFunctionsTable& external_functions_table;
   // A reference to the heterogeneity table
   HeterogeneityTable& heterogeneity_table;
+  // A reference to the database table
+  DatabaseTable& database_table;
   //! Is it possible to use leads/lags on variable nodes?
   /* NB: This data member cannot be replaced by a virtual method, because this information is needed
      in AddVariable(), which itself can be called from the copy constructor. */
@@ -62,6 +65,13 @@ private:
   //! (symbol_id, lag) -> VariableNode
   using variable_node_map_t = map<pair<int, int>, VariableNode*>;
   variable_node_map_t variable_node_map;
+
+  /* (NamespaceType, symbol_id, lag, learnt_in_period, database_id) →
+     NamespaceQualifiedVariableNode */
+  using namespace_qualified_variable_node_map_t = map<
+      tuple<NamespaceQualifiedVariableNode::NamespaceType, int, int, variant<int, string>, int>,
+      NamespaceQualifiedVariableNode*>;
+  namespace_qualified_variable_node_map_t namespace_qualified_variable_node_map;
 
   //! (arg, op_code, arg_exp_info_set, param1_symb_id, param2_symb_id) -> UnaryOpNode
   using unary_op_node_map_t = map<tuple<expr_t, UnaryOpcode, int, int, int>, UnaryOpNode*>;
@@ -129,7 +139,8 @@ private:
 public:
   DataTree(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
            ExternalFunctionsTable& external_functions_table_arg,
-           HeterogeneityTable& heterogeneity_table_arg, bool is_dynamic_arg = false);
+           HeterogeneityTable& heterogeneity_table_arg, DatabaseTable& database_table_arg,
+           bool is_dynamic_arg = false);
 
   virtual ~DataTree() = default;
 
@@ -161,6 +172,11 @@ public:
   /*! Same as AddVariable, except that it fails if the variable node has not
     already been created */
   [[nodiscard]] VariableNode* getVariable(int symb_id, int lag = 0) const;
+  // Add a namespace-qualified variable
+  NamespaceQualifiedVariableNode*
+  AddNamespaceQualifiedVariable(NamespaceQualifiedVariableNode::NamespaceType Namespace,
+                                int symb_id, int lag = 0, int database_id = -1,
+                                const variant<int, string>& learnt_in_period = 1);
   //! Adds "arg1+arg2" to model tree
   expr_t AddPlus(expr_t iArg1, expr_t iArg2);
   //! Adds "arg1-arg2" to model tree

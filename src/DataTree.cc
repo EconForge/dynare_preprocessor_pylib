@@ -51,11 +51,13 @@ DataTree::initConstants()
 
 DataTree::DataTree(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                    ExternalFunctionsTable& external_functions_table_arg,
-                   HeterogeneityTable& heterogeneity_table_arg, bool is_dynamic_arg) :
+                   HeterogeneityTable& heterogeneity_table_arg, DatabaseTable& database_table_arg,
+                   bool is_dynamic_arg) :
     symbol_table {symbol_table_arg},
     num_constants {num_constants_arg},
     external_functions_table {external_functions_table_arg},
     heterogeneity_table {heterogeneity_table_arg},
+    database_table {database_table_arg},
     is_dynamic {is_dynamic_arg}
 {
   initConstants();
@@ -66,6 +68,7 @@ DataTree::DataTree(const DataTree& d) :
     num_constants {d.num_constants},
     external_functions_table {d.external_functions_table},
     heterogeneity_table {d.heterogeneity_table},
+    database_table {d.database_table},
     is_dynamic {d.is_dynamic},
     local_variables_vector {d.local_variables_vector}
 {
@@ -89,6 +92,7 @@ DataTree::operator=(const DataTree& d)
   assert(&num_constants == &d.num_constants);
   assert(&external_functions_table == &d.external_functions_table);
   assert(&heterogeneity_table == &d.heterogeneity_table);
+  assert(&database_table == &d.database_table);
   assert(is_dynamic == d.is_dynamic);
 
   num_const_node_map.clear();
@@ -171,6 +175,25 @@ DataTree::getVariable(int symb_id, int lag) const
       exit(EXIT_FAILURE);
     }
   return it->second;
+}
+
+NamespaceQualifiedVariableNode*
+DataTree::AddNamespaceQualifiedVariable(NamespaceQualifiedVariableNode::NamespaceType Namespace,
+                                        int symb_id, int lag, int database_id,
+                                        const variant<int, string>& learnt_in_period)
+{
+  if (auto it = namespace_qualified_variable_node_map.find(
+          {Namespace, symb_id, lag, learnt_in_period, database_id});
+      it != namespace_qualified_variable_node_map.end())
+    return it->second;
+
+  auto sp = make_unique<NamespaceQualifiedVariableNode>(*this, node_list.size(), Namespace, symb_id,
+                                                        lag, database_id, learnt_in_period);
+  auto p = sp.get();
+  node_list.push_back(move(sp));
+  namespace_qualified_variable_node_map.try_emplace(
+      {Namespace, symb_id, lag, learnt_in_period, database_id}, p);
+  return p;
 }
 
 set<string>

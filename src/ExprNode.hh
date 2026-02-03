@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <variant>
 #include <vector>
 
 using namespace std;
@@ -899,6 +900,10 @@ public:
   [[nodiscard]] virtual bool containsPacTargetNonstationary(const string& pac_model_name = "") const
       = 0;
 
+  /* Whether this expression contain a dates. Can only happen in a NamespaceQualifiedVariableNode,
+     if the “learnt_in” namespace is used */
+  [[nodiscard]] virtual bool containsDate() const = 0;
+
   //! Decompose an expression into its additive terms
   /*! Returns a list of terms, with their sign (either 1 or -1, depending
     on whether the terms appears with a plus or a minus).
@@ -1098,6 +1103,7 @@ public:
   [[nodiscard]] bool containsPacExpectation(const string& pac_model_name = "") const override;
   [[nodiscard]] bool containsPacTargetNonstationary(const string& pac_model_name
                                                     = "") const override;
+  [[nodiscard]] bool containsDate() const override;
   [[nodiscard]] bool isParamTimesEndogExpr() const override;
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
   [[nodiscard]] expr_t substituteAggregationOperators(subst_table_t& subst_table,
@@ -1219,6 +1225,7 @@ public:
   [[nodiscard]] bool containsPacExpectation(const string& pac_model_name = "") const override;
   [[nodiscard]] bool containsPacTargetNonstationary(const string& pac_model_name
                                                     = "") const override;
+  [[nodiscard]] bool containsDate() const override;
   [[nodiscard]] bool isParamTimesEndogExpr() const override;
   void matchMatchedMoment(vector<int>& symb_ids, vector<int>& lags,
                           vector<int>& powers) const override;
@@ -1380,6 +1387,7 @@ public:
   [[nodiscard]] bool containsPacExpectation(const string& pac_model_name = "") const override;
   [[nodiscard]] bool containsPacTargetNonstationary(const string& pac_model_name
                                                     = "") const override;
+  [[nodiscard]] bool containsDate() const override;
   [[nodiscard]] bool isParamTimesEndogExpr() const override;
   void decomposeAdditiveTerms(vector<pair<expr_t, int>>& terms, int current_sign) const override;
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
@@ -1559,6 +1567,7 @@ public:
   [[nodiscard]] bool containsPacExpectation(const string& pac_model_name = "") const override;
   [[nodiscard]] bool containsPacTargetNonstationary(const string& pac_model_name
                                                     = "") const override;
+  [[nodiscard]] bool containsDate() const override;
   /*
     ec_params_and_vars:
     - 1st element = feedback force parameter
@@ -1753,6 +1762,7 @@ public:
   [[nodiscard]] bool containsPacExpectation(const string& pac_model_name = "") const override;
   [[nodiscard]] bool containsPacTargetNonstationary(const string& pac_model_name
                                                     = "") const override;
+  [[nodiscard]] bool containsDate() const override;
   [[nodiscard]] bool isParamTimesEndogExpr() const override;
   [[nodiscard]] expr_t substituteAggregationOperators(subst_table_t& subst_table,
                                                       vector<BinaryOpNode*>& neweqs) const override;
@@ -1942,6 +1952,7 @@ public:
   [[nodiscard]] bool containsPacExpectation(const string& pac_model_name = "") const override;
   [[nodiscard]] bool containsPacTargetNonstationary(const string& pac_model_name
                                                     = "") const override;
+  [[nodiscard]] bool containsDate() const override;
   [[nodiscard]] bool isParamTimesEndogExpr() const override;
   [[nodiscard]] expr_t substituteLogTransform(int orig_symb_id, int aux_symb_id) const override;
   [[nodiscard]] expr_t substituteAggregationOperators(subst_table_t& subst_table,
@@ -2153,6 +2164,7 @@ public:
                                            int lag_arg) const override;
   [[nodiscard]] bool isInStaticForm() const override;
   expr_t replaceVarsInEquation(map<VariableNode*, NumConstNode*>& table) const override;
+  [[nodiscard]] bool containsDate() const override;
   [[nodiscard]] bool isParamTimesEndogExpr() const override;
   expr_t differentiateForwardVars(const vector<string>& subset, subst_table_t& subst_table,
                                   vector<BinaryOpNode*>& neweqs) const override;
@@ -2243,6 +2255,36 @@ public:
   void writeJsonAST(ostream& output) const override;
   void writeJsonOutput(ostream& output, const temporary_terms_t& temporary_terms,
                        const deriv_node_temp_terms_t& tef_terms, bool isdynamic) const override;
+};
+
+class NamespaceQualifiedVariableNode : public VariableNode
+{
+public:
+  enum class NamespaceType
+  {
+    self,
+    initval,
+    prev,
+    learnt_in,
+    database
+  };
+  const NamespaceType Namespace;
+  // NB: lag is only used when Namespace == prev or Namespace == database
+  const int database_id;                       // Only used if Namespace == database, otherwise -1
+  const variant<int, string> learnt_in_period; // Only used if Namespace == learnt_in
+
+  NamespaceQualifiedVariableNode(DataTree& datatree_arg, int idx_arg, NamespaceType Namespace_arg,
+                                 int symb_id_arg, int lag_arg, int database_id_arg,
+                                 variant<int, string> learnt_in_period_arg);
+  [[nodiscard]] string getNamespace() const;
+  void writeOutput(ostream& output, ExprNodeOutputType output_type,
+                   const temporary_terms_t& temporary_terms,
+                   const temporary_terms_idxs_t& temporary_terms_idxs,
+                   const deriv_node_temp_terms_t& tef_terms) const override;
+  void writeJsonAST(ostream& output) const override;
+  void writeJsonOutput(ostream& output, const temporary_terms_t& temporary_terms,
+                       const deriv_node_temp_terms_t& tef_terms, bool isdynamic) const override;
+  [[nodiscard]] bool containsDate() const override;
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2024 Dynare Team
+ * Copyright © 2010-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -28,9 +28,10 @@
 PlannerObjective::PlannerObjective(SymbolTable& symbol_table_arg,
                                    NumericalConstants& num_constants_arg,
                                    ExternalFunctionsTable& external_functions_table_arg,
-                                   HeterogeneityTable& heterogeneity_table_arg) :
+                                   HeterogeneityTable& heterogeneity_table_arg,
+                                   DatabaseTable& database_table_arg) :
     StaticModel {symbol_table_arg, num_constants_arg, external_functions_table_arg,
-                 heterogeneity_table_arg}
+                 heterogeneity_table_arg, database_table_arg}
 {
 }
 
@@ -54,13 +55,10 @@ PlannerObjective::computingPassBlock([[maybe_unused]] const eval_context_t& eval
 OrigRamseyDynamicModel::OrigRamseyDynamicModel(
     SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
     ExternalFunctionsTable& external_functions_table_arg,
-    HeterogeneityTable& heterogeneity_table_arg,
+    HeterogeneityTable& heterogeneity_table_arg, DatabaseTable& database_table_arg,
     TrendComponentModelTable& trend_component_model_table_arg, VarModelTable& var_model_table_arg) :
-    DynamicModel {symbol_table_arg,
-                  num_constants_arg,
-                  external_functions_table_arg,
-                  heterogeneity_table_arg,
-                  trend_component_model_table_arg,
+    DynamicModel {symbol_table_arg,        num_constants_arg,  external_functions_table_arg,
+                  heterogeneity_table_arg, database_table_arg, trend_component_model_table_arg,
                   var_model_table_arg}
 {
 }
@@ -76,9 +74,10 @@ SteadyStateModel::SteadyStateModel(SymbolTable& symbol_table_arg,
                                    NumericalConstants& num_constants_arg,
                                    ExternalFunctionsTable& external_functions_table_arg,
                                    HeterogeneityTable& heterogeneity_table_arg,
+                                   DatabaseTable& database_table_arg,
                                    const StaticModel& static_model_arg) :
     DataTree {symbol_table_arg, num_constants_arg, external_functions_table_arg,
-              heterogeneity_table_arg},
+              heterogeneity_table_arg, database_table_arg},
     static_model {static_model_arg}
 {
 }
@@ -378,14 +377,11 @@ SteadyStateModel::getUsedParameters() const
 
 Epilogue::Epilogue(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                    ExternalFunctionsTable& external_functions_table_arg,
-                   HeterogeneityTable& heterogeneity_table_arg,
+                   HeterogeneityTable& heterogeneity_table_arg, DatabaseTable& database_table_arg,
                    TrendComponentModelTable& trend_component_model_table_arg,
                    VarModelTable& var_model_table_arg) :
-    DynamicModel {symbol_table_arg,
-                  num_constants_arg,
-                  external_functions_table_arg,
-                  heterogeneity_table_arg,
-                  trend_component_model_table_arg,
+    DynamicModel {symbol_table_arg,        num_constants_arg,  external_functions_table_arg,
+                  heterogeneity_table_arg, database_table_arg, trend_component_model_table_arg,
                   var_model_table_arg}
 {
 }

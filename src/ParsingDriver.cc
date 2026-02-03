@@ -449,26 +449,166 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
 expr_t
 ParsingDriver::add_expression_variable(const string& name)
 {
+  assert(name.find('.') == string::npos); // Ensure this is not namespace-qualified
+
   // If symbol doesn't exist declare it as a mod file local variable
-  if (!mod_file->symbol_table.exists(name))
+  if (!is_parsing_shock_paths() && !mod_file->symbol_table.exists(name))
     mod_file->symbol_table.addSymbol(name, SymbolType::modFileLocalVariable);
 
-  // This check must come after the previous one!
-  if (mod_file->symbol_table.getType(name) == SymbolType::modelLocalVariable)
-    error("Variable " + name
-          + " not allowed outside model declaration. Its scope is only inside model.");
+  // Type checks must come after automatic mod-file local variable declaration!
+  if (SymbolType type {mod_file->symbol_table.getType(name)}; is_parsing_shock_paths())
+    {
+      if (type != SymbolType::parameter)
+        error("In the shock_paths block, parameters are the only symbols allowed without a "
+              "namespace-qualifier");
+    }
+  else
+    {
+      if (type == SymbolType::modelLocalVariable)
+        error("Variable " + name
+              + " not allowed outside model declaration. Its scope is only inside model.");
 
-  if (mod_file->symbol_table.getType(name) == SymbolType::trend
-      || mod_file->symbol_table.getType(name) == SymbolType::logTrend)
-    error("Variable " + name
-          + " not allowed outside model declaration, because it is a trend variable.");
+      if (type == SymbolType::trend || type == SymbolType::logTrend)
+        error("Variable " + name
+              + " not allowed outside model declaration, because it is a trend variable.");
 
-  if (mod_file->symbol_table.getType(name) == SymbolType::externalFunction)
-    error("Symbol '" + name
-          + "' is the name of a MATLAB/Octave function, and cannot be used as a variable.");
+      if (type == SymbolType::externalFunction)
+        error("Symbol '" + name
+              + "' is the name of a MATLAB/Octave function, and cannot be used as a variable.");
+    }
 
   int symb_id = mod_file->symbol_table.getID(name);
   return data_tree->AddVariable(symb_id);
+}
+
+expr_t
+ParsingDriver::add_self_variable(const string& name, expr_t lag)
+{
+  check_symbol_is_exogenous(name, false);
+  int symb_id {mod_file->symbol_table.getID(name)};
+
+  try
+    {
+      auto ilag = lag->matchIntegerConstant();
+      if (ilag >= 0)
+        error("The syntax self." + name + " must be used with a lag; a lead is not accepted");
+      return data_tree->AddNamespaceQualifiedVariable(
+          NamespaceQualifiedVariableNode::NamespaceType::self, symb_id, ilag);
+    }
+  catch (ExprNode::MatchFailureException&)
+    {
+      error("Symbol self." + name
+            + " is being treated as if it were a function (i.e., passed an argument that is "
+              "not an integer).");
+    }
+}
+
+expr_t
+ParsingDriver::add_initval_variable(const string& name)
+{
+  check_symbol_is_endogenous_or_exogenous(name, false);
+
+  int symb_id {mod_file->symbol_table.getID(name)};
+
+  return data_tree->AddNamespaceQualifiedVariable(
+      NamespaceQualifiedVariableNode::NamespaceType::initval, symb_id);
+}
+
+expr_t
+ParsingDriver::add_prev_variable(const string& name, expr_t lag)
+{
+  check_symbol_is_exogenous(name, false);
+
+  int symb_id {mod_file->symbol_table.getID(name)};
+
+  if (!lag)
+    return data_tree->AddNamespaceQualifiedVariable(
+        NamespaceQualifiedVariableNode::NamespaceType::prev, symb_id);
+  else
+    try
+      {
+        return data_tree->AddNamespaceQualifiedVariable(
+            NamespaceQualifiedVariableNode::NamespaceType::prev, symb_id,
+            lag->matchIntegerConstant());
+      }
+    catch (ExprNode::MatchFailureException&)
+      {
+        error("Symbol prev." + name
+              + " is being treated as if it were a function (i.e., passed an argument that is "
+                "not an integer).");
+      }
+}
+
+expr_t
+ParsingDriver::add_database_variable(const string& database_name, const string& symbol_name,
+                                     expr_t lag)
+{
+  int symb_id {[&]() {
+    try
+      {
+        return mod_file->symbol_table.getID(symbol_name);
+      }
+    catch (SymbolTable::UnknownSymbolNameException&)
+      {
+        return mod_file->symbol_table.addSymbol(symbol_name, SymbolType::databaseVariable);
+      }
+  }()};
+
+  int database_id {[&]() {
+    try
+      {
+        return mod_file->database_table.getID(database_name);
+      }
+    catch (DatabaseTable::UnknownDatabaseNameException&)
+      {
+        error("Unknown database: " + database_name
+              + ". You may want to declare it via the 'database' command.");
+      }
+  }()};
+
+  if (!lag)
+    return data_tree->AddNamespaceQualifiedVariable(
+        NamespaceQualifiedVariableNode::NamespaceType::database, symb_id, 0, database_id);
+  else
+    try
+      {
+        return data_tree->AddNamespaceQualifiedVariable(
+            NamespaceQualifiedVariableNode::NamespaceType::database, symb_id,
+            lag->matchIntegerConstant(), database_id);
+      }
+    catch (ExprNode::MatchFailureException&)
+      {
+        error("Symbol " + database_name + "." + symbol_name
+              + " is being treated as if it were a function (i.e., passed an argument that is "
+                "not an integer).");
+      }
+}
+
+expr_t
+ParsingDriver::add_learnt_in_variable(const variant<int, string>& learnt_in_period,
+                                      const string& name, expr_t lag)
+{
+  check_symbol_is_exogenous(name, false);
+  int symb_id {mod_file->symbol_table.getID(name)};
+  if (!lag)
+    return data_tree->AddNamespaceQualifiedVariable(
+        NamespaceQualifiedVariableNode::NamespaceType::learnt_in, symb_id, 0, -1, learnt_in_period);
+  else
+    try
+      {
+        return data_tree->AddNamespaceQualifiedVariable(
+            NamespaceQualifiedVariableNode::NamespaceType::learnt_in, symb_id,
+            lag->matchIntegerConstant(), -1, learnt_in_period);
+      }
+    catch (ExprNode::MatchFailureException&)
+      {
+        error("Symbol learnt_in("
+              + (holds_alternative<int>(learnt_in_period) ? to_string(get<int>(learnt_in_period))
+                                                          : get<string>(learnt_in_period))
+              + ")." + name
+              + " is being treated as if it were a function (i.e., passed an argument that is "
+                "not an integer).");
+      }
 }
 
 void
@@ -1124,6 +1264,30 @@ ParsingDriver::add_det_shock(const string& var,
       learnt_shocks_multiply[symb_id] = v;
       break;
     }
+}
+
+void
+ParsingDriver::add_shock_paths_elem(const string& var,
+                                    const vector<ShockPathsStatement::period_range_t>& periods,
+                                    const vector<expr_t>& values)
+{
+  check_symbol_is_exogenous(var, false);
+
+  int symb_id = mod_file->symbol_table.getID(var);
+
+  if (shock_paths.contains(symb_id))
+    error("shock_paths: variable " + var + " declared twice");
+
+  if (periods.size() != values.size())
+    error("shock_paths: variable " + var
+          + ": number of periods is different from number of shock values");
+
+  vector<pair<ShockPathsStatement::period_range_t, expr_t>> v;
+
+  for (size_t i {0}; i < periods.size(); i++)
+    v.emplace_back(periods[i], values[i]);
+
+  shock_paths[symb_id] = v;
 }
 
 void
@@ -2385,9 +2549,9 @@ ParsingDriver::run_model_comparison()
 void
 ParsingDriver::begin_planner_objective()
 {
-  planner_objective = make_unique<PlannerObjective>(mod_file->symbol_table, mod_file->num_constants,
-                                                    mod_file->external_functions_table,
-                                                    mod_file->heterogeneity_table);
+  planner_objective = make_unique<PlannerObjective>(
+      mod_file->symbol_table, mod_file->num_constants, mod_file->external_functions_table,
+      mod_file->heterogeneity_table, mod_file->database_table);
   set_current_data_tree(planner_objective.get());
 }
 
@@ -3538,14 +3702,14 @@ ParsingDriver::add_lead_lag_var_or_external_function(const string& name, vector<
                       "external_function() statement");
             else if (static_cast<int>(arguments.size())
                      != mod_file->external_functions_table.getNargs(symb_id))
-              error(
-                  "The number of arguments passed to " + name
-                  + "() does not match those of a previous call or declaration of this function.");
+              error("The number of arguments passed to " + name
+                    + "() does not match those of a previous call or declaration of this "
+                      "function.");
           }
       }
   else
-    { /* First time encountering this external function or variable i.e., not previously declared or
-         encountered */
+    { /* First time encountering this external function or variable i.e., not previously declared
+         or encountered */
       if (is_parsing_epilogue())
         error("Variable " + name + " used in the epilogue block but was not declared.");
 
@@ -3580,8 +3744,8 @@ ParsingDriver::add_lead_lag_var_or_external_function(const string& name, vector<
                                                              in_model_expression);
     }
 
-  /* By this point, we're sure that this function exists in the External Functions Table and is not
-     a model var */
+  /* By this point, we're sure that this function exists in the External Functions Table and is
+     not a model var */
   int symb_id = mod_file->symbol_table.getID(name);
   return data_tree->AddExternalFunction(symb_id, move(arguments));
 }
@@ -4019,9 +4183,9 @@ ParsingDriver::begin_occbin_constraints()
      and those would trigger the non-linearity warning in a stochastic context
      if added to the main DynamicModel tree. It also simplifies the
      enforcement of various constraints at parsing time. */
-  occbin_constraints_tree = make_unique<DataTree>(mod_file->symbol_table, mod_file->num_constants,
-                                                  mod_file->external_functions_table,
-                                                  mod_file->heterogeneity_table, false);
+  occbin_constraints_tree = make_unique<DataTree>(
+      mod_file->symbol_table, mod_file->num_constants, mod_file->external_functions_table,
+      mod_file->heterogeneity_table, mod_file->database_table, false);
   set_current_data_tree(occbin_constraints_tree.get());
 }
 
@@ -4174,8 +4338,43 @@ ParsingDriver::heterogeneity_dimension(const vector<string>& dims)
       }()};
 
       assert(static_cast<int>(mod_file->heterogeneous_models.size()) == het_dim_id);
-      mod_file->heterogeneous_models.emplace_back(mod_file->symbol_table, mod_file->num_constants,
-                                                  mod_file->external_functions_table,
-                                                  mod_file->heterogeneity_table, het_dim_id);
+      mod_file->heterogeneous_models.emplace_back(
+          mod_file->symbol_table, mod_file->num_constants, mod_file->external_functions_table,
+          mod_file->heterogeneity_table, mod_file->database_table, het_dim_id);
     }
+}
+
+void
+ParsingDriver::database(const vector<string>& names)
+{
+  for (const auto& name : names)
+    try
+      {
+        mod_file->database_table.addDatabase(name);
+      }
+    catch (DatabaseTable::AlreadyDeclaredDatabaseException&)
+      {
+        error("Database '" + name + "' already declared");
+      }
+}
+
+bool
+ParsingDriver::database_exists(const string& name) const
+{
+  return mod_file->database_table.exists(name);
+}
+
+void
+ParsingDriver::begin_shock_paths()
+{
+  set_current_data_tree(&mod_file->shock_paths_tree);
+}
+
+void
+ParsingDriver::end_shock_paths(const variant<int, string>& learnt_in_period, bool overwrite)
+{
+  mod_file->addStatement(make_unique<ShockPathsStatement>(
+      learnt_in_period, overwrite, move(shock_paths), mod_file->symbol_table));
+  reset_data_tree();
+  shock_paths.clear();
 }

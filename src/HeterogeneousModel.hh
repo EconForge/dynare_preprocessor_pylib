@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 Dynare Team
+ * Copyright © 2024-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -35,7 +35,8 @@ public:
 
   HeterogeneousModel(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                      ExternalFunctionsTable& external_functions_table_arg,
-                     HeterogeneityTable& heterogeneity_table_arg, int heterogeneity_dimension_arg);
+                     HeterogeneityTable& heterogeneity_table_arg, DatabaseTable& database_table_arg,
+                     int heterogeneity_dimension_arg);
 
   HeterogeneousModel(const HeterogeneousModel& m) = default;
   HeterogeneousModel& operator=(const HeterogeneousModel& m);
