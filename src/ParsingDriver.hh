@@ -291,7 +291,7 @@ private:
   }
 
 public:
-  bool
+  [[nodiscard]] bool
   is_parsing_shock_paths() const
   {
     return data_tree == &mod_file->shock_paths_tree;

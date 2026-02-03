@@ -374,12 +374,12 @@ public:
     {
     }
 
-    const period_t&
+    [[nodiscard]] const period_t&
     get_first() const
     {
       return first;
     }
-    const period_t&
+    [[nodiscard]] const period_t&
     get_last() const
     {
       return last;
