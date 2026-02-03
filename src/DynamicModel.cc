@@ -664,7 +664,7 @@ DynamicModel::writeBlockDriverOutput(ostream& output) const
         int lag = getLagByDerivID(deriv_id);
         lag_row_incidence[lag].insert({eq, var});
       }
-  for (auto [lag, eq_var_set] : lag_row_incidence)
+  for (const auto& [lag, eq_var_set] : lag_row_incidence)
     {
       output << "M_.block_structure.incidence(" << max_endo_lag + lag + 1 << ").lead_lag = " << lag
              << ";" << endl
