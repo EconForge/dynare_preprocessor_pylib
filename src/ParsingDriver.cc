@@ -1248,6 +1248,7 @@ ParsingDriver::add_det_shock(const string& var,
 
   vector<pair<AbstractShocksStatement::period_range_t, expr_t>> v;
 
+  v.reserve(periods.size());
   for (size_t i = 0; i < periods.size(); i++)
     v.emplace_back(periods[i], values[i]);
 
@@ -3991,6 +3992,7 @@ ParsingDriver::perfect_foresight_controlled_paths(
 
       vector<pair<AbstractShocksStatement::period_range_t, expr_t>> v;
 
+      v.reserve(periods.size());
       for (size_t i = 0; i < periods.size(); i++)
         v.emplace_back(periods[i], values[i]);
 
