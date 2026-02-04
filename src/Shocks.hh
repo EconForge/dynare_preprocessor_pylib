@@ -392,10 +392,12 @@ public:
   };
 
   // Maps a symbol ID to a list of periods/value pairs
-  using shock_paths_t = map<int, vector<pair<period_range_t, expr_t>>>;
+  using exo_paths_t = map<int, vector<pair<period_range_t, expr_t>>>;
 
   ShockPathsStatement(variant<int, string> learnt_in_period_arg, bool overwrite_arg,
-                      shock_paths_t shock_paths_arg, const SymbolTable& symbol_table_arg);
+                      exo_paths_t exo_paths_arg,
+                      PerfectForesightControlledPathsStatement::paths_t controlled_paths_arg,
+                      const SymbolTable& symbol_table_arg);
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
@@ -403,7 +405,8 @@ public:
 private:
   const variant<int, string> learnt_in_period;
   const bool overwrite; // Does this “shock_paths” block replace the previous ones?
-  const shock_paths_t shock_paths;
+  const exo_paths_t exo_paths;
+  const PerfectForesightControlledPathsStatement::paths_t controlled_paths;
   const SymbolTable& symbol_table;
   int index {-1};
 

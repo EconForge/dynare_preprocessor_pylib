@@ -911,10 +911,11 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   if (mod_file_struct.shock_paths_number > 0
       && (mod_file_struct.shocks_present || mod_file_struct.mshocks_present
           || mod_file_struct.endval_present || mod_file_struct.shocks_learnt_in_present
-          || mod_file_struct.endval_learnt_in_present))
+          || mod_file_struct.endval_learnt_in_present
+          || mod_file_struct.perfect_foresight_controlled_paths_present))
     {
       cerr << "ERROR: the 'shock_paths' block cannot be used in conjunction with either 'shocks', "
-              "'mshocks' or 'endval' blocks."
+              "'mshocks', 'endval' or 'perfect_foresight_controlled_paths' blocks."
            << endl;
       exit(EXIT_FAILURE);
     }

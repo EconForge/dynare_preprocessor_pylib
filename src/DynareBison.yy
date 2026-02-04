@@ -1597,7 +1597,11 @@ shock_paths_list : shock_paths_list shock_paths_elem
                  ;
 
 shock_paths_elem : VAR symbol ';' PERIODS period_w_end_list ';' VALUES expression_list ';'
-                   { driver.add_shock_paths_elem($2, $5, $8); }
+                   { driver.add_shock_paths_exo_elem($2, $5, $8); }
+                 | EXOGENIZE symbol ';' { driver.begin_shock_paths_controlled_elem(); }
+                   PERIODS period_list ';' VALUES expression_list ';'
+                   ENDOGENIZE symbol ';'
+                   { driver.end_shock_paths_controlled_elem($2, $6, $9, $12); }
                  ;
 
 // Similar to period_list, but allowing “end” as a period, and making comma mandatories

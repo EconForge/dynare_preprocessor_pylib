@@ -10433,7 +10433,7 @@ NamespaceQualifiedVariableNode::writeOutput(
   switch (Namespace)
     {
     case self:
-      output << "shock_paths(" << tsid << ",p+" << lag << ",info_period)";
+      output << "exo_paths(" << tsid << ",p+" << lag << ",info_period)";
       break;
     case initval:
       if (get_type() == SymbolType::endogenous)
@@ -10443,10 +10443,10 @@ NamespaceQualifiedVariableNode::writeOutput(
       output << tsid << ")";
       break;
     case prev:
-      output << "shock_paths(" << tsid << ",p+" << lag << ",info_period-1)";
+      output << "exo_paths(" << tsid << ",p+" << lag << ",info_period-1)";
       break;
     case learnt_in:
-      output << "shock_paths(" << tsid << ",p+" << lag << ",";
+      output << "exo_paths(" << tsid << ",p+" << lag << ",";
       if (holds_alternative<int>(learnt_in_period))
         output << get<int>(learnt_in_period);
       else

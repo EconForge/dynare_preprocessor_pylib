@@ -177,7 +177,9 @@ private:
   ShocksStatement::skew_shocks_t skew_shocks;
   // Temporary storage for shock_paths block
   variant<int, string> shock_paths_learnt_in_period;
-  ShockPathsStatement::shock_paths_t shock_paths;
+  ShockPathsStatement::exo_paths_t shock_paths_exo;
+  PerfectForesightControlledPathsStatement::paths_t shock_paths_controlled;
+  bool is_parsing_shock_paths_controlled {false};
   //! Temporary storage for values and scales of heteroskedastic_shocks
   HeteroskedasticShocksStatement::heteroskedastic_shocks_t heteroskedastic_shocks_values,
       heteroskedastic_shocks_scales;
@@ -513,10 +515,16 @@ public:
   void add_det_shock(const string& var,
                      const vector<AbstractShocksStatement::period_range_t>& periods,
                      const vector<expr_t>& values, DetShockType type);
-  // Adds an element inside a shock_paths block
-  void add_shock_paths_elem(const string& var,
-                            const vector<ShockPathsStatement::period_range_t>& periods,
-                            const vector<expr_t>& values);
+  // Adds an exogenous path inside a shock_paths block
+  void add_shock_paths_exo_elem(const string& var,
+                                const vector<ShockPathsStatement::period_range_t>& periods,
+                                const vector<expr_t>& values);
+  // Adds a controlled path inside a shock_paths block
+  void begin_shock_paths_controlled_elem();
+  void
+  end_shock_paths_controlled_elem(const string& exogenize,
+                                  const vector<AbstractShocksStatement::period_range_t>& periods,
+                                  const vector<expr_t>& values, const string& endogenize);
   //! Adds a heteroskedastic shock (either values or scales)
   void add_heteroskedastic_shock(const string& var,
                                  const vector<AbstractShocksStatement::period_range_t>& periods,

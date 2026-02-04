@@ -487,6 +487,10 @@ ParsingDriver::add_self_variable(const string& name, expr_t lag)
   check_symbol_is_exogenous(name, false);
   int symb_id {mod_file->symbol_table.getID(name)};
 
+  if (is_parsing_shock_paths_controlled)
+    error("The syntax self." + name
+          + " is not accepted in an 'endogenize' stanza of a 'shock_paths' block");
+
   try
     {
       auto ilag = lag->matchIntegerConstant();
@@ -528,6 +532,9 @@ ParsingDriver::add_prev_variable(const string& name, expr_t lag)
     error("The syntax prev." + name
           + " is not accepted in a 'shock_paths' block without the 'learnt_in' option or in a "
             "'shock_paths(learnt_in=1)' block");
+  if (is_parsing_shock_paths_controlled)
+    error("The syntax prev." + name
+          + " is not accepted in an 'endogenize' stanza of a 'shock_paths' block");
 
   if (!lag)
     return data_tree->AddNamespaceQualifiedVariable(
@@ -551,6 +558,10 @@ expr_t
 ParsingDriver::add_database_variable(const string& database_name, const string& symbol_name,
                                      expr_t lag)
 {
+  if (is_parsing_shock_paths_controlled)
+    error("The syntax " + database_name + "." + symbol_name
+          + " is not accepted in an 'endogenize' stanza of a 'shock_paths' block");
+
   int symb_id {[&]() {
     try
       {
@@ -612,6 +623,12 @@ ParsingDriver::add_learnt_in_variable(const variant<int, string>& learnt_in_peri
           + " is not accepted in a 'shock_paths' block without the 'learnt_in' option or in a "
             "'shock_paths(learnt_in="
           + to_string(get<int>(shock_paths_learnt_in_period)) + ")' block");
+
+  if (is_parsing_shock_paths_controlled)
+    error("The syntax learnt_in("
+          + (holds_alternative<int>(learnt_in_period) ? to_string(get<int>(learnt_in_period))
+                                                      : get<string>(learnt_in_period))
+          + ")." + name + " is not accepted in an 'endogenize' stanza of a 'shock_paths' block");
 
   if (!lag)
     return data_tree->AddNamespaceQualifiedVariable(
@@ -1291,15 +1308,15 @@ ParsingDriver::add_det_shock(const string& var,
 }
 
 void
-ParsingDriver::add_shock_paths_elem(const string& var,
-                                    const vector<ShockPathsStatement::period_range_t>& periods,
-                                    const vector<expr_t>& values)
+ParsingDriver::add_shock_paths_exo_elem(const string& var,
+                                        const vector<ShockPathsStatement::period_range_t>& periods,
+                                        const vector<expr_t>& values)
 {
   check_symbol_is_exogenous(var, false);
 
   int symb_id = mod_file->symbol_table.getID(var);
 
-  if (shock_paths.contains(symb_id))
+  if (shock_paths_exo.contains(symb_id))
     error("shock_paths: variable " + var + " declared twice");
 
   if (periods.size() != values.size())
@@ -1320,7 +1337,7 @@ ParsingDriver::add_shock_paths_elem(const string& var,
       v.emplace_back(periods[i], values[i]);
     }
 
-  shock_paths[symb_id] = v;
+  shock_paths_exo[symb_id] = v;
 }
 
 void
@@ -4039,6 +4056,36 @@ ParsingDriver::perfect_foresight_controlled_paths(
 }
 
 void
+ParsingDriver::begin_shock_paths_controlled_elem()
+{
+  is_parsing_shock_paths_controlled = true;
+}
+
+void
+ParsingDriver::end_shock_paths_controlled_elem(
+    const string& exogenize, const vector<AbstractShocksStatement::period_range_t>& periods,
+    const vector<expr_t>& values, const string& endogenize)
+{
+  check_symbol_is_endogenous(exogenize);
+  check_symbol_is_exogenous(endogenize, false);
+  if (periods.size() != values.size())
+    error("The number of periods is different from the number of values");
+
+  int exogenize_id {mod_file->symbol_table.getID(exogenize)};
+  int endogenize_id {mod_file->symbol_table.getID(endogenize)};
+
+  vector<pair<AbstractShocksStatement::period_range_t, expr_t>> v;
+
+  v.reserve(periods.size());
+  for (size_t i {0}; i < periods.size(); i++)
+    v.emplace_back(periods[i], values[i]);
+
+  shock_paths_controlled.emplace_back(exogenize_id, move(v), endogenize_id);
+
+  is_parsing_shock_paths_controlled = false;
+}
+
+void
 ParsingDriver::method_of_moments()
 {
   mod_file->addStatement(make_unique<MethodOfMomentsStatement>(move(options_list)));
@@ -4417,7 +4464,9 @@ void
 ParsingDriver::end_shock_paths(bool overwrite)
 {
   mod_file->addStatement(make_unique<ShockPathsStatement>(
-      shock_paths_learnt_in_period, overwrite, move(shock_paths), mod_file->symbol_table));
+      shock_paths_learnt_in_period, overwrite, move(shock_paths_exo), move(shock_paths_controlled),
+      mod_file->symbol_table));
   reset_data_tree();
-  shock_paths.clear();
+  shock_paths_exo.clear();
+  shock_paths_controlled.clear();
 }

@@ -1025,6 +1025,7 @@ void
 PerfectForesightControlledPathsStatement::checkPass(ModFileStructure& mod_file_struct,
                                                     [[maybe_unused]] WarningConsolidation& warnings)
 {
+  mod_file_struct.perfect_foresight_controlled_paths_present = true;
   if (!(holds_alternative<int>(learnt_in_period) && get<int>(learnt_in_period) == 1))
     mod_file_struct.perfect_foresight_controlled_paths_learnt_in_present = true;
 }
@@ -1390,12 +1391,14 @@ HeteroskedasticShocksStatement::writeJsonOutput(ostream& output) const
   output << "]}";
 }
 
-ShockPathsStatement::ShockPathsStatement(variant<int, string> learnt_in_period_arg,
-                                         bool overwrite_arg, shock_paths_t shock_paths_arg,
-                                         const SymbolTable& symbol_table_arg) :
+ShockPathsStatement::ShockPathsStatement(
+    variant<int, string> learnt_in_period_arg, bool overwrite_arg, exo_paths_t exo_paths_arg,
+    PerfectForesightControlledPathsStatement::paths_t controlled_paths_arg,
+    const SymbolTable& symbol_table_arg) :
     learnt_in_period {move(learnt_in_period_arg)},
     overwrite {overwrite_arg},
-    shock_paths {move(shock_paths_arg)},
+    exo_paths {move(exo_paths_arg)},
+    controlled_paths {move(controlled_paths_arg)},
     symbol_table {symbol_table_arg}
 {
 }
@@ -1432,18 +1435,26 @@ ShockPathsStatement::writeOutput(ostream& output, const string& basename,
      – in the “learnt_in” option
      – in the “periods” statement
      – in the “learnt_in()” namespace of a variable inside the expressions */
-  bool contains_date {holds_alternative<string>(learnt_in_period)
-                      || ranges::any_of(shock_paths, [](const auto& symb_vec) {
-                           return ranges::any_of(symb_vec.second, [](const auto& period_value) {
-                             auto& [period, value] = period_value;
-                             return holds_alternative<string>(period.get_first())
-                                    || holds_alternative<string>(period.get_last())
-                                    || value->containsDate();
-                           });
-                         })};
+  bool contains_date {
+      holds_alternative<string>(learnt_in_period)
+      || ranges::any_of(exo_paths,
+                        [](const auto& symb_vec) {
+                          return ranges::any_of(symb_vec.second, [](const auto& period_value) {
+                            auto& [period, value] = period_value;
+                            return holds_alternative<string>(period.get_first())
+                                   || holds_alternative<string>(period.get_last())
+                                   || value->containsDate();
+                          });
+                        })
+      || ranges::any_of(controlled_paths, [](const auto& it) {
+           return ranges::any_of(get<1>(it), [](const auto& period_value) {
+             auto& [period_range, value] = period_value;
+             return holds_alternative<pair<string, string>>(period_range) || value->containsDate();
+           });
+         })};
 
   // Whether this block has an “end” period (and thus triggers a permanent shock)
-  bool contains_endval {ranges::any_of(shock_paths, [](const auto& symb_vec) {
+  bool contains_endval {ranges::any_of(exo_paths, [](const auto& symb_vec) {
     return ranges::any_of(symb_vec.second, [](const auto& period_value) {
       auto& [period, value] = period_value;
       return holds_alternative<monostate>(period.get_last());
@@ -1457,6 +1468,45 @@ ShockPathsStatement::writeOutput(ostream& output, const string& basename,
          << contains_endval << ")];" << endl;
 
   writeEvaluationFunctionFile(basename);
+
+  // Write the controlled paths
+  /* FIXME: for the time being, we populate M_.perfect_foresight_controlled_paths as does the block
+     of the same name, but in the future we will write this information into the generated
+     shock_paths evaluation functions, so as to support all syntaxes (self, database, prev,
+     learnt_in(LAG)…).
+     In particular, this is the reason why we have some code duplication with the
+     PerfectForesightControlledPathsStatement class, since it is meant to be temporary. */
+  if (overwrite)
+    {
+      output << "if ~isempty(M_.perfect_foresight_controlled_paths)" << '\n'
+             << "  M_.perfect_foresight_controlled_paths = "
+                "M_.perfect_foresight_controlled_paths(cellfun(@(x) ~isa(x, '";
+      if (holds_alternative<int>(learnt_in_period))
+        output << "numeric";
+      else
+        output << "dates";
+      output << "') || x ~= ";
+      /* NB: date expression not parenthesized since it can only contain a + operator, which has
+         higher precedence than ~= and || */
+      visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
+      output << ", {M_.perfect_foresight_controlled_paths.learnt_in}));" << '\n' << "end" << '\n';
+    }
+  output << "M_.perfect_foresight_controlled_paths = [ M_.perfect_foresight_controlled_paths;"
+         << '\n';
+  for (const auto& [exogenize_id, constraints, endogenize_id] : controlled_paths)
+    for (const auto& [period_range, value] : constraints)
+      {
+        output << "struct('exogenize_id'," << symbol_table.getTypeSpecificID(exogenize_id) + 1
+               << ",'periods',";
+        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+        output << ",'value',";
+        value->writeOutput(output);
+        output << ",'endogenize_id'," << symbol_table.getTypeSpecificID(endogenize_id) + 1
+               << ",'learnt_in',";
+        visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
+        output << ");" << '\n';
+      }
+  output << "];" << '\n';
 }
 
 void
@@ -1474,8 +1524,8 @@ ShockPathsStatement::writeJsonOutput(ostream& output) const
   output << R"({"statementName": "shock_paths")"
          << R"(, "learnt_in": )";
   visit([&](const auto& p) { print_json_learnt_in(output, p); }, learnt_in_period);
-  output << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "shock_paths": [)";
-  for (bool printed_something {false}; const auto& [id, shock_vec] : shock_paths)
+  output << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "exo_paths": [)";
+  for (bool printed_something {false}; const auto& [id, shock_vec] : exo_paths)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -1495,6 +1545,26 @@ ShockPathsStatement::writeJsonOutput(ostream& output) const
         }
       output << "]}";
     }
+  output << R"(], "controlled_paths": [)";
+  for (bool printed_something {false};
+       const auto& [exogenize_id, constraints, endogenize_id] : controlled_paths)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << R"({"exogenize": ")" << symbol_table.getName(exogenize_id) << R"(", )"
+             << R"("values": [)";
+      for (bool printed_something2 {false}; const auto& [period_range, value] : constraints)
+        {
+          if (exchange(printed_something2, true))
+            output << ", ";
+          output << "{";
+          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+          output << R"(, "value": ")";
+          value->writeJsonOutput(output, {}, {});
+          output << R"("})";
+        }
+      output << R"(], "endogenize": ")" << symbol_table.getName(endogenize_id) << R"("})";
+    }
   output << "]}";
 }
 
@@ -1510,8 +1580,8 @@ ShockPathsStatement::writeEvaluationFunctionFile(const string& basename) const
     }
 
   // M_ is there for parameters, oo_ for initval namespace
-  output << "function shock_paths = " << evaluationFunctionName()
-         << "(shock_paths, p, periods, first_simulation_period, M_, oo_)" << endl
+  output << "function exo_paths = " << evaluationFunctionName()
+         << "(exo_paths, p, periods, first_simulation_period, M_, oo_)" << endl
          << "info_period = ";
   if (holds_alternative<int>(learnt_in_period))
     output << get<int>(learnt_in_period);
@@ -1528,7 +1598,7 @@ ShockPathsStatement::writeEvaluationFunctionFile(const string& basename) const
       output << "periods+1";
   };
 
-  for (const auto& [symb_id, shock_vec] : shock_paths)
+  for (const auto& [symb_id, shock_vec] : exo_paths)
     for (const auto& [period_range, value] : shock_vec)
       {
         auto p1 = period_range.get_first();
@@ -1556,7 +1626,7 @@ ShockPathsStatement::writeEvaluationFunctionFile(const string& basename) const
             print_matlab_period_shock_paths(p2);
           }
         output << endl
-               << "shock_paths(" << symbol_table.getTypeSpecificID(symb_id) + 1
+               << "exo_paths(" << symbol_table.getTypeSpecificID(symb_id) + 1
                << ",p,info_period) = ";
         value->writeOutput(output);
         output << ";" << endl << "end" << endl;
