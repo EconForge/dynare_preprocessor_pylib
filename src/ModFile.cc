@@ -1334,13 +1334,11 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
   if (onlymodel || gui)
     for (const auto& statement : statements)
       {
-        /* Special treatment for initval block: insert initial values for the
-           auxiliary variables and initialize exo det */
+        // Special treatment for initval block: insert initial values for the auxiliary variables
         if (auto ivs = dynamic_cast<InitValStatement*>(statement.get()); ivs)
           {
             ivs->writeOutput(mOutputFile, basename, minimal_workspace);
             static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
-            ivs->writeOutputPostInit(mOutputFile);
           }
 
         // Special treatment for endval block: insert initial values for the auxiliary variables
@@ -1372,13 +1370,9 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
         {
           statement->writeOutput(mOutputFile, basename, minimal_workspace);
 
-          /* Special treatment for initval block: insert initial values for the
-             auxiliary variables and initialize exo det */
+          // Special treatment for initval block: insert initial values for the auxiliary variables
           if (auto ivs = dynamic_cast<InitValStatement*>(statement.get()); ivs)
-            {
-              static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
-              ivs->writeOutputPostInit(mOutputFile);
-            }
+            static_model.writeAuxVarInitval(mOutputFile, ExprNodeOutputType::matlabOutsideModel);
 
           // Special treatment for endval block: insert initial values for the auxiliary variables
           if (auto evs = dynamic_cast<EndValStatement*>(statement.get()); evs)

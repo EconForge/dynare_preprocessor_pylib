@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -84,8 +84,6 @@ public:
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
-  //! Writes initializations for oo_.exo_simul and oo_.exo_det_simul
-  void writeOutputPostInit(ostream& output) const;
 };
 
 class EndValStatement : public InitOrEndValStatement

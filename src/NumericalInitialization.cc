@@ -237,17 +237,6 @@ InitValStatement::writeJsonOutput(ostream& output) const
   output << "]}";
 }
 
-void
-InitValStatement::writeOutputPostInit(ostream& output) const
-{
-  output << "if M_.exo_nbr > 0" << endl
-         << "\too_.exo_simul = ones(M_.maximum_lag,1)*oo_.exo_steady_state';" << endl
-         << "end" << endl
-         << "if M_.exo_det_nbr > 0" << endl
-         << "\too_.exo_det_simul = ones(M_.maximum_lag,1)*oo_.exo_det_steady_state';" << endl
-         << "end" << endl;
-}
-
 EndValStatement::EndValStatement(init_values_t init_values_arg, const SymbolTable& symbol_table_arg,
                                  bool all_values_required_arg) :
     InitOrEndValStatement {move(init_values_arg), symbol_table_arg, all_values_required_arg}
