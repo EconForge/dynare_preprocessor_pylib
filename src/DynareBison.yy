@@ -4362,8 +4362,7 @@ o_mh_initialize_from_previous_mcmc_record : MH_INITIALIZE_FROM_PREVIOUS_MCMC_REC
 o_mh_initialize_from_previous_mcmc_prior : MH_INITIALIZE_FROM_PREVIOUS_MCMC_PRIOR EQUAL filename { driver.option_str("mh_initialize_from_previous_mcmc.prior", $3); };
 o_diffuse_filter: DIFFUSE_FILTER { driver.option_num("diffuse_filter", "true"); };
 o_estimate_initial_states_endogenous_prior: ESTIMATE_INITIAL_STATES_ENDOGENOUS_PRIOR { driver.option_num("estimate_initial_states_endogenous_prior", "true"); }
-                                       | ESTIMATE_INITIAL_STATES_ENDOGENOUS_PRIOR EQUAL boolean { driver.option_num("estimate_initial_states_endogenous_prior", $3); }
-                                       | ESTIMATE_INITIAL_STATES_ENDOGENOUS_PRIOR EQUAL INT_NUMBER { driver.option_num("estimate_initial_states_endogenous_prior", $3); };
+                                       | ESTIMATE_INITIAL_STATES_ENDOGENOUS_PRIOR EQUAL boolean { driver.option_num("estimate_initial_states_endogenous_prior", $3); };
 o_use_pct: USE_PCT { driver.option_num("use_pct", "true"); }
   | USE_PCT EQUAL boolean { driver.option_num("use_pct", $3); };
 
