@@ -1286,7 +1286,16 @@ ParsingDriver::add_shock_paths_elem(const string& var,
   vector<pair<ShockPathsStatement::period_range_t, expr_t>> v;
 
   for (size_t i {0}; i < periods.size(); i++)
-    v.emplace_back(periods[i], values[i]);
+    {
+      /* Test whether periods and lags are consistent. This can only be done at the preprocessor
+         level when the period is an integer (not date or “end”) and with lags (not leads) */
+      if (auto p = periods[i].get_first();
+          holds_alternative<int>(p) && get<int>(p) <= values[i]->maxLag())
+        error("shock_paths: a lag of " + to_string(values[i]->maxLag())
+              + " is not allowed at period " + to_string(get<int>(p)));
+
+      v.emplace_back(periods[i], values[i]);
+    }
 
   shock_paths[symb_id] = v;
 }
