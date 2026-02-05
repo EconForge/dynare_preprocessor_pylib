@@ -565,19 +565,20 @@ public:
   /*! Always returns a non-negative value */
   [[nodiscard]] virtual int maxExoLag() const = 0;
 
-  /* Returns the maximum lead of endo/exo/exodet in this expression (including heterogeneous
-     endo/exo). A negative value means that the expression contains only lagged variables. A value
-     of numeric_limits<int>::min() means that there is no variable. */
+  /* Returns the maximum lead of endo/exo/exodet (both aggregate and heterogeneous), also including
+     epilogue and database variables. A negative value means that the expression contains only
+     lagged variables. A value of numeric_limits<int>::min() means that there is no variable. */
   [[nodiscard]] virtual int maxLead() const = 0;
 
-  /* Returns the maximum lag of endo/exo/exodet in this expression (including heterogeneous
-     endo/exo). A negative value means that the expression contains only leaded variables. A value
-     of numeric_limits<int>::min() means that there is no variable. */
+  /* Returns the maximum lag of endo/exo/exodet (both aggregate and heterogeneous), also including
+     epilogue and database variables. A negative value means that the expression contains only
+     leaded variables. A value of numeric_limits<int>::min() means that there is no variable. */
   [[nodiscard]] virtual int maxLag() const = 0;
 
-  /* Returns the maximum lag of endo/exo/exodet (including heterogeneous endo/exo), as if diffs were
-     expanded. This function behaves as maxLag(), except that it treats diff() differently. For
-     e.g., on diff(diff(x(-1))), maxLag() returns 1 while maxLagWithDiffsExpanded() returns 3. */
+  /* Returns the maximum lag of endo/exo/exodet (both aggregate and heterogeneous), also including
+     epilogue and database variables, as if diffs were expanded. This function behaves as maxLag(),
+     except that it treats diff() differently. For e.g., on diff(diff(x(-1))), maxLag() returns 1
+     while maxLagWithDiffsExpanded() returns 3. */
   [[nodiscard]] virtual int maxLagWithDiffsExpanded() const = 0;
 
   [[nodiscard]] virtual expr_t undiff() const = 0;

@@ -1865,6 +1865,7 @@ VariableNode::maxLead() const
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
     case SymbolType::epilogue:
+    case SymbolType::databaseVariable:
     case SymbolType::heterogeneousEndogenous:
     case SymbolType::heterogeneousExogenous:
       return lag;
@@ -1884,6 +1885,7 @@ VariableNode::maxLag() const
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
     case SymbolType::epilogue:
+    case SymbolType::databaseVariable:
     case SymbolType::heterogeneousEndogenous:
     case SymbolType::heterogeneousExogenous:
       return -lag;
@@ -1903,6 +1905,7 @@ VariableNode::maxLagWithDiffsExpanded() const
     case SymbolType::exogenous:
     case SymbolType::exogenousDet:
     case SymbolType::epilogue:
+    case SymbolType::databaseVariable:
     case SymbolType::heterogeneousEndogenous:
     case SymbolType::heterogeneousExogenous:
       return -lag;
