@@ -113,7 +113,7 @@ str_tolower(string s)
 %token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
 %token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID FILTERED_THEORETICAL_MOMENTS_GRID HYBRID USE_FIRST_ORDER_SOLUTION ONE_SIDED_HP_FILTER
 %token INTEGRATION TENSOR_GAUSSIAN_QUADRATURE STROUD NUMBER_OF_QUADRATURE_NODES TREE SPARSE PERFECT
-%token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INFILE INVARS
+%token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INVARS
 %token <string> INT_NUMBER
 %token CONDITIONAL_LIKELIHOOD
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
@@ -3783,8 +3783,7 @@ smoother2histval_options_list : smoother2histval_option COMMA smoother2histval_o
                               | smoother2histval_option
                               ;
 
-smoother2histval_option : o_infile
-                        | o_invars
+smoother2histval_option : o_invars
                         | o_period
                         | o_outfile
                         | o_outvars
@@ -4757,7 +4756,6 @@ o_homotopy_marginal_linearization_fallback : HOMOTOPY_MARGINAL_LINEARIZATION_FAL
                                            | HOMOTOPY_MARGINAL_LINEARIZATION_FALLBACK EQUAL non_negative_number { driver.option_num("simul.homotopy_marginal_linearization_fallback", $3); }
 o_homotopy_exclude_varexo : HOMOTOPY_EXCLUDE_VAREXO EQUAL '(' symbol_list ')' { driver.option_symbol_list("simul.homotopy_exclude_varexo", $4); };
 
-o_infile : INFILE EQUAL filename { driver.option_str("infile", $3); };
 o_invars : INVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("invars", $4); };
 o_period : PERIOD EQUAL INT_NUMBER { driver.option_num("period", $3); };
 o_outfile : OUTFILE EQUAL filename { driver.option_str("outfile", $3); };

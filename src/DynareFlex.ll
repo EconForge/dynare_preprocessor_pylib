@@ -727,7 +727,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>consider_all_endogenous {return token::CONSIDER_ALL_ENDOGENOUS;}
 <DYNARE_STATEMENT>consider_all_endogenous_and_auxiliary {return token::CONSIDER_ALL_ENDOGENOUS_AND_AUXILIARY;}
 <DYNARE_STATEMENT>consider_only_observed {return token::CONSIDER_ONLY_OBSERVED;}
-<DYNARE_STATEMENT>infile {return token::INFILE;}
 <DYNARE_STATEMENT>invars {return token::INVARS;}
 <DYNARE_STATEMENT>period {return token::PERIOD;}
 <DYNARE_STATEMENT>outfile {return token::OUTFILE;}
