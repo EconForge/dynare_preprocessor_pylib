@@ -44,4 +44,11 @@ vector<string> strsplit(string_view str, char delim);
   inside +objective subdir). */
 filesystem::path packageDir(const string_view& package);
 
+/* Hack for removing a directory that is locked by MATLAB/Windows. The
+   directory is renamed before being deleted. The renaming must occur in the
+   same directory, otherwise it may fail if the destination is not on the
+   same filesystem. This technique is applied recursively to subdirectories.
+   Works even if the argument does not exist or is not a directory. */
+void remove_directory_with_matlab_lock(const filesystem::path& dir);
+
 #endif

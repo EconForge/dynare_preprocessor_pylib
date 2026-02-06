@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <random>
 
 vector<string>
 strsplit(string_view str, char delim)
@@ -69,4 +70,45 @@ writeToFileIfModified(stringstream& new_contents, const filesystem::path& filena
   ranges::copy(istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {},
                ostreambuf_iterator<char> {new_file});
   new_file.close();
+}
+
+/* Generate a random temporary path, in the current directory. Equivalent to
+   boost::filesystem::unique_path(). Both are insecure, but currently there
+   is no better portable solution. Maybe in a later C++ standard? */
+static filesystem::path
+unique_path()
+{
+  filesystem::path path;
+  string possible_characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  random_device rd;
+  mt19937 generator(rd());
+  uniform_int_distribution distribution {0, static_cast<int>(possible_characters.size()) - 1};
+  do
+    {
+      constexpr int rand_length = 10;
+      string rand_str(rand_length, '\0');
+      for (auto& dis : rand_str)
+        dis = possible_characters[distribution(generator)];
+      path = rand_str;
+    }
+  while (exists(path));
+
+  return path;
+}
+
+void
+remove_directory_with_matlab_lock(const filesystem::path& dir)
+{
+  auto dirStatus {status(dir)};
+  if (!exists(dirStatus))
+    return;
+
+  if (is_directory(dirStatus))
+    for (const auto& e : filesystem::directory_iterator {dir})
+      if (e.is_directory())
+        remove_directory_with_matlab_lock(e);
+
+  auto tmp {unique_path()};
+  rename(dir, tmp);
+  remove_all(tmp);
 }

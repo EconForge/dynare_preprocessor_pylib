@@ -21,7 +21,6 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <random>
 #include <typeinfo>
 
 #include <filesystem>
@@ -1132,23 +1131,6 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
 }
 
 void
-ModFile::remove_directory_with_matlab_lock(const filesystem::path& dir)
-{
-  auto dirStatus {status(dir)};
-  if (!exists(dirStatus))
-    return;
-
-  if (is_directory(dirStatus))
-    for (const auto& e : filesystem::directory_iterator {dir})
-      if (e.is_directory())
-        remove_directory_with_matlab_lock(e);
-
-  auto tmp {unique_path()};
-  rename(dir, tmp);
-  remove_all(tmp);
-}
-
-void
 ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global, bool no_warn,
                       bool console, bool nograph, bool nointeractive, const Configuration& config,
                       bool check_model_changes, bool minimal_workspace, bool compute_xrefs,
@@ -1824,25 +1806,4 @@ ModFile::writeJsonFileHelper(const filesystem::path& fname, ostringstream& outpu
     }
   jsonOutput << output.str();
   jsonOutput.close();
-}
-
-filesystem::path
-ModFile::unique_path()
-{
-  filesystem::path path;
-  string possible_characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-  random_device rd;
-  mt19937 generator(rd());
-  uniform_int_distribution distribution {0, static_cast<int>(possible_characters.size()) - 1};
-  do
-    {
-      constexpr int rand_length = 10;
-      string rand_str(rand_length, '\0');
-      for (auto& dis : rand_str)
-        dis = possible_characters[distribution(generator)];
-      path = rand_str;
-    }
-  while (exists(path));
-
-  return path;
 }
