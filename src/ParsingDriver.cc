@@ -3993,6 +3993,10 @@ ParsingDriver::perfect_foresight_controlled_paths(
                        string>>& paths,
     variant<int, string> learnt_in_period)
 {
+  if (holds_alternative<int>(learnt_in_period) && get<int>(learnt_in_period) < 1)
+    error("Value '" + to_string(get<int>(learnt_in_period))
+          + "' is not allowed for 'learnt_in' option");
+
   PerfectForesightControlledPathsStatement::paths_t paths_transformed;
   for (const auto& [exogenize, periods, values, endogenize] : paths)
     {
