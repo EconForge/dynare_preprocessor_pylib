@@ -865,20 +865,45 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.shocks_learnt_in_present
-      && !mod_file_struct.perfect_foresight_with_expectation_errors_solver_present)
+  bool should_not_have_learnt_in {
+      mod_file_struct.perfect_foresight_setup_present
+      || mod_file_struct.perfect_foresight_solver_present
+      || !mod_file_struct.perfect_foresight_with_expectation_errors_setup_present
+      || !mod_file_struct.perfect_foresight_with_expectation_errors_solver_present};
+
+  if (mod_file_struct.shocks_learnt_in_present && should_not_have_learnt_in)
     {
       cerr << "ERROR: the 'shocks(learnt_in=…)' block can only be used in conjunction with the "
-              "'perfect_foresight_with_expectation_errors_solver' command."
+              "'perfect_foresight_with_expectation_errors_setup' and "
+              "'perfect_foresight_with_expectation_errors_solver' commands."
            << endl;
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file_struct.endval_learnt_in_present
-      && !mod_file_struct.perfect_foresight_with_expectation_errors_solver_present)
+  if (mod_file_struct.endval_learnt_in_present && should_not_have_learnt_in)
     {
       cerr << "ERROR: the 'endval(learnt_in=…)' block can only be used in conjunction with the "
-              "'perfect_foresight_with_expectation_errors_solver' command."
+              "'perfect_foresight_with_expectation_errors_setup' and "
+              "'perfect_foresight_with_expectation_errors_solver' commands."
+           << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (mod_file_struct.perfect_foresight_controlled_paths_learnt_in_present
+      && should_not_have_learnt_in)
+    {
+      cerr << "ERROR: the 'perfect_foresight_controlled_paths(learnt_in=…)' block can only be used "
+              "in conjunction with the 'perfect_foresight_with_expectation_errors_setup' and "
+              "'perfect_foresight_with_expectation_errors_solver' commands."
+           << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (mod_file_struct.shock_paths_learnt_in_present && should_not_have_learnt_in)
+    {
+      cerr << "ERROR: the 'shock_paths(learnt_in=…)' block can only be used in conjunction with "
+              "the 'perfect_foresight_with_expectation_errors_setup' and "
+              "'perfect_foresight_with_expectation_errors_solver' commands."
            << endl;
       exit(EXIT_FAILURE);
     }

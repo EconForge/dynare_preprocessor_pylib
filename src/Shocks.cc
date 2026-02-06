@@ -1022,6 +1022,14 @@ PerfectForesightControlledPathsStatement::PerfectForesightControlledPathsStateme
 }
 
 void
+PerfectForesightControlledPathsStatement::checkPass(ModFileStructure& mod_file_struct,
+                                                    [[maybe_unused]] WarningConsolidation& warnings)
+{
+  if (!(holds_alternative<int>(learnt_in_period) && get<int>(learnt_in_period) == 1))
+    mod_file_struct.perfect_foresight_controlled_paths_learnt_in_present = true;
+}
+
+void
 PerfectForesightControlledPathsStatement::writeOutput(ostream& output,
                                                       [[maybe_unused]] const string& basename,
                                                       [[maybe_unused]] bool minimal_workspace) const
@@ -1397,6 +1405,8 @@ ShockPathsStatement::checkPass(ModFileStructure& mod_file_struct,
                                [[maybe_unused]] WarningConsolidation& warnings)
 {
   index = ++mod_file_struct.shock_paths_number;
+  if (!(holds_alternative<int>(learnt_in_period) && get<int>(learnt_in_period) == 1))
+    mod_file_struct.shock_paths_learnt_in_present = true;
 }
 
 void

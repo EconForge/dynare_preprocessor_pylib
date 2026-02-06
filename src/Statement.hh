@@ -183,9 +183,13 @@ struct ModFileStructure
   bool shocks_learnt_in_present {false};
   // Whether an endval(learnt_in=…) block appears
   bool endval_learnt_in_present {false};
+  // Whether a perfect_foresight_controlled_paths(learnt_in=p) block (with p≠1) appears
+  bool perfect_foresight_controlled_paths_learnt_in_present {false};
   /* Number of shock_paths blocks. Also used during checkPass() to compute a unique index for each
      shock_paths block*/
   int shock_paths_number {0};
+  // Whether there is a shock_paths(learnt_in=p) block (with p≠1)
+  bool shock_paths_learnt_in_present {false};
   // Whether an occbin_constraints block appears
   bool occbin_constraints_present {false};
 
