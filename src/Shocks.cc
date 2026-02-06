@@ -17,6 +17,8 @@
  * along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
@@ -362,34 +364,18 @@ ShocksStatement::writeSkewShock(ostream& output, const pair<tuple<int, int, int>
   int tsid2 = symbol_table.getTypeSpecificID(id2) + 1;
   int tsid3 = symbol_table.getTypeSpecificID(id3) + 1;
 
-  // Write all 6 permutations to M_.Skew_e
-  output << "M_.Skew_e(" << tsid1 << ", " << tsid2 << ", " << tsid3 << ") = ";
+  // Store in sorted (increasing) order, like model derivative matrices
+  array idx {tsid1, tsid2, tsid3};
+  ranges::sort(idx);
+
+  // Remove existing row for this sorted triple (overwrite semantics)
+  output << "M_.Skew_e(M_.Skew_e(:,1)==" << idx[0] << " & M_.Skew_e(:,2)==" << idx[1]
+         << " & M_.Skew_e(:,3)==" << idx[2] << ",:) = [];" << endl;
+
+  // Append single row [i, j, k, value] with i <= j <= k
+  output << "M_.Skew_e = [M_.Skew_e; " << idx[0] << ", " << idx[1] << ", " << idx[2] << ", ";
   it.second->writeOutput(output);
-  output << ";" << endl;
-
-  // Only write other permutations if they're different
-  if (!(tsid1 == tsid2 && tsid2 == tsid3))
-    {
-      output << "M_.Skew_e(" << tsid1 << ", " << tsid3 << ", " << tsid2 << ") = ";
-      it.second->writeOutput(output);
-      output << ";" << endl;
-
-      output << "M_.Skew_e(" << tsid2 << ", " << tsid1 << ", " << tsid3 << ") = ";
-      it.second->writeOutput(output);
-      output << ";" << endl;
-
-      output << "M_.Skew_e(" << tsid2 << ", " << tsid3 << ", " << tsid1 << ") = ";
-      it.second->writeOutput(output);
-      output << ";" << endl;
-
-      output << "M_.Skew_e(" << tsid3 << ", " << tsid1 << ", " << tsid2 << ") = ";
-      it.second->writeOutput(output);
-      output << ";" << endl;
-
-      output << "M_.Skew_e(" << tsid3 << ", " << tsid2 << ", " << tsid1 << ") = ";
-      it.second->writeOutput(output);
-      output << ";" << endl;
-    }
+  output << "];" << endl;
 }
 
 void
@@ -397,6 +383,9 @@ ShocksStatement::writeSkewShocks(ostream& output) const
 {
   for (const auto& it : skew_shocks)
     writeSkewShock(output, it);
+  // Remove any zero-valued entries from sparse Skew_e (value in column 4)
+  if (!skew_shocks.empty())
+    output << "M_.Skew_e(M_.Skew_e(:,4)==0,:) = [];" << endl;
 }
 
 void
