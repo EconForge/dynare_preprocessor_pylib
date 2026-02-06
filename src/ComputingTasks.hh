@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2024 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -74,6 +74,7 @@ private:
 
 public:
   explicit PerfectForesightSetupStatement(OptionsList options_list_arg);
+  void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
 };
@@ -97,6 +98,7 @@ private:
 
 public:
   explicit PerfectForesightWithExpectationErrorsSetupStatement(OptionsList options_list_arg);
+  void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2025 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -135,6 +135,7 @@ void
 SimulStatement::checkPass(ModFileStructure& mod_file_struct,
                           [[maybe_unused]] WarningConsolidation& warnings)
 {
+  mod_file_struct.perfect_foresight_setup_present = true;
   mod_file_struct.perfect_foresight_solver_present = true;
 }
 
@@ -172,6 +173,13 @@ SimulStatement::writeJsonOutput(ostream& output) const
 PerfectForesightSetupStatement::PerfectForesightSetupStatement(OptionsList options_list_arg) :
     options_list {move(options_list_arg)}
 {
+}
+
+void
+PerfectForesightSetupStatement::checkPass(ModFileStructure& mod_file_struct,
+                                          [[maybe_unused]] WarningConsolidation& warnings)
+{
+  mod_file_struct.perfect_foresight_setup_present = true;
 }
 
 void
@@ -213,6 +221,13 @@ void
 PerfectForesightSolverStatement::checkPass(ModFileStructure& mod_file_struct,
                                            [[maybe_unused]] WarningConsolidation& warnings)
 {
+  if (!mod_file_struct.perfect_foresight_setup_present)
+    {
+      cerr << "ERROR: A 'perfect_foresight_setup' command must come before "
+              "'perfect_foresight_solver'"
+           << '\n';
+      exit(EXIT_FAILURE);
+    }
   mod_file_struct.perfect_foresight_solver_present = true;
 }
 
@@ -241,6 +256,13 @@ PerfectForesightWithExpectationErrorsSetupStatement::
     PerfectForesightWithExpectationErrorsSetupStatement(OptionsList options_list_arg) :
     options_list {move(options_list_arg)}
 {
+}
+
+void
+PerfectForesightWithExpectationErrorsSetupStatement::checkPass(
+    ModFileStructure& mod_file_struct, [[maybe_unused]] WarningConsolidation& warnings)
+{
+  mod_file_struct.perfect_foresight_with_expectation_errors_setup_present = true;
 }
 
 void
@@ -274,6 +296,13 @@ void
 PerfectForesightWithExpectationErrorsSolverStatement::checkPass(
     ModFileStructure& mod_file_struct, [[maybe_unused]] WarningConsolidation& warnings)
 {
+  if (!mod_file_struct.perfect_foresight_with_expectation_errors_setup_present)
+    {
+      cerr << "ERROR: A 'perfect_foresight_with_expectation_errors_setup' command must come before "
+              "'perfect_foresight_with_expectation_errors_solver'"
+           << '\n';
+      exit(EXIT_FAILURE);
+    }
   mod_file_struct.perfect_foresight_with_expectation_errors_solver_present = true;
 }
 
