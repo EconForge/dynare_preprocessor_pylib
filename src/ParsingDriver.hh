@@ -24,6 +24,7 @@
 # error Impossible to include both ParsingDriver.hh and macro/Driver.hh
 #endif
 
+#include <array>
 #include <istream>
 #include <optional>
 #include <stack>
@@ -103,6 +104,9 @@ public:
   //! Checks that a given symbol exists and is a exogenous, and stops with an error message if it
   //! isn't
   void check_symbol_is_exogenous(const string& name, bool allow_exo_det);
+
+  //! Known sub-fields for the use_pct estimation option
+  static constexpr array use_pct_estimation_known_fields {"sampler"};
 
 private:
   //! Checks for symbol existence in model block. If it doesn't exist, an error message is stored to
