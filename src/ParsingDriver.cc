@@ -521,6 +521,14 @@ ParsingDriver::add_prev_variable(const string& name, expr_t lag)
 
   int symb_id {mod_file->symbol_table.getID(name)};
 
+  /* Check consistency of learnt_in information between block and variable; only possible at the
+     preprocessor level when learnt_in at the block level is an integer */
+  if (is_parsing_shock_paths() && holds_alternative<int>(shock_paths_learnt_in_period)
+      && get<int>(shock_paths_learnt_in_period) == 1)
+    error("The syntax prev." + name
+          + " is not accepted in a 'shock_paths' block without the 'learnt_in' option or in a "
+            "'shock_paths(learnt_in=1)' block");
+
   if (!lag)
     return data_tree->AddNamespaceQualifiedVariable(
         NamespaceQualifiedVariableNode::NamespaceType::prev, symb_id);
@@ -590,6 +598,21 @@ ParsingDriver::add_learnt_in_variable(const variant<int, string>& learnt_in_peri
 {
   check_symbol_is_exogenous(name, false);
   int symb_id {mod_file->symbol_table.getID(name)};
+
+  if (holds_alternative<int>(learnt_in_period) && get<int>(learnt_in_period) < 1)
+    error("The syntax learnt_in(" + to_string(get<int>(learnt_in_period)) + ")." + name
+          + " is not accepted");
+
+  /* Check consistency of learnt_in information between block and variable; only possible at the
+     preprocessor level when both are integers */
+  if (is_parsing_shock_paths() && holds_alternative<int>(shock_paths_learnt_in_period)
+      && holds_alternative<int>(learnt_in_period)
+      && get<int>(shock_paths_learnt_in_period) <= get<int>(learnt_in_period))
+    error("The syntax learnt_in(" + to_string(get<int>(learnt_in_period)) + ")." + name
+          + " is not accepted in a 'shock_paths' block without the 'learnt_in' option or in a "
+            "'shock_paths(learnt_in="
+          + to_string(get<int>(shock_paths_learnt_in_period)) + ")' block");
+
   if (!lag)
     return data_tree->AddNamespaceQualifiedVariable(
         NamespaceQualifiedVariableNode::NamespaceType::learnt_in, symb_id, 0, -1, learnt_in_period);
@@ -4380,16 +4403,21 @@ ParsingDriver::database_exists(const string& name) const
 }
 
 void
-ParsingDriver::begin_shock_paths()
+ParsingDriver::begin_shock_paths(const variant<int, string>& learnt_in_period)
 {
   set_current_data_tree(&mod_file->shock_paths_tree);
+
+  if (holds_alternative<int>(learnt_in_period) && get<int>(learnt_in_period) < 1)
+    error("Value '" + to_string(get<int>(learnt_in_period))
+          + "' is not allowed for 'learnt_in' option");
+  shock_paths_learnt_in_period = learnt_in_period;
 }
 
 void
-ParsingDriver::end_shock_paths(const variant<int, string>& learnt_in_period, bool overwrite)
+ParsingDriver::end_shock_paths(bool overwrite)
 {
   mod_file->addStatement(make_unique<ShockPathsStatement>(
-      learnt_in_period, overwrite, move(shock_paths), mod_file->symbol_table));
+      shock_paths_learnt_in_period, overwrite, move(shock_paths), mod_file->symbol_table));
   reset_data_tree();
   shock_paths.clear();
 }

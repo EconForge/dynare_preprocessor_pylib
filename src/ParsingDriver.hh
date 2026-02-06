@@ -176,6 +176,7 @@ private:
   //! Temporary storage for skewness of shocks
   ShocksStatement::skew_shocks_t skew_shocks;
   // Temporary storage for shock_paths block
+  variant<int, string> shock_paths_learnt_in_period;
   ShockPathsStatement::shock_paths_t shock_paths;
   //! Temporary storage for values and scales of heteroskedastic_shocks
   HeteroskedasticShocksStatement::heteroskedastic_shocks_t heteroskedastic_shocks_values,
@@ -998,8 +999,8 @@ public:
   void heterogeneity_dimension(const vector<string>& dims);
   void database(const vector<string>& names);
   [[nodiscard]] bool database_exists(const string& name) const;
-  void begin_shock_paths();
-  void end_shock_paths(const variant<int, string>& learnt_in_period, bool overwrite);
+  void begin_shock_paths(const variant<int, string>& learnt_in_period);
+  void end_shock_paths(bool overwrite);
 
   // Returns true iff the string is a legal symbol identifier (see NAME token in lexer)
   static bool isSymbolIdentifier(const string& str);

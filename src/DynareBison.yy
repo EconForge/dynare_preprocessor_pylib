@@ -1554,20 +1554,23 @@ value_list : value_list COMMA '(' expression ')'
              }
            ;
 
-shock_paths : SHOCK_PATHS ';' { driver.begin_shock_paths(); }
+shock_paths : SHOCK_PATHS ';' { driver.begin_shock_paths(1); }
               shock_paths_list
-              { driver.end_shock_paths(1, false); }
+              { driver.end_shock_paths(false); }
               END ';'
-            | SHOCK_PATHS '(' shock_paths_options_list ')' ';' { driver.begin_shock_paths(); }
-              shock_paths_list
+            | SHOCK_PATHS '(' shock_paths_options_list ')' ';'
               {
                 variant<int, string> learnt_in_period {1};
                 if (auto it = $3.find("learnt_in"); it != $3.end())
                   learnt_in_period = get<variant<int, string>>(it->second);
+                driver.begin_shock_paths(learnt_in_period);
+              }
+              shock_paths_list
+              {
                 /* NB: the following relies on the fact that bool is the first
                    alternative in the variant, so that default initialization of the
                    variant by the [] operator will give false */
-                driver.end_shock_paths(learnt_in_period, get<bool>($3["overwrite"]));
+                driver.end_shock_paths(get<bool>($3["overwrite"]));
               }
               END ';'
             ;
