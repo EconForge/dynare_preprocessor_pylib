@@ -49,6 +49,20 @@ HeterogeneousModel::operator=(const HeterogeneousModel& m)
   return *this;
 }
 
+set<int>
+HeterogeneousModel::getUsedParameters() const
+{
+  set<int> used;
+
+  for (auto* equation : equations)
+    {
+      equation->collectVariables(SymbolType::parameter, used);
+      equation->collectVariables(SymbolType::heterogeneousParameter, used);
+    }
+
+  return used;
+}
+
 void
 HeterogeneousModel::computeChainRuleJacobian()
 {
