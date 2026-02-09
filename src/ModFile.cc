@@ -420,17 +420,28 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   ranges::set_difference(unusedParams, steadyStateParams,
                          inserter(unusedParamsAfterSSM, unusedParamsAfterSSM.begin()));
 
+  // Also exclude parameters used in heterogeneous model blocks
+  set<int> heterogeneousParams;
+  for (const auto& hm : heterogeneous_models)
+    {
+      const auto hm_params {hm.getUsedParameters()};
+      heterogeneousParams.insert(hm_params.begin(), hm_params.end());
+    }
+  set<int> unusedParamsAfterHet;
+  ranges::set_difference(unusedParamsAfterSSM, heterogeneousParams,
+                         inserter(unusedParamsAfterHet, unusedParamsAfterHet.begin()));
+
   // Exclude preprocessor-generated parameters (e.g., optimal_policy_discount_factor, OccBin
   // parameters, heterogeneity parameters)
   set<int> unusedParamsExcludingPreprocessorGenerated;
-  ranges::set_difference(unusedParamsAfterSSM, symbol_table.getPreprocessorGeneratedParameters(),
+  ranges::set_difference(unusedParamsAfterHet, symbol_table.getPreprocessorGeneratedParameters(),
                          inserter(unusedParamsExcludingPreprocessorGenerated,
                                   unusedParamsExcludingPreprocessorGenerated.begin()));
 
   if (!unusedParamsExcludingPreprocessorGenerated.empty())
     {
       string unused_params;
-      for (int it : unusedParamsAfterSSM)
+      for (int it : unusedParamsAfterHet)
         unused_params += symbol_table.getName(it) + " ";
 
       warnings << "WARNING: Parameter(s) " << unused_params << " not used in the model" << endl;

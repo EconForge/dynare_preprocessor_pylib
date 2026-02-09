@@ -20,6 +20,7 @@
 #ifndef HETEROGENEOUS_MODEL_HH
 #define HETEROGENEOUS_MODEL_HH
 
+#include <set>
 #include <string>
 
 #include "ModelTree.hh"
@@ -47,6 +48,8 @@ public:
 
   void writeModelFiles(const string& basename, bool julia) const;
   void writeDriverOutput(ostream& output) const;
+
+  [[nodiscard]] set<int> getUsedParameters() const;
 
   [[nodiscard]] int getJacobianCol(int deriv_id) const override;
   [[nodiscard]] int getJacobianColsNbr() const override;
