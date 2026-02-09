@@ -1250,8 +1250,7 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
               << ");" << endl
               << "M_.Correlation_matrix = eye(" << symbol_table.exo_nbr() << ", "
               << symbol_table.exo_nbr() << ");" << endl
-              << "M_.Skew_e = zeros(" << symbol_table.exo_nbr() << ", " << symbol_table.exo_nbr()
-              << ", " << symbol_table.exo_nbr() << ");" << endl;
+              << "M_.Skew_e = zeros(0, 4);" << endl;
   for (int hd {0}; hd < heterogeneity_table.size(); hd++)
     mOutputFile << "M_.heterogeneity(" << hd + 1 << ").Sigma_e = zeros("
                 << symbol_table.het_exo_nbr(hd) << ", " << symbol_table.het_exo_nbr(hd) << ");"
