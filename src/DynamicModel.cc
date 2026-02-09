@@ -779,29 +779,9 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
   output << "M_.has_external_function = " << boolalpha
          << ranges::any_of(equations, &ExprNode::containsExternalFunction) << ';' << endl;
 
-  // Compute list of state variables, ordered in block-order
-  vector<int> state_var;
-  for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
-    // Loop on negative lags
-    for (int lag = -max_endo_lag; lag < 0; lag++)
-      try
-        {
-          getDerivID(symbol_table.getID(SymbolType::endogenous, endo_idx_block2orig[endoID]), lag);
-          if (ranges::find(state_var, endo_idx_block2orig[endoID]) == state_var.end())
-            state_var.push_back(endo_idx_block2orig[endoID]);
-        }
-      catch (UnknownDerivIDException& e)
-        {
-        }
-
   // Write the block structure of the model
   if (block_decomposed)
     writeBlockDriverOutput(output);
-
-  output << "M_.state_var = [";
-  for (int it : state_var)
-    output << it + 1 << " ";
-  output << "];" << endl;
 
   // Writing initialization for some other variables
   output << "M_.maximum_lag = " << max_lag << ";" << endl
