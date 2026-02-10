@@ -4375,18 +4375,18 @@ o_estimate_initial_states_endogenous_prior: ESTIMATE_INITIAL_STATES_ENDOGENOUS_P
    - use_pct=['sampler',...]: selectively enables listed sub-fields; unlisted ones are set to false. */
 o_estimation_use_pct: USE_PCT {
       for (const auto& field : driver.use_pct_estimation_known_fields)
-        driver.option_num("parallel_info.use_pct.estimation." + string{field}, "true");
+        driver.option_num("parallel_info.use_pct.estimation."s + field, "true");
     }
   | USE_PCT EQUAL boolean {
       for (const auto& field : driver.use_pct_estimation_known_fields)
-        driver.option_num("parallel_info.use_pct.estimation." + string{field}, $3);
+        driver.option_num("parallel_info.use_pct.estimation."s + field, $3);
     }
   | USE_PCT EQUAL vec_str {
       for (const auto& s : $3)
         if (ranges::find(driver.use_pct_estimation_known_fields, s) == driver.use_pct_estimation_known_fields.end())
           driver.error("use_pct: unknown sub-field '" + s + "'");
       for (const auto& field : driver.use_pct_estimation_known_fields)
-        driver.option_num("parallel_info.use_pct.estimation." + string{field},
+        driver.option_num("parallel_info.use_pct.estimation."s + field,
                           ranges::find($3, field) != $3.end() ? "true" : "false");
     };
 
