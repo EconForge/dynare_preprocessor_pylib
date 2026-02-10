@@ -1131,21 +1131,6 @@ RplotStatement::writeJsonOutput(ostream& output) const
   output << "}";
 }
 
-void
-UnitRootVarsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
-                                   [[maybe_unused]] bool minimal_workspace) const
-{
-  output << "options_.diffuse_filter = 1;" << endl << "options_.steadystate.nocheck = 1;" << endl;
-}
-
-void
-UnitRootVarsStatement::writeJsonOutput(ostream& output) const
-{
-  output << R"({"statementName": "unit_root_vars", )"
-         << R"("diffuse_filter": 1, )"
-         << R"("steady_state.nocheck": 1})";
-}
-
 DsampleStatement::DsampleStatement(int val1_arg) : val1 {val1_arg}, val2 {-1}
 {
 }

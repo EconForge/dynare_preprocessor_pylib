@@ -280,13 +280,6 @@ public:
   void writeJsonOutput(ostream& output) const override;
 };
 
-class UnitRootVarsStatement : public Statement
-{
-public:
-  void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
-  void writeJsonOutput(ostream& output) const override;
-};
-
 class DsampleStatement : public Statement
 {
 private:

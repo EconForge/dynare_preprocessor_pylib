@@ -123,7 +123,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <INITIAL>data {BEGIN DYNARE_STATEMENT; return token::DATA;}
 <INITIAL>varobs 	{BEGIN DYNARE_STATEMENT; return token::VAROBS;}
 <INITIAL>varexobs 	{BEGIN DYNARE_STATEMENT; return token::VAREXOBS;}
-<INITIAL>unit_root_vars	{BEGIN DYNARE_STATEMENT; return token::UNIT_ROOT_VARS;}
 <INITIAL>rplot	 	{BEGIN DYNARE_STATEMENT; return token::RPLOT;}
 <INITIAL>osr_params 	{BEGIN DYNARE_STATEMENT; return token::OSR_PARAMS;}
 <INITIAL>osr	 	{BEGIN DYNARE_STATEMENT; return token::OSR;}

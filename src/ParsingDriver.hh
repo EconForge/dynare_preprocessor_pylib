@@ -697,7 +697,6 @@ public:
   void set_filter_initial_state();
   //! element for filter_initial_state block
   void set_filter_initial_state_element(const string& name, const string& lag, expr_t rhs);
-  void set_unit_root_vars();
   void optim_weights();
   void set_optim_weights(string name, expr_t value);
   void set_optim_weights(const string& name1, const string& name2, expr_t value);
