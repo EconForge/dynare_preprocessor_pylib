@@ -2563,7 +2563,7 @@ estimation_options : o_datafile
                    | o_mh_initialize_from_previous_mcmc_prior
                    | o_diffuse_filter
                    | o_estimate_initial_states_endogenous_prior
-                   | o_use_pct
+                   | o_estimation_use_pct
                    | o_plot_priors
                    | o_order
                    | o_aim_solver
@@ -4369,13 +4369,31 @@ o_mh_initialize_from_previous_mcmc_prior : MH_INITIALIZE_FROM_PREVIOUS_MCMC_PRIO
 o_diffuse_filter: DIFFUSE_FILTER { driver.option_num("diffuse_filter", "true"); };
 o_estimate_initial_states_endogenous_prior: ESTIMATE_INITIAL_STATES_ENDOGENOUS_PRIOR { driver.option_num("estimate_initial_states_endogenous_prior", "true"); }
                                        | ESTIMATE_INITIAL_STATES_ENDOGENOUS_PRIOR EQUAL boolean { driver.option_num("estimate_initial_states_endogenous_prior", $3); };
-o_use_pct: USE_PCT { driver.option_num("use_pct", "true"); }
-  | USE_PCT EQUAL boolean { driver.option_num("use_pct", $3); };
+/* use_pct sets sub-fields of options_.parallel_info.use_pct.estimation.
+   Known sub-fields are defined in ParsingDriver::use_pct_estimation_known_fields.
+   - use_pct or use_pct=true/false: toggles ALL sub-fields at once.
+   - use_pct=['sampler',...]: selectively enables listed sub-fields; unlisted ones are set to false. */
+o_estimation_use_pct: USE_PCT {
+      for (const auto& field : driver.use_pct_estimation_known_fields)
+        driver.option_num("parallel_info.use_pct.estimation." + string{field}, "true");
+    }
+  | USE_PCT EQUAL boolean {
+      for (const auto& field : driver.use_pct_estimation_known_fields)
+        driver.option_num("parallel_info.use_pct.estimation." + string{field}, $3);
+    }
+  | USE_PCT EQUAL vec_str {
+      for (const auto& s : $3)
+        if (ranges::find(driver.use_pct_estimation_known_fields, s) == driver.use_pct_estimation_known_fields.end())
+          driver.error("use_pct: unknown sub-field '" + s + "'");
+      for (const auto& field : driver.use_pct_estimation_known_fields)
+        driver.option_num("parallel_info.use_pct.estimation." + string{field},
+                          ranges::find($3, field) != $3.end() ? "true" : "false");
+    };
 
 o_plot_priors: PLOT_PRIORS EQUAL INT_NUMBER { driver.option_num("plot_priors", $3); };
-o_aim_solver: AIM_SOLVER { 
+o_aim_solver: AIM_SOLVER {
                             driver.warning("The 'aim_solver' option is deprecated. It has been superseded by the 'dr=aim' option.");
-                            driver.option_num("aim_solver", "true"); 
+                            driver.option_num("aim_solver", "true");
                          };
 o_partial_information : PARTIAL_INFORMATION { driver.option_num("partial_information", "true"); };
 o_sub_draws: SUB_DRAWS EQUAL INT_NUMBER { driver.option_num("sub_draws", $3); };
