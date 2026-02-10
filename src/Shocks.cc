@@ -1313,10 +1313,11 @@ HeteroskedasticShocksStatement::writeOutput(ostream& output,
          << endl;
   for (const auto& [symb_id, vec] : values)
     for (int tsid = symbol_table.getTypeSpecificID(symb_id);
-         const auto& [period1, period2, value] : vec)
+         const auto& [period_range, value] : vec)
       {
-        output << "struct('exo_id', " << tsid + 1 << ",'periods'," << period1 << ":" << period2
-               << ",'value',";
+        output << "struct('exo_id', " << tsid + 1 << ",'periods',";
+        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+        output << ",'value',";
         value->writeOutput(output);
         output << ");" << endl;
       }
@@ -1325,10 +1326,11 @@ HeteroskedasticShocksStatement::writeOutput(ostream& output,
          << endl;
   for (const auto& [symb_id, vec] : scales)
     for (int tsid = symbol_table.getTypeSpecificID(symb_id);
-         const auto& [period1, period2, scale] : vec)
+         const auto& [period_range, scale] : vec)
       {
-        output << "struct('exo_id', " << tsid + 1 << ",'periods'," << period1 << ":" << period2
-               << ",'scale',";
+        output << "struct('exo_id', " << tsid + 1 << ",'periods',";
+        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+        output << ",'scale',";
         scale->writeOutput(output);
         output << ");" << endl;
       }
@@ -1346,13 +1348,13 @@ HeteroskedasticShocksStatement::writeJsonOutput(ostream& output) const
         output << ", ";
       output << R"({"var": ")" << symbol_table.getName(symb_id) << R"(", )"
              << R"("values": [)";
-      for (bool printed_something2 {false}; const auto& [period1, period2, value] : vec)
+      for (bool printed_something2 {false}; const auto& [period_range, value] : vec)
         {
           if (exchange(printed_something2, true))
             output << ", ";
-          output << R"({"period1": )" << period1 << ", "
-                 << R"("period2": )" << period2 << ", "
-                 << R"("value": ")";
+          output << "{";
+          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+          output << R"("value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
         }
@@ -1365,13 +1367,13 @@ HeteroskedasticShocksStatement::writeJsonOutput(ostream& output) const
         output << ", ";
       output << R"({"var": ")" << symbol_table.getName(symb_id) << R"(", )"
              << R"("scales": [)";
-      for (bool printed_something2 {false}; const auto& [period1, period2, value] : vec)
+      for (bool printed_something2 {false}; const auto& [period_range, value] : vec)
         {
           if (exchange(printed_something2, true))
             output << ", ";
-          output << R"({"period1": )" << period1 << ", "
-                 << R"("period2": )" << period2 << ", "
-                 << R"("value": ")";
+          output << "{";
+          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+          output << R"("value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
         }

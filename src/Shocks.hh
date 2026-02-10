@@ -326,8 +326,9 @@ public:
 class HeteroskedasticShocksStatement : public Statement
 {
 public:
-  // Maps exo symb_id to list of tuples (period1, period2, value/scale)
-  using heteroskedastic_shocks_t = map<int, vector<tuple<int, int, expr_t>>>;
+  // Maps exo symb_id to list of pairs (period range, value/scale)
+  using heteroskedastic_shocks_t
+      = map<int, vector<pair<AbstractShocksStatement::period_range_t, expr_t>>>;
 
 private:
   const bool overwrite;

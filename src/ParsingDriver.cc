@@ -1347,9 +1347,6 @@ ParsingDriver::add_heteroskedastic_shock(
 {
   check_symbol_is_exogenous(var, false);
 
-  if (ranges::any_of(periods, [](auto& p) { return !holds_alternative<pair<int, int>>(p); }))
-    error("heteroskedastic_shocks: dates are not allowed in the 'periods' keyword");
-
   int symb_id = mod_file->symbol_table.getID(var);
 
   if ((!scales && heteroskedastic_shocks_values.contains(symb_id))
@@ -1360,12 +1357,9 @@ ParsingDriver::add_heteroskedastic_shock(
     error("heteroskedastic_shocks: variable " + var
           + ": number of periods is different from number of shock values");
 
-  vector<tuple<int, int, expr_t>> v;
+  vector<pair<AbstractShocksStatement::period_range_t, expr_t>> v;
   for (size_t i = 0; i < periods.size(); i++)
-    {
-      auto [period1, period2] = get<pair<int, int>>(periods[i]);
-      v.emplace_back(period1, period2, values[i]);
-    }
+    v.emplace_back(periods[i], values[i]);
 
   if (scales)
     heteroskedastic_shocks_scales[symb_id] = v;
