@@ -2035,14 +2035,6 @@ ParsingDriver::osr_params_bounds()
 }
 
 void
-ParsingDriver::set_unit_root_vars()
-{
-  mod_file->addStatement(make_unique<UnitRootVarsStatement>());
-  warning("''unit_root_vars'' is now obsolete; use the ''diffuse_filter'' option of ''estimation'' "
-          "instead");
-}
-
-void
 ParsingDriver::set_time(string period)
 {
   mod_file->addStatement(make_unique<SetTimeStatement>(move(period)));
