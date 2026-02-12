@@ -353,13 +353,13 @@ ExprNode::createHetEndoLeadAuxiliaryVarForMyself(int het_dim, subst_table_t& sub
                                                  vector<BinaryOpNode*>& neweqs) const
 {
   int n = maxHetEndoLead(het_dim);
-  assert(n >= 2);
+  assert(n >= 1);
 
   if (auto it = subst_table.find(this); it != subst_table.end())
     return const_cast<VariableNode*>(it->second);
 
-  expr_t substexpr = decreaseLeadsLags(n - 1);
-  int lag = n - 2;
+  expr_t substexpr = decreaseLeadsLags(n);
+  int lag = n - 1;
 
   // Each iteration tries to create an auxvar such that auxvar(+1)=expr(-lag)
   while (lag >= 0)
@@ -381,66 +381,6 @@ ExprNode::createHetEndoLeadAuxiliaryVarForMyself(int het_dim, subst_table_t& sub
     }
 
   return dynamic_cast<VariableNode*>(substexpr);
-}
-
-VariableNode*
-ExprNode::createHetExoLeadAuxiliaryVarForMyself(int het_dim, subst_table_t& subst_table,
-                                                vector<BinaryOpNode*>& neweqs) const
-{
-  int n = maxHetExoLead(het_dim);
-  assert(n >= 1);
-
-  if (auto it = subst_table.find(this); it != subst_table.end())
-    return const_cast<VariableNode*>(it->second);
-
-  expr_t substexpr = decreaseLeadsLags(n);
-  int lag = n - 1;
-
-  // Each iteration tries to create an auxvar such that auxvar(+1)=expr(-lag)
-  while (lag >= 0)
-    {
-      expr_t orig_expr = decreaseLeadsLags(lag);
-      if (auto it = subst_table.find(orig_expr); it == subst_table.end())
-        {
-          int symb_id = datatree.symbol_table.addHeterogeneousExoLeadAuxiliaryVar(
-              het_dim, orig_expr->idx, substexpr);
-          neweqs.push_back(datatree.AddEqual(datatree.AddVariable(symb_id, 0), substexpr));
-          substexpr = datatree.AddVariable(symb_id, +1);
-          assert(dynamic_cast<VariableNode*>(substexpr));
-          subst_table[orig_expr] = dynamic_cast<VariableNode*>(substexpr);
-        }
-      else
-        substexpr = const_cast<VariableNode*>(it->second);
-
-      lag--;
-    }
-
-  return dynamic_cast<VariableNode*>(substexpr);
-}
-
-VariableNode*
-ExprNode::createHetNonlinearExpectationAuxiliaryVarForMyself(int het_dim,
-                                                             subst_table_t& subst_table,
-                                                             vector<BinaryOpNode*>& neweqs) const
-{
-  // Check cache first - share aux var if same expression appears multiple times
-  if (auto it = subst_table.find(this); it != subst_table.end())
-    return const_cast<VariableNode*>(it->second);
-
-  // Create defining expression at t (shift leads by -1)
-  expr_t defining_expr = decreaseLeadsLags(1);
-
-  // Create auxiliary variable
-  int symb_id = datatree.symbol_table.addHeterogeneousNonlinearExpectationAuxiliaryVar(
-      het_dim, idx, defining_expr);
-
-  // Add defining equation: AUX = defining_expr
-  neweqs.push_back(datatree.AddEqual(datatree.AddVariable(symb_id, 0), defining_expr));
-
-  // Return AUX(+1) as replacement
-  VariableNode* aux_lead = datatree.AddVariable(symb_id, +1);
-  subst_table[this] = aux_lead;
-  return aux_lead;
 }
 
 bool
@@ -820,33 +760,9 @@ NumConstNode::substituteExoLag([[maybe_unused]] subst_table_t& subst_table,
 }
 
 expr_t
-NumConstNode::substituteHetEndoLeadGreaterThanTwo(
-    [[maybe_unused]] int het_dim, [[maybe_unused]] subst_table_t& subst_table,
-    [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
-{
-  return const_cast<NumConstNode*>(this);
-}
-
-expr_t
-NumConstNode::substituteHetEndoLagGreaterThanTwo(
-    [[maybe_unused]] int het_dim, [[maybe_unused]] subst_table_t& subst_table,
-    [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
-{
-  return const_cast<NumConstNode*>(this);
-}
-
-expr_t
-NumConstNode::substituteHetExoLead([[maybe_unused]] int het_dim,
-                                   [[maybe_unused]] subst_table_t& subst_table,
-                                   [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
-{
-  return const_cast<NumConstNode*>(this);
-}
-
-expr_t
-NumConstNode::substituteHetExoLag([[maybe_unused]] int het_dim,
-                                  [[maybe_unused]] subst_table_t& subst_table,
-                                  [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
+NumConstNode::substituteHetEndoNonLinearLead([[maybe_unused]] int het_dim,
+                                             [[maybe_unused]] subst_table_t& subst_table,
+                                             [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
 {
   return const_cast<NumConstNode*>(this);
 }
@@ -869,18 +785,10 @@ NumConstNode::maxHetExoLead([[maybe_unused]] int het_dim) const
   return 0;
 }
 
-int
-NumConstNode::maxHetExoLag([[maybe_unused]] int het_dim) const
-{
-  return 0;
-}
-
 expr_t
-NumConstNode::substituteHetEndoLeadNonlinear([[maybe_unused]] int het_dim,
-                                             [[maybe_unused]] subst_table_t& subst_table,
-                                             [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
+NumConstNode::findNonSeparableHetLeadLagSubexpr([[maybe_unused]] int het_dim) const
 {
-  return const_cast<NumConstNode*>(this);
+  return nullptr;
 }
 
 expr_t
@@ -2187,8 +2095,8 @@ VariableNode::substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>
 }
 
 expr_t
-VariableNode::substituteHetEndoLeadGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                                  vector<BinaryOpNode*>& neweqs) const
+VariableNode::substituteHetEndoNonLinearLead(int het_dim, subst_table_t& subst_table,
+                                             vector<BinaryOpNode*>& neweqs) const
 {
   switch (get_type())
     {
@@ -2204,130 +2112,7 @@ VariableNode::substituteHetEndoLeadGreaterThanTwo(int het_dim, subst_table_t& su
           value->maxHetEndoLead(het_dim) <= 1)
         return const_cast<VariableNode*>(this);
       else
-        return value->substituteHetEndoLeadGreaterThanTwo(het_dim, subst_table, neweqs);
-    default:
-      return const_cast<VariableNode*>(this);
-    }
-}
-
-expr_t
-VariableNode::substituteHetEndoLagGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                                 vector<BinaryOpNode*>& neweqs) const
-{
-  VariableNode* substexpr;
-  int cur_lag;
-  switch (get_type())
-    {
-    case SymbolType::heterogeneousEndogenous:
-      if (datatree.symbol_table.getHeterogeneityDimension(symb_id) != het_dim)
-        return const_cast<VariableNode*>(this);
-      if (lag >= -1)
-        return const_cast<VariableNode*>(this);
-
-      if (auto it = subst_table.find(this); it != subst_table.end())
-        return const_cast<VariableNode*>(it->second);
-
-      substexpr = datatree.AddVariable(symb_id, -1);
-      cur_lag = -2;
-
-      // Each iteration tries to create an auxvar such that auxvar(-1)=curvar(cur_lag)
-      while (cur_lag >= lag)
-        {
-          VariableNode* orig_expr = datatree.AddVariable(symb_id, cur_lag);
-          if (auto it = subst_table.find(orig_expr); it == subst_table.end())
-            {
-              int aux_symb_id = datatree.symbol_table.addHeterogeneousEndoLagAuxiliaryVar(
-                  het_dim, symb_id, cur_lag + 1, substexpr);
-              neweqs.push_back(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr));
-              substexpr = datatree.AddVariable(aux_symb_id, -1);
-              subst_table[orig_expr] = substexpr;
-            }
-          else
-            substexpr = const_cast<VariableNode*>(it->second);
-
-          cur_lag--;
-        }
-      return substexpr;
-
-    case SymbolType::modelLocalVariable:
-      if (expr_t value = datatree.getLocalVariable(symb_id, lag);
-          value->maxHetEndoLag(het_dim) <= 1)
-        return const_cast<VariableNode*>(this);
-      else
-        return value->substituteHetEndoLagGreaterThanTwo(het_dim, subst_table, neweqs);
-    default:
-      return const_cast<VariableNode*>(this);
-    }
-}
-
-expr_t
-VariableNode::substituteHetExoLead(int het_dim, subst_table_t& subst_table,
-                                   vector<BinaryOpNode*>& neweqs) const
-{
-  switch (get_type())
-    {
-    case SymbolType::heterogeneousExogenous:
-      if (datatree.symbol_table.getHeterogeneityDimension(symb_id) != het_dim)
-        return const_cast<VariableNode*>(this);
-      if (lag <= 0)
-        return const_cast<VariableNode*>(this);
-      else
-        return createHetExoLeadAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
-    case SymbolType::modelLocalVariable:
-      if (expr_t value = datatree.getLocalVariable(symb_id, lag);
-          value->maxHetExoLead(het_dim) == 0)
-        return const_cast<VariableNode*>(this);
-      else
-        return value->substituteHetExoLead(het_dim, subst_table, neweqs);
-    default:
-      return const_cast<VariableNode*>(this);
-    }
-}
-
-expr_t
-VariableNode::substituteHetExoLag(int het_dim, subst_table_t& subst_table,
-                                  vector<BinaryOpNode*>& neweqs) const
-{
-  VariableNode* substexpr;
-  int cur_lag;
-  switch (get_type())
-    {
-    case SymbolType::heterogeneousExogenous:
-      if (datatree.symbol_table.getHeterogeneityDimension(symb_id) != het_dim)
-        return const_cast<VariableNode*>(this);
-      if (lag >= 0)
-        return const_cast<VariableNode*>(this);
-
-      if (auto it = subst_table.find(this); it != subst_table.end())
-        return const_cast<VariableNode*>(it->second);
-
-      substexpr = datatree.AddVariable(symb_id, 0);
-      cur_lag = -1;
-
-      // Each iteration tries to create an auxvar such that auxvar(-1)=curvar(cur_lag)
-      while (cur_lag >= lag)
-        {
-          VariableNode* orig_expr = datatree.AddVariable(symb_id, cur_lag);
-          if (auto it = subst_table.find(orig_expr); it == subst_table.end())
-            {
-              int aux_symb_id = datatree.symbol_table.addHeterogeneousExoLagAuxiliaryVar(
-                  het_dim, symb_id, cur_lag + 1, substexpr);
-              neweqs.push_back(datatree.AddEqual(datatree.AddVariable(aux_symb_id, 0), substexpr));
-              substexpr = datatree.AddVariable(aux_symb_id, -1);
-              subst_table[orig_expr] = substexpr;
-            }
-          else
-            substexpr = const_cast<VariableNode*>(it->second);
-
-          cur_lag--;
-        }
-      return substexpr;
-
-    case SymbolType::modelLocalVariable:
-      if (expr_t value = datatree.getLocalVariable(symb_id, lag); value->maxHetExoLag(het_dim) == 0)
-        return const_cast<VariableNode*>(this);
-      else
-        return value->substituteHetExoLag(het_dim, subst_table, neweqs);
+        return value->substituteHetEndoNonLinearLead(het_dim, subst_table, neweqs);
     default:
       return const_cast<VariableNode*>(this);
     }
@@ -2384,30 +2169,14 @@ VariableNode::maxHetExoLead(int het_dim) const
     }
 }
 
-int
-VariableNode::maxHetExoLag(int het_dim) const
-{
-  switch (get_type())
-    {
-    case SymbolType::heterogeneousExogenous:
-      if (datatree.symbol_table.getHeterogeneityDimension(symb_id) == het_dim)
-        return max(-lag, 0);
-      else
-        return 0;
-    case SymbolType::modelLocalVariable:
-      return datatree.getLocalVariable(symb_id, lag)->maxHetExoLag(het_dim);
-    default:
-      return 0;
-    }
-}
-
 expr_t
-VariableNode::substituteHetEndoLeadNonlinear([[maybe_unused]] int het_dim,
-                                             [[maybe_unused]] subst_table_t& subst_table,
-                                             [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
+VariableNode::findNonSeparableHetLeadLagSubexpr(int het_dim) const
 {
-  // Single variables are linear by definition, so no substitution needed
-  return const_cast<VariableNode*>(this);
+  // A single variable cannot be a non-separable het lead/lag expression by itself.
+  // For model local variables, we need to recurse into their definition.
+  if (get_type() == SymbolType::modelLocalVariable)
+    return datatree.getLocalVariable(symb_id, lag)->findNonSeparableHetLeadLagSubexpr(het_dim);
+  return nullptr;
 }
 
 expr_t
@@ -4352,49 +4121,19 @@ UnaryOpNode::substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>&
 }
 
 expr_t
-UnaryOpNode::substituteHetEndoLeadGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                                 vector<BinaryOpNode*>& neweqs) const
+UnaryOpNode::substituteHetEndoNonLinearLead(int het_dim, subst_table_t& subst_table,
+                                            vector<BinaryOpNode*>& neweqs) const
 {
   if (op_code == UnaryOpcode::uminus)
-    return recurseTransform(&ExprNode::substituteHetEndoLeadGreaterThanTwo, het_dim, subst_table,
+    return recurseTransform(&ExprNode::substituteHetEndoNonLinearLead, het_dim, subst_table,
                             neweqs);
   else
     {
-      if (maxHetEndoLead(het_dim) >= 2)
+      if (maxHetEndoLead(het_dim) >= 1)
         return createHetEndoLeadAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
       else
         return const_cast<UnaryOpNode*>(this);
     }
-}
-
-expr_t
-UnaryOpNode::substituteHetEndoLagGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                                vector<BinaryOpNode*>& neweqs) const
-{
-  return recurseTransform(&ExprNode::substituteHetEndoLagGreaterThanTwo, het_dim, subst_table,
-                          neweqs);
-}
-
-expr_t
-UnaryOpNode::substituteHetExoLead(int het_dim, subst_table_t& subst_table,
-                                  vector<BinaryOpNode*>& neweqs) const
-{
-  if (op_code == UnaryOpcode::uminus)
-    return recurseTransform(&ExprNode::substituteHetExoLead, het_dim, subst_table, neweqs);
-  else
-    {
-      if (maxHetExoLead(het_dim) >= 1)
-        return createHetExoLeadAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
-      else
-        return const_cast<UnaryOpNode*>(this);
-    }
-}
-
-expr_t
-UnaryOpNode::substituteHetExoLag(int het_dim, subst_table_t& subst_table,
-                                 vector<BinaryOpNode*>& neweqs) const
-{
-  return recurseTransform(&ExprNode::substituteHetExoLag, het_dim, subst_table, neweqs);
 }
 
 int
@@ -4415,21 +4154,19 @@ UnaryOpNode::maxHetExoLead(int het_dim) const
   return arg->maxHetExoLead(het_dim);
 }
 
-int
-UnaryOpNode::maxHetExoLag(int het_dim) const
-{
-  return arg->maxHetExoLag(het_dim);
-}
-
 expr_t
-UnaryOpNode::substituteHetEndoLeadNonlinear(int het_dim, subst_table_t& subst_table,
-                                            vector<BinaryOpNode*>& neweqs) const
+UnaryOpNode::findNonSeparableHetLeadLagSubexpr(int het_dim) const
 {
-  // Unary operations on expressions with t+1 het endo vars are nonlinear
-  if (maxHetEndoLead(het_dim) >= 1)
-    return createHetNonlinearExpectationAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
-  else
+  // First, check if the argument itself contains a non-separable het lead/lag pattern
+  if (auto subexpr = arg->findNonSeparableHetLeadLagSubexpr(het_dim); subexpr)
+    return subexpr;
+
+  // A unary operation (like log, exp, etc.) is NON-SEPARABLE.
+  // If it contains both a lead (>= 1) and a lagged state (== -1), return THIS node.
+  if (arg->maxHetEndoLead(het_dim) >= 1 && arg->maxHetEndoLag(het_dim) >= 1)
     return const_cast<UnaryOpNode*>(this);
+
+  return nullptr;
 }
 
 expr_t
@@ -5974,96 +5711,43 @@ BinaryOpNode::substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>
 }
 
 expr_t
-BinaryOpNode::substituteHetEndoLeadGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                                  vector<BinaryOpNode*>& neweqs) const
+BinaryOpNode::substituteHetEndoNonLinearLead(int het_dim, subst_table_t& subst_table,
+                                             vector<BinaryOpNode*>& neweqs) const
 {
   expr_t arg1subst, arg2subst;
   int maxendolead1 = arg1->maxHetEndoLead(het_dim), maxendolead2 = arg2->maxHetEndoLead(het_dim);
 
-  if (maxendolead1 < 2 && maxendolead2 < 2)
+  if (maxendolead1 < 1 && maxendolead2 < 1)
     return const_cast<BinaryOpNode*>(this);
   switch (op_code)
     {
     case BinaryOpcode::plus:
     case BinaryOpcode::minus:
     case BinaryOpcode::equal:
-      arg1subst = maxendolead1 >= 2
-                      ? arg1->substituteHetEndoLeadGreaterThanTwo(het_dim, subst_table, neweqs)
+      arg1subst = maxendolead1 >= 1
+                      ? arg1->substituteHetEndoNonLinearLead(het_dim, subst_table, neweqs)
                       : arg1;
-      arg2subst = maxendolead2 >= 2
-                      ? arg2->substituteHetEndoLeadGreaterThanTwo(het_dim, subst_table, neweqs)
+      arg2subst = maxendolead2 >= 1
+                      ? arg2->substituteHetEndoNonLinearLead(het_dim, subst_table, neweqs)
                       : arg2;
       return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
     case BinaryOpcode::times:
     case BinaryOpcode::divide:
-      if (maxendolead1 >= 2 && maxendolead2 == 0 && arg2->maxHetExoLead(het_dim) == 0)
+      if (maxendolead1 >= 1 && maxendolead2 == 0 && arg2->maxHetExoLead(het_dim) == 0)
         {
-          arg1subst = arg1->substituteHetEndoLeadGreaterThanTwo(het_dim, subst_table, neweqs);
+          arg1subst = arg1->substituteHetEndoNonLinearLead(het_dim, subst_table, neweqs);
           return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
         }
-      if (maxendolead1 == 0 && arg1->maxHetExoLead(het_dim) == 0 && maxendolead2 >= 2
+      if (maxendolead1 == 0 && arg1->maxHetExoLead(het_dim) == 0 && maxendolead2 >= 1
           && op_code == BinaryOpcode::times)
         {
-          arg2subst = arg2->substituteHetEndoLeadGreaterThanTwo(het_dim, subst_table, neweqs);
+          arg2subst = arg2->substituteHetEndoNonLinearLead(het_dim, subst_table, neweqs);
           return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
         }
       return createHetEndoLeadAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
     default:
       return createHetEndoLeadAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
     }
-}
-
-expr_t
-BinaryOpNode::substituteHetEndoLagGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                                 vector<BinaryOpNode*>& neweqs) const
-{
-  return recurseTransform(&ExprNode::substituteHetEndoLagGreaterThanTwo, het_dim, subst_table,
-                          neweqs);
-}
-
-expr_t
-BinaryOpNode::substituteHetExoLead(int het_dim, subst_table_t& subst_table,
-                                   vector<BinaryOpNode*>& neweqs) const
-{
-  expr_t arg1subst, arg2subst;
-  int maxexolead1 = arg1->maxHetExoLead(het_dim), maxexolead2 = arg2->maxHetExoLead(het_dim);
-
-  if (maxexolead1 < 1 && maxexolead2 < 1)
-    return const_cast<BinaryOpNode*>(this);
-  switch (op_code)
-    {
-    case BinaryOpcode::plus:
-    case BinaryOpcode::minus:
-    case BinaryOpcode::equal:
-      arg1subst
-          = maxexolead1 >= 1 ? arg1->substituteHetExoLead(het_dim, subst_table, neweqs) : arg1;
-      arg2subst
-          = maxexolead2 >= 1 ? arg2->substituteHetExoLead(het_dim, subst_table, neweqs) : arg2;
-      return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
-    case BinaryOpcode::times:
-    case BinaryOpcode::divide:
-      if (maxexolead1 >= 1 && maxexolead2 == 0 && arg2->maxHetEndoLead(het_dim) == 0)
-        {
-          arg1subst = arg1->substituteHetExoLead(het_dim, subst_table, neweqs);
-          return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
-        }
-      if (maxexolead1 == 0 && arg1->maxHetEndoLead(het_dim) == 0 && maxexolead2 >= 1
-          && op_code == BinaryOpcode::times)
-        {
-          arg2subst = arg2->substituteHetExoLead(het_dim, subst_table, neweqs);
-          return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
-        }
-      return createHetExoLeadAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
-    default:
-      return createHetExoLeadAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
-    }
-}
-
-expr_t
-BinaryOpNode::substituteHetExoLag(int het_dim, subst_table_t& subst_table,
-                                  vector<BinaryOpNode*>& neweqs) const
-{
-  return recurseTransform(&ExprNode::substituteHetExoLag, het_dim, subst_table, neweqs);
 }
 
 int
@@ -6084,63 +5768,51 @@ BinaryOpNode::maxHetExoLead(int het_dim) const
   return max(arg1->maxHetExoLead(het_dim), arg2->maxHetExoLead(het_dim));
 }
 
-int
-BinaryOpNode::maxHetExoLag(int het_dim) const
-{
-  return max(arg1->maxHetExoLag(het_dim), arg2->maxHetExoLag(het_dim));
-}
-
 expr_t
-BinaryOpNode::substituteHetEndoLeadNonlinear(int het_dim, subst_table_t& subst_table,
-                                             vector<BinaryOpNode*>& neweqs) const
+BinaryOpNode::findNonSeparableHetLeadLagSubexpr(int het_dim) const
 {
-  // For nonlinear expectation substitution, we check for nonlinearity in t+1 het endo vars
-  expr_t arg1subst, arg2subst;
+  // First, check if either child contains non-separable het lead/lag
+  if (auto subexpr = arg1->findNonSeparableHetLeadLagSubexpr(het_dim); subexpr)
+    return subexpr;
+  if (auto subexpr = arg2->findNonSeparableHetLeadLagSubexpr(het_dim); subexpr)
+    return subexpr;
+
+  // Get the lead/lag information from both arguments
   int maxendolead1 = arg1->maxHetEndoLead(het_dim), maxendolead2 = arg2->maxHetEndoLead(het_dim);
+  int maxendolag1 = arg1->maxHetEndoLag(het_dim), maxendolag2 = arg2->maxHetEndoLag(het_dim);
 
-  // If neither argument has t+1 het endo vars, nothing to do
+  // If there are no leads in this expression, it cannot be non-separable het lead/lag
   if (maxendolead1 < 1 && maxendolead2 < 1)
-    return const_cast<BinaryOpNode*>(this);
+    return nullptr;
 
+  // Check separability based on operation type.
   switch (op_code)
     {
     case BinaryOpcode::plus:
     case BinaryOpcode::minus:
     case BinaryOpcode::equal:
-      // Linear operations - recurse into both operands
-      arg1subst = maxendolead1 >= 1
-                      ? arg1->substituteHetEndoLeadNonlinear(het_dim, subst_table, neweqs)
-                      : arg1;
-      arg2subst = maxendolead2 >= 1
-                      ? arg2->substituteHetEndoLeadNonlinear(het_dim, subst_table, neweqs)
-                      : arg2;
-      return buildSimilarBinaryOpNode(arg1subst, arg2subst, datatree);
+      // Separable operations: don't flag this node itself
+      return nullptr;
+
     case BinaryOpcode::times:
-      // Linear iff exactly one operand has het endo (+1)
-      if (maxendolead1 >= 1 && maxendolead2 == 0)
-        {
-          arg1subst = arg1->substituteHetEndoLeadNonlinear(het_dim, subst_table, neweqs);
-          return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
-        }
-      if (maxendolead1 == 0 && maxendolead2 >= 1)
-        {
-          arg2subst = arg2->substituteHetEndoLeadNonlinear(het_dim, subst_table, neweqs);
-          return buildSimilarBinaryOpNode(arg1, arg2subst, datatree);
-        }
-      // Both operands have het endo leads - nonlinear
-      return createHetNonlinearExpectationAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
     case BinaryOpcode::divide:
-      // Linear iff only numerator has het endo (+1)
-      if (maxendolead1 >= 1 && maxendolead2 == 0)
-        {
-          arg1subst = arg1->substituteHetEndoLeadNonlinear(het_dim, subst_table, neweqs);
-          return buildSimilarBinaryOpNode(arg1subst, arg2, datatree);
-        }
-      // Denominator has het endo lead - nonlinear
-      return createHetNonlinearExpectationAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
+      // Separable if one side has no leads (and no het exo leads)
+      if (maxendolead1 >= 1 && maxendolead2 == 0 && arg2->maxHetExoLead(het_dim) == 0)
+        return nullptr; // arg1 has leads, arg2 is "static" - separable
+      if (maxendolead1 == 0 && arg1->maxHetExoLead(het_dim) == 0 && maxendolead2 >= 1
+          && op_code == BinaryOpcode::times)
+        return nullptr; // arg2 has leads, arg1 is "static" (times only) - separable
+
+      // Non-separable case: check if this expression has both leads and lagged states
+      if ((maxendolead1 >= 1 || maxendolead2 >= 1) && max(maxendolag1, maxendolag2) >= 1)
+        return const_cast<BinaryOpNode*>(this);
+      return nullptr;
+
     default:
-      // Other operations (power, etc.) are nonlinear
-      return createHetNonlinearExpectationAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
+      // All other operations (power, min, max, comparisons) are non-separable
+      if ((maxendolead1 >= 1 || maxendolead2 >= 1) && max(maxendolag1, maxendolag2) >= 1)
+        return const_cast<BinaryOpNode*>(this);
+      return nullptr;
     }
 }
 
@@ -7377,38 +7049,13 @@ TrinaryOpNode::substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*
 }
 
 expr_t
-TrinaryOpNode::substituteHetEndoLeadGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                                   vector<BinaryOpNode*>& neweqs) const
+TrinaryOpNode::substituteHetEndoNonLinearLead(int het_dim, subst_table_t& subst_table,
+                                              vector<BinaryOpNode*>& neweqs) const
 {
-  if (maxHetEndoLead(het_dim) < 2)
+  if (maxHetEndoLead(het_dim) < 1)
     return const_cast<TrinaryOpNode*>(this);
   else
     return createHetEndoLeadAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
-}
-
-expr_t
-TrinaryOpNode::substituteHetEndoLagGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                                  vector<BinaryOpNode*>& neweqs) const
-{
-  return recurseTransform(&ExprNode::substituteHetEndoLagGreaterThanTwo, het_dim, subst_table,
-                          neweqs);
-}
-
-expr_t
-TrinaryOpNode::substituteHetExoLead(int het_dim, subst_table_t& subst_table,
-                                    vector<BinaryOpNode*>& neweqs) const
-{
-  if (maxHetExoLead(het_dim) == 0)
-    return const_cast<TrinaryOpNode*>(this);
-  else
-    return createHetExoLeadAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
-}
-
-expr_t
-TrinaryOpNode::substituteHetExoLag(int het_dim, subst_table_t& subst_table,
-                                   vector<BinaryOpNode*>& neweqs) const
-{
-  return recurseTransform(&ExprNode::substituteHetExoLag, het_dim, subst_table, neweqs);
 }
 
 int
@@ -7432,22 +7079,26 @@ TrinaryOpNode::maxHetExoLead(int het_dim) const
       {arg1->maxHetExoLead(het_dim), arg2->maxHetExoLead(het_dim), arg3->maxHetExoLead(het_dim)});
 }
 
-int
-TrinaryOpNode::maxHetExoLag(int het_dim) const
-{
-  return max(
-      {arg1->maxHetExoLag(het_dim), arg2->maxHetExoLag(het_dim), arg3->maxHetExoLag(het_dim)});
-}
-
 expr_t
-TrinaryOpNode::substituteHetEndoLeadNonlinear(int het_dim, subst_table_t& subst_table,
-                                              vector<BinaryOpNode*>& neweqs) const
+TrinaryOpNode::findNonSeparableHetLeadLagSubexpr(int het_dim) const
 {
-  // Trinary operations with t+1 het endo vars are nonlinear
-  if (maxHetEndoLead(het_dim) >= 1)
-    return createHetNonlinearExpectationAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
-  else
+  // First, check if any child contains non-separable het lead/lag
+  if (auto subexpr = arg1->findNonSeparableHetLeadLagSubexpr(het_dim); subexpr)
+    return subexpr;
+  if (auto subexpr = arg2->findNonSeparableHetLeadLagSubexpr(het_dim); subexpr)
+    return subexpr;
+  if (auto subexpr = arg3->findNonSeparableHetLeadLagSubexpr(het_dim); subexpr)
+    return subexpr;
+
+  // Trinary operations (normpdf, normcdf) are always NON-SEPARABLE.
+  // Check if this expression has both leads and lagged states.
+  int max_lead = max({arg1->maxHetEndoLead(het_dim), arg2->maxHetEndoLead(het_dim),
+                      arg3->maxHetEndoLead(het_dim)});
+
+  if (max_lead >= 1 && maxHetEndoLag(het_dim) >= 1)
     return const_cast<TrinaryOpNode*>(this);
+
+  return nullptr;
 }
 
 expr_t
@@ -7855,38 +7506,14 @@ AbstractExternalFunctionNode::substituteExoLag(subst_table_t& subst_table,
 }
 
 expr_t
-AbstractExternalFunctionNode::substituteHetEndoLeadGreaterThanTwo(
-    int het_dim, subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const
+AbstractExternalFunctionNode::substituteHetEndoNonLinearLead(int het_dim,
+                                                             subst_table_t& subst_table,
+                                                             vector<BinaryOpNode*>& neweqs) const
 {
-  if (maxHetEndoLead(het_dim) < 2)
+  if (maxHetEndoLead(het_dim) < 1)
     return const_cast<AbstractExternalFunctionNode*>(this);
   else
     return createHetEndoLeadAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
-}
-
-expr_t
-AbstractExternalFunctionNode::substituteHetEndoLagGreaterThanTwo(
-    int het_dim, subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const
-{
-  return recurseTransform(&ExprNode::substituteHetEndoLagGreaterThanTwo, het_dim, subst_table,
-                          neweqs);
-}
-
-expr_t
-AbstractExternalFunctionNode::substituteHetExoLead(int het_dim, subst_table_t& subst_table,
-                                                   vector<BinaryOpNode*>& neweqs) const
-{
-  if (maxHetExoLead(het_dim) == 0)
-    return const_cast<AbstractExternalFunctionNode*>(this);
-  else
-    return createHetExoLeadAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
-}
-
-expr_t
-AbstractExternalFunctionNode::substituteHetExoLag(int het_dim, subst_table_t& subst_table,
-                                                  vector<BinaryOpNode*>& neweqs) const
-{
-  return recurseTransform(&ExprNode::substituteHetExoLag, het_dim, subst_table, neweqs);
 }
 
 int
@@ -7916,25 +7543,24 @@ AbstractExternalFunctionNode::maxHetExoLead(int het_dim) const
   return val;
 }
 
-int
-AbstractExternalFunctionNode::maxHetExoLag(int het_dim) const
-{
-  int val = 0;
-  for (auto argument : arguments)
-    val = max(val, argument->maxHetExoLag(het_dim));
-  return val;
-}
-
 expr_t
-AbstractExternalFunctionNode::substituteHetEndoLeadNonlinear(int het_dim,
-                                                             subst_table_t& subst_table,
-                                                             vector<BinaryOpNode*>& neweqs) const
+AbstractExternalFunctionNode::findNonSeparableHetLeadLagSubexpr(int het_dim) const
 {
-  // External functions with t+1 het endo vars are nonlinear
-  if (maxHetEndoLead(het_dim) >= 1)
-    return createHetNonlinearExpectationAuxiliaryVarForMyself(het_dim, subst_table, neweqs);
-  else
+  // First, check if any argument contains non-separable het lead/lag
+  for (auto argument : arguments)
+    if (auto subexpr = argument->findNonSeparableHetLeadLagSubexpr(het_dim); subexpr)
+      return subexpr;
+
+  // External function calls are NON-SEPARABLE.
+  // Check if this expression has both leads and lagged states across all arguments.
+  int max_lead = 0;
+  for (auto argument : arguments)
+    max_lead = max(max_lead, argument->maxHetEndoLead(het_dim));
+
+  if (max_lead >= 1 && maxHetEndoLag(het_dim) >= 1)
     return const_cast<AbstractExternalFunctionNode*>(this);
+
+  return nullptr;
 }
 
 expr_t
@@ -9435,38 +9061,11 @@ SubModelNode::substituteExoLag([[maybe_unused]] subst_table_t& subst_table,
 }
 
 expr_t
-SubModelNode::substituteHetEndoLeadGreaterThanTwo(
-    [[maybe_unused]] int het_dim, [[maybe_unused]] subst_table_t& subst_table,
-    [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
+SubModelNode::substituteHetEndoNonLinearLead([[maybe_unused]] int het_dim,
+                                             [[maybe_unused]] subst_table_t& subst_table,
+                                             [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
 {
-  cerr << "SubModelNode::substituteHetEndoLeadGreaterThanTwo not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-SubModelNode::substituteHetEndoLagGreaterThanTwo(
-    [[maybe_unused]] int het_dim, [[maybe_unused]] subst_table_t& subst_table,
-    [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
-{
-  cerr << "SubModelNode::substituteHetEndoLagGreaterThanTwo not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-SubModelNode::substituteHetExoLead([[maybe_unused]] int het_dim,
-                                   [[maybe_unused]] subst_table_t& subst_table,
-                                   [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
-{
-  cerr << "SubModelNode::substituteHetExoLead not implemented." << endl;
-  exit(EXIT_FAILURE);
-}
-
-expr_t
-SubModelNode::substituteHetExoLag([[maybe_unused]] int het_dim,
-                                  [[maybe_unused]] subst_table_t& subst_table,
-                                  [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
-{
-  cerr << "SubModelNode::substituteHetExoLag not implemented." << endl;
+  cerr << "SubModelNode::substituteHetEndoNonLinearLead not implemented." << endl;
   exit(EXIT_FAILURE);
 }
 
@@ -9488,18 +9087,10 @@ SubModelNode::maxHetExoLead([[maybe_unused]] int het_dim) const
   return 0;
 }
 
-int
-SubModelNode::maxHetExoLag([[maybe_unused]] int het_dim) const
-{
-  return 0;
-}
-
 expr_t
-SubModelNode::substituteHetEndoLeadNonlinear([[maybe_unused]] int het_dim,
-                                             [[maybe_unused]] subst_table_t& subst_table,
-                                             [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
+SubModelNode::findNonSeparableHetLeadLagSubexpr([[maybe_unused]] int het_dim) const
 {
-  return const_cast<SubModelNode*>(this);
+  return nullptr;
 }
 
 bool

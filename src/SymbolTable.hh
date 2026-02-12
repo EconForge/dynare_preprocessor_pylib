@@ -59,13 +59,14 @@ enum class AuxVarType
   = 14, // Substitute for an aggregation operator in a heterogeneous setup, such as SUM()
   heterogeneousMultiplier = 15, /* Multiplier for bound conditions of complementarity conditions in
                                    the heterogeneous equations */
-  heterogeneousNonlinearExpectation
-  = 16,                       // Auxiliary for nonlinear expectations in t+1 het endo vars
-  heterogeneousEndoLead = 17, // Substitute for het endo leads >= 2
-  heterogeneousEndoLag = 18,  // Substitute for het endo lags >= 2
-  heterogeneousExoLead = 19,  // Substitute for het exo leads >= 1
-  heterogeneousExoLag = 20    // Substitute for het exo lags >= 1
+  heterogeneousEndoLead = 16    // Substitute for het endo leads (non-separable >= 1, vars >= 2)
 };
+
+constexpr bool
+isHeterogeneousAux(AuxVarType type)
+{
+  return type == AuxVarType::heterogeneousEndoLead || type == AuxVarType::heterogeneousMultiplier;
+}
 
 //! Information on some auxiliary variables
 struct AuxVarInfo
@@ -303,12 +304,6 @@ public:
   */
   int addHeterogeneousMultiplierAuxiliaryVar(int het_dim, int index,
                                              const string& varname) noexcept(false);
-  /* Adds an auxiliary variable for nonlinear expectations in t+1 het endo vars.
-     – het_dim is the heterogeneity dimension
-     – index is used to construct the variable name
-     – expr_arg is the defining expression */
-  int addHeterogeneousNonlinearExpectationAuxiliaryVar(int het_dim, int index,
-                                                       expr_t expr_arg) noexcept(false);
   /* Adds an auxiliary variable for het endo leads >= 2.
      – het_dim is the heterogeneity dimension
      – index is used to construct the variable name

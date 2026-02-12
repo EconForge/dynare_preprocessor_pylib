@@ -31,6 +31,17 @@ class DynamicModel;
 
 class HeterogeneousModel : public ModelTree
 {
+private:
+  vector<size_t> het_aux_equations_indices;
+
+  // Auxiliary variables grouped by topological level
+  // Level 0: aux vars with no (+1) dependencies on other aux vars
+  // Level k: aux vars whose (+1) dependencies are at level < k
+  vector<vector<int>> het_aux_levels;
+
+  //! Factorized code for substitutions of leads/lags
+  void substituteLeadLagInternal(DynamicModel& dynamic_model, AuxVarType type);
+
 public:
   const int heterogeneity_dimension;
 
@@ -41,6 +52,9 @@ public:
 
   HeterogeneousModel(const HeterogeneousModel& m) = default;
   HeterogeneousModel& operator=(const HeterogeneousModel& m);
+
+  // Checks for unsupported lead/lag patterns in user-written het equations
+  void checkPass() const;
 
   void transformPass();
 
@@ -55,23 +69,25 @@ public:
   [[nodiscard]] int getJacobianColsNbr() const override;
   [[nodiscard]] int getLegacyJacobianCol(int deriv_id) const override;
 
-  /* These methods substitute both aggregate and heterogeneous variables with leads/lags
-   beyond the standard range (leads >= 2, lags >= 2 for endos; any lead/lag for exos).
-   For lead substitution, aggregate variables are treated as known and the
-   substitution operates in deterministic mode. As for heterogeneous variables,
-   a substitution in stochastic mode is necessary to properly handle the
-   expectation operator */
-  //! Transforms the model by removing all leads on aggregate and het endos >= 2
-  void substituteEndoLeadGreaterThanTwo(DynamicModel& dynamic_model);
+  /* These methods substitute variables with leads/lags in heterogeneous model
+     equations, replacing them with auxiliary variables.
+     For aggregate endogenous and exogenous leads, substitution uses deterministic mode.
+     For heterogeneous endogenous leads, a specialized substitution handles both
+     individual variables (lead >= 2) and non-separable expressions (lead >= 1). */
 
-  //! Transforms the model by removing all lags >= 2 on aggregate and het endos
+  /*! Substitutes:
+     - aggregate endogenous variables with lead >= 2 (deterministic mode).
+     - heterogeneous endogenous variables with lead >= 2 and
+       heterogeneous endogenous non-separable expressions with lead >= 1. */
+  void substituteEndoLead(DynamicModel& dynamic_model);
+
+  //! Substitutes aggregate endogenous with lag >= 2
   void substituteEndoLagGreaterThanTwo(DynamicModel& dynamic_model);
 
-  //! Transforms the model by removing all leads on aggregate and het exos
-  /*! Note that this can create new lags on endos and exos */
+  //! Substitutes aggregate exogenous with any lead (deterministic mode)
   void substituteExoLead(DynamicModel& dynamic_model);
 
-  //! Transforms the model by removing all lags on aggregate and het exos
+  //! Substitutes aggregate exogenous with any lag
   void substituteExoLag(DynamicModel& dynamic_model);
 
   // FIXME: the following 5 functions are identical to those in DynamicModel. Factorization?
@@ -98,20 +114,11 @@ private:
   // Maps a deriv ID to a pair (symbol ID, lead/lag)
   vector<pair<int, int>> inv_deriv_id_table;
 
-  // Auxiliary equations created by nonlinear expectation substitution
-  vector<BinaryOpNode*> het_nonlinear_expectation_aux_equations;
+  // Reorders auxiliary equations based on dependencies (adapted for heterogeneousEndogenous)
+  void reorderHetAuxiliaryEquations();
 
-  // Information about MCP multipliers for output generation
-  struct MCPMultiplierInfo
-  {
-    const int multiplier_symb_id; // Symbol ID of the multiplier (MULT_L_* or MULT_U_*)
-    const int bound_var_symb_id;  // Symbol ID of the bound variable (e.g., 'a' in a >= 0)
-    const expr_t bound_expr;      // The bound expression (lb or ub)
-    const bool is_lower_bound;    // true for lower bound (>=), false for upper bound (<=)
-    const expr_t
-        original_residual; // The original equation's residual (LHS - RHS) before MCP transformation
-  };
-  vector<MCPMultiplierInfo> mcp_multiplier_info;
+  // Computes topological levels for auxiliary variables based on (+1) dependencies
+  void computeHetAuxTopologicalLevels();
 
   // Allocates the derivation IDs for all endogenous variables for this heterogeneity dimension
   void computeDerivIDs();

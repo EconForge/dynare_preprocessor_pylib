@@ -407,11 +407,7 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
           case AuxVarType::pacTargetNonstationary:
           case AuxVarType::aggregationOp:
           case AuxVarType::heterogeneousMultiplier:
-          case AuxVarType::heterogeneousNonlinearExpectation:
           case AuxVarType::heterogeneousEndoLead:
-          case AuxVarType::heterogeneousEndoLag:
-          case AuxVarType::heterogeneousExoLead:
-          case AuxVarType::heterogeneousExoLag:
             break;
           case AuxVarType::endoLag:
           case AuxVarType::exoLag:
@@ -767,28 +763,6 @@ SymbolTable::addHeterogeneousMultiplierAuxiliaryVar(int het_dim, int index,
 }
 
 int
-SymbolTable::addHeterogeneousNonlinearExpectationAuxiliaryVar(int het_dim, int index,
-                                                              expr_t expr_arg) noexcept(false)
-{
-  string varname {"AUX_HET_EXPECT_" + to_string(index)};
-  int symb_id;
-  try
-    {
-      symb_id = addSymbol(varname, SymbolType::heterogeneousEndogenous, "", {}, het_dim);
-    }
-  catch (AlreadyDeclaredException& e)
-    {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  het_aux_vars[het_dim].emplace_back(symb_id, AuxVarType::heterogeneousNonlinearExpectation, 0, 0,
-                                     0, 0, expr_arg, "");
-  return symb_id;
-}
-
-int
 SymbolTable::addHeterogeneousEndoLeadAuxiliaryVar(int het_dim, int index,
                                                   expr_t expr_arg) noexcept(false)
 {
@@ -807,74 +781,6 @@ SymbolTable::addHeterogeneousEndoLeadAuxiliaryVar(int het_dim, int index,
 
   het_aux_vars[het_dim].emplace_back(symb_id, AuxVarType::heterogeneousEndoLead, 0, 0, 0, 0,
                                      expr_arg, "");
-  return symb_id;
-}
-
-int
-SymbolTable::addHeterogeneousEndoLagAuxiliaryVar(int het_dim, int orig_symb_id, int orig_lead_lag,
-                                                 expr_t expr_arg) noexcept(false)
-{
-  string varname {"AUX_HET_ENDO_LAG_" + to_string(orig_symb_id) + "_" + to_string(-orig_lead_lag)};
-  int symb_id;
-  try
-    {
-      symb_id = addSymbol(varname, SymbolType::heterogeneousEndogenous, "", {},
-                          getHeterogeneityDimension(orig_symb_id));
-    }
-  catch (AlreadyDeclaredException& e)
-    {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  het_aux_vars[het_dim].emplace_back(symb_id, AuxVarType::heterogeneousEndoLag, orig_symb_id,
-                                     orig_lead_lag, 0, 0, expr_arg, "");
-  return symb_id;
-}
-
-int
-SymbolTable::addHeterogeneousExoLeadAuxiliaryVar(int het_dim, int index,
-                                                 expr_t expr_arg) noexcept(false)
-{
-  string varname {"AUX_HET_EXO_LEAD_" + to_string(index)};
-  int symb_id;
-  try
-    {
-      symb_id = addSymbol(varname, SymbolType::heterogeneousEndogenous, "", {}, het_dim);
-    }
-  catch (AlreadyDeclaredException& e)
-    {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  het_aux_vars[het_dim].emplace_back(symb_id, AuxVarType::heterogeneousExoLead, 0, 0, 0, 0,
-                                     expr_arg, "");
-  return symb_id;
-}
-
-int
-SymbolTable::addHeterogeneousExoLagAuxiliaryVar(int het_dim, int orig_symb_id, int orig_lead_lag,
-                                                expr_t expr_arg) noexcept(false)
-{
-  string varname {"AUX_HET_EXO_LAG_" + to_string(orig_symb_id) + "_" + to_string(-orig_lead_lag)};
-  int symb_id;
-  try
-    {
-      symb_id = addSymbol(varname, SymbolType::heterogeneousEndogenous, "", {},
-                          getHeterogeneityDimension(orig_symb_id));
-    }
-  catch (AlreadyDeclaredException& e)
-    {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
-      exit(EXIT_FAILURE);
-    }
-
-  het_aux_vars[het_dim].emplace_back(symb_id, AuxVarType::heterogeneousExoLag, orig_symb_id,
-                                     orig_lead_lag, 0, 0, expr_arg, "");
   return symb_id;
 }
 
@@ -1290,11 +1196,7 @@ SymbolTable::writeJsonOutput(ostream& output) const
             case AuxVarType::pacTargetNonstationary:
             case AuxVarType::aggregationOp:
             case AuxVarType::heterogeneousMultiplier:
-            case AuxVarType::heterogeneousNonlinearExpectation:
             case AuxVarType::heterogeneousEndoLead:
-            case AuxVarType::heterogeneousEndoLag:
-            case AuxVarType::heterogeneousExoLead:
-            case AuxVarType::heterogeneousExoLag:
               break;
             case AuxVarType::endoLag:
             case AuxVarType::exoLag:
