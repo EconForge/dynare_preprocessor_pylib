@@ -623,10 +623,6 @@ public:
   VariableNode* createHetEndoLeadAuxiliaryVarForMyself(int het_dim, subst_table_t& subst_table,
                                                        vector<BinaryOpNode*>& neweqs) const;
 
-  //! Creates auxiliary het exo lead variables corresponding to this expression
-  VariableNode* createHetExoLeadAuxiliaryVarForMyself(int het_dim, subst_table_t& subst_table,
-                                                      vector<BinaryOpNode*>& neweqs) const;
-
   //! Creates auxiliary variable for nonlinear expectations in t+1 het endo vars
   VariableNode*
   createHetNonlinearExpectationAuxiliaryVarForMyself(int het_dim, subst_table_t& subst_table,
@@ -688,24 +684,12 @@ public:
   virtual expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const
       = 0;
 
-  //! Constructs a new expression where het endo vars with max lead >= 2 have been replaced
-  virtual expr_t substituteHetEndoLeadGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                                     vector<BinaryOpNode*>& neweqs) const
-      = 0;
-
-  //! Constructs a new expression where het endo vars with max lag >= 2 have been replaced
-  virtual expr_t substituteHetEndoLagGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                                    vector<BinaryOpNode*>& neweqs) const
-      = 0;
-
-  //! Constructs a new expression where het exo vars with lead >= 1 have been replaced
-  virtual expr_t substituteHetExoLead(int het_dim, subst_table_t& subst_table,
-                                      vector<BinaryOpNode*>& neweqs) const
-      = 0;
-
-  //! Constructs a new expression where het exo vars with lag >= 1 have been replaced
-  virtual expr_t substituteHetExoLag(int het_dim, subst_table_t& subst_table,
-                                     vector<BinaryOpNode*>& neweqs) const
+  //! Substitutes het endo variables and non-linear expressions containing leads.
+  /*! Replaces expressions with auxiliary variable chains to reduce lead order:
+      - Individual variables with lead >= 2 are substituted
+      - Non-separable expressions with lead >= 1 are substituted */
+  virtual expr_t substituteHetEndoNonLinearLead(int het_dim, subst_table_t& subst_table,
+                                                vector<BinaryOpNode*>& neweqs) const
       = 0;
 
   //! Returns the maximum lead of heterogeneous endogenous variables in the given dimension
@@ -717,13 +701,13 @@ public:
   //! Returns the maximum lead of heterogeneous exogenous variables in the given dimension
   [[nodiscard]] virtual int maxHetExoLead(int het_dim) const = 0;
 
-  //! Returns the maximum lag of heterogeneous exogenous variables in the given dimension
-  [[nodiscard]] virtual int maxHetExoLag(int het_dim) const = 0;
-
-  //! Constructs a new expression where nonlinear terms in t+1 het endo vars have been replaced
-  virtual expr_t substituteHetEndoLeadNonlinear(int het_dim, subst_table_t& subst_table,
-                                                vector<BinaryOpNode*>& neweqs) const
-      = 0;
+  //! Returns the first subexpression that is non-separable het lead/lag, or nullptr
+  /*! A non-separable het lead/lag expression is a non-separable subexpression that contains both:
+      1. A heterogeneous endogenous variable with lead >= 1 (forward-looking)
+      2. A heterogeneous endogenous variable with lag == -1 (lagged state)
+      Such patterns cannot be handled by the current auxiliary variable substitution logic. */
+  /*! Used for error reporting: identifies the specific subexpression that caused the error. */
+  [[nodiscard]] virtual expr_t findNonSeparableHetLeadLagSubexpr(int het_dim) const = 0;
 
   //! Constructs a new expression where the expectation operator has been replaced by auxiliary
   //! variables
@@ -1060,20 +1044,12 @@ public:
   expr_t substituteExoLead(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                            bool deterministic_model) const override;
   expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLeadGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                             vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLagGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                            vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLead(int het_dim, subst_table_t& subst_table,
-                              vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLag(int het_dim, subst_table_t& subst_table,
-                             vector<BinaryOpNode*>& neweqs) const override;
+  expr_t substituteHetEndoNonLinearLead(int het_dim, subst_table_t& subst_table,
+                                        vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] int maxHetEndoLead(int het_dim) const override;
   [[nodiscard]] int maxHetEndoLag(int het_dim) const override;
   [[nodiscard]] int maxHetExoLead(int het_dim) const override;
-  [[nodiscard]] int maxHetExoLag(int het_dim) const override;
-  expr_t substituteHetEndoLeadNonlinear(int het_dim, subst_table_t& subst_table,
-                                        vector<BinaryOpNode*>& neweqs) const override;
+  [[nodiscard]] expr_t findNonSeparableHetLeadLagSubexpr(int het_dim) const override;
   expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                                bool partial_information_model) const override;
   [[nodiscard]] expr_t substituteModelLocalVariables() const override;
@@ -1181,21 +1157,12 @@ public:
   expr_t substituteExoLead(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                            bool deterministic_model) const override;
   expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLeadGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                             vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLagGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                            vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLead(int het_dim, subst_table_t& subst_table,
-                              vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLag(int het_dim, subst_table_t& subst_table,
-                             vector<BinaryOpNode*>& neweqs) const override;
+  expr_t substituteHetEndoNonLinearLead(int het_dim, subst_table_t& subst_table,
+                                        vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] int maxHetEndoLead(int het_dim) const override;
   [[nodiscard]] int maxHetEndoLag(int het_dim) const override;
   [[nodiscard]] int maxHetExoLead(int het_dim) const override;
-  [[nodiscard]] int maxHetExoLag(int het_dim) const override;
-  // Expects expressions with no leads/lags on het exo, and at most one lead/lag on het endo
-  expr_t substituteHetEndoLeadNonlinear(int het_dim, subst_table_t& subst_table,
-                                        vector<BinaryOpNode*>& neweqs) const override;
+  [[nodiscard]] expr_t findNonSeparableHetLeadLagSubexpr(int het_dim) const override;
   expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                                bool partial_information_model) const override;
   [[nodiscard]] expr_t substituteModelLocalVariables() const override;
@@ -1343,20 +1310,12 @@ public:
   expr_t substituteExoLead(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                            bool deterministic_model) const override;
   expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLeadGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                             vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLagGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                            vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLead(int het_dim, subst_table_t& subst_table,
-                              vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLag(int het_dim, subst_table_t& subst_table,
-                             vector<BinaryOpNode*>& neweqs) const override;
+  expr_t substituteHetEndoNonLinearLead(int het_dim, subst_table_t& subst_table,
+                                        vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] int maxHetEndoLead(int het_dim) const override;
   [[nodiscard]] int maxHetEndoLag(int het_dim) const override;
   [[nodiscard]] int maxHetExoLead(int het_dim) const override;
-  [[nodiscard]] int maxHetExoLag(int het_dim) const override;
-  expr_t substituteHetEndoLeadNonlinear(int het_dim, subst_table_t& subst_table,
-                                        vector<BinaryOpNode*>& neweqs) const override;
+  [[nodiscard]] expr_t findNonSeparableHetLeadLagSubexpr(int het_dim) const override;
   expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                                bool partial_information_model) const override;
   [[nodiscard]] expr_t substituteModelLocalVariables() const override;
@@ -1510,20 +1469,12 @@ public:
   expr_t substituteExoLead(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                            bool deterministic_model) const override;
   expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLeadGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                             vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLagGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                            vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLead(int het_dim, subst_table_t& subst_table,
-                              vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLag(int het_dim, subst_table_t& subst_table,
-                             vector<BinaryOpNode*>& neweqs) const override;
+  expr_t substituteHetEndoNonLinearLead(int het_dim, subst_table_t& subst_table,
+                                        vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] int maxHetEndoLead(int het_dim) const override;
   [[nodiscard]] int maxHetEndoLag(int het_dim) const override;
   [[nodiscard]] int maxHetExoLead(int het_dim) const override;
-  [[nodiscard]] int maxHetExoLag(int het_dim) const override;
-  expr_t substituteHetEndoLeadNonlinear(int het_dim, subst_table_t& subst_table,
-                                        vector<BinaryOpNode*>& neweqs) const override;
+  [[nodiscard]] expr_t findNonSeparableHetLeadLagSubexpr(int het_dim) const override;
   expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                                bool partial_information_model) const override;
   [[nodiscard]] expr_t substituteModelLocalVariables() const override;
@@ -1719,20 +1670,12 @@ public:
   expr_t substituteExoLead(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                            bool deterministic_model) const override;
   expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLeadGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                             vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLagGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                            vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLead(int het_dim, subst_table_t& subst_table,
-                              vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLag(int het_dim, subst_table_t& subst_table,
-                             vector<BinaryOpNode*>& neweqs) const override;
+  expr_t substituteHetEndoNonLinearLead(int het_dim, subst_table_t& subst_table,
+                                        vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] int maxHetEndoLead(int het_dim) const override;
   [[nodiscard]] int maxHetEndoLag(int het_dim) const override;
   [[nodiscard]] int maxHetExoLead(int het_dim) const override;
-  [[nodiscard]] int maxHetExoLag(int het_dim) const override;
-  expr_t substituteHetEndoLeadNonlinear(int het_dim, subst_table_t& subst_table,
-                                        vector<BinaryOpNode*>& neweqs) const override;
+  [[nodiscard]] expr_t findNonSeparableHetLeadLagSubexpr(int het_dim) const override;
   expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                                bool partial_information_model) const override;
   [[nodiscard]] expr_t substituteModelLocalVariables() const override;
@@ -1902,20 +1845,12 @@ public:
   expr_t substituteExoLead(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                            bool deterministic_model) const override;
   expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLeadGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                             vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLagGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                            vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLead(int het_dim, subst_table_t& subst_table,
-                              vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLag(int het_dim, subst_table_t& subst_table,
-                             vector<BinaryOpNode*>& neweqs) const override;
+  expr_t substituteHetEndoNonLinearLead(int het_dim, subst_table_t& subst_table,
+                                        vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] int maxHetEndoLead(int het_dim) const override;
   [[nodiscard]] int maxHetEndoLag(int het_dim) const override;
   [[nodiscard]] int maxHetExoLead(int het_dim) const override;
-  [[nodiscard]] int maxHetExoLag(int het_dim) const override;
-  expr_t substituteHetEndoLeadNonlinear(int het_dim, subst_table_t& subst_table,
-                                        vector<BinaryOpNode*>& neweqs) const override;
+  [[nodiscard]] expr_t findNonSeparableHetLeadLagSubexpr(int het_dim) const override;
   expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                                bool partial_information_model) const override;
   [[nodiscard]] expr_t substituteModelLocalVariables() const override;
@@ -2126,20 +2061,12 @@ public:
   expr_t substituteExoLead(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
                            bool deterministic_model) const override;
   expr_t substituteExoLag(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLeadGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                             vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetEndoLagGreaterThanTwo(int het_dim, subst_table_t& subst_table,
-                                            vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLead(int het_dim, subst_table_t& subst_table,
-                              vector<BinaryOpNode*>& neweqs) const override;
-  expr_t substituteHetExoLag(int het_dim, subst_table_t& subst_table,
-                             vector<BinaryOpNode*>& neweqs) const override;
+  expr_t substituteHetEndoNonLinearLead(int het_dim, subst_table_t& subst_table,
+                                        vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] int maxHetEndoLead(int het_dim) const override;
   [[nodiscard]] int maxHetEndoLag(int het_dim) const override;
   [[nodiscard]] int maxHetExoLead(int het_dim) const override;
-  [[nodiscard]] int maxHetExoLag(int het_dim) const override;
-  expr_t substituteHetEndoLeadNonlinear(int het_dim, subst_table_t& subst_table,
-                                        vector<BinaryOpNode*>& neweqs) const override;
+  [[nodiscard]] expr_t findNonSeparableHetLeadLagSubexpr(int het_dim) const override;
   [[nodiscard]] bool containsExternalFunction() const override;
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
   void computeXrefs(EquationInfo& ei) const override;

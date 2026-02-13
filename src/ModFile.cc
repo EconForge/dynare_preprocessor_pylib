@@ -128,6 +128,10 @@ ModFile::checkPass(bool nostrict, bool stochastic)
 
   pac_model_table.checkPass(mod_file_struct);
 
+  // Check heterogeneous models
+  for (auto& hm : heterogeneous_models)
+    hm.checkPass();
+
   if (mod_file_struct.write_latex_steady_state_model_present
       && !mod_file_struct.steady_state_model_present)
     {
@@ -799,7 +803,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
 
   for (auto& hm : heterogeneous_models)
     {
-      hm.substituteEndoLeadGreaterThanTwo(dynamic_model);
+      hm.substituteEndoLead(dynamic_model);
       hm.substituteExoLead(dynamic_model);
       hm.substituteEndoLagGreaterThanTwo(dynamic_model);
       hm.substituteExoLag(dynamic_model);
