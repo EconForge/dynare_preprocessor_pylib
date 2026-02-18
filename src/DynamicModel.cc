@@ -789,6 +789,7 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
 
   output << "M_.maximum_endo_lag = " << max_endo_lag << ";" << '\n'
          << "M_.maximum_endo_lead = " << max_endo_lead << ";" << '\n'
+         << "[~, ~, M_.state_var] = set_state_space(struct(), M_);" << '\n'
          << "oo_.steady_state = zeros(" << symbol_table.endo_nbr() << ", 1);" << '\n';
 
   output << "M_.maximum_exo_lag = " << max_exo_lag << ";" << '\n'
