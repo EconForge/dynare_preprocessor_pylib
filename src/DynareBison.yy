@@ -4746,7 +4746,9 @@ o_regimes : REGIMES { driver.option_num("ms.regimes", "true"); };
 o_regime : REGIME EQUAL INT_NUMBER { driver.option_num("ms.regime", $3); };
 o_data_obs_nbr : DATA_OBS_NBR EQUAL INT_NUMBER { driver.option_num("ms.forecast_data_obs", $3); };
 o_discretionary_tol: DISCRETIONARY_TOL EQUAL non_negative_number { driver.option_num("discretionary_tol", $3); };
-o_analytic_derivation : ANALYTIC_DERIVATION { driver.option_num("analytic_derivation", "1"); }
+o_analytic_derivation : ANALYTIC_DERIVATION { driver.option_num("analytic_derivation", "true"); }
+                      | ANALYTIC_DERIVATION EQUAL boolean { driver.option_num("analytic_derivation", $3); }
+                      ;
 o_analytic_derivation_mode : ANALYTIC_DERIVATION_MODE EQUAL signed_number { driver.option_num("analytic_derivation_mode", $3); }
 o_endogenous_prior : ENDOGENOUS_PRIOR { driver.option_num("endogenous_prior", "true"); }
 o_use_univariate_filters_if_singularity_is_detected : USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED EQUAL INT_NUMBER { driver.option_num("use_univariate_filters_if_singularity_is_detected", $3); }
