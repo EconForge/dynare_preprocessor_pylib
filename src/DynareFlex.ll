@@ -388,6 +388,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>conditional_likelihood      {return token::CONDITIONAL_LIKELIHOOD;}
 <DYNARE_STATEMENT>diffuse_filter {return token::DIFFUSE_FILTER;}
 <DYNARE_STATEMENT>estimate_initial_states_endogenous_prior {return token::ESTIMATE_INITIAL_STATES_ENDOGENOUS_PRIOR;}
+<DYNARE_STATEMENT>frequentist_smoother {return token::FREQUENTIST_SMOOTHER;}
 <DYNARE_STATEMENT>use_pct {return token::USE_PCT;}
 
 <DYNARE_STATEMENT>plot_priors   {return token::PLOT_PRIORS;}
