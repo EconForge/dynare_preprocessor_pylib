@@ -467,9 +467,6 @@ HeterogeneousModel::substituteLeadLagInternal(DynamicModel& dynamic_model, AuxVa
         case AuxVarType::exoLag:
           subst = value->substituteExoLag(subst_table, neweqs);
           break;
-        case AuxVarType::diffForward:
-          subst = value->differentiateForwardVars({}, subst_table, neweqs);
-          break;
         default:
           cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
           exit(EXIT_FAILURE);
@@ -498,9 +495,6 @@ HeterogeneousModel::substituteLeadLagInternal(DynamicModel& dynamic_model, AuxVa
           break;
         case AuxVarType::exoLag:
           subst = equation->substituteExoLag(subst_table, neweqs);
-          break;
-        case AuxVarType::diffForward:
-          cout << "forward vars";
           break;
         default:
           cerr << "HeterogeneousModel::substituteLeadLagInternal: impossible case" << endl;
@@ -546,12 +540,6 @@ HeterogeneousModel::substituteLeadLagInternal(DynamicModel& dynamic_model, AuxVa
           break;
         case AuxVarType::exoLag:
           cout << "exo lags";
-          break;
-        case AuxVarType::expectation:
-          cout << "expectation";
-          break;
-        case AuxVarType::diffForward:
-          cout << "forward vars";
           break;
         default:
           cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
