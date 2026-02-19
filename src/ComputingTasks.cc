@@ -884,7 +884,7 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
 
   // Fill in mod_file_struct.estimation_analytic_derivation
   if (auto opt = options_list.get_if<OptionsList::NumVal>("analytic_derivation");
-      opt && *opt == "1")
+      opt && *opt == "true")
     mod_file_struct.estimation_analytic_derivation = true;
 
   if (options_list.contains("dsge_var"))
@@ -2173,7 +2173,7 @@ OsrStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolidation&
 
   // Fill in mod_file_struct.estimation_analytic_derivation
   if (auto opt = options_list.get_if<OptionsList::NumVal>("analytic_derivation");
-      opt && *opt == "1")
+      opt && *opt == "true")
     mod_file_struct.osr_analytic_derivation = true;
 
   // Option k_order_solver (implicit when order >= 3)
