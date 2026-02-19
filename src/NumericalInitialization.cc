@@ -51,9 +51,9 @@ InitParamStatement::writeOutput(ostream& output, [[maybe_unused]] const string& 
   int id = symbol_table.getTypeSpecificID(symb_id) + 1;
   output << "M_.params(" << id << ") = ";
   param_value->writeOutput(output);
-  output << ";" << endl;
+  output << ";" << '\n';
   if (!minimal_workspace)
-    output << symbol_table.getName(symb_id) << " = M_.params(" << id << ");" << endl;
+    output << symbol_table.getName(symb_id) << " = M_.params(" << id << ");" << '\n';
 }
 
 void
@@ -115,7 +115,7 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
     unused = symbol_table.getExogenous();
   else
     {
-      cerr << "ERROR: Shouldn't arrive here." << endl;
+      cerr << "ERROR: Shouldn't arrive here." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -149,16 +149,16 @@ InitOrEndValStatement::writeInitValues(ostream& output) const
           break;
         case SymbolType::excludedVariable:
           cerr << "ERROR: Variable `" << symbol_table.getName(symb_id)
-               << "` was excluded but found in an initval or endval statement" << endl;
+               << "` was excluded but found in an initval or endval statement" << '\n';
           exit(EXIT_FAILURE);
         default:
-          cerr << "Should not arrive here" << endl;
+          cerr << "Should not arrive here" << '\n';
           exit(EXIT_FAILURE);
         }
 
       output << "(" << tsid << ") = ";
       value->writeOutput(output);
-      output << ";" << endl;
+      output << ";" << '\n';
     }
 }
 
@@ -191,7 +191,7 @@ InitValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
 {
   if (mod_file_struct.endval_present)
     {
-      cerr << "ERROR: an 'initval' block cannot appear after an 'endval' block" << endl; // See #104
+      cerr << "ERROR: an 'initval' block cannot appear after an 'endval' block" << '\n'; // See #104
       exit(EXIT_FAILURE);
     }
 
@@ -203,7 +203,7 @@ InitValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
       cerr << "ERROR: You have not set the following endogenous variables in initval:";
       for (int endog : endogs)
         cerr << " " << symbol_table.getName(endog);
-      cerr << endl;
+      cerr << '\n';
     }
 
   if (exogs.size() > 0)
@@ -211,7 +211,7 @@ InitValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
       cerr << "ERROR: You have not set the following exogenous variables in initval:";
       for (int exog : exogs)
         cerr << " " << symbol_table.getName(exog);
-      cerr << endl;
+      cerr << '\n';
     }
 
   if (endogs.size() > 0 || exogs.size() > 0)
@@ -222,9 +222,9 @@ void
 InitValStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                               [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "%" << endl << "% INITVAL instructions" << endl << "%" << endl;
+  output << "%" << '\n' << "% INITVAL instructions" << '\n' << "%" << '\n';
   // Writing initval block to set initial values for variables
-  output << "options_.initval_file = false;" << endl;
+  output << "options_.initval_file = false;" << '\n';
 
   writeInitValues(output);
 }
@@ -257,7 +257,7 @@ EndValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
       cerr << "ERROR: You have not set the following endogenous variables in endval:";
       for (int endog : endogs)
         cerr << " " << symbol_table.getName(endog);
-      cerr << endl;
+      cerr << '\n';
     }
 
   if (exogs.size() > 0)
@@ -265,7 +265,7 @@ EndValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
       cerr << "ERROR: You have not set the following exogenous variables in endval:";
       for (int exog : exogs)
         cerr << " " << symbol_table.getName(exog);
-      cerr << endl;
+      cerr << '\n';
     }
 
   if (endogs.size() > 0 || exogs.size() > 0)
@@ -276,13 +276,13 @@ void
 EndValStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                              [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "%" << endl << "% ENDVAL instructions" << endl << "%" << endl;
+  output << "%" << '\n' << "% ENDVAL instructions" << '\n' << "%" << '\n';
   /* Do not overwrite oo_.initial_steady_state (and oo_.initial_exo_steady_state) if they already
      exist, so as to support the concatenation of several “endval” blocks */
-  output << "if isempty(oo_.initial_steady_state)" << endl
-         << "  oo_.initial_steady_state = oo_.steady_state;" << endl
-         << "  oo_.initial_exo_steady_state = oo_.exo_steady_state;" << endl
-         << "end" << endl;
+  output << "if isempty(oo_.initial_steady_state)" << '\n'
+         << "  oo_.initial_steady_state = oo_.steady_state;" << '\n'
+         << "  oo_.initial_exo_steady_state = oo_.exo_steady_state;" << '\n'
+         << "end" << '\n';
 
   writeInitValues(output);
 }
@@ -330,7 +330,7 @@ void
 EndValLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                      [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "M_.learnt_endval = [ M_.learnt_endval;" << endl;
+  output << "M_.learnt_endval = [ M_.learnt_endval;" << '\n';
   for (auto [type, symb_id, value] : learnt_end_values)
     {
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
@@ -341,9 +341,9 @@ EndValLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
              << typeToString(type) << "'"
              << ",'value',";
       value->writeOutput(output);
-      output << ");" << endl;
+      output << ");" << '\n';
     }
-  output << "];" << endl;
+  output << "];" << '\n';
 }
 
 void
@@ -406,7 +406,7 @@ HistValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
           cerr << "ERROR: You have not set the following endogenous variables in histval:";
           for (int it : unused_endo)
             cerr << " " << symbol_table.getName(it);
-          cerr << endl;
+          cerr << '\n';
         }
 
       if (unused_exo.size() > 0)
@@ -414,7 +414,7 @@ HistValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
           cerr << "ERROR: You have not set the following exogenous variables in endval:";
           for (int it : unused_exo)
             cerr << " " << symbol_table.getName(it);
-          cerr << endl;
+          cerr << '\n';
         }
 
       if (unused_endo.size() > 0 || unused_exo.size() > 0)
@@ -426,9 +426,9 @@ void
 HistValStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                               [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "%" << endl
-         << "% HISTVAL instructions" << endl
-         << "%" << endl
+  output << "%" << '\n'
+         << "% HISTVAL instructions" << '\n'
+         << "%" << '\n'
          << "M_.histval_dseries = dseries(zeros(M_.orig_maximum_lag_with_diffs_expanded, "
             "M_.orig_endo_nbr"
          << (symbol_table.AuxVarsSize() > 0 ? "+sum([M_.aux_vars.type]==6)" : "")
@@ -440,7 +440,7 @@ HistValStatement::writeOutput(ostream& output, [[maybe_unused]] const string& ba
                  ? "M_.endo_names([M_.aux_vars(find([M_.aux_vars.type]==6)).endo_index]); "
                  : "")
          << (symbol_table.exo_nbr() > 0 ? "M_.exo_names; " : "")
-         << (symbol_table.exo_det_nbr() > 0 ? "M_.exo_det_names; " : "") << "]);" << endl;
+         << (symbol_table.exo_det_nbr() > 0 ? "M_.exo_det_names; " : "") << "]);" << '\n';
 
   for (const auto& [key, value] : hist_values)
     {
@@ -451,28 +451,28 @@ HistValStatement::writeOutput(ostream& output, [[maybe_unused]] const string& ba
       output << "M_.histval_dseries{'" << symbol_table.getName(symb_id) << "'}(dates('" << lag
              << "Y'))=";
       value->writeOutput(output);
-      output << ";" << endl;
+      output << ";" << '\n';
     }
 
-  output << "if exist(['+' M_.fname '/dynamic_set_auxiliary_series.m'])" << endl
+  output << "if exist(['+' M_.fname '/dynamic_set_auxiliary_series.m'])" << '\n'
          << "  eval(['M_.histval_dseries = ' M_.fname "
             "'.dynamic_set_auxiliary_series(M_.histval_dseries, M_.params);']);"
-         << endl
-         << "end" << endl
+         << '\n'
+         << "end" << '\n'
          << "M_.endo_histval = M_.histval_dseries{M_.endo_names{:}}(dates(sprintf('%dY', "
             "1-M_.maximum_lag)):dates('0Y')).data';"
-         << endl
+         << '\n'
          << "M_.endo_histval(isnan(M_.endo_histval)) = 0;"
-         << endl; // Ensure that lead aux variables do not have a NaN
+         << '\n'; // Ensure that lead aux variables do not have a NaN
 
   if (symbol_table.exo_nbr() > 0)
     output << "M_.exo_histval = M_.histval_dseries{M_.exo_names{:}}(dates(sprintf('%dY', "
               "1-M_.maximum_lag)):dates('0Y')).data';"
-           << endl;
+           << '\n';
   if (symbol_table.exo_det_nbr() > 0)
     output << "M_.exo_det_histval = M_.histval_dseries{M_.exo_det_names{:}}(dates(sprintf('%dY', "
               "1-M_.maximum_lag)):dates('0Y')).data';"
-           << endl;
+           << '\n';
 }
 
 void
@@ -503,14 +503,14 @@ void
 InitvalFileStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                   [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "%" << endl
-         << "% INITVAL_FILE statement" << endl
-         << "%" << endl
-         << "options_.initval_file = true;" << endl;
+  output << "%" << '\n'
+         << "% INITVAL_FILE statement" << '\n'
+         << "%" << '\n'
+         << "options_.initval_file = true;" << '\n';
   options_list.writeOutput(output, "options_initvalf");
   output << "[oo_.initval_series, options_.periods] = histvalf_initvalf('INITVALF', M_, "
             "options_initvalf);"
-         << endl;
+         << '\n';
 }
 
 void
@@ -534,14 +534,14 @@ void
 HistvalFileStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                   [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "%" << endl
-         << "% HISTVAL_FILE statement" << endl
-         << "%" << endl
-         << "options_.histval_file = true;" << endl;
+  output << "%" << '\n'
+         << "% HISTVAL_FILE statement" << '\n'
+         << "%" << '\n'
+         << "options_.histval_file = true;" << '\n';
   options_list.writeOutput(output, "options_histvalf");
   output
       << "[M_.endo_histval, M_.exo_histval, M_.exo_det_histval] = histvalf(M_, options_histvalf);"
-      << endl;
+      << '\n';
 }
 
 void
@@ -569,12 +569,12 @@ void
 HomotopySetupStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                     [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "%" << endl
-         << "% HOMOTOPY_SETUP instructions" << endl
-         << "%" << endl
+  output << "%" << '\n'
+         << "% HOMOTOPY_SETUP instructions" << '\n'
+         << "%" << '\n'
          << "options_.homotopy_from_initval_to_endval = " << boolalpha << from_initval_to_endval
-         << ';' << endl
-         << "options_.homotopy_values = zeros(0, 4);" << endl;
+         << ';' << '\n'
+         << "options_.homotopy_values = zeros(0, 4);" << '\n';
 
   for (auto [symb_id, expression1, expression2] : homotopy_values)
     {
@@ -589,7 +589,7 @@ HomotopySetupStatement::writeOutput(ostream& output, [[maybe_unused]] const stri
         output << "NaN";
       output << ", ";
       expression2->writeOutput(output);
-      output << "]);" << endl;
+      output << "]);" << '\n';
     }
 }
 
@@ -628,7 +628,7 @@ SaveParamsAndSteadyStateStatement::writeOutput(ostream& output,
                                                [[maybe_unused]] const string& basename,
                                                [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "save_params_and_steady_state('" << filename << "');" << endl;
+  output << "save_params_and_steady_state('" << filename << "');" << '\n';
 }
 
 void
@@ -644,13 +644,13 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(
     WarningConsolidation& warnings) :
     symbol_table {symbol_table_arg}
 {
-  cout << "Reading " << filename.string() << "." << endl;
+  cout << "Reading " << filename.string() << "." << '\n';
 
   ifstream f;
   f.open(filename, ios::in);
   if (f.fail())
     {
-      cerr << "ERROR: Can't open " << filename.string() << endl;
+      cerr << "ERROR: Can't open " << filename.string() << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -669,7 +669,7 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(
       catch (SymbolTable::UnknownSymbolNameException& e)
         {
           warnings << "WARNING: Unknown symbol " << symb_name << " in " << filename.string()
-                   << endl;
+                   << '\n';
         }
     }
   f.close();
@@ -698,12 +698,12 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream& output,
           break;
         default:
           cerr << "ERROR: Unsupported variable type for " << symbol_table.getName(id)
-               << " in load_params_and_steady_state" << endl;
+               << " in load_params_and_steady_state" << '\n';
           exit(EXIT_FAILURE);
         }
 
       int tsid = symbol_table.getTypeSpecificID(id) + 1;
-      output << "(" << tsid << ") = " << value << ";" << endl;
+      output << "(" << tsid << ") = " << value << ";" << '\n';
     }
 }
 
@@ -745,10 +745,10 @@ HeterogeneityLoadSteadyStateStatement::writeOutput(ostream& output,
                                                    [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_.heterogeneity");
-  output << "oo_.heterogeneity = struct;" << endl
+  output << "oo_.heterogeneity = struct;" << '\n'
          << "oo_.heterogeneity = heterogeneity.load_steady_state(M_, options_.heterogeneity, "
             "oo_.heterogeneity);"
-         << endl;
+         << '\n';
 }
 
 void
@@ -775,10 +775,10 @@ HeterogeneityComputeSteadyStateStatement::writeOutput(ostream& output,
                                                       [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_.heterogeneity");
-  output << "oo_.heterogeneity = struct;" << endl
+  output << "oo_.heterogeneity = struct;" << '\n'
          << "[oo_.heterogeneity, M_.params] = heterogeneity.compute_steady_state(M_, "
             "options_.heterogeneity, oo_.heterogeneity);"
-         << endl;
+         << '\n';
 }
 
 void

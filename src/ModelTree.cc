@@ -286,11 +286,11 @@ ModelTree::computeNonSingularNormalization(const eval_context_t& eval_context)
     {
       cout << "The " << modelClassName()
            << " cannot be normalized, since it does not have as many equations as variables."
-           << endl;
+           << '\n';
       return false;
     }
 
-  cout << "Normalizing the " << modelClassName() << "..." << endl;
+  cout << "Normalizing the " << modelClassName() << "..." << '\n' << flush;
 
   /* If the model is purely backward, determine whether all original equations
      have a single contemporaneous endogenous on the LHS. If this is the case,
@@ -312,7 +312,7 @@ ModelTree::computeNonSingularNormalization(const eval_context_t& eval_context)
                     "normalization of the model. However, variable "
                  << e.unmatched_endo
                  << " could not be matched with an equation. Check whether this is desired."
-                 << endl;
+                 << '\n';
           }
     }
 
@@ -367,7 +367,7 @@ ModelTree::computeNonSingularNormalization(const eval_context_t& eval_context)
     {
     }
 
-  cout << "Normalization failed with cutoff, trying symbolic normalization..." << endl;
+  cout << "Normalization failed with cutoff, trying symbolic normalization..." << '\n' << flush;
   /* If no non-singular normalization can be found, try to find a
      normalization even with a potential singularity. */
   auto symbolic_jacobian {computeSymbolicJacobian(true)};
@@ -385,7 +385,7 @@ ModelTree::computeNonSingularNormalization(const eval_context_t& eval_context)
           << e.unmatched_endo
           << " could not be associated to an equation (either it appears nowhere, or the equations "
              "in which it appears had to be matched with other variables that appear nowhere else)."
-          << endl;
+          << '\n';
     }
 
   return false;
@@ -794,12 +794,12 @@ ModelTree::printBlockDecomposition() const
       }
 
   int Nb_RecursBlocks = Nb_TotalBlocks - Nb_SimulBlocks;
-  cout << Nb_TotalBlocks << " block(s) found:" << endl
+  cout << Nb_TotalBlocks << " block(s) found:" << '\n'
        << "  " << Nb_RecursBlocks << " recursive block(s) and " << Nb_SimulBlocks
-       << " simultaneous block(s)." << endl
-       << "  the largest simultaneous block has " << largest_block << " equation(s)" << endl
+       << " simultaneous block(s)." << '\n'
+       << "  the largest simultaneous block has " << largest_block << " equation(s)" << '\n'
        << "                                 and " << Nb_feedback_variable
-       << " feedback variable(s)." << endl;
+       << " feedback variable(s)." << '\n';
 }
 
 void
@@ -1083,7 +1083,7 @@ ModelTree::writeJsonTemporaryTerms(const temporary_terms_t& tt, temporary_terms_
       output << R"(")"
              << R"(, "value": ")";
       it->writeJsonOutput(output, temp_term_union, tef_terms);
-      output << R"("})" << endl;
+      output << R"("})" << '\n';
 
       temp_term_union.insert(it);
     }
@@ -1125,21 +1125,21 @@ ModelTree::fixNestedParenthesis(ostringstream& output, map<string, string>& tmp_
             {
               cerr << "Warning: A .m file created by Dynare will have more than 32 nested "
                       "parenthesis. MATLAB cannot support this. "
-                   << endl
+                   << '\n'
                    << "         We are going to modify, albeit inefficiently, this output to have "
                       "fewer than 32 nested parenthesis. "
-                   << endl
+                   << '\n'
                    << "         It would hence behoove you to use the use_dll option of the model "
                       "block to circumnavigate this problem."
-                   << endl
+                   << '\n'
                    << "         If you have not yet set up a compiler on your system, see the "
                       "MATLAB documentation for doing so."
-                   << endl
+                   << '\n'
                    << "         For Windows, see: "
                       "https://www.mathworks.com/help/matlab/matlab_external/"
                       "install-mingw-support-package.html"
-                   << endl
-                   << endl;
+                   << '\n'
+                   << '\n';
               message_printed = true;
             }
           string str1 = str.substr(first_open_paren, matching_paren - first_open_paren + 1);
@@ -1254,7 +1254,7 @@ ModelTree::writeJsonModelLocalVariables(ostream& output, bool write_tef_terms,
 
         output << R"({"variable": ")" << symbol_table.getName(id) << R"(", "value": ")";
         value->writeJsonOutput(output, {}, tef_terms);
-        output << R"("})" << endl;
+        output << R"("})" << '\n';
       }
   output << "]";
 }
@@ -1265,7 +1265,7 @@ ModelTree::writeBytecodeBinFile(const filesystem::path& filename, bool is_two_bo
   ofstream SaveCode {filename, ios::out | ios::binary};
   if (!SaveCode.is_open())
     {
-      cerr << R"(Error : Can't open file ")" << filename.string() << R"(" for writing)" << endl;
+      cerr << R"(Error : Can't open file ")" << filename.string() << R"(" for writing)" << '\n';
       exit(EXIT_FAILURE);
     }
   int u_count {0};
@@ -1347,51 +1347,51 @@ ModelTree::writeLatexModelFile(const string& mod_basename, const string& latex_b
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
       exit(EXIT_FAILURE);
     }
 
   ofstream content_output {content_filename, ios::out | ios::binary};
   if (!content_output.is_open())
     {
-      cerr << "ERROR: Can't open file " << content_filename.string() << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << content_filename.string() << " for writing" << '\n';
       exit(EXIT_FAILURE);
     }
 
-  output << R"(\documentclass[10pt,a4paper]{article})" << endl
-         << R"(\usepackage[landscape]{geometry})" << endl
-         << R"(\usepackage{fullpage})" << endl
-         << R"(\usepackage{amsfonts})" << endl
-         << R"(\usepackage{breqn})" << endl
-         << R"(\begin{document})" << endl
-         << R"(\footnotesize)" << endl;
+  output << R"(\documentclass[10pt,a4paper]{article})" << '\n'
+         << R"(\usepackage[landscape]{geometry})" << '\n'
+         << R"(\usepackage{fullpage})" << '\n'
+         << R"(\usepackage{amsfonts})" << '\n'
+         << R"(\usepackage{breqn})" << '\n'
+         << R"(\begin{document})" << '\n'
+         << R"(\footnotesize)" << '\n';
 
   // Write model local variables
   for (int id : local_variables_vector)
     {
       expr_t value = local_variables_table.at(id);
 
-      content_output << R"(\begin{dmath*})" << endl << symbol_table.getTeXName(id) << " = ";
+      content_output << R"(\begin{dmath*})" << '\n' << symbol_table.getTeXName(id) << " = ";
       // Use an empty set for the temporary terms
       value->writeOutput(content_output, output_type);
-      content_output << endl << R"(\end{dmath*})" << endl;
+      content_output << '\n' << R"(\end{dmath*})" << '\n';
     }
 
   for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
-      content_output << "% Equation " << eq + 1 << endl;
+      content_output << "% Equation " << eq + 1 << '\n';
       if (write_equation_tags)
         equation_tags.writeLatexOutput(content_output, eq);
 
-      content_output << R"(\begin{dmath})" << endl;
+      content_output << R"(\begin{dmath})" << '\n';
       // Here it is necessary to cast to superclass ExprNode, otherwise the overloaded writeOutput()
       // method is not found
       dynamic_cast<ExprNode*>(equations[eq])->writeOutput(content_output, output_type);
-      content_output << endl << R"(\end{dmath})" << endl;
+      content_output << '\n' << R"(\end{dmath})" << '\n';
     }
 
-  output << R"(\include{)" << latex_basename + "_content" << "}" << endl
-         << R"(\end{document})" << endl;
+  output << R"(\include{)" << latex_basename + "_content" << "}" << '\n'
+         << R"(\end{document})" << '\n';
 
   output.close();
   content_output.close();
@@ -1560,9 +1560,9 @@ void
 ModelTree::writeJsonModelEquations(ostream& output, bool residuals) const
 {
   if (residuals)
-    output << endl << R"("residuals":[)" << endl;
+    output << '\n' << R"("residuals":[)" << '\n';
   else
-    output << endl << R"("model":[)" << endl;
+    output << '\n' << R"("model":[)" << '\n';
   for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
       if (eq > 0)
@@ -1627,9 +1627,9 @@ ModelTree::writeJsonModelEquations(ostream& output, bool residuals) const
           output << "}";
         }
 
-      output << "}" << endl;
+      output << "}" << '\n';
     }
-  output << endl << "]" << endl;
+  output << '\n' << "]" << '\n';
 }
 
 string
@@ -1645,7 +1645,7 @@ ModelTree::matlab_arch(const string& mexext)
     return "win64";
   else if (mexext == "mexmaci")
     {
-      cerr << "32-bit MATLAB not supported on macOS" << endl;
+      cerr << "32-bit MATLAB not supported on macOS" << '\n';
       exit(EXIT_FAILURE);
     }
   else if (mexext == "mexmaci64")
@@ -1655,7 +1655,7 @@ ModelTree::matlab_arch(const string& mexext)
   else
     {
       cerr << "ERROR: 'mexext' option to preprocessor incorrectly set, needed with 'use_dll'"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -1718,7 +1718,7 @@ ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_b
   if (matlabroot.empty())
     {
       cerr << "ERROR: 'matlabroot' option to preprocessor is not set, needed with 'use_dll'"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -1758,7 +1758,7 @@ ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_b
 #endif
       else
         {
-          cerr << "ERROR: unsupported value '" << mexext << "' for 'mexext' option" << endl;
+          cerr << "ERROR: unsupported value '" << mexext << "' for 'mexext' option" << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -1779,7 +1779,7 @@ ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_b
   else if (!filesystem::exists(user_set_compiler))
     {
       cerr << "Error: The specified compiler '" << user_set_compiler
-           << "' cannot be found on your system" << endl;
+           << "' cannot be found on your system" << '\n';
       exit(EXIT_FAILURE);
     }
   else
@@ -1813,7 +1813,7 @@ ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_b
   cmd << '"';
 #endif
 
-  cout << "Compiling " << output_filename.string() << endl;
+  cout << "Compiling " << output_filename.string() << '\n' << flush;
 
   // The prerequisites are the object files among the input files
   set<filesystem::path> prerequisites;
@@ -1958,7 +1958,7 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
   assert(numworkers > 0);
   assert(mex_compilation_workers.empty());
 
-  cout << "Spawning " << numworkers << " threads for compiling MEX files." << endl;
+  cout << "Spawning " << numworkers << " threads for compiling MEX files." << '\n';
 
   for (int i {0}; i < numworkers; i++)
     /* Passing the stop_token by const reference is ok (and makes clang-tidy happier),
@@ -2022,7 +2022,7 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
          contrary to what is done on GNU/Linux and macOS. */
       if (putenv(const_cast<char*>(newpath.c_str())) != 0)
         {
-          cerr << "Can't set PATH" << endl;
+          cerr << "Can't set PATH" << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -2061,7 +2061,7 @@ ModelTree::waitForMEXCompilationWorkers()
       cerr << "Compilation failed for: ";
       for (const auto& p : mex_compilation_failed)
         cerr << p.string() << " ";
-      cerr << endl;
+      cerr << '\n';
       lk.unlock(); // So that threads can process their stoken
       exit(EXIT_FAILURE);
     }
@@ -2077,7 +2077,8 @@ ModelTree::computingPassBlock(const eval_context_t& eval_context, bool no_tmp_te
   auto [prologue, epilogue] = computePrologueAndEpilogue();
   auto first_order_endo_derivatives = collectFirstOrderDerivativesEndogenous();
   equationTypeDetermination(first_order_endo_derivatives);
-  cout << "Finding the optimal block decomposition of the " << modelClassName() << "..." << endl;
+  cout << "Finding the optimal block decomposition of the " << modelClassName() << "..." << '\n'
+       << flush;
   computeBlockDecomposition(prologue, epilogue);
   reduceBlockDecomposition();
   printBlockDecomposition();
@@ -2110,7 +2111,7 @@ ModelTree::writeAuxVarRecursiveDefinitions(ostream& output, ExprNodeOutputType o
   for (auto aux_equation : aux_equations)
     {
       aux_equation->writeOutput(output, output_type, {}, {}, tef_terms);
-      output << ";" << endl;
+      output << ";" << '\n';
     }
 }
 
@@ -2139,7 +2140,7 @@ ModelTree::computeMCPEquationsReordering(const optional<int>& heterogeneous_dime
         if (!inserted)
           {
             cerr << "ERROR: variable " << symbol_table.getName(symb_id)
-                 << " appears in two complementarity conditions" << endl;
+                 << " appears in two complementarity conditions" << '\n';
             exit(EXIT_FAILURE);
           }
 
@@ -2158,13 +2159,13 @@ ModelTree::writeDriverSparseIndicesHelper(const string& prefix, ostream& output)
   output << "M_." << prefix << "_g1_sparse_rowval = int32([";
   for (const auto& [indices, d1] : jacobian_sparse_column_major_order)
     output << indices.first + 1 << ' ';
-  output << "]);" << endl << "M_." << prefix << "_g1_sparse_colval = int32([";
+  output << "]);" << '\n' << "M_." << prefix << "_g1_sparse_colval = int32([";
   for (const auto& [indices, d1] : jacobian_sparse_column_major_order)
     output << indices.second + 1 << ' ';
-  output << "]);" << endl << "M_." << prefix << "_g1_sparse_colptr = int32([";
+  output << "]);" << '\n' << "M_." << prefix << "_g1_sparse_colptr = int32([";
   for (int it : jacobian_sparse_colptr)
     output << it + 1 << ' ';
-  output << "]);" << endl;
+  output << "]);" << '\n';
 
   // Write indices for the sparse higher-order derivatives
   for (int i {2}; i <= computed_derivs_order; i++)
@@ -2175,8 +2176,8 @@ ModelTree::writeDriverSparseIndicesHelper(const string& prefix, ostream& output)
           for (bool row_number {true}; // First element of vidx is row number
                int it : vidx)
             output << (exchange(row_number, false) ? it : getJacobianCol(it)) + 1 << ' ';
-          output << ';' << endl;
+          output << ';' << '\n';
         }
-      output << "]);" << endl;
+      output << "]);" << '\n';
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2015-2025 Dynare Team
+ * Copyright © 2015-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -45,7 +45,7 @@ macroExpandModFile(const filesystem::path& filename, const istream& modfile, boo
       ofstream macro_output_file {save_macro_file};
       if (macro_output_file.fail())
         {
-          cerr << "Cannot open " << save_macro_file.string() << " for macro output" << endl;
+          cerr << "Cannot open " << save_macro_file.string() << " for macro output" << '\n';
           exit(EXIT_FAILURE);
         }
 

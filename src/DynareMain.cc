@@ -1,5 +1,5 @@
 /*
- * Copyright © 2003-2023 Dynare Team
+ * Copyright © 2003-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -63,7 +63,7 @@ usage()
           "[nopathchange] [nopreprocessoroutput]"
        << " [mexext=<extension>] [matlabroot=<path>] [onlymodel] [notime] [use_dll] "
           "[nocommutativity]"
-       << endl;
+       << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -109,7 +109,7 @@ main(int argc, char** argv)
 
   if (argc < 2)
     {
-      cerr << "Missing model file!" << endl;
+      cerr << "Missing model file!" << '\n';
       usage();
     }
 
@@ -117,7 +117,7 @@ main(int argc, char** argv)
   ifstream modfile(filename, ios::binary);
   if (modfile.fail())
     {
-      cerr << "ERROR: Could not open file: " << filename.string() << endl;
+      cerr << "ERROR: Could not open file: " << filename.string() << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -183,7 +183,7 @@ main(int argc, char** argv)
           if (s.length() > 21 || s.at(19) != '='
               || !(s.at(20) == '0' || s.at(20) == '1' || s.at(20) == '2'))
             {
-              cerr << "Incorrect syntax for params_derivs_order option" << endl;
+              cerr << "Incorrect syntax for params_derivs_order option" << '\n';
               usage();
             }
           params_derivs_order = stoi(s.substr(20));
@@ -202,7 +202,7 @@ main(int argc, char** argv)
             {
               if (s.length() == 10 || s.at(9) != '=')
                 {
-                  cerr << "Incorrect syntax for savemacro option" << endl;
+                  cerr << "Incorrect syntax for savemacro option" << '\n';
                   usage();
                 }
               save_macro_file = s.substr(10);
@@ -231,7 +231,7 @@ main(int argc, char** argv)
         {
           if (s.length() <= 9 || s.at(8) != '=')
             {
-              cerr << "Incorrect syntax for conffile option" << endl;
+              cerr << "Incorrect syntax for conffile option" << '\n';
               usage();
             }
           conffile = s.substr(9);
@@ -245,7 +245,7 @@ main(int argc, char** argv)
         {
           if (s.length() <= 20 || s.at(19) != '=')
             {
-              cerr << "Incorrect syntax for parallel_use_psexec option" << endl;
+              cerr << "Incorrect syntax for parallel_use_psexec option" << '\n';
               usage();
             }
 
@@ -257,7 +257,7 @@ main(int argc, char** argv)
             parallel_use_psexec = false;
           else
             {
-              cerr << "Incorrect syntax for parallel_use_psexec option" << endl;
+              cerr << "Incorrect syntax for parallel_use_psexec option" << '\n';
               usage();
             }
         }
@@ -280,7 +280,7 @@ main(int argc, char** argv)
             {
               if (s.length() == 9 || s.at(8) != '=')
                 {
-                  cerr << "Incorrect syntax for parallel option" << endl;
+                  cerr << "Incorrect syntax for parallel option" << '\n';
                   usage();
                 }
               cluster_name = s.substr(9);
@@ -291,7 +291,7 @@ main(int argc, char** argv)
           if (s.length() == 2)
             {
               cerr << "Incorrect syntax for command line define: the defined variable "
-                   << "must not be separated from -D by whitespace." << endl;
+                   << "must not be separated from -D by whitespace." << '\n';
               usage();
             }
 
@@ -305,7 +305,7 @@ main(int argc, char** argv)
           if (s.length() == 2)
             {
               cerr << "Incorrect syntax for command line define: the defined variable "
-                   << "must not be separated from -I by whitespace." << endl;
+                   << "must not be separated from -I by whitespace." << '\n';
               usage();
             }
           paths.emplace_back(s.substr(2));
@@ -314,7 +314,7 @@ main(int argc, char** argv)
         {
           if (s.length() <= 7 || s.at(6) != '=')
             {
-              cerr << "Incorrect syntax for output option" << endl;
+              cerr << "Incorrect syntax for output option" << '\n';
               usage();
             }
 
@@ -328,7 +328,7 @@ main(int argc, char** argv)
             output_mode = OutputType::third;
           else
             {
-              cerr << "Incorrect syntax for output option" << endl;
+              cerr << "Incorrect syntax for output option" << '\n';
               usage();
             }
         }
@@ -336,7 +336,7 @@ main(int argc, char** argv)
         {
           if (s.length() <= 9 || s.at(8) != '=')
             {
-              cerr << "Incorrect syntax for language option" << endl;
+              cerr << "Incorrect syntax for language option" << '\n';
               usage();
             }
 
@@ -348,7 +348,7 @@ main(int argc, char** argv)
             language = LanguageOutputType::julia;
           else
             {
-              cerr << "Incorrect syntax for language option" << endl;
+              cerr << "Incorrect syntax for language option" << '\n';
               usage();
             }
         }
@@ -364,7 +364,7 @@ main(int argc, char** argv)
         {
           if (s.length() <= 5 || s.at(4) != '=')
             {
-              cerr << "Incorrect syntax for json option" << endl;
+              cerr << "Incorrect syntax for json option" << '\n';
               usage();
             }
 
@@ -380,7 +380,7 @@ main(int argc, char** argv)
             json = JsonOutputPointType::computingpass;
           else
             {
-              cerr << "Incorrect syntax for json option" << endl;
+              cerr << "Incorrect syntax for json option" << '\n';
               usage();
             }
         }
@@ -388,7 +388,7 @@ main(int argc, char** argv)
         {
           if (s.length() <= 7 || s.at(6) != '=')
             {
-              cerr << "Incorrect syntax for mexext option" << endl;
+              cerr << "Incorrect syntax for mexext option" << '\n';
               usage();
             }
           mexext = s.substr(7);
@@ -397,7 +397,7 @@ main(int argc, char** argv)
         {
           if (s.length() <= 12 || s.at(11) != '=')
             {
-              cerr << "Incorrect syntax for exclude_eqs option" << endl;
+              cerr << "Incorrect syntax for exclude_eqs option" << '\n';
               usage();
             }
           exclude_eqs = s.substr(12);
@@ -406,7 +406,7 @@ main(int argc, char** argv)
         {
           if (s.length() <= 12 || s.at(11) != '=')
             {
-              cerr << "Incorrect syntax for include_eqs option" << endl;
+              cerr << "Incorrect syntax for include_eqs option" << '\n';
               usage();
             }
           include_eqs = s.substr(12);
@@ -415,7 +415,7 @@ main(int argc, char** argv)
         {
           if (s.length() <= 11 || s.at(10) != '=')
             {
-              cerr << "Incorrect syntax for matlabroot option" << endl;
+              cerr << "Incorrect syntax for matlabroot option" << '\n';
               usage();
             }
           matlabroot = filesystem::path {s.substr(11)};
@@ -430,12 +430,12 @@ main(int argc, char** argv)
         DataTree::setNoCommutativity();
       else
         {
-          cerr << "Unknown option: " << s << endl;
+          cerr << "Unknown option: " << s << '\n';
           usage();
         }
     }
 
-  cout << "Starting preprocessing of the model file ..." << endl;
+  cout << "Starting preprocessing of the model file ..." << '\n' << flush;
 
   // Determine root of Dynare installation
   const filesystem::path argv0 {argv[0]};
@@ -456,7 +456,7 @@ main(int argc, char** argv)
   if (forbidden_basenames.contains(basename))
     {
       cerr << "ERROR: Please use another name for your .mod file. The one you have chosen ("
-           << argv[1] << ") conflicts with internal Dynare names." << endl;
+           << argv[1] << ") conflicts with internal Dynare names." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -486,7 +486,7 @@ main(int argc, char** argv)
 
   if (!exclude_eqs.empty() && !include_eqs.empty())
     {
-      cerr << "You may only pass one of `include_eqs` and `exclude_eqs`" << endl;
+      cerr << "You may only pass one of `include_eqs` and `exclude_eqs`" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -506,7 +506,7 @@ main(int argc, char** argv)
 
   if (mod_file->use_dll && language == LanguageOutputType::julia)
     {
-      cerr << "ERROR: `use_dll` option is not compatible with Julia" << endl;
+      cerr << "ERROR: `use_dll` option is not compatible with Julia" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -551,6 +551,6 @@ main(int argc, char** argv)
   if (mod_file->use_dll)
     ModelTree::waitForMEXCompilationWorkers();
 
-  cout << "Preprocessing completed." << endl;
+  cout << "Preprocessing completed." << '\n';
   return EXIT_SUCCESS;
 }

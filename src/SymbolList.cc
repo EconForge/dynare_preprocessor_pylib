@@ -51,7 +51,7 @@ SymbolList::checkPass(WarningConsolidation& warnings, const vector<SymbolType>& 
               warnings
                   << "WARNING: symbol_list variable " << symbol << " has not yet been declared. "
                   << "This is being ignored because the variable name corresponds to a possible "
-                  << "auxiliary variable name." << endl;
+                  << "auxiliary variable name." << '\n';
               return;
             }
           else
@@ -84,7 +84,7 @@ SymbolList::writeOutput(const string& varname, ostream& output) const
         output << ";";
       output << "'" << name << "'";
     }
-  output << "};" << endl;
+  output << "};" << '\n';
 }
 
 void
@@ -116,6 +116,6 @@ SymbolList::removeDuplicates(const string& dynare_command, WarningConsolidation&
     else
       warnings << "WARNING: In " << dynare_command << ": " << it
                << " found more than once in symbol list. Removing all but first occurrence."
-               << endl;
+               << '\n';
   symbols = unique_symbols;
 }

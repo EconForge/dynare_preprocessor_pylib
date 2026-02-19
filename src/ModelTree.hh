@@ -776,7 +776,7 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t& tt, temporary_terms_t& t
 
       if constexpr (isCOutput(output_type) || isMatlabOutput(output_type))
         output << ";";
-      output << endl;
+      output << '\n';
 
       temp_term_union.insert(it);
     }
@@ -809,7 +809,7 @@ ModelTree::writeModelEquations(ostream& output, const temporary_terms_t& tempora
           lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
           output << ") - (";
           rhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-          output << ");" << endl;
+          output << ");" << '\n';
         }
       else // The right-hand side of the equation is empty ==> residual=lhs;
         {
@@ -817,7 +817,7 @@ ModelTree::writeModelEquations(ostream& output, const temporary_terms_t& tempora
                  << eq + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type)
                  << " = ";
           lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-          output << ";" << endl;
+          output << ";" << '\n';
         }
     }
 }
@@ -854,7 +854,7 @@ ModelTree::writeModelFileHelper() const
                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
           d1->writeOutput(d_output[1], output_type, temp_term_union, temporary_terms_idxs,
                           tef_terms);
-          d_output[1] << ";" << endl;
+          d_output[1] << ";" << '\n';
           k++;
         }
     }
@@ -876,7 +876,7 @@ ModelTree::writeModelFileHelper() const
                         << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
             d->writeOutput(d_output[i], output_type, temp_term_union, temporary_terms_idxs,
                            tef_terms);
-            d_output[i] << ";" << endl;
+            d_output[i] << ";" << '\n';
             k++;
           }
       }
@@ -919,7 +919,7 @@ ModelTree::writePerBlockHelper(int blk, ostream& output, temporary_terms_t& temp
         it->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs,
                         tef_terms);
         temporary_terms.insert(it);
-        output << ';' << endl;
+        output << ';' << '\n';
       }
   };
 
@@ -947,7 +947,7 @@ ModelTree::writePerBlockHelper(int blk, ostream& output, temporary_terms_t& temp
           lhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
           output << '=';
           rhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << ';' << endl;
+          output << ';' << '\n';
           break;
         case BlockSimulationType::solveBackwardComplete:
         case BlockSimulationType::solveForwardComplete:
@@ -964,7 +964,7 @@ ModelTree::writePerBlockHelper(int blk, ostream& output, temporary_terms_t& temp
           lhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
           output << ")-(";
           rhs->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-          output << ");" << endl;
+          output << ");" << '\n';
           break;
         }
     }
@@ -1006,14 +1006,14 @@ ModelTree::writeParamsDerivativesFileHelper() const
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
       rp_output << "rp_i" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
-                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << '\n'
                 << "rp_j" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
-                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << '\n'
                 << "rp_v" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d1->writeOutput(rp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs,
                       tef_terms);
-      rp_output << ";" << endl;
+      rp_output << ";" << '\n';
 
       i++;
     }
@@ -1026,16 +1026,16 @@ ModelTree::writeParamsDerivativesFileHelper() const
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
       g1p_output << "g1p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << '\n'
                  << "g1p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << '\n'
                  << "g1p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << '\n'
                  << "g1p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(g1p_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs,
                       tef_terms);
-      g1p_output << ";" << endl;
+      g1p_output << ";" << '\n';
 
       i++;
     }
@@ -1048,16 +1048,16 @@ ModelTree::writeParamsDerivativesFileHelper() const
       int param2_col {getTypeSpecificIDByDerivID(param2) + 1};
 
       rpp_output << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << '\n'
                  << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << '\n'
                  << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << '\n'
                  << "rpp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(rpp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs,
                       tef_terms);
-      rpp_output << ";" << endl;
+      rpp_output << ";" << '\n';
 
       i++;
     }
@@ -1071,18 +1071,18 @@ ModelTree::writeParamsDerivativesFileHelper() const
       int param2_col {getTypeSpecificIDByDerivID(param2) + 1};
 
       g1pp_output << "g1pp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
+                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << '\n'
                   << "g1pp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << endl
+                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var_col << ";" << '\n'
                   << "g1pp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << endl
+                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param1_col << ";" << '\n'
                   << "g1pp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << endl
+                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param2_col << ";" << '\n'
                   << "g1pp" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(g1pp_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs,
                       tef_terms);
-      g1pp_output << ";" << endl;
+      g1pp_output << ";" << '\n';
 
       i++;
     }
@@ -1096,18 +1096,18 @@ ModelTree::writeParamsDerivativesFileHelper() const
       int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
       g2p_output << "g2p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << '\n'
                  << "g2p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << '\n'
                  << "g2p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << '\n'
                  << "g2p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                 << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << '\n'
                  << "g2p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
                  << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
       d2->writeOutput(g2p_output, output_type, temp_term_union, params_derivs_temporary_terms_idxs,
                       tef_terms);
-      g2p_output << ";" << endl;
+      g2p_output << ";" << '\n';
 
       i++;
     }
@@ -1124,20 +1124,20 @@ ModelTree::writeParamsDerivativesFileHelper() const
         int param_col {getTypeSpecificIDByDerivID(param) + 1};
 
         g3p_output << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",1"
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << endl
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << eq + 1 << ";" << '\n'
                    << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",2"
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << endl
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var1_col << ";" << '\n'
                    << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",3"
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << endl
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var2_col << ";" << '\n'
                    << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",4"
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var3_col << ";" << endl
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << var3_col << ";" << '\n'
                    << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",5"
-                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << endl
+                   << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=" << param_col << ";" << '\n'
                    << "g3p" << LEFT_ARRAY_SUBSCRIPT(output_type) << i << ",6"
                    << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
         d2->writeOutput(g3p_output, output_type, temp_term_union,
                         params_derivs_temporary_terms_idxs, tef_terms);
-        g3p_output << ";" << endl;
+        g3p_output << ";" << '\n';
 
         i++;
       }
@@ -1645,7 +1645,7 @@ ModelTree::writeJsonComputingPassOutputHelper(bool writeDetails) const
 
           d_output[i] << R"(, "val": ")";
           d->writeJsonOutput(d_output[i], temp_term_union, tef_terms);
-          d_output[i] << R"("})" << endl;
+          d_output[i] << R"("})" << '\n';
         }
       d_output[i] << "]}";
     }
@@ -1698,7 +1698,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       rp_output << R"(, "val": ")";
       d->writeJsonOutput(rp_output, temp_term_union, tef_terms);
-      rp_output << R"("})" << endl;
+      rp_output << R"("})" << '\n';
     }
   rp_output << "]}";
 
@@ -1732,7 +1732,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       g1p_output << R"(, "val": ")";
       d->writeJsonOutput(g1p_output, temp_term_union, tef_terms);
-      g1p_output << R"("})" << endl;
+      g1p_output << R"("})" << '\n';
     }
   g1p_output << "]}";
 
@@ -1762,7 +1762,7 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       rpp_output << R"(, "val": ")";
       d->writeJsonOutput(rpp_output, temp_term_union, tef_terms);
-      rpp_output << R"("})" << endl;
+      rpp_output << R"("})" << '\n';
     }
   rpp_output << "]}";
 
@@ -1800,9 +1800,9 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       g1pp_output << R"(, "val": ")";
       d->writeJsonOutput(g1pp_output, temp_term_union, tef_terms);
-      g1pp_output << R"("})" << endl;
+      g1pp_output << R"("})" << '\n';
     }
-  g1pp_output << "]}" << endl;
+  g1pp_output << "]}" << '\n';
 
   g2p_output << R"("derivative_hessian_wrt_params": {)"
              << R"(  "neqs": )" << equations.size() << R"(, "nvar1cols": )" << getJacobianColsNbr()
@@ -1840,9 +1840,9 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
       g2p_output << R"(, "val": ")";
       d->writeJsonOutput(g2p_output, temp_term_union, tef_terms);
-      g2p_output << R"("})" << endl;
+      g2p_output << R"("})" << '\n';
     }
-  g2p_output << "]}" << endl;
+  g2p_output << "]}" << '\n';
 
   if constexpr (dynamic)
     {
@@ -1883,9 +1883,9 @@ ModelTree::writeJsonParamsDerivativesHelper(bool writeDetails) const
 
           g3p_output << R"(, "val": ")";
           d->writeJsonOutput(g3p_output, temp_term_union, tef_terms);
-          g3p_output << R"("})" << endl;
+          g3p_output << R"("})" << '\n';
         }
-      g3p_output << "]}" << endl;
+      g3p_output << "]}" << '\n';
     }
 
   return {move(mlv_output), move(tt_output),   move(rp_output),  move(g1p_output),
@@ -1907,7 +1907,7 @@ ModelTree::writeJsonSparseIndicesHelper(ostream& output) const
         output << ", ";
       output << indices.first + 1;
     }
-  output << "], " << endl << '"' << model_name << R"(_g1_sparse_colval": [)";
+  output << "], " << '\n' << '"' << model_name << R"(_g1_sparse_colval": [)";
   for (bool printed_something {false};
        const auto& [indices, d1] : jacobian_sparse_column_major_order)
     {
@@ -1915,14 +1915,14 @@ ModelTree::writeJsonSparseIndicesHelper(ostream& output) const
         output << ", ";
       output << indices.second + 1;
     }
-  output << "], " << endl << '"' << model_name << R"(_g1_sparse_colptr": [)";
+  output << "], " << '\n' << '"' << model_name << R"(_g1_sparse_colptr": [)";
   for (bool printed_something {false}; int it : jacobian_sparse_colptr)
     {
       if (exchange(printed_something, true))
         output << ", ";
       output << it + 1;
     }
-  output << ']' << endl;
+  output << ']' << '\n';
 
   // Write indices for the sparse higher-order derivatives
   for (int i {2}; i <= computed_derivs_order; i++)
@@ -1940,9 +1940,9 @@ ModelTree::writeJsonSparseIndicesHelper(ostream& output) const
               // First element of vidx is row number
               output << (exchange(printed_something2, true) ? getJacobianCol(it) : it) + 1;
             }
-          output << ']' << endl;
+          output << ']' << '\n';
         }
-      output << ']' << endl;
+      output << ']' << '\n';
     }
 }
 
@@ -1959,13 +1959,13 @@ ModelTree::writeBlockDriverSparseIndicesHelper(ostream& output) const
       output << struct_name << "g1_sparse_rowval = int32([";
       for (const auto& [indices, d1] : blocks_jacobian_sparse_column_major_order.at(blk))
         output << indices.first + 1 << ' ';
-      output << "]);" << endl << struct_name << "g1_sparse_colval = int32([";
+      output << "]);" << '\n' << struct_name << "g1_sparse_colval = int32([";
       for (const auto& [indices, d1] : blocks_jacobian_sparse_column_major_order.at(blk))
         output << indices.second + 1 << ' ';
-      output << "]);" << endl << struct_name << "g1_sparse_colptr = int32([";
+      output << "]);" << '\n' << struct_name << "g1_sparse_colptr = int32([";
       for (int it : blocks_jacobian_sparse_colptr.at(blk))
         output << it + 1 << ' ';
-      output << "]);" << endl;
+      output << "]);" << '\n';
     }
 }
 
@@ -1989,7 +1989,7 @@ ModelTree::writePerBlockJacobianHelper(int blk, ostream& output,
              << k + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type)
              << "=";
       d1->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs);
-      output << ";" << endl;
+      output << ";" << '\n';
       k++;
     }
 }
@@ -2018,8 +2018,8 @@ ModelTree::writeModelJuliaFiles(const string& basename) const
   // ResidTT!
   output << "function " << prefix << "ResidTT!(T::Vector{<: Real}, "
          << "y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}" << ss_argin << ")"
-         << endl
-         << "@inbounds begin" << endl
+         << '\n'
+         << "@inbounds begin" << '\n'
          << tt_output[0].str() << "end" << endl
          << "    return nothing" << endl
          << "end" << endl
@@ -2032,23 +2032,23 @@ ModelTree::writeModelJuliaFiles(const string& basename) const
   output << "function " << prefix
          << "Resid!(T::Vector{<: Real}, residual::AbstractVector{<: Real}, "
          << "y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}" << ss_argin << ")"
-         << endl
-         << "    @assert length(T) >= " << ttlen << endl
-         << "    @assert length(residual) == " << equations.size() << endl
-         << "    @assert length(y) == " << ylen << endl
-         << "    @assert length(x) == " << xlen << endl
-         << "    @assert length(params) == " << symbol_table.param_nbr() << endl
-         << "@inbounds begin" << endl
+         << '\n'
+         << "    @assert length(T) >= " << ttlen << '\n'
+         << "    @assert length(residual) == " << equations.size() << '\n'
+         << "    @assert length(y) == " << ylen << '\n'
+         << "    @assert length(x) == " << xlen << '\n'
+         << "    @assert length(params) == " << symbol_table.param_nbr() << '\n'
+         << "@inbounds begin" << '\n'
          << d_output[0].str() << "end" << endl;
-  output << "    return nothing" << endl << "end" << endl << endl;
+  output << "    return nothing" << '\n' << "end" << '\n' << '\n';
   writeToFileIfModified(output, julia_dir / (prefix + "Resid!.jl"));
 
   // G1TT!
   output.str("");
   output << "function " << prefix << "G1TT!(T::Vector{<: Real}, y::Vector{<: Real}, "
-         << "x::Vector{<: Real}, params::Vector{<: Real}" << ss_argin << ")" << endl
-         << "    " << prefix << "ResidTT!(T, y, x, params" << ss_argout << ")" << endl
-         << "@inbounds begin" << endl
+         << "x::Vector{<: Real}, params::Vector{<: Real}" << ss_argin << ")" << '\n'
+         << "    " << prefix << "ResidTT!(T, y, x, params" << ss_argout << ")" << '\n'
+         << "@inbounds begin" << '\n'
          << tt_output[1].str() << "end" << endl
          << "    return nothing" << endl
          << "end" << endl
@@ -2060,15 +2060,15 @@ ModelTree::writeModelJuliaFiles(const string& basename) const
   output.str("");
   output << "function " << prefix << "G1!(T::Vector{<: Real}, g1_v::Vector{<: Real}, "
          << "y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}" << ss_argin << ")"
-         << endl
-         << "    @assert length(T) >= " << ttlen << endl
-         << "    @assert length(g1_v) == " << derivatives[1].size() << endl
-         << "    @assert length(y) == " << ylen << endl
-         << "    @assert length(x) == " << xlen << endl
-         << "    @assert length(params) == " << symbol_table.param_nbr() << endl
-         << "@inbounds begin" << endl
+         << '\n'
+         << "    @assert length(T) >= " << ttlen << '\n'
+         << "    @assert length(g1_v) == " << derivatives[1].size() << '\n'
+         << "    @assert length(y) == " << ylen << '\n'
+         << "    @assert length(x) == " << xlen << '\n'
+         << "    @assert length(params) == " << symbol_table.param_nbr() << '\n'
+         << "@inbounds begin" << '\n'
          << d_output[1].str() << "end" << endl;
-  output << "    return nothing" << endl << "end" << endl << endl;
+  output << "    return nothing" << '\n' << "end" << '\n' << '\n';
   writeToFileIfModified(output, julia_dir / (prefix + "G1!.jl"));
 
   for (int i {2}; i <= computed_derivs_order; i++)
@@ -2076,10 +2076,10 @@ ModelTree::writeModelJuliaFiles(const string& basename) const
       // G<i>TT!
       output.str("");
       output << "function " << prefix << "G" << i << "TT!(T::Vector{<: Real}, y::Vector{<: Real}, "
-             << "x::Vector{<: Real}, params::Vector{<: Real}" << ss_argin << ")" << endl
+             << "x::Vector{<: Real}, params::Vector{<: Real}" << ss_argin << ")" << '\n'
              << "    " << prefix << "G" << to_string(i - 1) << "TT!(T, y, x, params" << ss_argout
-             << ")" << endl
-             << "@inbounds begin" << endl
+             << ")" << '\n'
+             << "@inbounds begin" << '\n'
              << tt_output[i].str() << "end" << endl
              << "    return nothing" << endl
              << "end" << endl
@@ -2092,13 +2092,13 @@ ModelTree::writeModelJuliaFiles(const string& basename) const
       output << "function " << prefix << "G" << i << "!(T::Vector{<: Real}, g" << i
              << "_v::Vector{<: Real}, "
              << "y::Vector{<: Real}, x::Vector{<: Real}, params::Vector{<: Real}" << ss_argin << ")"
-             << endl
-             << "    @assert length(T) >= " << ttlen << endl
-             << "    @assert length(g" << i << "_v) == " << derivatives[i].size() << endl
-             << "    @assert length(y) == " << ylen << endl
-             << "    @assert length(x) == " << xlen << endl
-             << "    @assert length(params) == " << symbol_table.param_nbr() << endl
-             << "@inbounds begin" << endl
+             << '\n'
+             << "    @assert length(T) >= " << ttlen << '\n'
+             << "    @assert length(g" << i << "_v) == " << derivatives[i].size() << '\n'
+             << "    @assert length(y) == " << ylen << '\n'
+             << "    @assert length(x) == " << xlen << '\n'
+             << "    @assert length(params) == " << symbol_table.param_nbr() << '\n'
+             << "@inbounds begin" << '\n'
              << d_output[i].str() << "end" << endl
              << "    return nothing" << endl
              << "end" << endl
@@ -2136,7 +2136,7 @@ ModelTree::writeModelMFiles(const string& basename,
     output.open(p, ios::out | ios::binary);
     if (!output.is_open())
       {
-        cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
+        cerr << "ERROR: Can't open file " << p.string() << " for writing" << '\n';
         exit(EXIT_FAILURE);
       }
   };
@@ -2144,29 +2144,29 @@ ModelTree::writeModelMFiles(const string& basename,
   // Residuals (non-block)
   open_file(m_dir / (prefix + "resid_tt.m"));
   output << "function [T_order, T] = " << prefix << "resid_tt(y, x, params" << extra_args
-         << ", T_order, T)" << endl
-         << "if T_order >= 0" << endl
-         << "    return" << endl
-         << "end" << endl
-         << "T_order = 0;" << endl
-         << "if size(T, 1) < " << ttlen << endl
-         << "    T = [T; NaN(" << ttlen << " - size(T, 1), 1)];" << endl
-         << "end" << endl
+         << ", T_order, T)" << '\n'
+         << "if T_order >= 0" << '\n'
+         << "    return" << '\n'
+         << "end" << '\n'
+         << "T_order = 0;" << '\n'
+         << "if size(T, 1) < " << ttlen << '\n'
+         << "    T = [T; NaN(" << ttlen << " - size(T, 1), 1)];" << '\n'
+         << "end" << '\n'
          << tt_output[0].str() << "end" << endl;
   output.close();
 
   open_file(m_dir / (prefix + "resid.m"));
   output << "function [residual, T_order, T] = " << prefix << "resid(y, x, params" << extra_args
-         << ", T_order, T)" << endl
-         << "if nargin < " << 5 + nextra_args << endl
-         << "    T_order = -1;" << endl
-         << "    T = NaN(" << ttlen << ", 1);" << endl
-         << "end" << endl
+         << ", T_order, T)" << '\n'
+         << "if nargin < " << 5 + nextra_args << '\n'
+         << "    T_order = -1;" << '\n'
+         << "    T = NaN(" << ttlen << ", 1);" << '\n'
+         << "end" << '\n'
          << "[T_order, T] = " << full_prefix << "resid_tt(y, x, params" << extra_args
-         << ", T_order, T);" << endl
-         << "residual = NaN(" << equations.size() << ", 1);" << endl
+         << ", T_order, T);" << '\n'
+         << "residual = NaN(" << equations.size() << ", 1);" << '\n'
          << d_output[0].str();
-  output << "end" << endl;
+  output << "end" << '\n';
   output.close();
 
   // Jacobian (non-block)
@@ -2174,34 +2174,34 @@ ModelTree::writeModelMFiles(const string& basename,
 
   open_file(m_dir / (prefix + "g1_tt.m"));
   output << "function [T_order, T] = " << prefix << "g1_tt(y, x, params" << extra_args
-         << ", T_order, T)" << endl
-         << "if T_order >= 1" << endl
-         << "    return" << endl
-         << "end" << endl
+         << ", T_order, T)" << '\n'
+         << "if T_order >= 1" << '\n'
+         << "    return" << '\n'
+         << "end" << '\n'
          << "[T_order, T] = " << full_prefix << "resid_tt(y, x, params" << extra_args
-         << ", T_order, T);" << endl
-         << "T_order = 1;" << endl
-         << "if size(T, 1) < " << ttlen << endl
-         << "    T = [T; NaN(" << ttlen << " - size(T, 1), 1)];" << endl
-         << "end" << endl
+         << ", T_order, T);" << '\n'
+         << "T_order = 1;" << '\n'
+         << "if size(T, 1) < " << ttlen << '\n'
+         << "    T = [T; NaN(" << ttlen << " - size(T, 1), 1)];" << '\n'
+         << "end" << '\n'
          << tt_output[1].str() << "end" << endl;
   output.close();
 
   open_file(m_dir / (prefix + "g1.m"));
   // NB: At first order, sparse indices are passed as extra arguments
   output << "function [g1, T_order, T] = " << prefix << "g1(y, x, params" << extra_args
-         << ", sparse_rowval, sparse_colval, sparse_colptr, T_order, T)" << endl
-         << "if nargin < " << 8 + nextra_args << endl
-         << "    T_order = -1;" << endl
-         << "    T = NaN(" << ttlen << ", 1);" << endl
-         << "end" << endl
+         << ", sparse_rowval, sparse_colval, sparse_colptr, T_order, T)" << '\n'
+         << "if nargin < " << 8 + nextra_args << '\n'
+         << "    T_order = -1;" << '\n'
+         << "    T = NaN(" << ttlen << ", 1);" << '\n'
+         << "end" << '\n'
          << "[T_order, T] = " << full_prefix << "g1_tt(y, x, params" << extra_args
-         << ", T_order, T);" << endl
-         << "g1_v = NaN(" << jacobian_sparse_column_major_order.size() << ", 1);" << endl
+         << ", T_order, T);" << '\n'
+         << "g1_v = NaN(" << jacobian_sparse_column_major_order.size() << ", 1);" << '\n'
          << d_output[1].str();
   output << "g1 = sparse(sparse_rowval, sparse_colval, g1_v, " << equations.size() << ", "
-         << getJacobianColsNbr() << ");" << endl
-         << "end" << endl;
+         << getJacobianColsNbr() << ");" << '\n'
+         << "end" << '\n';
   output.close();
 
   // Higher-order derivatives (non-block)
@@ -2211,29 +2211,29 @@ ModelTree::writeModelMFiles(const string& basename,
 
       open_file(m_dir / (prefix + "g" + to_string(i) + "_tt.m"));
       output << "function [T_order, T] = " << prefix << "g" << i << "_tt(y, x, params" << extra_args
-             << ", T_order, T)" << endl
-             << "if T_order >= " << i << endl
-             << "    return" << endl
-             << "end" << endl
+             << ", T_order, T)" << '\n'
+             << "if T_order >= " << i << '\n'
+             << "    return" << '\n'
+             << "end" << '\n'
              << "[T_order, T] = " << full_prefix << "g" << i - 1 << "_tt(y, x, params" << extra_args
-             << ", T_order, T);" << endl
-             << "T_order = " << i << ";" << endl
-             << "if size(T, 1) < " << ttlen << endl
-             << "    T = [T; NaN(" << ttlen << " - size(T, 1), 1)];" << endl
-             << "end" << endl
+             << ", T_order, T);" << '\n'
+             << "T_order = " << i << ";" << '\n'
+             << "if size(T, 1) < " << ttlen << '\n'
+             << "    T = [T; NaN(" << ttlen << " - size(T, 1), 1)];" << '\n'
+             << "end" << '\n'
              << tt_output[i].str() << "end" << endl;
       output.close();
 
       open_file(m_dir / (prefix + "g" + to_string(i) + ".m"));
       output << "function [g" << i << "_v, T_order, T] = " << prefix << "g" << i << "(y, x, params"
-             << extra_args << ", T_order, T)" << endl
-             << "if nargin < " << 5 + nextra_args << endl
-             << "    T_order = -1;" << endl
-             << "    T = NaN(" << ttlen << ", 1);" << endl
-             << "end" << endl
+             << extra_args << ", T_order, T)" << '\n'
+             << "if nargin < " << 5 + nextra_args << '\n'
+             << "    T_order = -1;" << '\n'
+             << "    T = NaN(" << ttlen << ", 1);" << '\n'
+             << "end" << '\n'
              << "[T_order, T] = " << full_prefix << "g" << i << "_tt(y, x, params" << extra_args
-             << ", T_order, T);" << endl
-             << "g" << i << "_v = NaN(" << derivatives[i].size() << ", 1);" << endl
+             << ", T_order, T);" << '\n'
+             << "g" << i << "_v = NaN(" << derivatives[i].size() << ", 1);" << '\n'
              << d_output[i].str() << "end" << endl;
       output.close();
     }
@@ -2252,9 +2252,9 @@ ModelTree::writeModelMFiles(const string& basename,
           const string resid_g1_arg {evaluate ? "" : ", residual, g1"};
           open_file(block_dir / (funcname + ".m"));
           output << "function [y, T" << resid_g1_arg << "] = " << funcname << "(y, x, params"
-                 << extra_args << ", sparse_rowval, sparse_colval, sparse_colptr, T)" << endl;
+                 << extra_args << ", sparse_rowval, sparse_colval, sparse_colptr, T)" << '\n';
           if (!evaluate)
-            output << "residual=NaN(" << blocks[blk].mfs_size << ", 1);" << endl;
+            output << "residual=NaN(" << blocks[blk].mfs_size << ", 1);" << '\n';
 
           // Write residuals and temporary terms (incl. those for derivatives)
           writePerBlockHelper<output_type>(blk, output, temporary_terms_written);
@@ -2267,16 +2267,16 @@ ModelTree::writeModelMFiles(const string& basename,
                   || simulation_type == BlockSimulationType::solveForwardSimple
                   || simulation_type == BlockSimulationType::solveBackwardComplete
                   || simulation_type == BlockSimulationType::solveForwardComplete};
-              output << "if nargout > 3" << endl
+              output << "if nargout > 3" << '\n'
                      << "    g1_v = NaN(" << blocks_jacobian_sparse_column_major_order[blk].size()
-                     << ", 1);" << endl;
+                     << ", 1);" << '\n';
               writePerBlockJacobianHelper<output_type>(blk, output, temporary_terms_written);
               output << "    g1 = sparse(sparse_rowval, sparse_colval, g1_v, "
                      << blocks[blk].mfs_size << ", "
-                     << (one_boundary ? 1 : 3) * blocks[blk].mfs_size << ");" << endl
-                     << "end" << endl;
+                     << (one_boundary ? 1 : 3) * blocks[blk].mfs_size << ");" << '\n'
+                     << "end" << '\n';
             }
-          output << "end" << endl;
+          output << "end" << '\n';
           output.close();
         }
     }
@@ -2311,7 +2311,7 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
     output.open(p, ios::out | ios::binary);
     if (!output.is_open())
       {
-        cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
+        cerr << "ERROR: Can't open file " << p.string() << " for writing" << '\n';
         exit(EXIT_FAILURE);
       }
   };
@@ -2322,39 +2322,39 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
   auto y_x_params_ss_yagg_inputs = [&](bool assign_y) {
     output << "  if (!(mxIsDouble(prhs[0]) && !mxIsComplex(prhs[0]) && !mxIsSparse(prhs[0]) && "
               "mxGetNumberOfElements(prhs[0]) == "
-           << ylen << "))" << endl
+           << ylen << "))" << '\n'
            << R"(    mexErrMsgTxt("y must be a real dense numeric array with )" << ylen
-           << R"( elements");)" << endl;
+           << R"( elements");)" << '\n';
     if (assign_y)
-      output << "  const double *restrict y = mxGetDoubles(prhs[0]);" << endl;
+      output << "  const double *restrict y = mxGetDoubles(prhs[0]);" << '\n';
     output << "  if (!(mxIsDouble(prhs[1]) && !mxIsComplex(prhs[1]) && !mxIsSparse(prhs[1]) && "
               "mxGetNumberOfElements(prhs[1]) == "
-           << xlen << "))" << endl
+           << xlen << "))" << '\n'
            << R"(    mexErrMsgTxt("x must be a real dense numeric array with )" << xlen
-           << R"( elements");)" << endl
-           << "  const double *restrict x = mxGetDoubles(prhs[1]);" << endl
+           << R"( elements");)" << '\n'
+           << "  const double *restrict x = mxGetDoubles(prhs[1]);" << '\n'
            << "  if (!(mxIsDouble(prhs[2]) && !mxIsComplex(prhs[2]) && !mxIsSparse(prhs[2]) && "
               "mxGetNumberOfElements(prhs[2]) == "
-           << symbol_table.param_nbr() << "))" << endl
+           << symbol_table.param_nbr() << "))" << '\n'
            << R"(    mexErrMsgTxt("params must be a real dense numeric array with )"
-           << symbol_table.param_nbr() << R"( elements");)" << endl
-           << "  const double *restrict params = mxGetDoubles(prhs[2]);" << endl;
+           << symbol_table.param_nbr() << R"( elements");)" << '\n'
+           << "  const double *restrict params = mxGetDoubles(prhs[2]);" << '\n';
     if constexpr (dynamic)
       output << "  if (!(mxIsDouble(prhs[3]) && !mxIsComplex(prhs[3]) && !mxIsSparse(prhs[3]) && "
                 "mxGetNumberOfElements(prhs[3]) == "
-             << symbol_table.endo_nbr() << "))" << endl
+             << symbol_table.endo_nbr() << "))" << '\n'
              << R"(    mexErrMsgTxt("steady_state must be a real dense numeric array with )"
-             << symbol_table.endo_nbr() << R"( elements");)" << endl
-             << "  const double *restrict steady_state = mxGetDoubles(prhs[3]);" << endl;
+             << symbol_table.endo_nbr() << R"( elements");)" << '\n'
+             << "  const double *restrict steady_state = mxGetDoubles(prhs[3]);" << '\n';
     if (!heterogeneity_table.empty())
       {
         const int idx {3 + static_cast<int>(dynamic)};
         output << "  if (!(mxIsDouble(prhs[" << idx << "]) && !mxIsComplex(prhs[" << idx
                << "]) && !mxIsSparse(prhs[" << idx << "]) && mxGetNumberOfElements(prhs[" << idx
-               << "]) == " << heterogeneity_table.aggregateEndoSize() << "))" << endl
+               << "]) == " << heterogeneity_table.aggregateEndoSize() << "))" << '\n'
                << R"(    mexErrMsgTxt("yagg must be a real dense numeric array with )"
-               << heterogeneity_table.aggregateEndoSize() << R"( elements");)" << endl
-               << "  const double *restrict yagg = mxGetDoubles(prhs[" << idx << "]);" << endl;
+               << heterogeneity_table.aggregateEndoSize() << R"( elements");)" << '\n'
+               << "  const double *restrict yagg = mxGetDoubles(prhs[" << idx << "]);" << '\n';
       }
   };
 
@@ -2363,29 +2363,29 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
     // We use sparse_rowval and sparse_colptr (sparse_colval is unused)
     const int row_idx {3 + nextra_args}, col_idx {row_idx + 2};
     output << "  if (!(mxIsInt32(prhs[" << row_idx << "]) && mxGetNumberOfElements(prhs[" << row_idx
-           << "]) == " << nzval << "))" << endl
+           << "]) == " << nzval << "))" << '\n'
            << R"(    mexErrMsgTxt("sparse_rowval must be an int32 array with )" << nzval
-           << R"( elements");)" << endl
+           << R"( elements");)" << '\n'
            << "  if (!(mxIsInt32(prhs[" << col_idx << "]) && mxGetNumberOfElements(prhs[" << col_idx
-           << "]) == " << ncols + 1 << "))" << endl
+           << "]) == " << ncols + 1 << "))" << '\n'
            << R"(    mexErrMsgTxt("sparse_colptr must be an int32 array with )" << ncols + 1
-           << R"( elements");)" << endl
+           << R"( elements");)" << '\n'
            << "  const int32_T *restrict sparse_rowval = mxGetInt32s(prhs[" << row_idx << "]);"
-           << endl
+           << '\n'
            << "  const int32_T *restrict sparse_colptr = mxGetInt32s(prhs[" << col_idx << "]);"
-           << endl;
+           << '\n';
   };
 
   // Helper for creating sparse Jacobian (shared with block case)
   auto sparse_jacobian_create = [&](int argidx, int nrows, int ncols, int nzval) {
     output << "  plhs[" << argidx << "] = mxCreateSparse(" << nrows << ", " << ncols << ", "
-           << nzval << ", mxREAL);" << endl
+           << nzval << ", mxREAL);" << '\n'
            << "  mwIndex *restrict ir = mxGetIr(plhs[" << argidx
-           << "]), *restrict jc = mxGetJc(plhs[" << argidx << "]);" << endl
-           << "  for (mwSize i = 0; i < " << nzval << "; i++)" << endl
-           << "    *ir++ = *sparse_rowval++ - 1;" << endl
-           << "  for (mwSize i = 0; i < " << ncols + 1 << "; i++)" << endl
-           << "    *jc++ = *sparse_colptr++ - 1;" << endl;
+           << "]), *restrict jc = mxGetJc(plhs[" << argidx << "]);" << '\n'
+           << "  for (mwSize i = 0; i < " << nzval << "; i++)" << '\n'
+           << "    *ir++ = *sparse_rowval++ - 1;" << '\n'
+           << "  for (mwSize i = 0; i < " << ncols + 1 << "; i++)" << '\n'
+           << "    *jc++ = *sparse_colptr++ - 1;" << '\n';
   };
 
   for (int i {0}; i <= computed_derivs_order; i++)
@@ -2400,18 +2400,18 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
 
       const filesystem::path header_tt {model_src_dir / (funcname + "_tt.h")};
       open_file(header_tt);
-      output << prototype_tt << ";" << endl;
+      output << prototype_tt << ";" << '\n';
       output.close();
 
       const filesystem::path source_tt {model_src_dir / (funcname + "_tt.c")};
       open_file(source_tt);
-      output << "#include <math.h>" << endl
-             << R"(#include "mex.h")" << endl // Needed for calls to external functions
-             << endl;
+      output << "#include <math.h>" << '\n'
+             << R"(#include "mex.h")" << '\n' // Needed for calls to external functions
+             << '\n';
       writeCHelpersDefinition(output);
-      output << endl
-             << prototype_tt << endl
-             << "{" << endl
+      output << '\n'
+             << prototype_tt << '\n'
+             << "{" << '\n'
              << tt_output[i].str() << "}" << endl
              << endl;
       output.close();
@@ -2426,19 +2426,19 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
 
       const filesystem::path header_main {model_src_dir / (funcname + ".h")};
       open_file(header_main);
-      output << prototype_main << ";" << endl;
+      output << prototype_main << ";" << '\n';
       output.close();
 
       const filesystem::path source_main {model_src_dir / (funcname + ".c")};
       open_file(source_main);
-      output << "#include <math.h>" << endl
-             << R"(#include "mex.h")" << endl // Needed for calls to external functions
-             << endl;
+      output << "#include <math.h>" << '\n'
+             << R"(#include "mex.h")" << '\n' // Needed for calls to external functions
+             << '\n';
       writeCHelpersDefinition(output);
       writeCHelpersDeclaration(output); // Provide external definition of helpers in main file
-      output << endl
-             << prototype_main << endl
-             << "{" << endl
+      output << '\n'
+             << prototype_main << '\n'
+             << "{" << '\n'
              << d_output[i].str() << "}" << endl
              << endl;
       output.close();
@@ -2448,89 +2448,89 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
       const filesystem::path source_mex {model_src_dir / (funcname + "_mex.c")};
       int nargin {5 + nextra_args + 3 * static_cast<int>(i == 1)};
       open_file(source_mex);
-      output << "#include <string.h>" << endl // For memcpy()
-             << R"(#include "mex.h")" << endl
-             << R"(#include ")" << funcname << R"(.h")" << endl;
+      output << "#include <string.h>" << '\n' // For memcpy()
+             << R"(#include "mex.h")" << '\n'
+             << R"(#include ")" << funcname << R"(.h")" << '\n';
       for (int j {0}; j <= i; j++)
         output << R"(#include ")" << prefix << (j == 0 ? "resid" : "g" + to_string(j))
-               << R"(_tt.h")" << endl;
-      output << endl
-             << "#define max(a, b) ((a > b) ? (a) : (b))" << endl
-             << endl
+               << R"(_tt.h")" << '\n';
+      output << '\n'
+             << "#define max(a, b) ((a > b) ? (a) : (b))" << '\n'
+             << '\n'
              << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])"
-             << endl
-             << "{" << endl
-             << "  if (nrhs != " << nargin - 2 << " && nrhs != " << nargin << ")" << endl
+             << '\n'
+             << "{" << '\n'
+             << "  if (nrhs != " << nargin - 2 << " && nrhs != " << nargin << ")" << '\n'
              << R"(    mexErrMsgTxt("Accepts exactly )" << nargin - 2 << " or " << nargin
-             << R"( input arguments");)" << endl
-             << "  if (nlhs != 1 && nlhs != 3)" << endl
-             << R"(    mexErrMsgTxt("Accepts exactly 1 or 3 output arguments");)" << endl;
+             << R"( input arguments");)" << '\n'
+             << "  if (nlhs != 1 && nlhs != 3)" << '\n'
+             << R"(    mexErrMsgTxt("Accepts exactly 1 or 3 output arguments");)" << '\n';
 
       y_x_params_ss_yagg_inputs(true);
 
       if (i == 1)
         sparse_indices_inputs(getJacobianColsNbr(), jacobian_sparse_column_major_order.size());
 
-      output << "  mxArray *T_mx, *T_order_mx;" << endl
-             << "  int T_order_on_input;" << endl
-             << "  if (nrhs > " << nargin - 2 << ")" << endl
-             << "    {" << endl
-             << "      T_order_mx = (mxArray *) prhs[" << nargin - 2 << "];" << endl
-             << "      T_mx = (mxArray *) prhs[" << nargin - 1 << "];" << endl
-             << "      if (!(mxIsScalar(T_order_mx) && mxIsNumeric(T_order_mx)))" << endl
-             << R"(        mexErrMsgTxt("T_order should be a numeric scalar");)" << endl
+      output << "  mxArray *T_mx, *T_order_mx;" << '\n'
+             << "  int T_order_on_input;" << '\n'
+             << "  if (nrhs > " << nargin - 2 << ")" << '\n'
+             << "    {" << '\n'
+             << "      T_order_mx = (mxArray *) prhs[" << nargin - 2 << "];" << '\n'
+             << "      T_mx = (mxArray *) prhs[" << nargin - 1 << "];" << '\n'
+             << "      if (!(mxIsScalar(T_order_mx) && mxIsNumeric(T_order_mx)))" << '\n'
+             << R"(        mexErrMsgTxt("T_order should be a numeric scalar");)" << '\n'
              << "      if (!(mxIsDouble(T_mx) && !mxIsComplex(T_mx) && !mxIsSparse(T_mx) && "
                 "mxGetN(T_mx) == 1))"
-             << endl
-             << R"(        mexErrMsgTxt("T_mx should be a real dense column vector");)" << endl
-             << "      T_order_on_input = mxGetScalar(T_order_mx);" << endl
-             << "      if (T_order_on_input < " << i << ")" << endl
-             << "        {" << endl
-             << "          T_order_mx = mxCreateDoubleScalar(" << i << ");" << endl
-             << "          const mxArray *T_old_mx = T_mx;" << endl
+             << '\n'
+             << R"(        mexErrMsgTxt("T_mx should be a real dense column vector");)" << '\n'
+             << "      T_order_on_input = mxGetScalar(T_order_mx);" << '\n'
+             << "      if (T_order_on_input < " << i << ")" << '\n'
+             << "        {" << '\n'
+             << "          T_order_mx = mxCreateDoubleScalar(" << i << ");" << '\n'
+             << "          const mxArray *T_old_mx = T_mx;" << '\n'
              << "          T_mx = mxCreateDoubleMatrix(max(" << ttlen
-             << ", mxGetM(T_old_mx)), 1, mxREAL);" << endl
+             << ", mxGetM(T_old_mx)), 1, mxREAL);" << '\n'
              << "          memcpy(mxGetDoubles(T_mx), mxGetDoubles(T_old_mx), "
                 "mxGetM(T_old_mx)*sizeof(double));"
-             << endl
-             << "        }" << endl
-             << "      else if (mxGetM(T_mx) < " << ttlen << ")" << endl
+             << '\n'
+             << "        }" << '\n'
+             << "      else if (mxGetM(T_mx) < " << ttlen << ")" << '\n'
              << R"(        mexErrMsgTxt("T_mx should have at least )" << ttlen << R"( elements");)"
-             << endl
-             << "    }" << endl
-             << "  else" << endl
-             << "    {" << endl
-             << "      T_order_mx = mxCreateDoubleScalar(" << i << ");" << endl
-             << "      T_mx = mxCreateDoubleMatrix(" << ttlen << ", 1, mxREAL);" << endl
-             << "      T_order_on_input = -1;" << endl
-             << "    }" << endl
-             << "  double *restrict T = mxGetDoubles(T_mx);" << endl
-             << "  if (T_order_on_input < " << i << ")" << endl
-             << "    switch (T_order_on_input)" << endl
-             << "      {" << endl;
+             << '\n'
+             << "    }" << '\n'
+             << "  else" << '\n'
+             << "    {" << '\n'
+             << "      T_order_mx = mxCreateDoubleScalar(" << i << ");" << '\n'
+             << "      T_mx = mxCreateDoubleMatrix(" << ttlen << ", 1, mxREAL);" << '\n'
+             << "      T_order_on_input = -1;" << '\n'
+             << "    }" << '\n'
+             << "  double *restrict T = mxGetDoubles(T_mx);" << '\n'
+             << "  if (T_order_on_input < " << i << ")" << '\n'
+             << "    switch (T_order_on_input)" << '\n'
+             << "      {" << '\n';
       for (int j {0}; j <= i; j++)
         {
           if (j == 0)
-            output << "      default:" << endl << "        " << prefix << "resid";
+            output << "      default:" << '\n' << "        " << prefix << "resid";
           else
-            output << "      case " << j - 1 << ":" << endl << "        " << prefix << "g" << j;
-          output << "_tt(y, x, params" << extra_argout << ", T);" << endl;
+            output << "      case " << j - 1 << ":" << '\n' << "        " << prefix << "g" << j;
+          output << "_tt(y, x, params" << extra_argout << ", T);" << '\n';
         }
-      output << "      }" << endl;
+      output << "      }" << '\n';
       if (i == 1)
         sparse_jacobian_create(0, equations.size(), getJacobianColsNbr(),
                                jacobian_sparse_column_major_order.size());
       else
         output << "  plhs[0] = mxCreateDoubleMatrix("
-               << (i == 0 ? equations.size() : derivatives[i].size()) << ", 1, mxREAL);" << endl;
+               << (i == 0 ? equations.size() : derivatives[i].size()) << ", 1, mxREAL);" << '\n';
       output << "  " << prefix << (i == 0 ? "resid" : "g" + to_string(i)) << "(y, x, params"
-             << extra_argout << ", T, mxGetDoubles(plhs[0]));" << endl
-             << "  if (nlhs == 3)" << endl
-             << "    {" << endl
-             << "      plhs[1] = T_order_mx;" << endl
-             << "      plhs[2] = T_mx;" << endl
-             << "    }" << endl
-             << "}" << endl;
+             << extra_argout << ", T, mxGetDoubles(plhs[0]));" << '\n'
+             << "  if (nlhs == 3)" << '\n'
+             << "    {" << '\n'
+             << "      plhs[1] = T_order_mx;" << '\n'
+             << "      plhs[2] = T_mx;" << '\n'
+             << "    }" << '\n'
+             << "}" << '\n';
       output.close();
 
       vector<filesystem::path> mex_input_files {main_object_file, source_mex};
@@ -2559,50 +2559,50 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
           // The following two variables are not used for “evaluate” blocks
           int g1_ncols {(one_boundary ? 1 : 3) * blocks[blk].mfs_size};
           open_file(source_mex);
-          output << "#include <math.h>" << endl << R"(#include "mex.h")" << endl << endl;
+          output << "#include <math.h>" << '\n' << R"(#include "mex.h")" << '\n' << '\n';
           writeCHelpersDefinition(output);
           writeCHelpersDeclaration(output); // Provide external definition of helpers
 
           // Function computing residuals and/or endogenous, and temporary terms (incl. those for
           // derivatives)
-          output << endl
+          output << '\n'
                  << "void " << funcname
                  << "_resid(double *restrict y, const double *restrict x, const double *restrict "
                     "params"
                  << extra_argin << ", double *restrict T"
-                 << (evaluate ? "" : ", double *restrict residual") << ")" << endl
-                 << "{" << endl;
+                 << (evaluate ? "" : ", double *restrict residual") << ")" << '\n'
+                 << "{" << '\n';
           writePerBlockHelper<output_type>(blk, output, temporary_terms_written);
-          output << "}" << endl;
+          output << "}" << '\n';
 
           // Function computing the Jacobian
           if (!evaluate)
             {
-              output << endl
+              output << '\n'
                      << "void " << funcname
                      << "_g1(const double *restrict y, const double *restrict x, const double "
                         "*restrict params"
-                     << extra_argin << ", double *restrict T, double *restrict g1_v)" << endl
-                     << "{" << endl;
+                     << extra_argin << ", double *restrict T, double *restrict g1_v)" << '\n'
+                     << "{" << '\n';
               writePerBlockJacobianHelper<output_type>(blk, output, temporary_terms_written);
-              output << "}" << endl;
+              output << "}" << '\n';
             }
 
-          output << endl
+          output << '\n'
                  << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])"
-                 << endl
-                 << "{" << endl
-                 << "  if (nrhs != " << nargin << ")" << endl
+                 << '\n'
+                 << "{" << '\n'
+                 << "  if (nrhs != " << nargin << ")" << '\n'
                  << R"(    mexErrMsgTxt("Accepts exactly )" << nargin << R"( input arguments");)"
-                 << endl;
+                 << '\n';
           if (evaluate)
-            output << "  if (nlhs != 2)" << endl
-                   << R"(    mexErrMsgTxt("Accepts exactly 2 output arguments");)" << endl;
+            output << "  if (nlhs != 2)" << '\n'
+                   << R"(    mexErrMsgTxt("Accepts exactly 2 output arguments");)" << '\n';
           else
             /* Only two output arguments make sense if one only wants to
                evaluate the recursive variables. */
-            output << "  if (nlhs < 2 || nlhs > 4)" << endl
-                   << R"(    mexErrMsgTxt("Accepts 2 to 4 output arguments");)" << endl;
+            output << "  if (nlhs < 2 || nlhs > 4)" << '\n'
+                   << R"(    mexErrMsgTxt("Accepts 2 to 4 output arguments");)" << '\n';
           y_x_params_ss_yagg_inputs(false);
 
           /* We’d like to avoid copying y if this is a “solve” block without
@@ -2616,8 +2616,8 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
             https://fr.mathworks.com/matlabcentral/answers/77048-return-large-unchange-mxarray-from-mex
             https://fr.mathworks.com/matlabcentral/answers/422751-how-to-output-a-mexfunction-input-without-copy
           */
-          output << "  plhs[0] = mxDuplicateArray(prhs[0]);" << endl
-                 << "  double *restrict y = mxGetDoubles(plhs[0]);" << endl;
+          output << "  plhs[0] = mxDuplicateArray(prhs[0]);" << '\n'
+                 << "  double *restrict y = mxGetDoubles(plhs[0]);" << '\n';
 
           // NB: For “evaluate” blocks, sparse_{rowval,colval,colptr} arguments are present but
           // ignored
@@ -2630,40 +2630,40 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
           output << "  if (!(mxIsDouble(prhs[" << nargin - 1 << "]) && !mxIsComplex(prhs["
                  << nargin - 1 << "]) && !mxIsSparse(prhs[" << nargin - 1
                  << "]) && mxGetNumberOfElements(prhs[" << nargin - 1 << "]) >= " << total_blk_ttlen
-                 << "))" << endl
+                 << "))" << '\n'
                  << R"(    mexErrMsgTxt("T must be a real dense numeric array with at least )"
                  << total_blk_ttlen << R"( elements");)"
-                 << endl
+                 << '\n'
                  /* We’d like to avoid copying T when the block has no temporary
                     terms, but the same remark as above applies. */
-                 << "  plhs[1] = mxDuplicateArray(prhs[" << nargin - 1 << "]);" << endl
-                 << "  double *restrict T = mxGetDoubles(plhs[1]);" << endl;
+                 << "  plhs[1] = mxDuplicateArray(prhs[" << nargin - 1 << "]);" << '\n'
+                 << "  double *restrict T = mxGetDoubles(plhs[1]);" << '\n';
 
           if (!evaluate)
             output << "  mxArray *residual_mx = mxCreateDoubleMatrix(" << blocks[blk].mfs_size
-                   << ", 1, mxREAL);" << endl
-                   << "  double *restrict residual = mxGetDoubles(residual_mx);" << endl;
+                   << ", 1, mxREAL);" << '\n'
+                   << "  double *restrict residual = mxGetDoubles(residual_mx);" << '\n';
 
           output << "  " << funcname << "_resid(y, x, params" << extra_argout << ", T"
-                 << (evaluate ? "" : ", residual") << ");" << endl;
+                 << (evaluate ? "" : ", residual") << ");" << '\n';
 
           if (!evaluate)
             {
-              output << "  if (nlhs > 2)" << endl
-                     << "    plhs[2] = residual_mx;" << endl
-                     << "  else" << endl
-                     << "    mxDestroyArray(residual_mx);" << endl;
+              output << "  if (nlhs > 2)" << '\n'
+                     << "    plhs[2] = residual_mx;" << '\n'
+                     << "  else" << '\n'
+                     << "    mxDestroyArray(residual_mx);" << '\n';
 
               // Write Jacobian
-              output << "  if (nlhs > 3)" << endl << "    {" << endl;
+              output << "  if (nlhs > 3)" << '\n' << "    {" << '\n';
               sparse_jacobian_create(3, blocks[blk].mfs_size, g1_ncols,
                                      blocks_jacobian_sparse_column_major_order[blk].size());
-              output << "      double *restrict g1_v = mxGetDoubles(plhs[3]);" << endl
+              output << "      double *restrict g1_v = mxGetDoubles(plhs[3]);" << '\n'
                      << "      " << funcname << "_g1(y, x, params" << extra_argout << ", T, g1_v);"
-                     << endl
-                     << "    }" << endl;
+                     << '\n'
+                     << "    }" << '\n';
             }
-          output << "}" << endl;
+          output << "}" << '\n';
           output.close();
           compileMEX(block_dir, funcname, mexext, {source_mex}, matlabroot);
         }
@@ -2684,7 +2684,7 @@ ModelTree::writeDebugModelMFiles(const string& basename) const
   ofstream output {resid_filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << resid_filename.string() << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << resid_filename.string() << " for writing" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -2694,10 +2694,10 @@ ModelTree::writeDebugModelMFiles(const string& basename) const
   if (!heterogeneity_table.empty())
     output << ", yagg";
 
-  output << ")" << endl
-         << "T = NaN(" << temporary_terms_derivatives[0].size() << ", 1);" << endl
-         << "lhs = NaN(" << equations.size() << ", 1);" << endl
-         << "rhs = NaN(" << equations.size() << ", 1);" << endl;
+  output << ")" << '\n'
+         << "T = NaN(" << temporary_terms_derivatives[0].size() << ", 1);" << '\n'
+         << "lhs = NaN(" << equations.size() << ", 1);" << '\n'
+         << "rhs = NaN(" << equations.size() << ", 1);" << '\n';
   deriv_node_temp_terms_t tef_terms;
   temporary_terms_t temporary_terms;
   writeTemporaryTerms<output_type>(temporary_terms_derivatives[0], temporary_terms,
@@ -2708,15 +2708,15 @@ ModelTree::writeDebugModelMFiles(const string& basename) const
              << eq + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type)
              << " = ";
       equations[eq]->arg1->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-      output << ";" << endl
+      output << ";" << '\n'
              << "rhs" << LEFT_ARRAY_SUBSCRIPT(output_type)
              << eq + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type)
              << " = ";
       equations[eq]->arg2->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-      output << ";" << endl;
+      output << ";" << '\n';
     }
 
-  output << "end" << endl;
+  output << "end" << '\n';
 
   output.close();
 }
@@ -2757,15 +2757,15 @@ ModelTree::writeSetAuxiliaryVariablesFile(const string& basename, bool julia) co
     output << "y, x";
   if (!heterogeneity_table.empty())
     output << ", yagg";
-  output << ", params)" << endl
-         << comment << endl
-         << comment << " Computes auxiliary variables of the " << modelClassName() << endl
-         << comment << endl;
+  output << ", params)" << '\n'
+         << comment << '\n'
+         << comment << " Computes auxiliary variables of the " << modelClassName() << '\n'
+         << comment << '\n';
   if (julia)
-    output << "@inbounds begin" << endl;
-  output << output_func_body.str() << "end" << endl;
+    output << "@inbounds begin" << '\n';
+  output << output_func_body.str() << "end" << '\n';
   if (julia)
-    output << "end" << endl;
+    output << "end" << '\n';
 
   if (julia)
     writeToFileIfModified(
@@ -2779,7 +2779,7 @@ ModelTree::writeSetAuxiliaryVariablesFile(const string& basename, bool julia) co
       ofstream output_file {filename, ios::out | ios::binary};
       if (!output_file.is_open())
         {
-          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
           exit(EXIT_FAILURE);
         }
       output_file << output.str();
@@ -2804,13 +2804,13 @@ ModelTree::writeComplementarityConditionsFile(const string& basename,
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
       exit(EXIT_FAILURE);
     }
 
-  output << "function [lb, ub] = " << funcname << "(params)" << endl
-         << "ub = inf(" << equations.size() << ",1);" << endl
-         << "lb = -ub;" << endl;
+  output << "function [lb, ub] = " << funcname << "(params)" << '\n'
+         << "ub = inf(" << equations.size() << ",1);" << '\n'
+         << "lb = -ub;" << '\n';
 
   for (const auto& it : complementarity_conditions)
     if (it)
@@ -2821,17 +2821,17 @@ ModelTree::writeComplementarityConditionsFile(const string& basename,
           {
             output << "lb(" << endo_id + 1 << ")=";
             lb->writeOutput(output, output_type);
-            output << ";" << endl;
+            output << ";" << '\n';
           }
         if (ub)
           {
             output << "ub(" << endo_id + 1 << ")=";
             ub->writeOutput(output, output_type);
-            output << ";" << endl;
+            output << ";" << '\n';
           }
       }
 
-  output << "end" << endl;
+  output << "end" << '\n';
 
   output.close();
 }

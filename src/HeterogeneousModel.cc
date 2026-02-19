@@ -69,7 +69,7 @@ HeterogeneousModel::getUsedParameters() const
 void
 HeterogeneousModel::computeChainRuleJacobian()
 {
-  cerr << "Heterogeneous::computeChainRuleJacobian(): unimplemented" << endl;
+  cerr << "Heterogeneous::computeChainRuleJacobian(): unimplemented" << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -78,14 +78,14 @@ HeterogeneousModel::getLegacyBlockJacobianEndoCol([[maybe_unused]] int blk,
                                                   [[maybe_unused]] int var,
                                                   [[maybe_unused]] int lead_lag) const
 {
-  cerr << "Heterogeneous::getLegacyBlockJacobianEndoCol(): unimplemented" << endl;
+  cerr << "Heterogeneous::getLegacyBlockJacobianEndoCol(): unimplemented" << '\n';
   exit(EXIT_FAILURE);
 }
 
 int
 HeterogeneousModel::getMFS() const
 {
-  cerr << "Heterogeneous::getMFS(): unimplemented" << endl;
+  cerr << "Heterogeneous::getMFS(): unimplemented" << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -135,7 +135,7 @@ HeterogeneousModel::checkPass() const
           {
             cerr << "ERROR: In model(heterogeneity=" << dim_name << "), equation " << i + 1 << ": "
                  << "lagged heterogeneous exogenous variable '" << symbol_table.getName(symb_id)
-                 << "' is not supported." << endl;
+                 << "' is not supported." << '\n';
             exit(EXIT_FAILURE);
           }
 
@@ -146,7 +146,7 @@ HeterogeneousModel::checkPass() const
           {
             cerr << "ERROR: In model(heterogeneity=" << dim_name << "), equation " << i + 1 << ": "
                  << "lead on heterogeneous exogenous variable '" << symbol_table.getName(symb_id)
-                 << "(" << showpos << lead_lag << noshowpos << ")' is not supported." << endl;
+                 << "(" << showpos << lead_lag << noshowpos << ")' is not supported." << '\n';
             exit(EXIT_FAILURE);
           }
 
@@ -156,7 +156,7 @@ HeterogeneousModel::checkPass() const
           {
             cerr << "ERROR: In model(heterogeneity=" << dim_name << "), equation " << i + 1 << ": "
                  << "heterogeneous endogenous variable '" << symbol_table.getName(symb_id)
-                 << "' with lag " << lead_lag << " is not supported (maximum lag is -1)." << endl;
+                 << "' with lag " << lead_lag << " is not supported (maximum lag is -1)." << '\n';
             exit(EXIT_FAILURE);
           }
 
@@ -167,7 +167,7 @@ HeterogeneousModel::checkPass() const
           {
             cerr << "ERROR: In model(heterogeneity=" << dim_name << "), equation " << i + 1 << ": "
                  << "heterogeneous endogenous variable '" << symbol_table.getName(symb_id)
-                 << "' with lead " << lead_lag << " is not supported (maximum lead is +1)." << endl;
+                 << "' with lead " << lead_lag << " is not supported (maximum lead is +1)." << '\n';
             exit(EXIT_FAILURE);
           }
 
@@ -185,10 +185,10 @@ HeterogeneousModel::checkPass() const
           cerr << "ERROR: In model(heterogeneity=" << dim_name << "), equation " << i + 1;
           if (equations_lineno[i])
             cerr << " (line " << *equations_lineno[i] << ")";
-          cerr << ":" << endl
+          cerr << ":" << '\n'
                << "  Non-separable expression '" << subexpr->toString() << "'"
                << "  combines forward-looking variables with lagged states and is not supported."
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -403,7 +403,7 @@ HeterogeneousModel::computeHetAuxTopologicalLevels()
       if (level_vars.empty() && assigned < n)
         {
           cerr << "ERROR: Circular dependency detected in heterogeneous auxiliary variables"
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -468,7 +468,7 @@ HeterogeneousModel::substituteLeadLagInternal(DynamicModel& dynamic_model, AuxVa
           subst = value->substituteExoLag(subst_table, neweqs);
           break;
         default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
+          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << '\n';
           exit(EXIT_FAILURE);
         }
       local_variables_table[used_local_var] = subst;
@@ -497,7 +497,7 @@ HeterogeneousModel::substituteLeadLagInternal(DynamicModel& dynamic_model, AuxVa
           subst = equation->substituteExoLag(subst_table, neweqs);
           break;
         default:
-          cerr << "HeterogeneousModel::substituteLeadLagInternal: impossible case" << endl;
+          cerr << "HeterogeneousModel::substituteLeadLagInternal: impossible case" << '\n';
           exit(EXIT_FAILURE);
         }
       auto substeq = dynamic_cast<BinaryOpNode*>(subst);
@@ -542,10 +542,10 @@ HeterogeneousModel::substituteLeadLagInternal(DynamicModel& dynamic_model, AuxVa
           cout << "exo lags";
           break;
         default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
+          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << '\n';
           exit(EXIT_FAILURE);
         }
-      cout << ": added " << neweqs.size() << " auxiliary variables and equations." << endl;
+      cout << ": added " << neweqs.size() << " auxiliary variables and equations." << '\n';
     }
 }
 
@@ -564,7 +564,8 @@ HeterogeneousModel::computingPass(int derivsOrder, bool no_tmp_terms, bool use_d
     if (symbol_table.getType(symb_lag.first) != SymbolType::parameter)
       vars.insert(deriv_id);
 
-  cout << "Computing " << modelClassName() << " derivatives (order " << derivsOrder << ")." << endl;
+  cout << "Computing " << modelClassName() << " derivatives (order " << derivsOrder << ")." << '\n'
+       << flush;
 
   computeDerivatives(derivsOrder, vars);
 
@@ -596,18 +597,18 @@ HeterogeneousModel::writeSetHetAuxiliaryVariablesFile(const string& basename) co
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename << " for writing" << '\n';
       exit(EXIT_FAILURE);
     }
 
   output << "function yh = dynamic_het" << heterogeneity_dimension + 1
-         << "_set_auxiliary_variables(y, x, params, steady_state, yh, xh, paramsh, step)" << endl
-         << "%" << endl
+         << "_set_auxiliary_variables(y, x, params, steady_state, yh, xh, paramsh, step)" << '\n'
+         << "%" << '\n'
          << "% Sets auxiliary variables for heterogeneous model dimension "
-         << heterogeneity_dimension + 1 << endl
-         << "% step: level of auxiliary variables to compute (0-based)" << endl
-         << "%" << endl
-         << endl;
+         << heterogeneity_dimension + 1 << '\n'
+         << "% step: level of auxiliary variables to compute (0-based)" << '\n'
+         << "%" << '\n'
+         << '\n';
 
   // Build mapping from aux var type-specific ID to equation index
   map<int, int> tsidToEqIdx;
@@ -631,7 +632,7 @@ HeterogeneousModel::writeSetHetAuxiliaryVariablesFile(const string& basename) co
   // Second pass: write equations grouped by level with conditionals
   for (size_t level = 0; level < het_aux_levels.size(); level++)
     {
-      output << "if step == " << level << endl;
+      output << "if step == " << level << '\n';
 
       for (int tsid : het_aux_levels[level])
         {
@@ -642,14 +643,14 @@ HeterogeneousModel::writeSetHetAuxiliaryVariablesFile(const string& basename) co
               output << "    ";
               aux_equations[eq_idx]->writeOutput(output, ExprNodeOutputType::matlabDynamicModel, {},
                                                  {}, tef_terms);
-              output << ";" << endl;
+              output << ";" << '\n';
             }
         }
 
-      output << "end" << endl << endl;
+      output << "end" << '\n' << '\n';
     }
 
-  output << "end" << endl;
+  output << "end" << '\n';
   output.close();
 }
 
@@ -691,7 +692,7 @@ HeterogeneousModel::getJacobianColsNbr() const
 int
 HeterogeneousModel::getLegacyJacobianCol([[maybe_unused]] int deriv_id) const
 {
-  cerr << "Heterogeneous::getLegacyJacobianCol(): unimplemented" << endl;
+  cerr << "Heterogeneous::getLegacyJacobianCol(): unimplemented" << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -756,27 +757,27 @@ HeterogeneousModel::writeDriverOutput(ostream& output) const
   output << "M_.heterogeneity(" << heterogeneity_dimension + 1 << ").state_var = [";
   for (int it : state_var)
     output << it + 1 << " ";
-  output << "];" << endl;
+  output << "];" << '\n';
 
   output << "M_.heterogeneity(" << heterogeneity_dimension + 1 << ").dynamic_tmp_nbr = [";
   for (const auto& it : temporary_terms_derivatives)
     output << it.size() << "; ";
-  output << "];" << endl;
+  output << "];" << '\n';
   writeDriverSparseIndicesHelper(
       "heterogeneity("s + to_string(heterogeneity_dimension + 1) + ").dynamic", output);
   output << "M_.heterogeneity(" << heterogeneity_dimension + 1
          << ").dynamic_mcp_equations_reordering = [";
   for (auto i : mcp_equations_reordering)
     output << i + 1 << "; ";
-  output << "];" << endl;
+  output << "];" << '\n';
 
   output << "M_.heterogeneity(" << heterogeneity_dimension + 1
          << ").set_auxiliary_variables = exist(['./+' M_.fname '/dynamic_het"
-         << heterogeneity_dimension + 1 << "_set_auxiliary_variables.m'], 'file') == 2;" << endl;
+         << heterogeneity_dimension + 1 << "_set_auxiliary_variables.m'], 'file') == 2;" << '\n';
 
   // Output auxiliary variable level structure
   output << "M_.heterogeneity(" << heterogeneity_dimension + 1
-         << ").n_aux_levels = " << het_aux_levels.size() << ";" << endl;
+         << ").n_aux_levels = " << het_aux_levels.size() << ";" << '\n';
 
   output << "M_.heterogeneity(" << heterogeneity_dimension + 1 << ").het_aux_levels = {";
   for (size_t level = 0; level < het_aux_levels.size(); level++)
@@ -792,5 +793,5 @@ HeterogeneousModel::writeDriverOutput(ostream& output) const
       if (level < het_aux_levels.size() - 1)
         output << ", ";
     }
-  output << "};" << endl;
+  output << "};" << '\n';
 }

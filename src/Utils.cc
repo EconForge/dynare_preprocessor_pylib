@@ -64,7 +64,7 @@ writeToFileIfModified(stringstream& new_contents, const filesystem::path& filena
   ofstream new_file {filename, ios::out | ios::binary};
   if (!new_file.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
       exit(EXIT_FAILURE);
     }
   ranges::copy(istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {},

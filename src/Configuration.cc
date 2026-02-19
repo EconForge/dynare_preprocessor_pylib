@@ -39,7 +39,7 @@ Configuration::Path::Path(vector<string> includepath_arg)
 {
   if (includepath_arg.empty())
     {
-      cerr << "ERROR: The Path must have an Include argument." << endl;
+      cerr << "ERROR: The Path must have an Include argument." << '\n';
       exit(EXIT_FAILURE);
     }
   paths["include"] = move(includepath_arg);
@@ -69,7 +69,7 @@ Configuration::FollowerNode::FollowerNode(string computerName_arg, string port_a
 {
   if (computerName.empty())
     {
-      cerr << "ERROR: The node must have a ComputerName." << endl;
+      cerr << "ERROR: The node must have a ComputerName." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -77,7 +77,7 @@ Configuration::FollowerNode::FollowerNode(string computerName_arg, string port_a
     if (operatingSystem != "windows" && operatingSystem != "unix")
       {
         cerr << "ERROR: The OperatingSystem must be either 'unix' or 'windows' (Case Sensitive)."
-             << endl;
+             << '\n';
         exit(EXIT_FAILURE);
       }
 }
@@ -87,7 +87,7 @@ Configuration::Cluster::Cluster(member_nodes_t member_nodes_arg) :
 {
   if (member_nodes.empty())
     {
-      cerr << "ERROR: The cluster must have at least one member node." << endl;
+      cerr << "ERROR: The cluster must have at least one member node." << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -132,7 +132,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
             {
               warnings << "WARNING: the location " << old_default_config_file.string()
                        << " for the configuration file is obsolete; please see the reference"
-                       << " manual for the new location." << endl;
+                       << " manual for the new location." << '\n';
               config_file = old_default_config_file;
             }
         }
@@ -143,7 +143,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
       if (parallel || parallel_test)
         {
           cerr << "ERROR: the parallel or parallel_test option was passed but no configuration "
-               << "file was found" << endl;
+               << "file was found" << '\n';
           exit(EXIT_FAILURE);
         }
       else
@@ -155,7 +155,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
 
   if (!configFile.is_open())
     {
-      cerr << "ERROR: Couldn't open configuration file " << config_file.string() << endl;
+      cerr << "ERROR: Couldn't open configuration file " << config_file.string() << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -234,7 +234,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
           if (tokenizedLine.size() != 2)
             {
               cerr << "ERROR (in config file): Options should be formatted as 'option = value'."
-                   << endl;
+                   << '\n';
               exit(EXIT_FAILURE);
             }
           trim(tokenizedLine.front());
@@ -248,13 +248,13 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
                 {
                   cerr
                       << "ERROR: May not have more than one GlobalInitFile option in [hooks] block."
-                      << endl;
+                      << '\n';
                   exit(EXIT_FAILURE);
                 }
             else
               {
                 cerr << "ERROR: Unrecognized option " << tokenizedLine.front()
-                     << " in [hooks] block." << endl;
+                     << " in [hooks] block." << '\n';
                 exit(EXIT_FAILURE);
               }
           else if (inPaths)
@@ -273,13 +273,13 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
               else
                 {
                   cerr << "ERROR: May not have more than one Include option in [paths] block."
-                       << endl;
+                       << '\n';
                   exit(EXIT_FAILURE);
                 }
             else
               {
                 cerr << "ERROR: Unrecognized option " << tokenizedLine.front()
-                     << " in [paths] block." << endl;
+                     << " in [paths] block." << '\n';
                 exit(EXIT_FAILURE);
               }
           else if (tokenizedLine.front() == "Name")
@@ -306,16 +306,16 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
                 }
               catch (const invalid_argument&)
                 {
-                  cerr << "ERROR: Could not convert value to integer for CPUnbr." << endl;
+                  cerr << "ERROR: Could not convert value to integer for CPUnbr." << '\n';
                   exit(EXIT_FAILURE);
                 }
 
               if (minCpuNbr <= 0 || maxCpuNbr <= 0)
                 {
-                  cerr << "ERROR: Syntax for the CPUnbr option is as follows:" << endl
-                       << "       1) CPUnbr = <int>" << endl
-                       << "    or 2) CPUnbr = [<int>:<int>]" << endl
-                       << "       where <int> is an Integer > 0." << endl;
+                  cerr << "ERROR: Syntax for the CPUnbr option is as follows:" << '\n'
+                       << "       1) CPUnbr = <int>" << '\n'
+                       << "    or 2) CPUnbr = [<int>:<int>]" << '\n'
+                       << "       where <int> is an Integer > 0." << '\n';
                   exit(EXIT_FAILURE);
                 }
 
@@ -357,7 +357,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
               {
                 cerr << "ERROR (in config file): The value passed to SingleCompThread may only be "
                         "'true' or 'false'."
-                     << endl;
+                     << '\n';
                 exit(EXIT_FAILURE);
               }
           else if (tokenizedLine.front() == "OperatingSystem")
@@ -389,7 +389,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
                             {
                               cerr << "ERROR (in config file): Node entered twice in specification "
                                       "of cluster."
-                                   << endl;
+                                   << '\n';
                               exit(EXIT_FAILURE);
                             }
                           else
@@ -405,7 +405,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
                           {
                             cerr << "ERROR (in config file): Misspecification of weights passed to "
                                     "Members option."
-                                 << endl;
+                                 << '\n';
                             exit(EXIT_FAILURE);
                           }
                         member_nodes[node_name] = weight;
@@ -414,7 +414,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
                       {
                         cerr << "ERROR (in config file): Misspecification of weights passed to "
                                 "Members option."
-                             << endl;
+                             << '\n';
                         exit(EXIT_FAILURE);
                       }
                 }
@@ -426,7 +426,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
                     {
                       cerr << "ERROR (in config file): Node entered twice in specification of "
                               "cluster."
-                           << endl;
+                           << '\n';
                       exit(EXIT_FAILURE);
                     }
                 }
@@ -434,7 +434,7 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
           else
             {
               cerr << "ERROR (in config file): Option " << tokenizedLine.front() << " is invalid."
-                   << endl;
+                   << '\n';
               exit(EXIT_FAILURE);
             }
         }
@@ -456,7 +456,7 @@ Configuration::addPathsConfFileElement(vector<string> includepath)
 {
   if (includepath.empty())
     {
-      cerr << "ERROR: The path to be included must be passed to the Include option." << endl;
+      cerr << "ERROR: The path to be included must be passed to the Include option." << '\n';
       exit(EXIT_FAILURE);
     }
   else
@@ -478,12 +478,12 @@ Configuration::addParallelConfFileElement(bool inNode, bool inCluster,
   if (inNode)
     if (!member_nodes.empty())
       {
-        cerr << "Invalid option passed to [node]." << endl;
+        cerr << "Invalid option passed to [node]." << '\n';
         exit(EXIT_FAILURE);
       }
     else if (name.empty() || follower_nodes.contains(name))
       {
-        cerr << "ERROR: Every node must be assigned a unique name." << endl;
+        cerr << "ERROR: Every node must be assigned a unique name." << '\n';
         exit(EXIT_FAILURE);
       }
     else
@@ -498,12 +498,12 @@ Configuration::addParallelConfFileElement(bool inNode, bool inCluster,
           || !remoteDrive.empty() || !remoteDirectory.empty() || !programPath.empty()
           || !programConfig.empty() || !matlabOctavePath.empty() || !operatingSystem.empty())
         {
-          cerr << "Invalid option passed to [cluster]." << endl;
+          cerr << "Invalid option passed to [cluster]." << '\n';
           exit(EXIT_FAILURE);
         }
       else if (name.empty() || clusters.contains(name))
         {
-          cerr << "ERROR: The cluster must be assigned a unique name." << endl;
+          cerr << "ERROR: The cluster must be assigned a unique name." << '\n';
           exit(EXIT_FAILURE);
         }
       else
@@ -524,7 +524,7 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
   //! Check Follower Nodes
   if (follower_nodes.empty())
     {
-      cerr << "ERROR: At least one node must be defined in the config file." << endl;
+      cerr << "ERROR: At least one node must be defined in the config file." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -535,7 +535,7 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
       if (follower_node.second.minCpuNbr != 0)
         warnings << "WARNING: On Unix-based operating systems, you cannot specify the CPU that is "
                  << "used in parallel processing. This will be adjusted for you such that the "
-                 << "same number of CPUs are used." << endl;
+                 << "same number of CPUs are used." << '\n';
 #endif
       if (!follower_node.second.port.empty())
         try
@@ -545,7 +545,7 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
         catch (const invalid_argument&)
           {
             cerr << "ERROR (node " << follower_node.first << "): the port must be an integer."
-                 << endl;
+                 << '\n';
             exit(EXIT_FAILURE);
           }
       if (follower_node.second.computerName == "localhost") // We are working locally
@@ -553,13 +553,13 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
           if (!follower_node.second.remoteDrive.empty())
             {
               cerr << "ERROR (node " << follower_node.first
-                   << "): the RemoteDrive option may not be passed for a local node." << endl;
+                   << "): the RemoteDrive option may not be passed for a local node." << '\n';
               exit(EXIT_FAILURE);
             }
           if (!follower_node.second.remoteDirectory.empty())
             {
               cerr << "ERROR (node " << follower_node.first
-                   << "): the RemoteDirectory option may not be passed for a local node." << endl;
+                   << "): the RemoteDirectory option may not be passed for a local node." << '\n';
               exit(EXIT_FAILURE);
             }
         }
@@ -568,7 +568,7 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
           if (follower_node.second.userName.empty())
             {
               cerr << "ERROR (node " << follower_node.first
-                   << "): the UserName option must be passed for every remote node." << endl;
+                   << "): the UserName option must be passed for every remote node." << '\n';
               exit(EXIT_FAILURE);
             }
           if (follower_node.second.operatingSystem == "windows")
@@ -578,7 +578,7 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
                   cerr << "ERROR (node " << follower_node.first
                        << "): the Password option must be passed under Windows for every remote "
                           "node."
-                       << endl;
+                       << '\n';
                   exit(EXIT_FAILURE);
                 }
               if (follower_node.second.remoteDrive.empty())
@@ -586,7 +586,7 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
                   cerr << "ERROR (node " << follower_node.first
                        << "): the RemoteDrive option must be passed under Windows for every remote "
                           "node."
-                       << endl;
+                       << '\n';
                   exit(EXIT_FAILURE);
                 }
             }
@@ -614,7 +614,7 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
           if (follower_node.second.remoteDirectory.empty())
             {
               cerr << "ERROR (node " << follower_node.first
-                   << "): the RemoteDirectory must be specified for every remote node." << endl;
+                   << "): the RemoteDirectory must be specified for every remote node." << '\n';
               exit(EXIT_FAILURE);
             }
         }
@@ -623,14 +623,14 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
   //! Check Clusters
   if (clusters.empty())
     {
-      cerr << "ERROR: At least one cluster must be defined in the config file." << endl;
+      cerr << "ERROR: At least one cluster must be defined in the config file." << '\n';
       exit(EXIT_FAILURE);
     }
 
   if (!cluster_name.empty() && !clusters.contains(cluster_name))
     {
       cerr << "ERROR: Cluster Name " << cluster_name << " was not found in the config file."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -639,7 +639,7 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
       if (!follower_nodes.contains(itmn.first))
         {
           cerr << "Error: node " << itmn.first << " specified in cluster " << cluster.first
-               << " was not found" << endl;
+               << " was not found" << '\n';
           exit(EXIT_FAILURE);
         }
 }
@@ -691,7 +691,7 @@ void
 Configuration::writeHooks(ostream& output) const
 {
   if (!global_init_file.empty())
-    output << "options_.global_init_file = '" << global_init_file << "';" << endl;
+    output << "options_.global_init_file = '" << global_init_file << "';" << '\n';
 }
 
 void
@@ -728,28 +728,28 @@ Configuration::writeCluster(ostream& output) const
              << "'OperatingSystem', '" << node.operatingSystem << "', "
              << "'NodeWeight', '" << cluster.member_nodes.at(name) << "', "
              << "'NumberOfThreadsPerJob', " << node.numberOfThreadsPerJob << ", "
-             << "'SingleCompThread', '" << boolalpha << node.singleCompThread << "');" << endl;
+             << "'SingleCompThread', '" << boolalpha << node.singleCompThread << "');" << '\n';
     }
 
   // Default values for the following two are both in DynareMain.cc and
   // matlab/default_option_values.m
   if (parallel_follower_open_mode)
-    output << "options_.parallel_info.leaveSlaveOpen = 1;" << endl;
+    output << "options_.parallel_info.leaveSlaveOpen = 1;" << '\n';
   if (!parallel_use_psexec)
-    output << "options_.parallel_info.use_psexec = false;" << endl;
+    output << "options_.parallel_info.use_psexec = false;" << '\n';
 
-  output << "options_.parallel_info.console_mode= isoctave;" << endl;
+  output << "options_.parallel_info.console_mode= isoctave;" << '\n';
 
-  output << "InitializeComputationalEnvironment();" << endl;
+  output << "InitializeComputationalEnvironment();" << '\n';
   if (parallel_test)
     output
         << "ErrorCode = AnalyseComputationalEnvironment(options_.parallel, options_.parallel_info);"
-        << endl
+        << '\n'
         << "disp(['AnalyseComputationalEnvironment returned with Error Code: ' "
            "num2str(ErrorCode)]);"
-        << endl
-        << "diary off;" << endl
-        << "return;" << endl;
+        << '\n'
+        << "diary off;" << '\n'
+        << "return;" << '\n';
 }
 
 void
@@ -758,9 +758,9 @@ Configuration::writeEndParallel(ostream& output) const
   if ((!parallel && !parallel_test) || !parallel_follower_open_mode)
     return;
 
-  output << "if options_.parallel_info.leaveSlaveOpen == 1" << endl
-         << "     closeSlave(options_.parallel,options_.parallel_info.RemoteTmpFolder);" << endl
-         << "end" << endl;
+  output << "if options_.parallel_info.leaveSlaveOpen == 1" << '\n'
+         << "     closeSlave(options_.parallel,options_.parallel_info.RemoteTmpFolder);" << '\n'
+         << "end" << '\n';
 }
 
 filesystem::path

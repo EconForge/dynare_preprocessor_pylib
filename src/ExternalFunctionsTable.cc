@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2025 Dynare Team
+ * Copyright © 2010-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -48,7 +48,7 @@ ExternalFunctionsTable::addExternalFunction(
       && external_function_options_chng.firstDerivSymbID != symb_id)
     {
       cerr << "ERROR: If the second derivative is provided by the top-level function "
-           << "the first derivative must also be provided by the same function." << endl;
+           << "the first derivative must also be provided by the same function." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -57,7 +57,7 @@ ExternalFunctionsTable::addExternalFunction(
       && external_function_options_chng.secondDerivSymbID != IDNotSet)
     {
       cerr << "ERROR: If the first derivative is provided by the top-level function, the "
-           << "second derivative cannot be provided by any other external function." << endl;
+           << "second derivative cannot be provided by any other external function." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -66,7 +66,7 @@ ExternalFunctionsTable::addExternalFunction(
     {
       cerr << "ERROR: If the second derivative is provided, the first derivative must also be "
               "provided."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -76,7 +76,7 @@ ExternalFunctionsTable::addExternalFunction(
       && external_function_options_chng.firstDerivSymbID != IDNotSet)
     {
       cerr << "ERROR: If the Jacobian and Hessian are provided by the same function, that "
-           << "function must be the top-level function." << endl;
+           << "function must be the top-level function." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -97,7 +97,7 @@ ExternalFunctionsTable::addExternalFunction(
                       "do not "
                    << "match the number of arguments passed to a previous call or declaration of "
                       "the top-level function."
-                   << endl;
+                   << '\n';
               exit(EXIT_FAILURE);
             }
 
@@ -107,7 +107,7 @@ ExternalFunctionsTable::addExternalFunction(
                       "statement does not "
                    << "match the first derivative function passed to a previous call or "
                       "declaration of the top-level function."
-                   << endl;
+                   << '\n';
               exit(EXIT_FAILURE);
             }
 
@@ -117,7 +117,7 @@ ExternalFunctionsTable::addExternalFunction(
                       "statement does not "
                    << "match the second derivative function passed to a previous call or "
                       "declaration of the top-level function."
-                   << endl;
+                   << '\n';
               exit(EXIT_FAILURE);
             }
         }

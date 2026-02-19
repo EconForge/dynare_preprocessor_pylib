@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2025 Dynare Team
+ * Copyright © 2020-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -87,17 +87,17 @@ EquationTags::writeCheckSumInfo(ostream& output) const
 {
   for (const auto& [eqn, tags] : eqn_tags)
     for (const auto& [key, value] : tags)
-      output << "  " << eqn + 1 << key << " " << value << endl;
+      output << "  " << eqn + 1 << key << " " << value << '\n';
 }
 
 void
 EquationTags::writeOutput(ostream& output) const
 {
-  output << "M_.equations_tags = {" << endl;
+  output << "M_.equations_tags = {" << '\n';
   for (const auto& [eqn, tags] : eqn_tags)
     for (const auto& [key, value] : tags)
-      output << "  " << eqn + 1 << " , '" << key << "' , '" << value << "' ;" << endl;
-  output << "};" << endl;
+      output << "  " << eqn + 1 << " , '" << key << "' , '" << value << "' ;" << '\n';
+  output << "};" << '\n';
 }
 
 void
@@ -129,7 +129,7 @@ EquationTags::writeLatexOutput(ostream& output, int eqn) const
       if (!value.empty())
         output << "= `" << escape_special_latex_symbols(value) << "'";
     }
-  output << "]" << endl;
+  output << "]" << '\n';
 }
 
 void

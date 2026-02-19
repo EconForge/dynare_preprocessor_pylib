@@ -773,153 +773,153 @@ DynamicModel::writeParamsDerivativesFile(const string& basename) const
       ofstream paramsDerivsFile {filename, ios::out | ios::binary};
       if (!paramsDerivsFile.is_open())
         {
-          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
           exit(EXIT_FAILURE);
         }
       paramsDerivsFile
           << "function [rp, g1p, rpp, g1pp, g2p, g3p] = dynamic_params_derivs(y, x, params, "
              "steady_state, ss_param_deriv, ss_param_2nd_deriv)"
-          << endl
-          << "%" << endl
-          << "% Compute the derivatives of the dynamic model with respect to the parameters" << endl
-          << "% Inputs :" << endl
+          << '\n'
+          << "%" << '\n'
+          << "% Compute the derivatives of the dynamic model with respect to the parameters" << '\n'
+          << "% Inputs :" << '\n'
           << "%   y         [#dynamic variables by 1] double    vector of endogenous variables in "
              "the order stored"
-          << endl
+          << '\n'
           << "%                                                 in M_.lead_lag_incidence; see the "
              "Manual"
-          << endl
+          << '\n'
           << "%   x         [nperiods by M_.exo_nbr] double     matrix of exogenous variables (in "
              "declaration order)"
-          << endl
-          << "%                                                 for all simulation periods" << endl
+          << '\n'
+          << "%                                                 for all simulation periods" << '\n'
           << "%   params    [M_.param_nbr by 1] double          vector of parameter values in "
              "declaration order"
-          << endl
+          << '\n'
           << "%   steady_state  [M_.endo_nbr by 1] double       vector of steady state values"
-          << endl
+          << '\n'
           << "%   ss_param_deriv     [M_.eq_nbr by #params]     Jacobian matrix of the steady "
              "states values with respect to the parameters"
-          << endl
+          << '\n'
           << "%   ss_param_2nd_deriv [M_.eq_nbr by #params by #params] Hessian matrix of the "
              "steady states values with respect to the parameters"
-          << endl
-          << "%" << endl
-          << "% Outputs:" << endl
+          << '\n'
+          << "%" << '\n'
+          << "% Outputs:" << '\n'
           << "%   rp        [M_.eq_nbr by #params] double    Jacobian matrix of dynamic model "
              "equations with respect to parameters "
-          << endl
+          << '\n'
           << "%                                              Dynare may prepend or append "
              "auxiliary equations, see M_.aux_vars"
-          << endl
+          << '\n'
           << "%   g1p       [#first_order_Jacobian_terms by 4] double    Derivative of the "
              "Jacobian matrix of the dynamic model equations with respect to the parameters"
-          << endl
+          << '\n'
           << "%                                                              rows: respective "
              "derivative term"
-          << endl
+          << '\n'
           << "%                                                              1st column: equation "
              "number of the term appearing"
-          << endl
+          << '\n'
           << "%                                                              2nd column: number of "
              "the variable in derivative"
-          << endl
+          << '\n'
           << "%                                                              3rd column: number of "
              "the parameter in derivative"
-          << endl
+          << '\n'
           << "%                                                              4th column: value of "
              "the derivative term"
-          << endl
+          << '\n'
           << "%   rpp       [#second_order_residual_terms by 4] double   Hessian matrix of second "
              "derivatives of residuals with respect to parameters;"
-          << endl
+          << '\n'
           << "%                                                              rows: respective "
              "derivative term"
-          << endl
+          << '\n'
           << "%                                                              1st column: equation "
              "number of the term appearing"
-          << endl
+          << '\n'
           << "%                                                              2nd column: number of "
              "the first parameter in derivative"
-          << endl
+          << '\n'
           << "%                                                              3rd column: number of "
              "the second parameter in derivative"
-          << endl
+          << '\n'
           << "%                                                              4th column: value of "
              "the Hessian term"
-          << endl
+          << '\n'
           << "%   g1pp     [#second_order_Jacobian_terms by 5] double   Hessian matrix of second "
              "derivatives of the Jacobian with respect to the parameters;"
-          << endl
+          << '\n'
           << "%                                                              rows: respective "
              "derivative term"
-          << endl
+          << '\n'
           << "%                                                              1st column: equation "
              "number of the term appearing"
-          << endl
+          << '\n'
           << "%                                                              2nd column: column "
              "number of variable in Jacobian of the dynamic model"
-          << endl
+          << '\n'
           << "%                                                              3rd column: number of "
              "the first parameter in derivative"
-          << endl
+          << '\n'
           << "%                                                              4th column: number of "
              "the second parameter in derivative"
-          << endl
+          << '\n'
           << "%                                                              5th column: value of "
              "the Hessian term"
-          << endl
+          << '\n'
           << "%   g2p     [#first_order_Hessian_terms by 5] double   Jacobian matrix of "
              "derivatives of the dynamic Hessian with respect to the parameters;"
-          << endl
+          << '\n'
           << "%                                                              rows: respective "
              "derivative term"
-          << endl
+          << '\n'
           << "%                                                              1st column: equation "
              "number of the term appearing"
-          << endl
+          << '\n'
           << "%                                                              2nd column: column "
              "number of first variable in Hessian of the dynamic model"
-          << endl
+          << '\n'
           << "%                                                              3rd column: column "
              "number of second variable in Hessian of the dynamic model"
-          << endl
+          << '\n'
           << "%                                                              4th column: number of "
              "the parameter in derivative"
-          << endl
+          << '\n'
           << "%                                                              5th column: value of "
              "the Hessian term"
-          << endl
+          << '\n'
           << "%   g3p      [#first_order_g3_terms by 6] double   Jacobian matrix of derivatives of "
              "g3 (dynamic 3rd derivs) with respect to the parameters;"
-          << endl
+          << '\n'
           << "%                                                              rows: respective "
              "derivative term"
-          << endl
+          << '\n'
           << "%                                                              1st column: equation "
              "number of the term appearing"
-          << endl
+          << '\n'
           << "%                                                              2nd column: column "
              "number of first variable in g3 of the dynamic model"
-          << endl
+          << '\n'
           << "%                                                              3rd column: column "
              "number of second variable in g3 of the dynamic model"
-          << endl
+          << '\n'
           << "%                                                              4th column: column "
              "number of third variable in g3 of the dynamic model"
-          << endl
+          << '\n'
           << "%                                                              5th column: number of "
              "the parameter in derivative"
-          << endl
+          << '\n'
           << "%                                                              6th column: value of "
              "the Hessian term"
-          << endl
-          << "%" << endl
-          << "%" << endl
-          << "% Warning : this file is generated automatically by Dynare" << endl
-          << "%           from model file (.mod)" << endl
-          << endl
-          << "T = NaN(" << params_derivs_temporary_terms_idxs.size() << ",1);" << endl
+          << '\n'
+          << "%" << '\n'
+          << "%" << '\n'
+          << "% Warning : this file is generated automatically by Dynare" << '\n'
+          << "%           from model file (.mod)" << '\n'
+          << '\n'
+          << "T = NaN(" << params_derivs_temporary_terms_idxs.size() << ",1);" << '\n'
           << tt_output.str() << "rp_i = NaN(" << params_derivatives.at({0, 1}).size() << ", 1);"
           << endl
           << "rp_j = NaN(" << params_derivatives.at({0, 1}).size() << ", 1);" << endl
@@ -944,12 +944,12 @@ DynamicModel::writeParamsDerivativesFile(const string& basename) const
   else
     {
       stringstream output;
-      output << "# NB: this file was automatically generated by Dynare" << endl
-             << "#     from " << basename << ".mod" << endl
-             << "#" << endl
+      output << "# NB: this file was automatically generated by Dynare" << '\n'
+             << "#     from " << basename << ".mod" << '\n'
+             << "#" << '\n'
              << "function dynamic_params_derivs(y, x, params, steady_state, "
-             << "ss_param_deriv, ss_param_2nd_deriv)" << endl
-             << "@inbounds begin" << endl
+             << "ss_param_deriv, ss_param_2nd_deriv)" << '\n'
+             << "@inbounds begin" << '\n'
              << tt_output.str() << "rp_i = fill(NaN, " << params_derivatives.at({0, 1}).size()
              << ");" << endl
              << "rp_j = fill(NaN, " << params_derivatives.at({0, 1}).size() << ");" << endl

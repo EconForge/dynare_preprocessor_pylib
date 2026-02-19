@@ -74,7 +74,7 @@ AbstractShocksStatement::writeDetShocks(ostream& output) const
   if (det_shocks.empty())
     return;
 
-  output << "M_.det_shocks = [ M_.det_shocks;" << endl;
+  output << "M_.det_shocks = [ M_.det_shocks;" << '\n';
   for (const auto& [id, shock_vec] : det_shocks)
     for (bool exo_det = (symbol_table.getType(id) == SymbolType::exogenousDet);
          const auto& [period_range, value] : shock_vec)
@@ -85,9 +85,9 @@ AbstractShocksStatement::writeDetShocks(ostream& output) const
         visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
         output << ",'value',";
         value->writeOutput(output);
-        output << ");" << endl;
+        output << ");" << '\n';
       }
-  output << "];" << endl;
+  output << "];" << '\n';
 }
 
 void
@@ -151,24 +151,24 @@ void
 ShocksStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                              [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "%" << endl << "% SHOCKS instructions" << endl << "%" << endl;
+  output << "%" << '\n' << "% SHOCKS instructions" << '\n' << "%" << '\n';
 
   if (overwrite)
     {
-      output << "M_.det_shocks = struct([]);" << endl;
+      output << "M_.det_shocks = struct([]);" << '\n';
 
       output << "M_.Sigma_e = zeros(" << symbol_table.exo_nbr() << ", " << symbol_table.exo_nbr()
-             << ");" << endl
+             << ");" << '\n'
              << "M_.Correlation_matrix = eye(" << symbol_table.exo_nbr() << ", "
-             << symbol_table.exo_nbr() << ");" << endl;
+             << symbol_table.exo_nbr() << ");" << '\n';
 
       if (has_calibrated_measurement_errors())
         output << "M_.H = zeros(" << symbol_table.observedVariablesNbr() << ", "
-               << symbol_table.observedVariablesNbr() << ");" << endl
+               << symbol_table.observedVariablesNbr() << ");" << '\n'
                << "M_.Correlation_matrix_ME = eye(" << symbol_table.observedVariablesNbr() << ", "
-               << symbol_table.observedVariablesNbr() << ");" << endl;
+               << symbol_table.observedVariablesNbr() << ");" << '\n';
       else
-        output << "M_.H = 0;" << endl << "M_.Correlation_matrix_ME = 1;" << endl;
+        output << "M_.H = 0;" << '\n' << "M_.Correlation_matrix_ME = 1;" << '\n';
     }
 
   writeDetShocks(output);
@@ -181,9 +181,9 @@ ShocksStatement::writeOutput(ostream& output, [[maybe_unused]] const string& bas
      then we don't reset it to 1, since there might be previous shocks blocks
      with off-diagonal elements. */
   if (covar_shocks.size() + corr_shocks.size() > 0)
-    output << "M_.sigma_e_is_diagonal = 0;" << endl;
+    output << "M_.sigma_e_is_diagonal = 0;" << '\n';
   else if (overwrite)
-    output << "M_.sigma_e_is_diagonal = 1;" << endl;
+    output << "M_.sigma_e_is_diagonal = 1;" << '\n';
 }
 
 void
@@ -286,7 +286,7 @@ ShocksStatement::writeVarOrStdShock(ostream& output, const pair<int, expr_t>& it
   it.second->writeOutput(output);
   if (stddev)
     output << ")^2";
-  output << ";" << endl;
+  output << ";" << '\n';
 }
 
 void
@@ -330,17 +330,17 @@ ShocksStatement::writeCovarOrCorrShock(ostream& output, const pair<pair<int, int
   if (corr)
     output << "*sqrt(" << matrix << "(" << id1 << ", " << id1 << ")*" << matrix << "(" << id2
            << ", " << id2 << "))";
-  output << ";" << endl
+  output << ";" << '\n'
          << matrix << "(" << id2 << ", " << id1 << ") = " << matrix << "(" << id1 << ", " << id2
-         << ");" << endl;
+         << ");" << '\n';
 
   if (corr)
     {
       output << corr_matrix << "(" << id1 << ", " << id2 << ") = ";
       it.second->writeOutput(output);
-      output << ";" << endl
+      output << ";" << '\n'
              << corr_matrix << "(" << id2 << ", " << id1 << ") = " << corr_matrix << "(" << id1
-             << ", " << id2 << ");" << endl;
+             << ", " << id2 << ");" << '\n';
     }
 }
 
@@ -370,12 +370,12 @@ ShocksStatement::writeSkewShock(ostream& output, const pair<tuple<int, int, int>
 
   // Remove existing row for this sorted triple (overwrite semantics)
   output << "M_.Skew_e(M_.Skew_e(:,1)==" << idx[0] << " & M_.Skew_e(:,2)==" << idx[1]
-         << " & M_.Skew_e(:,3)==" << idx[2] << ",:) = [];" << endl;
+         << " & M_.Skew_e(:,3)==" << idx[2] << ",:) = [];" << '\n';
 
   // Append single row [i, j, k, value] with i <= j <= k
   output << "M_.Skew_e = [M_.Skew_e; " << idx[0] << ", " << idx[1] << ", " << idx[2] << ", ";
   it.second->writeOutput(output);
-  output << "];" << endl;
+  output << "];" << '\n';
 }
 
 void
@@ -385,7 +385,7 @@ ShocksStatement::writeSkewShocks(ostream& output) const
     writeSkewShock(output, it);
   // Remove any zero-valued entries from sparse Skew_e (value in column 4)
   if (!skew_shocks.empty())
-    output << "M_.Skew_e(M_.Skew_e(:,4)==0,:) = [];" << endl;
+    output << "M_.Skew_e(M_.Skew_e(:,4)==0,:) = [];" << '\n';
 }
 
 void
@@ -404,7 +404,7 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
           cerr << "shocks: setting a variance on '" << symbol_table.getName(id)
                << "' is not allowed, because it is neither an exogenous variable nor an observed "
                   "endogenous variable"
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -416,7 +416,7 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
           cerr << "shocks: setting a standard error on '" << symbol_table.getName(id)
                << "' is not allowed, because it is neither an exogenous variable nor an observed "
                   "endogenous variable"
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -434,7 +434,7 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
                << "' and '" << symbol_table.getName(symb_id2)
                << "'is not allowed; covariances can only be specified for exogenous or observed "
                   "endogenous variables of same type"
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -452,7 +452,7 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
                << "' and '" << symbol_table.getName(symb_id2)
                << "'is not allowed; correlations can only be specified for exogenous or observed "
                   "endogenous variables of same type"
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -468,7 +468,7 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
           cerr << "shocks: setting skewness for '" << symbol_table.getName(symb_id1) << "', '"
                << symbol_table.getName(symb_id2) << "', '" << symbol_table.getName(symb_id3)
                << "' is not allowed; skewness can only be specified for exogenous variables"
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -533,10 +533,10 @@ void
 MShocksStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                               [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "%" << endl << "% MSHOCKS instructions" << endl << "%" << endl;
+  output << "%" << '\n' << "% MSHOCKS instructions" << '\n' << "%" << '\n';
 
   if (overwrite)
-    output << "M_.det_shocks = struct([]);" << endl;
+    output << "M_.det_shocks = struct([]);" << '\n';
 
   writeDetShocks(output);
 }
@@ -576,9 +576,9 @@ ShocksSurpriseStatement::writeOutput(ostream& output, [[maybe_unused]] const str
                                      [[maybe_unused]] bool minimal_workspace) const
 {
   if (overwrite)
-    output << "M_.surprise_shocks = [" << endl;
+    output << "M_.surprise_shocks = [" << '\n';
   else
-    output << "M_.surprise_shocks = [ M_.surprise_shocks;" << endl;
+    output << "M_.surprise_shocks = [ M_.surprise_shocks;" << '\n';
   for (const auto& [id, shock_vec] : surprise_shocks)
     for (const auto& [period_range, value] : shock_vec)
       {
@@ -586,9 +586,9 @@ ShocksSurpriseStatement::writeOutput(ostream& output, [[maybe_unused]] const str
         output << "struct('exo_id'," << symbol_table.getTypeSpecificID(id) + 1 << ",'periods',"
                << period1 << ":" << period2 << ",'value',";
         value->writeOutput(output);
-        output << ");" << endl;
+        output << ");" << '\n';
       }
-  output << "];" << endl;
+  output << "];" << '\n';
 }
 
 void
@@ -662,7 +662,7 @@ ShocksLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
 {
   if (overwrite)
     {
-      output << "if ~isempty(M_.learnt_shocks)" << endl
+      output << "if ~isempty(M_.learnt_shocks)" << '\n'
              << "  M_.learnt_shocks = M_.learnt_shocks(cellfun(@(x) ~isa(x, '";
       if (holds_alternative<int>(learnt_in_period))
         output << "numeric";
@@ -672,10 +672,10 @@ ShocksLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
       /* NB: date expression not parenthesized since it can only contain a + operator, which has
          higher precedence than ~= and || */
       visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
-      output << ", {M_.learnt_shocks.learnt_in}));" << endl << "end" << endl;
+      output << ", {M_.learnt_shocks.learnt_in}));" << '\n' << "end" << '\n';
     }
 
-  output << "M_.learnt_shocks = [ M_.learnt_shocks;" << endl;
+  output << "M_.learnt_shocks = [ M_.learnt_shocks;" << '\n';
   for (const auto& [id, shock_vec] : learnt_shocks)
     for (const auto& [type, period_range, value] : shock_vec)
       {
@@ -686,9 +686,9 @@ ShocksLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
         output << ",'type','" << typeToString(type) << "'"
                << ",'value',";
         value->writeOutput(output);
-        output << ");" << endl;
+        output << ");" << '\n';
       }
-  output << "];" << endl;
+  output << "];" << '\n';
 }
 
 void
@@ -742,7 +742,7 @@ HeterogeneousShocksStatement::writeOutput(ostream& output, [[maybe_unused]] cons
 {
   if (overwrite)
     output << sigmaeName() << " = zeros(" << symbol_table.het_exo_nbr(heterogeneity_dimension)
-           << ", " << symbol_table.het_exo_nbr(heterogeneity_dimension) << ");" << endl;
+           << ", " << symbol_table.het_exo_nbr(heterogeneity_dimension) << ");" << '\n';
 
   writeVarAndStdShocks(output);
   writeCovarAndCorrShocks(output);
@@ -819,7 +819,7 @@ HeterogeneousShocksStatement::writeVarOrStdShock(ostream& output, const pair<int
   it.second->writeOutput(output);
   if (stddev)
     output << ")^2";
-  output << ";" << endl;
+  output << ";" << '\n';
 }
 
 void
@@ -847,9 +847,9 @@ HeterogeneousShocksStatement::writeCovarOrCorrShock(ostream& output,
   if (corr)
     output << "*sqrt(" << sigmaeName() << "(" << id1 << ", " << id1 << ")*" << sigmaeName() << "("
            << id2 << ", " << id2 << "))";
-  output << ";" << endl
+  output << ";" << '\n'
          << sigmaeName() << "(" << id2 << ", " << id1 << ") = " << sigmaeName() << "(" << id1
-         << ", " << id2 << ");" << endl;
+         << ", " << id2 << ");" << '\n';
 }
 
 void
@@ -872,7 +872,7 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
     if (symbol_table.getType(id) != SymbolType::heterogeneousExogenous)
       {
         cerr << "shocks: setting a variance on '" << symbol_table.getName(id)
-             << "' is not allowed, because it is not a heterogeneous exogenous variable" << endl;
+             << "' is not allowed, because it is not a heterogeneous exogenous variable" << '\n';
         exit(EXIT_FAILURE);
       }
 
@@ -880,7 +880,7 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
     if (symbol_table.getType(id) != SymbolType::heterogeneousExogenous)
       {
         cerr << "shocks: setting a standard error on '" << symbol_table.getName(id)
-             << "' is not allowed, because it is not a heterogeneous exogenous variable" << endl;
+             << "' is not allowed, because it is not a heterogeneous exogenous variable" << '\n';
         exit(EXIT_FAILURE);
       }
 
@@ -895,7 +895,7 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
                << "' and '" << symbol_table.getName(symb_id2)
                << "'is not allowed; covariances can only be specified for heterogeneous exogenous "
                   "variables"
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -911,7 +911,7 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
                << "' and '" << symbol_table.getName(symb_id2)
                << "'is not allowed; covariances can only be specified for heterogeneous exogenous "
                   "variables"
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -954,22 +954,22 @@ ConditionalForecastPathsStatement::writeOutput(ostream& output,
                                                [[maybe_unused]] bool minimal_workspace) const
 {
   assert(path_length > 0);
-  output << "constrained_vars_ = [];" << endl
-         << "constrained_paths_ = NaN(" << paths.size() << ", " << path_length << ");" << endl;
+  output << "constrained_vars_ = [];" << '\n'
+         << "constrained_paths_ = NaN(" << paths.size() << ", " << path_length << ");" << '\n';
 
   for (int k {1}; const auto& [id, elems] : paths)
     {
       if (k == 1)
-        output << "constrained_vars_ = " << symbol_table.getTypeSpecificID(id) + 1 << ";" << endl;
+        output << "constrained_vars_ = " << symbol_table.getTypeSpecificID(id) + 1 << ";" << '\n';
       else
         output << "constrained_vars_ = [constrained_vars_; "
-               << symbol_table.getTypeSpecificID(id) + 1 << "];" << endl;
+               << symbol_table.getTypeSpecificID(id) + 1 << "];" << '\n';
       for (const auto& [period_range, value] : elems)
         {
           auto [period1, period2] = get<pair<int, int>>(period_range);
           output << "constrained_paths_(" << k << "," << period1 << ":" << period2 << ")=";
           value->writeOutput(output);
-          output << ";" << endl;
+          output << ";" << '\n';
         }
       k++;
     }
@@ -1025,7 +1025,7 @@ PerfectForesightControlledPathsStatement::writeOutput(ostream& output,
                                                       [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.perfect_foresight_controlled_paths = [ M_.perfect_foresight_controlled_paths;"
-         << endl;
+         << '\n';
   for (const auto& [exogenize_id, constraints, endogenize_id] : paths)
     for (const auto& [period_range, value] : constraints)
       {
@@ -1037,9 +1037,9 @@ PerfectForesightControlledPathsStatement::writeOutput(ostream& output,
         output << ",'endogenize_id'," << symbol_table.getTypeSpecificID(endogenize_id) + 1
                << ",'learnt_in',";
         visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
-        output << ");" << endl;
+        output << ");" << '\n';
       }
-  output << "];" << endl;
+  output << "];" << '\n';
 }
 
 void
@@ -1079,7 +1079,7 @@ void
 MomentCalibration::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_.endogenous_prior_restrictions.moment = {" << endl;
+  output << "options_.endogenous_prior_restrictions.moment = {" << '\n';
   for (const auto& c : constraints)
     {
       output << "'" << symbol_table.getName(c.endo1) << "', "
@@ -1088,9 +1088,9 @@ MomentCalibration::writeOutput(ostream& output, [[maybe_unused]] const string& b
       c.lower_bound->writeOutput(output);
       output << ", ";
       c.upper_bound->writeOutput(output);
-      output << " ];" << endl;
+      output << " ];" << '\n';
     }
-  output << "};" << endl;
+  output << "};" << '\n';
 }
 
 void
@@ -1131,7 +1131,7 @@ IrfCalibration::writeOutput(ostream& output, [[maybe_unused]] const string& base
 {
   options_list.writeOutput(output);
 
-  output << "options_.endogenous_prior_restrictions.irf = {" << endl;
+  output << "options_.endogenous_prior_restrictions.irf = {" << '\n';
   for (const auto& c : constraints)
     {
       output << "'" << symbol_table.getName(c.endo) << "', "
@@ -1140,9 +1140,9 @@ IrfCalibration::writeOutput(ostream& output, [[maybe_unused]] const string& base
       c.lower_bound->writeOutput(output);
       output << ", ";
       c.upper_bound->writeOutput(output);
-      output << " ];" << endl;
+      output << " ];" << '\n';
     }
-  output << "};" << endl;
+  output << "};" << '\n';
 }
 
 void
@@ -1193,18 +1193,18 @@ ShockGroupsStatement::writeOutput(ostream& output, [[maybe_unused]] const string
           {
             unique_label = false;
             cerr << "Warning: shock group label '" << it->name << "' has been reused. "
-                 << "Only using the last definition." << endl;
+                 << "Only using the last definition." << '\n';
             break;
           }
 
       if (unique_label)
         {
           output << "M_.shock_groups." << name << ".group" << i << ".label = '" << it->name << "';"
-                 << endl
+                 << '\n'
                  << "M_.shock_groups." << name << ".group" << i << ".shocks = {";
           for (const auto& it1 : it->list)
             output << " '" << it1 << "'";
-          output << "};" << endl;
+          output << "};" << '\n';
           i++;
         }
     }
@@ -1259,7 +1259,7 @@ Init2shocksStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_stru
         {
           cerr << "Init2shocks(" << name << "): enogenous variable '"
                << symbol_table.getName(init2shocks.at(i).first)
-               << "' appears more than once in the init2shocks statement" << endl;
+               << "' appears more than once in the init2shocks statement" << '\n';
           exit(EXIT_FAILURE);
         }
 }
@@ -1268,11 +1268,11 @@ void
 Init2shocksStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                   [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "M_.init2shocks." << name << " = {" << endl;
+  output << "M_.init2shocks." << name << " = {" << '\n';
   for (const auto& [id1, id2] : init2shocks)
     output << "{'" << symbol_table.getName(id1) << "', '" << symbol_table.getName(id2) << "'};"
-           << endl;
-  output << "};" << endl;
+           << '\n';
+  output << "};" << '\n';
 }
 
 void
@@ -1306,11 +1306,11 @@ HeteroskedasticShocksStatement::writeOutput(ostream& output,
 {
   // NB: The first initialization of the fields is done in ModFile::writeMOutput()
   if (overwrite)
-    output << "M_.heteroskedastic_shocks.Qvalue_orig = struct([]);" << endl
-           << "M_.heteroskedastic_shocks.Qscale_orig = struct([]);" << endl;
+    output << "M_.heteroskedastic_shocks.Qvalue_orig = struct([]);" << '\n'
+           << "M_.heteroskedastic_shocks.Qscale_orig = struct([]);" << '\n';
 
   output << "M_.heteroskedastic_shocks.Qvalue_orig = [M_.heteroskedastic_shocks.Qvalue_orig;"
-         << endl;
+         << '\n';
   for (const auto& [symb_id, vec] : values)
     for (int tsid = symbol_table.getTypeSpecificID(symb_id);
          const auto& [period_range, value] : vec)
@@ -1319,11 +1319,11 @@ HeteroskedasticShocksStatement::writeOutput(ostream& output,
         visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
         output << ",'value',";
         value->writeOutput(output);
-        output << ");" << endl;
+        output << ");" << '\n';
       }
-  output << "];" << endl
+  output << "];" << '\n'
          << "M_.heteroskedastic_shocks.Qscale_orig = [M_.heteroskedastic_shocks.Qscale_orig;"
-         << endl;
+         << '\n';
   for (const auto& [symb_id, vec] : scales)
     for (int tsid = symbol_table.getTypeSpecificID(symb_id);
          const auto& [period_range, scale] : vec)
@@ -1332,9 +1332,9 @@ HeteroskedasticShocksStatement::writeOutput(ostream& output,
         visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
         output << ",'scale',";
         scale->writeOutput(output);
-        output << ");" << endl;
+        output << ");" << '\n';
       }
-  output << "];" << endl;
+  output << "];" << '\n';
 }
 
 void
@@ -1409,7 +1409,7 @@ ShockPathsStatement::writeOutput(ostream& output, const string& basename,
 {
   if (overwrite)
     {
-      output << "if ~isempty(M_.shock_paths)" << endl
+      output << "if ~isempty(M_.shock_paths)" << '\n'
              << "  M_.shock_paths = M_.shock_paths(cellfun(@(x) ~isa(x, '";
       if (holds_alternative<int>(learnt_in_period))
         output << "numeric";
@@ -1419,7 +1419,7 @@ ShockPathsStatement::writeOutput(ostream& output, const string& basename,
       /* NB: date expression not parenthesized since it can only contain a + operator, which has
          higher precedence than ~= and || */
       visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
-      output << ", {M_.shock_paths.learnt_in}));" << endl << "end" << endl;
+      output << ", {M_.shock_paths.learnt_in}));" << '\n' << "end" << '\n';
     }
 
   /* Whether this block has a date somewhere:
@@ -1456,7 +1456,7 @@ ShockPathsStatement::writeOutput(ostream& output, const string& basename,
   visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
   output << ", 'evaluation_function', '" << basename << "." << evaluationFunctionName()
          << "', 'contains_date', " << boolalpha << contains_date << ", 'contains_endval', "
-         << contains_endval << ")];" << endl;
+         << contains_endval << ")];" << '\n';
 
   writeEvaluationFunctionFile(basename);
 
@@ -1566,19 +1566,19 @@ ShockPathsStatement::writeEvaluationFunctionFile(const string& basename) const
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
       exit(EXIT_FAILURE);
     }
 
   // M_ is there for parameters, oo_ for initval namespace
   output << "function exo_paths = " << evaluationFunctionName()
-         << "(exo_paths, p, periods, first_simulation_period, M_, oo_)" << endl
+         << "(exo_paths, p, periods, first_simulation_period, M_, oo_)" << '\n'
          << "info_period = ";
   if (holds_alternative<int>(learnt_in_period))
     output << get<int>(learnt_in_period);
   else
     output << get<string>(learnt_in_period) << "-first_simulation_period+1";
-  output << ";" << endl;
+  output << ";" << '\n';
 
   auto print_matlab_period_shock_paths = [&output](const auto& p) {
     if (holds_alternative<int>(p))
@@ -1616,13 +1616,13 @@ ShockPathsStatement::writeEvaluationFunctionFile(const string& basename) const
             output << " && p <= ";
             print_matlab_period_shock_paths(p2);
           }
-        output << endl
+        output << '\n'
                << "exo_paths(" << symbol_table.getTypeSpecificID(symb_id) + 1
                << ",p,info_period) = ";
         value->writeOutput(output);
-        output << ";" << endl << "end" << endl;
+        output << ";" << '\n' << "end" << '\n';
       }
 
-  output << "end" << endl;
+  output << "end" << '\n';
   output.close();
 }

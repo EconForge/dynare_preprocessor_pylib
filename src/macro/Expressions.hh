@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2023 Dynare Team
+ * Copyright © 2019-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -77,7 +77,7 @@ public:
   {
     stringstream ss;
     for (auto& msg : message)
-      ss << "- " << msg << endl;
+      ss << "- " << msg << '\n';
     return ss.str();
   }
 };
@@ -102,18 +102,18 @@ public:
   void
   error(const StackTrace& e) const noexcept
   {
-    cerr << endl << "Macro-processing error: backtrace..." << endl << e.trace();
+    cerr << '\n' << "Macro-processing error: backtrace..." << '\n' << e.trace();
     exit(EXIT_FAILURE);
   }
   void
   warning(const StackTrace& e) const noexcept
   {
-    cerr << endl << "Macro-processing warning: backtrace..." << endl << e.trace();
+    cerr << '\n' << "Macro-processing warning: backtrace..." << '\n' << e.trace();
   }
   void
   printLineInfo(ostream& output) const noexcept
   {
-    output << R"(@#line ")" << *(location.begin.filename) << R"(" )" << location.begin.line << endl;
+    output << R"(@#line ")" << *(location.begin.filename) << R"(" )" << location.begin.line << '\n';
   }
   void
   printEndLineInfo(ostream& output) const noexcept
@@ -121,7 +121,7 @@ public:
     // Add one to end line because we want to print the line number of the line *following* the end
     // statement
     output << R"(@#line ")" << *(location.begin.filename) << R"(" )" << location.end.line + 1
-           << endl;
+           << '\n';
   }
 };
 

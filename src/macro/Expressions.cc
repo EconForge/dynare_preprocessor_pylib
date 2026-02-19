@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2024 Dynare Team
+ * Copyright © 2019-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -1537,7 +1537,7 @@ BinaryOp::print(ostream& output, bool matlab_output) const noexcept
     case codes::BinaryOp::max:
     case codes::BinaryOp::min:
     case codes::BinaryOp::mod:
-      cerr << "macro::BinaryOp::print: Should not arrive here" << endl;
+      cerr << "macro::BinaryOp::print: Should not arrive here" << '\n';
       exit(EXIT_FAILURE);
     }
   arg2->print(output, matlab_output);

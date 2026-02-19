@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2023 Dynare Team
+ * Copyright © 2019-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -65,9 +65,9 @@ Include::interpret(ostream& output, Environment& env, vector<filesystem::path>& 
           if (incfile.fail())
             {
               ostringstream errmsg;
-              errmsg << "   * " << current_path().string() << endl;
+              errmsg << "   * " << current_path().string() << '\n';
               for (const auto& dir : paths)
-                errmsg << "   * " << absolute(dir).string() << endl;
+                errmsg << "   * " << absolute(dir).string() << '\n';
               error(StackTrace("@#include",
                                "Could not open " + filename.string()
                                    + ". The following directories were searched:\n" + errmsg.str(),
@@ -152,7 +152,7 @@ Echo::interpret(ostream& output, Environment& env, [[maybe_unused]] vector<files
 {
   try
     {
-      cout << "@#echo (" << getLocation() << "): " << expr->eval(env)->to_string() << endl;
+      cout << "@#echo (" << getLocation() << "): " << expr->eval(env)->to_string() << '\n';
     }
   catch (StackTrace& ex)
     {

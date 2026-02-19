@@ -110,7 +110,7 @@ StaticModel::StaticModel(const DynamicModel& m) :
         cerr << "...division by zero error encountered when converting equation " << i;
         if (!e.message.empty())
           cerr << " (" << e.message << ")";
-        cerr << endl;
+        cerr << '\n';
         exit(EXIT_FAILURE);
       }
 
@@ -168,7 +168,7 @@ StaticModel::writeStaticBlockBytecode(const string& basename) const
   ofstream bin_file {bin_filename, ios::out | ios::binary};
   if (!bin_file.is_open())
     {
-      cerr << R"(Error : Can't open file ")" << bin_filename.string() << R"(" for writing)" << endl;
+      cerr << R"(Error : Can't open file ")" << bin_filename.string() << R"(" for writing)" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -219,7 +219,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder,
   if (log2(symbol_table.endo_nbr()) * derivsOrder >= numeric_limits<int>::digits)
     {
       cerr << "ERROR: The derivatives matrix of the " << modelClassName()
-           << " is too large. Please decrease the approximation order." << endl;
+           << " is too large. Please decrease the approximation order." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -232,14 +232,16 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder,
     }
 
   // Launch computations
-  cout << "Computing " << modelClassName() << " derivatives (order " << derivsOrder << ")." << endl;
+  cout << "Computing " << modelClassName() << " derivatives (order " << derivsOrder << ")." << '\n'
+       << flush;
 
   computeDerivatives(derivsOrder, vars);
 
   if (paramsDerivsOrder > 0)
     {
       cout << "Computing " << modelClassName() << " derivatives w.r.t. parameters (order "
-           << paramsDerivsOrder << ")." << endl;
+           << paramsDerivsOrder << ")." << '\n'
+           << flush;
       computeParamsDerivatives(paramsDerivsOrder);
     }
 
@@ -253,7 +255,7 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder,
     {
       cerr << "ERROR: Block decomposition requested but failed. If your model does not have a "
               "steady state, you may want to try the 'no_static' option of the 'model' block."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -329,7 +331,7 @@ StaticModel::writeDriverOutput(ostream& output) const
   output << "M_.static_tmp_nbr = [";
   for (const auto& temporary_terms_derivative : temporary_terms_derivatives)
     output << temporary_terms_derivative.size() << "; ";
-  output << "];" << endl;
+  output << "];" << '\n';
 
   if (block_decomposed)
     writeBlockDriverOutput(output);
@@ -339,7 +341,7 @@ StaticModel::writeDriverOutput(ostream& output) const
   output << "M_.static_mcp_equations_reordering = [";
   for (auto i : mcp_equations_reordering)
     output << i + 1 << "; ";
-  output << "];" << endl;
+  output << "];" << '\n';
 }
 
 void
@@ -349,26 +351,26 @@ StaticModel::writeBlockDriverOutput(ostream& output) const
     {
       output << "M_.block_structure_stat.block(" << blk + 1
              << ").Simulation_Type = " << static_cast<int>(blocks[blk].simulation_type) << ";"
-             << endl
+             << '\n'
              << "M_.block_structure_stat.block(" << blk + 1 << ").endo_nbr = " << blocks[blk].size
-             << ";" << endl
+             << ";" << '\n'
              << "M_.block_structure_stat.block(" << blk + 1 << ").mfs = " << blocks[blk].mfs_size
-             << ";" << endl
+             << ";" << '\n'
              << "M_.block_structure_stat.block(" << blk + 1 << ").equation = [";
       for (int eq = 0; eq < blocks[blk].size; eq++)
         output << " " << getBlockEquationID(blk, eq) + 1;
-      output << "];" << endl << "M_.block_structure_stat.block(" << blk + 1 << ").variable = [";
+      output << "];" << '\n' << "M_.block_structure_stat.block(" << blk + 1 << ").variable = [";
       for (int var = 0; var < blocks[blk].size; var++)
         output << " " << getBlockVariableID(blk, var) + 1;
-      output << "];" << endl;
+      output << "];" << '\n';
     }
   output << "M_.block_structure_stat.variable_reordered = [";
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
     output << " " << endo_idx_block2orig[i] + 1;
-  output << "];" << endl << "M_.block_structure_stat.equation_reordered = [";
+  output << "];" << '\n' << "M_.block_structure_stat.equation_reordered = [";
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
     output << " " << eq_idx_block2orig[i] + 1;
-  output << "];" << endl;
+  output << "];" << '\n';
 
   set<pair<int, int>> row_incidence;
   for (const auto& [indices, d1] : derivatives[1])
@@ -378,12 +380,12 @@ StaticModel::writeBlockDriverOutput(ostream& output) const
         int var {getTypeSpecificIDByDerivID(deriv_id)};
         row_incidence.emplace(eq, var);
       }
-  output << "M_.block_structure_stat.incidence.sparse_IM = [" << endl;
+  output << "M_.block_structure_stat.incidence.sparse_IM = [" << '\n';
   for (auto [eq, var] : row_incidence)
-    output << " " << eq + 1 << " " << var + 1 << ";" << endl;
-  output << "];" << endl
+    output << " " << eq + 1 << " " << var + 1 << ";" << '\n';
+  output << "];" << '\n'
          << "M_.block_structure_stat.tmp_nbr = " << blocks_temporary_terms_idxs.size() << ";"
-         << endl;
+         << '\n';
 
   writeBlockDriverSparseIndicesHelper<false>(output);
 }
@@ -522,7 +524,7 @@ StaticModel::writeAuxVarInitval(ostream& output, ExprNodeOutputType output_type)
   for (auto aux_equation : aux_equations)
     {
       dynamic_cast<ExprNode*>(aux_equation)->writeOutput(output, output_type);
-      output << ";" << endl;
+      output << ";" << '\n';
     }
 }
 
@@ -538,10 +540,10 @@ StaticModel::writeLatexAuxVarRecursiveDefinitions(ostream& output) const
                                                 temporary_terms, temporary_terms_idxs, tef_terms);
   for (auto aux_equation : aux_equations)
     {
-      output << R"(\begin{dmath})" << endl;
+      output << R"(\begin{dmath})" << '\n';
       dynamic_cast<ExprNode*>(aux_equation)
           ->writeOutput(output, ExprNodeOutputType::latexStaticModel);
-      output << endl << R"(\end{dmath})" << endl;
+      output << '\n' << R"(\end{dmath})" << '\n';
     }
 }
 
@@ -684,13 +686,13 @@ StaticModel::writeDriverRamseyMultipliersDerivativesSparseIndices(ostream& outpu
   output << "M_.ramsey_multipliers_static_g1_sparse_rowval = int32([";
   for (auto& [row_col, d] : ramsey_multipliers_derivatives)
     output << row_col.first + 1 << ' ';
-  output << "]);" << endl << "M_.ramsey_multipliers_static_g1_sparse_colval = int32([";
+  output << "]);" << '\n' << "M_.ramsey_multipliers_static_g1_sparse_colval = int32([";
   for (auto& [row_col, d] : ramsey_multipliers_derivatives)
     output << row_col.second + 1 << ' ';
-  output << "]);" << endl << "M_.ramsey_multipliers_static_g1_sparse_colptr = int32([";
+  output << "]);" << '\n' << "M_.ramsey_multipliers_static_g1_sparse_colptr = int32([";
   for (int it : ramsey_multipliers_derivatives_sparse_colptr)
     output << it + 1 << ' ';
-  output << "]);" << endl;
+  output << "]);" << '\n';
 }
 
 void
@@ -702,20 +704,20 @@ StaticModel::writeRamseyMultipliersDerivativesMFile(const string& basename,
   ofstream output_file {filename, ios::out | ios::binary};
   if (!output_file.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
       exit(EXIT_FAILURE);
     }
 
   output_file << "function g1m = ramsey_multipliers_static_g1(y, x, params, sparse_rowval, "
                  "sparse_colval, sparse_colptr)"
-              << endl
-              << "g1m_v=NaN(" << ramsey_multipliers_derivatives.size() << ",1);" << endl;
+              << '\n'
+              << "g1m_v=NaN(" << ramsey_multipliers_derivatives.size() << ",1);" << '\n';
 
   writeRamseyMultipliersDerivativesHelper<output_type>(output_file);
 
   output_file << "g1m = sparse(sparse_rowval, sparse_colval, g1m_v, " << ramsey_orig_endo_nbr
-              << ", " << symbol_table.getLagrangeMultipliers().size() << ");" << endl
-              << "end" << endl;
+              << ", " << symbol_table.getLagrangeMultipliers().size() << ");" << '\n'
+              << "end" << '\n';
   output_file.close();
 }
 
@@ -735,71 +737,71 @@ StaticModel::writeRamseyMultipliersDerivativesCFile(const string& basename, cons
   ofstream output {p, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << p.string() << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << p.string() << " for writing" << '\n';
       exit(EXIT_FAILURE);
     }
 
-  output << "#include <math.h>" << endl
-         << endl
-         << R"(#include "mex.h")" << endl // Needed for calls to external functions
-         << endl;
+  output << "#include <math.h>" << '\n'
+         << '\n'
+         << R"(#include "mex.h")" << '\n' // Needed for calls to external functions
+         << '\n';
   writeCHelpersDefinition(output);
   writeCHelpersDeclaration(output); // Provide external definition of helpers
-  output << endl
+  output << '\n'
          << "void ramsey_multipliers_static_g1(const double *restrict y, const double *restrict x, "
             "const double *restrict params, double *restrict T, double *restrict g1m_v)"
-         << endl
-         << "{" << endl;
+         << '\n'
+         << "{" << '\n';
   writeRamseyMultipliersDerivativesHelper<output_type>(output);
   output
-      << "}" << endl
-      << endl
-      << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << endl
-      << "{" << endl
-      << "  if (nrhs != 6)" << endl
-      << R"(    mexErrMsgTxt("Accepts exactly 6 input arguments");)" << endl
-      << "  if (nlhs != 1)" << endl
-      << R"(    mexErrMsgTxt("Accepts exactly 1 output argument");)" << endl
+      << "}" << '\n'
+      << '\n'
+      << "void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])" << '\n'
+      << "{" << '\n'
+      << "  if (nrhs != 6)" << '\n'
+      << R"(    mexErrMsgTxt("Accepts exactly 6 input arguments");)" << '\n'
+      << "  if (nlhs != 1)" << '\n'
+      << R"(    mexErrMsgTxt("Accepts exactly 1 output argument");)" << '\n'
       << "  if (!(mxIsDouble(prhs[0]) && !mxIsComplex(prhs[0]) && !mxIsSparse(prhs[0]) && "
          "mxGetNumberOfElements(prhs[0]) == "
-      << symbol_table.endo_nbr() << "))" << endl
+      << symbol_table.endo_nbr() << "))" << '\n'
       << R"(    mexErrMsgTxt("y must be a real dense numeric array with )"
-      << symbol_table.endo_nbr() << R"( elements");)" << endl
-      << "  const double *restrict y = mxGetDoubles(prhs[0]);" << endl
+      << symbol_table.endo_nbr() << R"( elements");)" << '\n'
+      << "  const double *restrict y = mxGetDoubles(prhs[0]);" << '\n'
       << "  if (!(mxIsDouble(prhs[1]) && !mxIsComplex(prhs[1]) && !mxIsSparse(prhs[1]) && "
          "mxGetNumberOfElements(prhs[1]) == "
-      << xlen << "))" << endl
+      << xlen << "))" << '\n'
       << R"(    mexErrMsgTxt("x must be a real dense numeric array with )" << xlen
-      << R"( elements");)" << endl
-      << "  const double *restrict x = mxGetDoubles(prhs[1]);" << endl
+      << R"( elements");)" << '\n'
+      << "  const double *restrict x = mxGetDoubles(prhs[1]);" << '\n'
       << "  if (!(mxIsDouble(prhs[2]) && !mxIsComplex(prhs[2]) && !mxIsSparse(prhs[2]) && "
          "mxGetNumberOfElements(prhs[2]) == "
-      << symbol_table.param_nbr() << "))" << endl
+      << symbol_table.param_nbr() << "))" << '\n'
       << R"(    mexErrMsgTxt("params must be a real dense numeric array with )"
-      << symbol_table.param_nbr() << R"( elements");)" << endl
-      << "  const double *restrict params = mxGetDoubles(prhs[2]);" << endl
-      << "  if (!(mxIsInt32(prhs[3]) && mxGetNumberOfElements(prhs[3]) == " << nzval << "))" << endl
+      << symbol_table.param_nbr() << R"( elements");)" << '\n'
+      << "  const double *restrict params = mxGetDoubles(prhs[2]);" << '\n'
+      << "  if (!(mxIsInt32(prhs[3]) && mxGetNumberOfElements(prhs[3]) == " << nzval << "))" << '\n'
       << R"(    mexErrMsgTxt("sparse_rowval must be an int32 array with )" << nzval
-      << R"( elements");)" << endl
+      << R"( elements");)" << '\n'
       << "  if (!(mxIsInt32(prhs[5]) && mxGetNumberOfElements(prhs[5]) == " << ncols + 1 << "))"
-      << endl
+      << '\n'
       << R"(    mexErrMsgTxt("sparse_colptr must be an int32 array with )" << ncols + 1
-      << R"( elements");)" << endl
-      << "  const int32_T *restrict sparse_rowval = mxGetInt32s(prhs[3]);" << endl
-      << "  const int32_T *restrict sparse_colptr = mxGetInt32s(prhs[5]);" << endl
+      << R"( elements");)" << '\n'
+      << "  const int32_T *restrict sparse_rowval = mxGetInt32s(prhs[3]);" << '\n'
+      << "  const int32_T *restrict sparse_colptr = mxGetInt32s(prhs[5]);" << '\n'
       << "  plhs[0] = mxCreateSparse(" << ramsey_orig_endo_nbr << ", " << ncols << ", " << nzval
-      << ", mxREAL);" << endl
-      << "  mwIndex *restrict ir = mxGetIr(plhs[0]), *restrict jc = mxGetJc(plhs[0]);" << endl
-      << "  for (mwSize i = 0; i < " << nzval << "; i++)" << endl
-      << "    *ir++ = *sparse_rowval++ - 1;" << endl
-      << "  for (mwSize i = 0; i < " << ncols + 1 << "; i++)" << endl
-      << "    *jc++ = *sparse_colptr++ - 1;" << endl
+      << ", mxREAL);" << '\n'
+      << "  mwIndex *restrict ir = mxGetIr(plhs[0]), *restrict jc = mxGetJc(plhs[0]);" << '\n'
+      << "  for (mwSize i = 0; i < " << nzval << "; i++)" << '\n'
+      << "    *ir++ = *sparse_rowval++ - 1;" << '\n'
+      << "  for (mwSize i = 0; i < " << ncols + 1 << "; i++)" << '\n'
+      << "    *jc++ = *sparse_colptr++ - 1;" << '\n'
       << "  mxArray *T_mx = mxCreateDoubleMatrix("
-      << ramsey_multipliers_derivatives_temporary_terms.size() << ", 1, mxREAL);" << endl
+      << ramsey_multipliers_derivatives_temporary_terms.size() << ", 1, mxREAL);" << '\n'
       << "  ramsey_multipliers_static_g1(y, x, params, mxGetDoubles(T_mx), mxGetDoubles(plhs[0]));"
-      << endl
-      << "  mxDestroyArray(T_mx);" << endl
-      << "}" << endl;
+      << '\n'
+      << "  mxDestroyArray(T_mx);" << '\n'
+      << "}" << '\n';
 
   output.close();
 

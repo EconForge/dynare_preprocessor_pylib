@@ -1,5 +1,5 @@
 /*
- * Copyright © 2024 Dynare Team
+ * Copyright © 2024-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -115,13 +115,13 @@ HeterogeneityTable::writeOutput(ostream& output) const
 {
   for (size_t id {0}; id < id_to_name.size(); id++)
     output << "M_.heterogeneity(" << id + 1 << ").dimension_name = '" << id_to_name[id] << "';"
-           << endl;
+           << '\n';
 
-  output << "M_.heterogeneity_aggregates = {" << endl;
+  output << "M_.heterogeneity_aggregates = {" << '\n';
   for (int symb_id : index_to_summed_het_endo)
     output << "'sum', " << symbol_table->getHeterogeneityDimension(symb_id) + 1 << ", "
-           << symbol_table->getTypeSpecificID(symb_id) + 1 << ";" << endl;
-  output << "};" << endl;
+           << symbol_table->getTypeSpecificID(symb_id) + 1 << ";" << '\n';
+  output << "};" << '\n';
 }
 
 void
@@ -135,5 +135,5 @@ HeterogeneityTable::writeJsonOutput(ostream& output) const
         output << ", ";
       output << '"' << dim << '"';
     }
-  output << "]" << endl;
+  output << "]" << '\n';
 }

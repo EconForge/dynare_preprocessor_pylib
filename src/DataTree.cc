@@ -150,7 +150,7 @@ DataTree::AddVariable(int symb_id, int lag)
 {
   if (lag != 0 && !is_dynamic)
     {
-      cerr << "Leads/lags not authorized in this DataTree" << endl;
+      cerr << "Leads/lags not authorized in this DataTree" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -171,7 +171,7 @@ DataTree::getVariable(int symb_id, int lag) const
   if (it == variable_node_map.end())
     {
       cerr << "DataTree::getVariable: unknown variable node for symb_id=" << symb_id
-           << " and lag=" << lag << endl;
+           << " and lag=" << lag << '\n';
       exit(EXIT_FAILURE);
     }
   return it->second;
@@ -446,7 +446,7 @@ DataTree::AddLog(expr_t iArg1)
 
   if (iArg1 == Zero)
     {
-      cerr << "ERROR: log(0) not defined!" << endl;
+      cerr << "ERROR: log(0) not defined!" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -466,7 +466,7 @@ DataTree::AddLog10(expr_t iArg1)
 
   if (iArg1 == Zero)
     {
-      cerr << "ERROR: log10(0) not defined!" << endl;
+      cerr << "ERROR: log10(0) not defined!" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -928,36 +928,36 @@ void
 DataTree::writeCHelpersDefinition(ostream& output) const
 {
   if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
-    output << "// The k-th derivative of x^p" << endl
-           << "inline double" << endl
-           << "getPowerDeriv(double x, double p, int k)" << endl
-           << "{" << endl
+    output << "// The k-th derivative of x^p" << '\n'
+           << "inline double" << '\n'
+           << "getPowerDeriv(double x, double p, int k)" << '\n'
+           << "{" << '\n'
            << "  if (fabs(x) < " << power_deriv_near_zero
            << " && p >= 0 && k > p && fabs(p-nearbyint(p)) < " << power_deriv_near_zero << ')'
-           << endl
-           << "    return 0.0;" << endl
-           << "  else" << endl
-           << "    {" << endl
-           << "      double dxp = pow(x, p-k);" << endl
-           << "      for (int i = 0; i<k; i++)" << endl
-           << "        dxp *= p--;" << endl
-           << "      return dxp;" << endl
-           << "    }" << endl
-           << "}" << endl;
+           << '\n'
+           << "    return 0.0;" << '\n'
+           << "  else" << '\n'
+           << "    {" << '\n'
+           << "      double dxp = pow(x, p-k);" << '\n'
+           << "      for (int i = 0; i<k; i++)" << '\n'
+           << "        dxp *= p--;" << '\n'
+           << "      return dxp;" << '\n'
+           << "    }" << '\n'
+           << "}" << '\n';
 
   if (isUnaryOpUsed(UnaryOpcode::sign))
-    output << "inline double" << endl
-           << "sign(double x)" << endl
-           << "{" << endl
-           << "  return (x > 0) ? 1 : ((x < 0) ? -1 : 0);" << endl
-           << "}" << endl;
+    output << "inline double" << '\n'
+           << "sign(double x)" << '\n'
+           << "{" << '\n'
+           << "  return (x > 0) ? 1 : ((x < 0) ? -1 : 0);" << '\n'
+           << "}" << '\n';
 }
 
 void
 DataTree::writeCHelpersDeclaration(ostream& output) const
 {
   if (isBinaryOpUsed(BinaryOpcode::powerDeriv))
-    output << "extern inline double getPowerDeriv(double x, double p, int k);" << endl;
+    output << "extern inline double getPowerDeriv(double x, double p, int k);" << '\n';
   if (isUnaryOpUsed(UnaryOpcode::sign))
-    output << "extern inline double sign(double x);" << endl;
+    output << "extern inline double sign(double x);" << '\n';
 }

@@ -106,7 +106,7 @@ ParsingDriver::parse(istream& in, bool debug)
 void
 ParsingDriver::error(const Dynare::parser::location_type& l, const string& m)
 {
-  cerr << "ERROR: " << l << ": " << m << endl;
+  cerr << "ERROR: " << l << ": " << m << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -131,7 +131,7 @@ ParsingDriver::undeclared_model_variable_error(const string& m, const string& va
 void
 ParsingDriver::warning(const string& m)
 {
-  warnings << "WARNING: " << location << ": " << m << endl;
+  warnings << "WARNING: " << location << ": " << m << '\n';
 }
 
 int
@@ -1053,7 +1053,7 @@ ParsingDriver::end_model()
         else
           {
             exit_after_write = true;
-            cerr << it.second << endl;
+            cerr << it.second << '\n';
           }
       }
   undeclared_model_variable_errors.clear();
@@ -2610,7 +2610,7 @@ ParsingDriver::end_planner_objective(expr_t expr)
         else
           {
             exit_after_write = true;
-            cerr << it.second << endl;
+            cerr << it.second << '\n';
           }
       }
   undeclared_model_variable_errors.clear();
@@ -3666,7 +3666,7 @@ ParsingDriver::external_function(const map<string, string>& options)
       external_function_options.nargs = stoi(value);
     else
       {
-        std::cerr << "ParsingDriver::external_function_option(): unexpected error" << std::endl;
+        std::cerr << "ParsingDriver::external_function_option(): unexpected error" << '\n';
         exit(EXIT_FAILURE);
       }
 

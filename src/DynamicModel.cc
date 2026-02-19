@@ -220,7 +220,7 @@ DynamicModel::writeDynamicBlockBytecode(const string& basename) const
   ofstream bin_file {bin_filename, ios::out | ios::binary};
   if (!bin_file.is_open())
     {
-      cerr << R"(Error : Can't open file ")" << bin_filename.string() << R"(" for writing)" << endl;
+      cerr << R"(Error : Can't open file ")" << bin_filename.string() << R"(" for writing)" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -306,7 +306,7 @@ DynamicModel::parseIncludeExcludeEquations(const string& inc_exc_option_value, b
       exclude_file.open(inc_exc_option_value, ifstream::in);
       if (!exclude_file.is_open())
         {
-          cerr << "ERROR: Could not open " << inc_exc_option_value << endl;
+          cerr << "ERROR: Could not open " << inc_exc_option_value << '\n';
           exit(EXIT_FAILURE);
         }
 
@@ -343,7 +343,7 @@ DynamicModel::parseIncludeExcludeEquations(const string& inc_exc_option_value, b
   if (tags.front() == '[' && tags.back() != ']')
     {
       cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
-           << ": if the first character is '[' the last must be ']'" << endl;
+           << ": if the first character is '[' the last must be ']'" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -375,7 +375,7 @@ DynamicModel::parseIncludeExcludeEquations(const string& inc_exc_option_value, b
   if (!regex_match(tags, r))
     {
       cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
-           << ": argument is of incorrect format." << endl;
+           << ": argument is of incorrect format." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -451,7 +451,7 @@ DynamicModel::removeEquationsHelper(
                     cerr << "ERROR: Equation " << i + 1
                          << " has been excluded but it does not have a single variable on its "
                             "left-hand side or an `endogenous` tag"
-                         << endl;
+                         << '\n';
                     exit(EXIT_FAILURE);
                   }
               }
@@ -480,14 +480,14 @@ DynamicModel::removeEquationsHelper(
             cerr << "ERROR: Variable " << symbol_table.getName(i) << " was excluded twice"
                  << " via a model_remove or model_replace statement, or via the include_eqs or "
                     "exclude_eqs option"
-                 << endl;
+                 << '\n';
             exit(EXIT_FAILURE);
           }
 
   cout << "Excluded " << n_excl << (static_equations ? " static " : " dynamic ") << "equation"
        << (n_excl > 1 ? "s" : "")
        << " via model_remove or model_replace statement, or via include_eqs or exclude_eqs option"
-       << endl;
+       << '\n';
 
   return excluded_vars;
 }
@@ -513,7 +513,7 @@ DynamicModel::removeEquations(const vector<map<string, string>>& listed_eqs_by_t
     {
       cerr
           << "ERROR: model_remove/model_replace/exclude_eqs/include_eqs: The equations specified by"
-          << endl;
+          << '\n';
       for (const auto& m : listed_eqs_by_tag)
         {
           cerr << " ";
@@ -528,9 +528,9 @@ DynamicModel::removeEquations(const vector<map<string, string>>& listed_eqs_by_t
             }
           if (m.size() > 1)
             cerr << " ]";
-          cerr << endl;
+          cerr << '\n';
         }
-      cerr << "were not found." << endl;
+      cerr << "were not found." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -553,7 +553,7 @@ DynamicModel::removeEquations(const vector<map<string, string>>& listed_eqs_by_t
             cerr << "Variable '" << symbol_table.getName(ev)
                  << "' turned into an exogenous, as its defining equation has been removed (but it "
                     "still appears in an equation)"
-                 << endl;
+                 << '\n';
           }
         else
           {
@@ -561,7 +561,7 @@ DynamicModel::removeEquations(const vector<map<string, string>>& listed_eqs_by_t
             cerr << "Variable '" << symbol_table.getName(ev)
                  << "' has been excluded from the model, as its defining equation has been removed "
                     "and it appears nowhere else"
-                 << endl;
+                 << '\n';
           }
     }
 }
@@ -583,7 +583,7 @@ DynamicModel::includeExcludeEquations(const string& inc_exc_option_value, bool e
     {
       cerr << "ERROR: exclude_eqs/include_eqs: You must remove the same number of equations marked "
               "`static` as equations marked `dynamic`."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -592,27 +592,27 @@ void
 DynamicModel::writeBlockDriverOutput(ostream& output) const
 {
   output << "M_.block_structure.time_recursive = " << boolalpha
-         << time_recursive_block_decomposition << ";" << endl;
+         << time_recursive_block_decomposition << ";" << '\n';
 
   for (int blk = 0; blk < static_cast<int>(blocks.size()); blk++)
     {
       int block_size = blocks[blk].size;
       output << "M_.block_structure.block(" << blk + 1
              << ").Simulation_Type = " << static_cast<int>(blocks[blk].simulation_type) << ";"
-             << endl
+             << '\n'
              << "M_.block_structure.block(" << blk + 1 << ").endo_nbr = " << block_size << ";"
-             << endl
+             << '\n'
              << "M_.block_structure.block(" << blk + 1 << ").mfs = " << blocks[blk].mfs_size << ";"
-             << endl
+             << '\n'
              << "M_.block_structure.block(" << blk + 1 << ").equation = [";
       for (int eq = 0; eq < block_size; eq++)
         output << " " << getBlockEquationID(blk, eq) + 1;
-      output << "];" << endl << "M_.block_structure.block(" << blk + 1 << ").variable = [";
+      output << "];" << '\n' << "M_.block_structure.block(" << blk + 1 << ").variable = [";
       for (int var = 0; var < block_size; var++)
         output << " " << getBlockVariableID(blk, var) + 1;
-      output << "];" << endl
+      output << "];" << '\n'
              << "M_.block_structure.block(" << blk + 1 << ").is_linear = " << boolalpha
-             << blocks[blk].linear << ';' << endl
+             << blocks[blk].linear << ';' << '\n'
              << "M_.block_structure.block(" << blk + 1 << ").bytecode_jacob_cols_to_sparse = [";
       const bool one_boundary {
           blocks[blk].simulation_type == BlockSimulationType::solveBackwardSimple
@@ -642,7 +642,7 @@ DynamicModel::writeBlockDriverOutput(ostream& output) const
         }
       for (int i : bytecode_jacob_cols_to_sparse)
         output << i + 1 << " ";
-      output << "];" << endl;
+      output << "];" << '\n';
     }
 
   writeBlockDriverSparseIndicesHelper<true>(output);
@@ -650,10 +650,10 @@ DynamicModel::writeBlockDriverOutput(ostream& output) const
   output << "M_.block_structure.variable_reordered = [";
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
     output << " " << endo_idx_block2orig[i] + 1;
-  output << "];" << endl << "M_.block_structure.equation_reordered = [";
+  output << "];" << '\n' << "M_.block_structure.equation_reordered = [";
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
     output << " " << eq_idx_block2orig[i] + 1;
-  output << "];" << endl;
+  output << "];" << '\n';
 
   map<int, set<pair<int, int>>> lag_row_incidence;
   for (const auto& [indices, d1] : derivatives[1])
@@ -667,15 +667,15 @@ DynamicModel::writeBlockDriverOutput(ostream& output) const
   for (const auto& [lag, eq_var_set] : lag_row_incidence)
     {
       output << "M_.block_structure.incidence(" << max_endo_lag + lag + 1 << ").lead_lag = " << lag
-             << ";" << endl
+             << ";" << '\n'
              << "M_.block_structure.incidence(" << max_endo_lag + lag + 1 << ").sparse_IM = ["
-             << endl;
+             << '\n';
       for (auto [eq, var] : eq_var_set)
-        output << " " << eq + 1 << " " << var + 1 << ";" << endl;
-      output << "];" << endl;
+        output << " " << eq + 1 << " " << var + 1 << ";" << '\n';
+      output << "];" << '\n';
     }
   output << "M_.block_structure.dyn_tmp_nbr = " << blocks_temporary_terms_idxs.size() << ';'
-         << endl;
+         << '\n';
 }
 
 void
@@ -690,22 +690,22 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
      model at a given period.
   */
 
-  output << "M_.orig_maximum_endo_lag = " << max_endo_lag_orig << ";" << endl
-         << "M_.orig_maximum_endo_lead = " << max_endo_lead_orig << ";" << endl
-         << "M_.orig_maximum_exo_lag = " << max_exo_lag_orig << ";" << endl
-         << "M_.orig_maximum_exo_lead = " << max_exo_lead_orig << ";" << endl
-         << "M_.orig_maximum_exo_det_lag = " << max_exo_det_lag_orig << ";" << endl
-         << "M_.orig_maximum_exo_det_lead = " << max_exo_det_lead_orig << ";" << endl
-         << "M_.orig_maximum_lag = " << max_lag_orig << ";" << endl
-         << "M_.orig_maximum_lead = " << max_lead_orig << ";" << endl
+  output << "M_.orig_maximum_endo_lag = " << max_endo_lag_orig << ";" << '\n'
+         << "M_.orig_maximum_endo_lead = " << max_endo_lead_orig << ";" << '\n'
+         << "M_.orig_maximum_exo_lag = " << max_exo_lag_orig << ";" << '\n'
+         << "M_.orig_maximum_exo_lead = " << max_exo_lead_orig << ";" << '\n'
+         << "M_.orig_maximum_exo_det_lag = " << max_exo_det_lag_orig << ";" << '\n'
+         << "M_.orig_maximum_exo_det_lead = " << max_exo_det_lead_orig << ";" << '\n'
+         << "M_.orig_maximum_lag = " << max_lag_orig << ";" << '\n'
+         << "M_.orig_maximum_lead = " << max_lead_orig << ";" << '\n'
          << "M_.orig_maximum_lag_with_diffs_expanded = " << max_lag_with_diffs_expanded_orig << ";"
-         << endl
+         << '\n'
          << "M_.lead_lag_incidence = [";
   // Loop on endogenous variables
   int nstatic = 0, nfwrd = 0, npred = 0, nboth = 0;
   for (int endoID = 0; endoID < symbol_table.endo_nbr(); endoID++)
     {
-      output << endl;
+      output << '\n';
       int sstatic = 1, sfwrd = 0, spred = 0, sboth = 0;
       // Loop on periods
       for (int lag = -max_endo_lag; lag <= max_endo_lead; lag++)
@@ -745,18 +745,18 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
       nboth += sboth;
       output << ";";
     }
-  output << "]';" << endl
-         << "M_.nstatic = " << nstatic << ";" << endl
-         << "M_.nfwrd   = " << nfwrd << ";" << endl
-         << "M_.npred   = " << npred << ";" << endl
-         << "M_.nboth   = " << nboth << ";" << endl
-         << "M_.nsfwrd   = " << nfwrd + nboth << ";" << endl
-         << "M_.nspred   = " << npred + nboth << ";" << endl
-         << "M_.ndynamic   = " << npred + nboth + nfwrd << ";" << endl
+  output << "]';" << '\n'
+         << "M_.nstatic = " << nstatic << ";" << '\n'
+         << "M_.nfwrd   = " << nfwrd << ";" << '\n'
+         << "M_.npred   = " << npred << ";" << '\n'
+         << "M_.nboth   = " << nboth << ";" << '\n'
+         << "M_.nsfwrd   = " << nfwrd + nboth << ";" << '\n'
+         << "M_.nspred   = " << npred + nboth << ";" << '\n'
+         << "M_.ndynamic   = " << npred + nboth + nfwrd << ";" << '\n'
          << "M_.dynamic_tmp_nbr = [";
   for (const auto& tts : temporary_terms_derivatives)
     output << tts.size() << "; ";
-  output << "];" << endl;
+  output << "];" << '\n';
 
   // Write equation tags
   equation_tags.writeOutput(output);
@@ -767,49 +767,49 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
       output << "M_.mapping." << symbol_table.getName(variable.first) << ".eqidx = [";
       for (auto equation : variable.second)
         output << equation + 1 << " ";
-      output << "];" << endl;
+      output << "];" << '\n';
     }
 
   /* Say if static and dynamic models differ (because of [static] and [dynamic]
      equation tags) */
   output << "M_.static_and_dynamic_models_differ = " << boolalpha
-         << (static_only_equations.size() > 0) << ";" << endl;
+         << (static_only_equations.size() > 0) << ";" << '\n';
 
   // Say if model contains an external function call
   output << "M_.has_external_function = " << boolalpha
-         << ranges::any_of(equations, &ExprNode::containsExternalFunction) << ';' << endl;
+         << ranges::any_of(equations, &ExprNode::containsExternalFunction) << ';' << '\n';
 
   // Write the block structure of the model
   if (block_decomposed)
     writeBlockDriverOutput(output);
 
   // Writing initialization for some other variables
-  output << "M_.maximum_lag = " << max_lag << ";" << endl
-         << "M_.maximum_lead = " << max_lead << ";" << endl;
+  output << "M_.maximum_lag = " << max_lag << ";" << '\n'
+         << "M_.maximum_lead = " << max_lead << ";" << '\n';
 
-  output << "M_.maximum_endo_lag = " << max_endo_lag << ";" << endl
-         << "M_.maximum_endo_lead = " << max_endo_lead << ";" << endl
-         << "oo_.steady_state = zeros(" << symbol_table.endo_nbr() << ", 1);" << endl;
+  output << "M_.maximum_endo_lag = " << max_endo_lag << ";" << '\n'
+         << "M_.maximum_endo_lead = " << max_endo_lead << ";" << '\n'
+         << "oo_.steady_state = zeros(" << symbol_table.endo_nbr() << ", 1);" << '\n';
 
-  output << "M_.maximum_exo_lag = " << max_exo_lag << ";" << endl
-         << "M_.maximum_exo_lead = " << max_exo_lead << ";" << endl
-         << "oo_.exo_steady_state = zeros(" << symbol_table.exo_nbr() << ", 1);" << endl;
+  output << "M_.maximum_exo_lag = " << max_exo_lag << ";" << '\n'
+         << "M_.maximum_exo_lead = " << max_exo_lead << ";" << '\n'
+         << "oo_.exo_steady_state = zeros(" << symbol_table.exo_nbr() << ", 1);" << '\n';
 
   if (symbol_table.exo_det_nbr())
     {
-      output << "M_.maximum_exo_det_lag = " << max_exo_det_lag << ";" << endl
-             << "M_.maximum_exo_det_lead = " << max_exo_det_lead << ";" << endl
+      output << "M_.maximum_exo_det_lag = " << max_exo_det_lag << ";" << '\n'
+             << "M_.maximum_exo_det_lead = " << max_exo_det_lead << ";" << '\n'
              << "oo_.exo_det_steady_state = zeros(" << symbol_table.exo_det_nbr() << ", 1);"
-             << endl;
+             << '\n';
     }
 
   output << "M_.params = "
-         << "NaN(" << symbol_table.param_nbr() << ", 1);" << endl;
+         << "NaN(" << symbol_table.param_nbr() << ", 1);" << '\n';
 
   string empty_cell = "cell(" + to_string(symbol_table.endo_nbr()) + ", 1)";
   output << "M_.endo_trends = struct('deflator', " << empty_cell << ", 'log_deflator', "
          << empty_cell << ", 'growth_factor', " << empty_cell << ", 'log_growth_factor', "
-         << empty_cell << ");" << endl;
+         << empty_cell << ");" << '\n';
   for (int i = 0; i < symbol_table.endo_nbr(); i++)
     {
       int symb_id = symbol_table.getID(SymbolType::endogenous, i);
@@ -819,7 +819,7 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
           output << "M_.endo_trends(" << i + 1 << ")." << (is_log ? "log_deflator" : "deflator")
                  << " = '";
           deflator->writeJsonOutput(output, {}, {});
-          output << "';" << endl;
+          output << "';" << '\n';
 
           auto growth_factor = const_cast<DynamicModel*>(this)
                                    ->AddDivide(deflator, deflator->decreaseLeadsLags(1))
@@ -828,7 +828,7 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
           output << "M_.endo_trends(" << i + 1 << ")."
                  << (is_log ? "log_growth_factor" : "growth_factor") << " = '";
           growth_factor->writeJsonOutput(output, {}, {});
-          output << "';" << endl;
+          output << "';" << '\n';
         }
     }
 
@@ -838,19 +838,19 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
   writeDriverSparseIndicesHelper("dynamic", output);
 
   // Write LHS of each equation in text form
-  output << "M_.lhs = {" << endl;
+  output << "M_.lhs = {" << '\n';
   for (auto eq : equations)
     {
       output << "'";
       eq->arg1->writeJsonOutput(output, {}, {});
-      output << "'; " << endl;
+      output << "'; " << '\n';
     }
-  output << "};" << endl;
+  output << "};" << '\n';
 
   output << "M_.dynamic_mcp_equations_reordering = [";
   for (auto i : mcp_equations_reordering)
     output << i + 1 << "; ";
-  output << "];" << endl;
+  output << "];" << '\n';
 }
 
 void
@@ -924,7 +924,7 @@ DynamicModel::updateVarAndTrendModel() const
                         {
                           cerr << "ERROR: trend found in trend_component equation #" << eqn << " ("
                                << symbol_table.getName(*trend_var_symb_id)
-                               << ") does not correspond to a trend equation" << endl;
+                               << ") does not correspond to a trend equation" << '\n';
                           exit(EXIT_FAILURE);
                         }
                     }
@@ -966,7 +966,7 @@ DynamicModel::fillVarModelTable() const
           optional<int> eqn {equation_tags.getEqnByTag("name", eqtag)};
           if (!eqn)
             {
-              cerr << "ERROR: no equation is named '" << eqtag << "'" << endl;
+              cerr << "ERROR: no equation is named '" << eqtag << "'" << '\n';
               exit(EXIT_FAILURE);
             }
 
@@ -977,7 +977,7 @@ DynamicModel::fillVarModelTable() const
           if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
             {
               cerr << "ERROR: in Equation " << eqtag
-                   << ". A VAR may only have one endogenous variable on the LHS. " << endl;
+                   << ". A VAR may only have one endogenous variable on the LHS. " << '\n';
               exit(EXIT_FAILURE);
             }
 
@@ -986,7 +986,7 @@ DynamicModel::fillVarModelTable() const
             {
               cerr << "ERROR: in Equation " << eqtag
                    << ". The variable on the LHS of a VAR may not appear with a lead or a lag. "
-                   << endl;
+                   << '\n';
               exit(EXIT_FAILURE);
             }
 
@@ -1033,7 +1033,7 @@ DynamicModel::fillVarModelTableFromOrigModel() const
               {
                 cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
                      << ". A VAR model may not have leaded endogenous variables on the RHS. "
-                     << endl;
+                     << '\n';
                 exit(EXIT_FAILURE);
               }
             else if (!var_model_table.getStructural().at(model_name) && lag == 0)
@@ -1041,7 +1041,7 @@ DynamicModel::fillVarModelTableFromOrigModel() const
                 cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
                      << ". A non-structural VAR model may not have contemporaneous endogenous "
                         "variables on the RHS. "
-                     << endl;
+                     << '\n';
                 exit(EXIT_FAILURE);
               }
 
@@ -1052,7 +1052,7 @@ DynamicModel::fillVarModelTableFromOrigModel() const
                 cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
                      << ". A VAR model may not have lagged or leaded exogenous variables on the "
                         "RHS. "
-                     << endl;
+                     << '\n';
                 exit(EXIT_FAILURE);
               }
 
@@ -1068,7 +1068,7 @@ DynamicModel::fillVarModelTableFromOrigModel() const
               if (diff_set.size() != 1)
                 {
                   cerr << "ERROR: problem getting variable for LHS diff operator in equation "
-                       << eqn << endl;
+                       << eqn << '\n';
                   exit(EXIT_FAILURE);
                 }
               orig_diff_var_vec.emplace_back(diff_set.begin()->first);
@@ -1079,7 +1079,7 @@ DynamicModel::fillVarModelTableFromOrigModel() const
 
       if (eqns.size() != lhs.size())
         {
-          cerr << "ERROR: The LHS variables of the VAR model are not unique" << endl;
+          cerr << "ERROR: The LHS variables of the VAR model are not unique" << '\n';
           exit(EXIT_FAILURE);
         }
 
@@ -1181,7 +1181,7 @@ DynamicModel::fillVarModelTableMatrices()
                           cerr << "ERROR: Equation "
                                << equation_tags.getTagValueByEqnAndKey(eqns[i], "name")
                                       .value_or(to_string(eqns[i] + 1))
-                               << " is not linear" << endl;
+                               << " is not linear" << '\n';
                           exit(EXIT_FAILURE);
                         }
 
@@ -1202,7 +1202,7 @@ DynamicModel::fillVarModelTableMatrices()
                       cerr << "ERROR: Equation "
                            << equation_tags.getTagValueByEqnAndKey(eqns[i], "name")
                                   .value_or(to_string(eqns[i] + 1))
-                           << " is not linear" << endl;
+                           << " is not linear" << '\n';
                       exit(EXIT_FAILURE);
                     }
 
@@ -1266,7 +1266,7 @@ DynamicModel::fillTrendComponentModelTable() const
           optional<int> eqn {equation_tags.getEqnByTag("name", eqtag)};
           if (!eqn)
             {
-              cerr << "ERROR: no equation is named '" << eqtag << "'" << endl;
+              cerr << "ERROR: no equation is named '" << eqtag << "'" << '\n';
               exit(EXIT_FAILURE);
             }
           trend_eqnumber.push_back(*eqn);
@@ -1286,7 +1286,7 @@ DynamicModel::fillTrendComponentModelTable() const
           optional<int> eqn {equation_tags.getEqnByTag("name", eqtag)};
           if (!eqn)
             {
-              cerr << "ERROR: no equation is named '" << eqtag << "'" << endl;
+              cerr << "ERROR: no equation is named '" << eqtag << "'" << '\n';
               exit(EXIT_FAILURE);
             }
 
@@ -1298,7 +1298,7 @@ DynamicModel::fillTrendComponentModelTable() const
             {
               cerr << "ERROR: in Equation " << eqtag
                    << ". A trend component model may only have one endogenous variable on the LHS. "
-                   << endl;
+                   << '\n';
               exit(EXIT_FAILURE);
             }
 
@@ -1308,7 +1308,7 @@ DynamicModel::fillTrendComponentModelTable() const
               cerr << "ERROR: in Equation " << eqtag
                    << ". The variable on the LHS of a trend component model may not appear with a "
                       "lead or a lag. "
-                   << endl;
+                   << '\n';
               exit(EXIT_FAILURE);
             }
 
@@ -1386,7 +1386,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
                 cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
                      << ". A trend component model may not have leaded or contemporaneous "
                         "endogenous variables on the RHS. "
-                     << endl;
+                     << '\n';
                 exit(EXIT_FAILURE);
               }
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::exogenous, rhs_exo_set);
@@ -1396,7 +1396,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
                 cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
                      << ". A trend component model may not have lagged or leaded exogenous "
                         "variables on the RHS. "
-                     << endl;
+                     << '\n';
                 exit(EXIT_FAILURE);
               }
 
@@ -1412,7 +1412,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
               if (diff_set.size() != 1)
                 {
                   cerr << "ERROR: problem getting variable for LHS diff operator in equation "
-                       << eqn << endl;
+                       << eqn << '\n';
                   exit(EXIT_FAILURE);
                 }
               orig_diff_var_vec.emplace_back(diff_set.begin()->first);
@@ -1423,7 +1423,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
 
       if (eqns.size() != lhs.size())
         {
-          cerr << "ERROR: The LHS variables of the trend component model are not unique" << endl;
+          cerr << "ERROR: The LHS variables of the trend component model are not unique" << '\n';
           exit(EXIT_FAILURE);
         }
 
@@ -1472,7 +1472,7 @@ DynamicModel::getUndiffLHSForPac(const string& aux_model_name,
 
       if (eqnumber[i] != eqn)
         {
-          cerr << "ERROR: equation " << eqn << " not found in VAR" << endl;
+          cerr << "ERROR: equation " << eqn << " not found in VAR" << '\n';
           exit(EXIT_FAILURE);
         }
 
@@ -1480,7 +1480,7 @@ DynamicModel::getUndiffLHSForPac(const string& aux_model_name,
         {
           cerr << "ERROR: the variable on the LHS of equation #" << eqn
                << " does not have the diff operator applied to it yet you are trying to undiff it."
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
 
@@ -1495,7 +1495,7 @@ DynamicModel::getUndiffLHSForPac(const string& aux_model_name,
 
       if (!node)
         {
-          cerr << "Unexpected error encountered." << endl;
+          cerr << "Unexpected error encountered." << '\n';
           exit(EXIT_FAILURE);
         }
 
@@ -1525,7 +1525,7 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
         if (pac_eq_name.contains(name))
           {
             cerr << "It is not possible to use 'pac_expectation(" << name
-                 << ")' in several equations." << endl;
+                 << ")' in several equations." << '\n';
             exit(EXIT_FAILURE);
           }
         optional<string> eqn {
@@ -1534,7 +1534,7 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
           {
             cerr << "Every equation with a 'pac_expectation' operator must have been assigned an "
                     "equation tag name"
-                 << endl;
+                 << '\n';
             exit(EXIT_FAILURE);
           }
         pac_eq_name[name] = *eqn;
@@ -1556,7 +1556,7 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
         auto arg2 = dynamic_cast<BinaryOpNode*>(equation->arg2);
         if (!arg2)
           {
-            cerr << "Pac equation in incorrect format" << endl;
+            cerr << "Pac equation in incorrect format" << '\n';
             exit(EXIT_FAILURE);
           }
         auto [optim_share_index, optim_part, non_optim_part, additive_part]
@@ -1571,7 +1571,7 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
             auto bopn = dynamic_cast<BinaryOpNode*>(equation->arg2);
             if (!bopn)
               {
-                cerr << "Error in PAC equation" << endl;
+                cerr << "Error in PAC equation" << '\n';
                 exit(EXIT_FAILURE);
               }
             bopn->getPacAREC(lhs_symb_id, lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars,
@@ -1582,7 +1582,7 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
             auto bopn = dynamic_cast<BinaryOpNode*>(optim_part);
             if (!bopn)
               {
-                cerr << "Error in PAC equation" << endl;
+                cerr << "Error in PAC equation" << '\n';
                 exit(EXIT_FAILURE);
               }
             bopn->getPacAREC(lhs_symb_id, lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars,
@@ -1598,19 +1598,19 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
             catch (ExprNode::MatchFailureException& e)
               {
                 cerr << "Error in parsing non-optimizing agents or additive part of PAC equation: "
-                     << e.message << endl;
+                     << e.message << '\n';
                 exit(EXIT_FAILURE);
               }
           }
 
         if (lhs.first == -1)
           {
-            cerr << "analyzePacEquationStructure: error obtaining LHS variable." << endl;
+            cerr << "analyzePacEquationStructure: error obtaining LHS variable." << '\n';
             exit(EXIT_FAILURE);
           }
         if (ec_params_and_vars.second.empty())
           {
-            cerr << "analyzePacEquationStructure: error obtaining RHS parameters." << endl;
+            cerr << "analyzePacEquationStructure: error obtaining RHS parameters." << '\n';
             exit(EXIT_FAILURE);
           }
         pac_equation_info[name] = {lhs,
@@ -1625,7 +1625,7 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
   if (!pac_eq_name.contains(name))
     {
       cerr << "ERROR: the model does not contain the 'pac_expectation(" << name << ")' operator."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -1721,7 +1721,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(
         {
           cerr << "The variable/parameter '" << param_name
                << "' conflicts with a parameter that will be generated for the '" << name
-               << "' PAC model. Please rename it." << endl;
+               << "' PAC model. Please rename it." << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -1795,7 +1795,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(
   neqs++;
 
   cout << "PAC Model Consistent Expectation: added " << neqs
-       << " auxiliary variables and equations for model " << name << "." << endl;
+       << " auxiliary variables and equations for model " << name << "." << '\n';
 
   /* The growth correction term is not added to the definition of Z₁
      because the latter is recursive. Rather put it at the level of the
@@ -1819,7 +1819,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
       {
         cerr << "ERROR: the variable/parameter '" << param_name
              << "' conflicts with some auxiliary parameter that will be generated for the '" << name
-             << "' PAC model. Please rename that parameter." << endl;
+             << "' PAC model. Please rename that parameter." << '\n';
         exit(EXIT_FAILURE);
       }
   };
@@ -1847,7 +1847,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
         {
           cerr << "The variable/parameter '" << param_name
                << "' conflicts with a parameter that will be generated for the '" << name
-               << "' PAC model. Please rename it." << endl;
+               << "' PAC model. Please rename it." << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -1992,7 +1992,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
     }
 
   cout << "PAC Model Consistent Expectation: added " << neqs
-       << " auxiliary variables and equations for model " << name << "." << endl;
+       << " auxiliary variables and equations for model " << name << "." << '\n';
 
   /* The growth correction term is not added to the definition of Z₁
      because the latter is recursive. Rather put it at the level of the
@@ -2016,7 +2016,7 @@ DynamicModel::computePacBackwardExpectationSubstitution(
       {
         cerr << "ERROR: the variable/parameter '" << param_name
              << "' conflicts with some auxiliary parameter that will be generated for the '" << name
-             << "' PAC model. Please rename that parameter." << endl;
+             << "' PAC model. Please rename that parameter." << '\n';
         exit(EXIT_FAILURE);
       }
   };
@@ -2067,7 +2067,7 @@ DynamicModel::computePacBackwardExpectationSubstitutionWithComponents(
       {
         cerr << "ERROR: the variable/parameter '" << param_name
              << "' conflicts with some auxiliary parameter that will be generated for the '" << name
-             << "' PAC model. Please rename that parameter." << endl;
+             << "' PAC model. Please rename that parameter." << '\n';
         exit(EXIT_FAILURE);
       }
   };
@@ -2173,7 +2173,8 @@ DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder,
       vars.insert(deriv_id);
 
   // Launch computations
-  cout << "Computing " << modelClassName() << " derivatives (order " << derivsOrder << ")." << endl;
+  cout << "Computing " << modelClassName() << " derivatives (order " << derivsOrder << ")." << '\n'
+       << flush;
 
   computeDerivatives(derivsOrder, vars);
 
@@ -2184,7 +2185,8 @@ DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder,
   if (paramsDerivsOrder > 0)
     {
       cout << "Computing " << modelClassName() << " derivatives w.r.t. parameters (order "
-           << paramsDerivsOrder << ")." << endl;
+           << paramsDerivsOrder << ")." << '\n'
+           << flush;
       computeParamsDerivatives(paramsDerivsOrder);
     }
 
@@ -2206,7 +2208,7 @@ DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder,
     computeLegacyBlockJacobianCols();
   if (!block_decomposed && block)
     {
-      cerr << "ERROR: Block decomposition requested but failed." << endl;
+      cerr << "ERROR: Block decomposition requested but failed." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -2250,42 +2252,42 @@ DynamicModel::computeRevXref(map<pair<int, int>, set<int>>& xrefset,
 void
 DynamicModel::writeXrefs(ostream& output) const
 {
-  output << "M_.xref1.param = cell(1, M_.eq_nbr);" << endl
-         << "M_.xref1.endo = cell(1, M_.eq_nbr);" << endl
-         << "M_.xref1.exo = cell(1, M_.eq_nbr);" << endl
-         << "M_.xref1.exo_det = cell(1, M_.eq_nbr);" << endl;
+  output << "M_.xref1.param = cell(1, M_.eq_nbr);" << '\n'
+         << "M_.xref1.endo = cell(1, M_.eq_nbr);" << '\n'
+         << "M_.xref1.exo = cell(1, M_.eq_nbr);" << '\n'
+         << "M_.xref1.exo_det = cell(1, M_.eq_nbr);" << '\n';
   for (int i {1}; const auto& [eq, eqinfo] : xrefs)
     {
       output << "M_.xref1.param{" << i << "} = [ ";
       for (const auto& [id, lag] : eqinfo.param)
         output << symbol_table.getTypeSpecificID(id) + 1 << " ";
-      output << "];" << endl;
+      output << "];" << '\n';
 
       output << "M_.xref1.endo{" << i << "} = [ ";
       for (const auto& [id, lag] : eqinfo.endo)
         output << "struct('id', " << symbol_table.getTypeSpecificID(id) + 1 << ", 'shift', " << lag
                << ");";
-      output << "];" << endl;
+      output << "];" << '\n';
 
       output << "M_.xref1.exo{" << i << "} = [ ";
       for (const auto& [id, lag] : eqinfo.exo)
         output << "struct('id', " << symbol_table.getTypeSpecificID(id) + 1 << ", 'shift', " << lag
                << ");";
-      output << "];" << endl;
+      output << "];" << '\n';
 
       output << "M_.xref1.exo_det{" << i << "} = [ ";
       for (const auto& [id, lag] : eqinfo.exo_det)
         output << "struct('id', " << symbol_table.getTypeSpecificID(id) + 1 << ", 'shift', " << lag
                << ");";
-      output << "];" << endl;
+      output << "];" << '\n';
 
       i++;
     }
 
-  output << "M_.xref2.param = cell(1, M_.param_nbr);" << endl
-         << "M_.xref2.endo = cell(1, M_.endo_nbr);" << endl
-         << "M_.xref2.exo = cell(1, M_.exo_nbr);" << endl
-         << "M_.xref2.exo_det = cell(1, M_.exo_det_nbr);" << endl;
+  output << "M_.xref2.param = cell(1, M_.param_nbr);" << '\n'
+         << "M_.xref2.endo = cell(1, M_.endo_nbr);" << '\n'
+         << "M_.xref2.exo = cell(1, M_.exo_nbr);" << '\n'
+         << "M_.xref2.exo_det = cell(1, M_.exo_det_nbr);" << '\n';
   writeRevXrefs(output, xref_param, "param");
   writeRevXrefs(output, xref_endo, "endo");
   writeRevXrefs(output, xref_exo, "exo");
@@ -2311,7 +2313,7 @@ DynamicModel::writeRevXrefs(ostream& output, const map<pair<int, int>, set<int>>
           output << eq + 1 << " ";
         else
           output << "struct('shift', " << lag << ", 'eq', " << eq + 1 << ");";
-      output << "];" << endl;
+      output << "];" << '\n';
     }
 }
 
@@ -2547,7 +2549,7 @@ int
 DynamicModel::computeRamseyPolicyFOCs(const StaticModel& planner_objective,
                                       map<int, pair<expr_t, expr_t>> cloned_ramsey_constraints)
 {
-  cout << "Ramsey Problem: added " << equations.size() << " multipliers." << endl;
+  cout << "Ramsey Problem: added " << equations.size() << " multipliers." << '\n';
 
   // Add aux LM to constraints in equations
   // equation[i]->lhs = rhs becomes equation[i]->MULT_(i+1)*(lhs-rhs) = 0
@@ -2694,7 +2696,7 @@ DynamicModel::expandEqTags()
           {
             cerr << "Error creating default equation tag: cannot assign default tag to equation "
                     "number "
-                 << eq + 1 << " because it is already in use" << endl;
+                 << eq + 1 << " because it is already in use" << '\n';
             exit(EXIT_FAILURE);
           }
       }
@@ -2956,7 +2958,7 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t& eval_context
                              << "). If you are confident that your trends are correctly specified, "
                                 "you can raise the value of option 'balanced_growth_test_tol' in "
                                 "the 'model' block."
-                             << endl;
+                             << '\n';
                         exit(EXIT_FAILURE);
                       }
                   }
@@ -3036,7 +3038,7 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
           subst = value->differentiateForwardVars(subset, subst_table, neweqs);
           break;
         default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
+          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << '\n';
           exit(EXIT_FAILURE);
         }
       local_variables_table[used_local_var] = subst;
@@ -3065,7 +3067,7 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
           subst = equation->differentiateForwardVars(subset, subst_table, neweqs);
           break;
         default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
+          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << '\n';
           exit(EXIT_FAILURE);
         }
       auto substeq = dynamic_cast<BinaryOpNode*>(subst);
@@ -3104,10 +3106,10 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
           cout << "forward vars";
           break;
         default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << endl;
+          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << '\n';
           exit(EXIT_FAILURE);
         }
-      cout << ": added " << neweqs.size() << " auxiliary variables and equations." << endl;
+      cout << ": added " << neweqs.size() << " auxiliary variables and equations." << '\n';
     }
 }
 
@@ -3137,7 +3139,7 @@ DynamicModel::getEquationNumbersFromTags(const set<string>& eqtags) const
       set<int> tmp = equation_tags.getEqnsByTag("name", eqtag);
       if (tmp.empty())
         {
-          cerr << "ERROR: looking for equation tag " << eqtag << " failed." << endl;
+          cerr << "ERROR: looking for equation tag " << eqtag << " failed." << '\n';
           exit(EXIT_FAILURE);
         }
       eqnumbers.insert(tmp.begin(), tmp.end());
@@ -3214,7 +3216,7 @@ DynamicModel::substituteUnaryOps(const set<int>& eqnumbers,
 
   if (subst_table.size() > 0)
     cout << "Substitution of Unary Ops: added " << neweqs.size()
-         << " auxiliary variables and equations." << endl;
+         << " auxiliary variables and equations." << '\n';
 
   return {nodes, subst_table};
 }
@@ -3271,7 +3273,7 @@ DynamicModel::substituteDiff(VarExpectationModelTable& var_expectation_model_tab
 
   if (diff_subst_table.size() > 0)
     cout << "Substitution of Diff operator: added " << neweqs.size()
-         << " auxiliary variables and equations." << endl;
+         << " auxiliary variables and equations." << '\n';
 
   return {diff_nodes, diff_subst_table};
 }
@@ -3308,10 +3310,10 @@ DynamicModel::substituteExpectation(bool partial_information_model)
     {
       if (partial_information_model)
         cout << "Substitution of Expectation operator: added " << subst_table.size()
-             << " auxiliary variables and " << neweqs.size() << " auxiliary equations." << endl;
+             << " auxiliary variables and " << neweqs.size() << " auxiliary equations." << '\n';
       else
         cout << "Substitution of Expectation operator: added " << neweqs.size()
-             << " auxiliary variables and equations." << endl;
+             << " auxiliary variables and equations." << '\n';
     }
 }
 
@@ -3414,7 +3416,7 @@ DynamicModel::checkNoWithLogTransform(const set<int>& eqnumbers)
               "appear in a VAR/TCM/PAC equation: ";
       for (int symb_id : intersect)
         cerr << symbol_table.getName(symb_id) << " ";
-      cerr << endl;
+      cerr << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -3644,7 +3646,7 @@ DynamicModel::isChecksumMatching(const string& basename) const
   checksum_file.open(filename, ios::out | ios::binary);
   if (!checksum_file.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename.string() << endl;
+      cerr << "ERROR: Can't open file " << filename.string() << '\n';
       exit(EXIT_FAILURE);
     }
   checksum_file << result;
@@ -3680,7 +3682,7 @@ void
 DynamicModel::writeJsonAST(ostream& output) const
 {
   vector<pair<string, string>> eqtags;
-  output << R"("abstract_syntax_tree":[)" << endl;
+  output << R"("abstract_syntax_tree":[)" << '\n';
   for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
     {
       if (eq != 0)
@@ -3702,7 +3704,7 @@ DynamicModel::writeJsonAST(ostream& output) const
 void
 DynamicModel::writeJsonVariableMapping(ostream& output) const
 {
-  output << R"("variable_mapping":[)" << endl;
+  output << R"("variable_mapping":[)" << '\n';
   for (bool printed_something {false}; const auto& [var, eqs] : variableMapping)
     {
       if (exchange(printed_something, true))
@@ -3715,7 +3717,7 @@ DynamicModel::writeJsonVariableMapping(ostream& output) const
               output << ", ";
             output << '"' << *tmp << '"';
           }
-      output << "]}" << endl;
+      output << "]}" << '\n';
     }
   output << "]";
 }
@@ -3755,7 +3757,7 @@ DynamicModel::writeJsonXrefs(ostream& output) const
   output << "]"
          << R"(, "exogenous_deterministic": [)";
   writeJsonXrefsHelper(output, xref_exo_det);
-  output << "]}" << endl;
+  output << "]}" << '\n';
 }
 
 void
@@ -3820,31 +3822,31 @@ DynamicModel::writeJsonDynamicModelInfo(ostream& output) const
       output << "]";
     }
   output << "], "
-         << R"("nstatic": )" << nstatic << ", " << endl
-         << R"("nfwrd": )" << nfwrd << ", " << endl
-         << R"("npred": )" << npred << ", " << endl
-         << R"("nboth": )" << nboth << ", " << endl
-         << R"("nsfwrd": )" << nfwrd + nboth << ", " << endl
-         << R"("nspred": )" << npred + nboth << ", " << endl
-         << R"("ndynamic": )" << npred + nboth + nfwrd << ", " << endl
-         << R"("maximum_endo_lag": )" << max_endo_lag << ", " << endl
-         << R"("maximum_endo_lead": )" << max_endo_lead << ", " << endl
-         << R"("maximum_exo_lag": )" << max_exo_lag << ", " << endl
-         << R"("maximum_exo_lead": )" << max_exo_lead << ", " << endl
-         << R"("maximum_exo_det_lag": )" << max_exo_det_lag << ", " << endl
-         << R"("maximum_exo_det_lead": )" << max_exo_det_lead << ", " << endl
-         << R"("maximum_lag": )" << max_lag << ", " << endl
-         << R"("maximum_lead": )" << max_lead << ", " << endl
-         << R"("orig_maximum_endo_lag": )" << max_endo_lag_orig << "," << endl
-         << R"("orig_maximum_endo_lead": )" << max_endo_lead_orig << "," << endl
-         << R"("orig_maximum_exo_lag": )" << max_exo_lag_orig << "," << endl
-         << R"("orig_maximum_exo_lead": )" << max_exo_lead_orig << "," << endl
-         << R"("orig_maximum_exo_det_lag": )" << max_exo_det_lag_orig << "," << endl
-         << R"("orig_maximum_exo_det_lead": )" << max_exo_det_lead_orig << "," << endl
-         << R"("orig_maximum_lag": )" << max_lag_orig << "," << endl
-         << R"("orig_maximum_lead": )" << max_lead_orig << "," << endl
+         << R"("nstatic": )" << nstatic << ", " << '\n'
+         << R"("nfwrd": )" << nfwrd << ", " << '\n'
+         << R"("npred": )" << npred << ", " << '\n'
+         << R"("nboth": )" << nboth << ", " << '\n'
+         << R"("nsfwrd": )" << nfwrd + nboth << ", " << '\n'
+         << R"("nspred": )" << npred + nboth << ", " << '\n'
+         << R"("ndynamic": )" << npred + nboth + nfwrd << ", " << '\n'
+         << R"("maximum_endo_lag": )" << max_endo_lag << ", " << '\n'
+         << R"("maximum_endo_lead": )" << max_endo_lead << ", " << '\n'
+         << R"("maximum_exo_lag": )" << max_exo_lag << ", " << '\n'
+         << R"("maximum_exo_lead": )" << max_exo_lead << ", " << '\n'
+         << R"("maximum_exo_det_lag": )" << max_exo_det_lag << ", " << '\n'
+         << R"("maximum_exo_det_lead": )" << max_exo_det_lead << ", " << '\n'
+         << R"("maximum_lag": )" << max_lag << ", " << '\n'
+         << R"("maximum_lead": )" << max_lead << ", " << '\n'
+         << R"("orig_maximum_endo_lag": )" << max_endo_lag_orig << "," << '\n'
+         << R"("orig_maximum_endo_lead": )" << max_endo_lead_orig << "," << '\n'
+         << R"("orig_maximum_exo_lag": )" << max_exo_lag_orig << "," << '\n'
+         << R"("orig_maximum_exo_lead": )" << max_exo_lead_orig << "," << '\n'
+         << R"("orig_maximum_exo_det_lag": )" << max_exo_det_lag_orig << "," << '\n'
+         << R"("orig_maximum_exo_det_lead": )" << max_exo_det_lead_orig << "," << '\n'
+         << R"("orig_maximum_lag": )" << max_lag_orig << "," << '\n'
+         << R"("orig_maximum_lead": )" << max_lead_orig << "," << '\n'
          << R"("orig_maximum_lag_with_diffs_expanded": )" << max_lag_with_diffs_expanded_orig << "}"
-         << endl;
+         << '\n';
 }
 
 void
@@ -3895,7 +3897,7 @@ DynamicModel::checkNoRemainingPacExpectation() const
       {
         cerr << "ERROR: in equation "
              << equation_tags.getTagValueByEqnAndKey(eq, "name").value_or(to_string(eq + 1))
-             << ", the pac_expectation operator references an unknown pac_model" << endl;
+             << ", the pac_expectation operator references an unknown pac_model" << '\n';
         exit(EXIT_FAILURE);
       }
 }
@@ -3931,7 +3933,7 @@ DynamicModel::simplifyEquations()
               }
             if (!e.message.empty())
               msg += "; detail: " + e.message;
-            cerr << "ERROR: " << msg << endl;
+            cerr << "ERROR: " << msg << '\n';
             exit(EXIT_FAILURE);
           }
       for (size_t eq {0}; eq < equations.size(); eq++)
@@ -3958,7 +3960,7 @@ DynamicModel::simplifyEquations()
               }
             if (!e.message.empty())
               msg += "; detail: " + e.message;
-            cerr << "ERROR: " << msg << endl;
+            cerr << "ERROR: " << msg << '\n';
             exit(EXIT_FAILURE);
           }
       for (size_t eq {0}; eq < static_only_equations.size(); eq++)
@@ -3983,7 +3985,7 @@ DynamicModel::simplifyEquations()
               }
             if (!e.message.empty())
               msg += "; detail: " + e.message;
-            cerr << "ERROR: " << msg << endl;
+            cerr << "ERROR: " << msg << '\n';
             exit(EXIT_FAILURE);
           }
       subst_table.clear();
@@ -4001,7 +4003,7 @@ DynamicModel::checkNoRemainingPacTargetNonstationary() const
              << equation_tags.getTagValueByEqnAndKey(eq, "name").value_or(to_string(eq + 1))
              << ", the pac_target_nonstationary operator does not match a corresponding "
                 "'pac_target_info' block"
-             << endl;
+             << '\n';
         exit(EXIT_FAILURE);
       }
 }
@@ -4012,14 +4014,14 @@ DynamicModel::checkIsLinear() const
   if (!nonzero_hessian_eqs.empty())
     {
       cerr << "ERROR: If the model is declared linear the second derivatives must be equal to zero."
-           << endl
-           << "       The following equations have non-zero second derivatives:" << endl;
+           << '\n'
+           << "       The following equations have non-zero second derivatives:" << '\n';
       for (auto it : nonzero_hessian_eqs)
         {
           cerr << "       * Eq # " << it + 1;
           if (optional<string> eqname {equation_tags.getTagValueByEqnAndKey(it, "name")}; eqname)
             cerr << " [" << *eqname << "]";
-          cerr << endl;
+          cerr << '\n';
         }
       exit(EXIT_FAILURE);
     }
@@ -4059,7 +4061,7 @@ DynamicModel::checkOccbinRegimes() const
                   cerr << r;
                 }
             }
-          cerr << "' is not defined" << endl;
+          cerr << "' is not defined" << '\n';
           exit(EXIT_FAILURE);
         }
     }

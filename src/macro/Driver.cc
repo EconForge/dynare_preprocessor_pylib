@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2023 Dynare Team
+ * Copyright © 2019-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -35,14 +35,14 @@ Driver::parse(const string& file_arg, const istream& modfile, bool debug,
     {
       stringstream command_line_defines_with_endl;
       for (const auto& [var, val] : defines)
-        command_line_defines_with_endl << "@#define " << var << " = " << val << endl;
+        command_line_defines_with_endl << "@#define " << var << " = " << val << '\n';
       Driver m;
       istream is(command_line_defines_with_endl.rdbuf());
       m.parse("command_line_defines", is, debug, {}, env, paths, output);
     }
 
   stringstream file_with_endl;
-  file_with_endl << modfile.rdbuf() << endl;
+  file_with_endl << modfile.rdbuf() << '\n';
 
   lexer = make_unique<TokenizerFlex>(&file_with_endl);
   lexer->set_debug(debug);
@@ -65,6 +65,6 @@ Driver::parse(const string& file_arg, const istream& modfile, bool debug,
 void
 Driver::error(const Tokenizer::parser::location_type& location, const string& message) const
 {
-  cerr << "ERROR in macro-processor: " << location << ": " << message << endl;
+  cerr << "ERROR in macro-processor: " << location << ": " << message << '\n';
   exit(EXIT_FAILURE);
 }

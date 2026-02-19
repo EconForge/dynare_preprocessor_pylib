@@ -172,7 +172,7 @@ ExprNode::checkIfTemporaryTermThenWriteBytecode(
     case ExprNodeBytecodeOutputType::dynamicAssignmentLHS:
     case ExprNodeBytecodeOutputType::staticAssignmentLHS:
       cerr << "ExprNode::checkIfTemporaryTermThenWriteBytecode: can't assign a temporary term"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -445,7 +445,7 @@ ExprNode::fillErrorCorrectionRow(int eqn, const vector<int>& nontarget_lhs,
               {
                 cerr << "ERROR in trend component model: variables in the error correction term "
                         "should appear with a lag of -1"
-                     << endl;
+                     << '\n';
                 exit(EXIT_FAILURE);
               }
             // This an LHS variable, so fill A0
@@ -453,14 +453,14 @@ ExprNode::fillErrorCorrectionRow(int eqn, const vector<int>& nontarget_lhs,
               {
                 cerr << "ERROR in trend component model: LHS variable should not appear with a "
                         "multiplicative constant in error correction term"
-                     << endl;
+                     << '\n';
                 exit(EXIT_FAILURE);
               }
             if (param_id)
               {
                 cerr
                     << "ERROR in trend component model: spurious parameter in error correction term"
-                    << endl;
+                    << '\n';
                 exit(EXIT_FAILURE);
               }
             int colidx = static_cast<int>(
@@ -468,7 +468,7 @@ ExprNode::fillErrorCorrectionRow(int eqn, const vector<int>& nontarget_lhs,
             if (A0.contains({eqn, colidx}))
               {
                 cerr << "ExprNode::fillErrorCorrection: Error filling A0 matrix: "
-                     << "symb_id encountered more than once in equation" << endl;
+                     << "symb_id encountered more than once in equation" << '\n';
                 exit(EXIT_FAILURE);
               }
             A0[{eqn, colidx}] = datatree.AddVariable(speed_of_adjustment_param);
@@ -611,7 +611,7 @@ NumConstNode::writeBytecodeOutput(Bytecode::Writer& code_file,
 void
 NumConstNode::collectVARLHSVariable([[maybe_unused]] set<expr_t>& result) const
 {
-  cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
+  cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -632,7 +632,7 @@ BinaryOpNode*
 NumConstNode::normalizeEquationHelper([[maybe_unused]] const set<expr_t>& contain_var,
                                       [[maybe_unused]] expr_t rhs) const
 {
-  cerr << "NumConstNode::normalizeEquationHelper: this should not happen" << endl;
+  cerr << "NumConstNode::normalizeEquationHelper: this should not happen" << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -1015,13 +1015,13 @@ VariableNode::prepareForDerivation()
     case SymbolType::externalFunction:
     case SymbolType::epilogue:
     case SymbolType::databaseVariable:
-      cerr << "VariableNode::prepareForDerivation: impossible case" << endl;
+      cerr << "VariableNode::prepareForDerivation: impossible case" << '\n';
       exit(EXIT_FAILURE);
     case SymbolType::excludedVariable:
       cerr << "VariableNode::prepareForDerivation: impossible case: "
            << "You are trying to derive a variable that has been excluded via "
               "model_remove/var_remove/include_eqs/exclude_eqs: "
-           << getName() << endl;
+           << getName() << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -1075,7 +1075,7 @@ VariableNode::prepareForChainRuleDerivation(
     case SymbolType::epilogue:
     case SymbolType::excludedVariable:
     case SymbolType::databaseVariable:
-      cerr << "VariableNode::prepareForChainRuleDerivation: impossible case" << endl;
+      cerr << "VariableNode::prepareForChainRuleDerivation: impossible case" << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -1106,19 +1106,19 @@ VariableNode::computeDerivative(int deriv_id)
     case SymbolType::modelLocalVariable:
       return datatree.getLocalVariable(symb_id, lag)->getDerivative(deriv_id);
     case SymbolType::modFileLocalVariable:
-      cerr << "modFileLocalVariable is not derivable" << endl;
+      cerr << "modFileLocalVariable is not derivable" << '\n';
       exit(EXIT_FAILURE);
     case SymbolType::statementDeclaredVariable:
-      cerr << "statementDeclaredVariable is not derivable" << endl;
+      cerr << "statementDeclaredVariable is not derivable" << '\n';
       exit(EXIT_FAILURE);
     case SymbolType::unusedEndogenous:
-      cerr << "unusedEndogenous is not derivable" << endl;
+      cerr << "unusedEndogenous is not derivable" << '\n';
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
     case SymbolType::epilogue:
     case SymbolType::excludedVariable:
     case SymbolType::databaseVariable:
-      cerr << "VariableNode::computeDerivative: Impossible case!" << endl;
+      cerr << "VariableNode::computeDerivative: Impossible case!" << '\n';
       exit(EXIT_FAILURE);
     }
   __builtin_unreachable(); // Silence GCC warning
@@ -1293,7 +1293,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           output << "zdatalinear(:," << tsid + 1 << ")";
           break;
         default:
-          cerr << "VariableNode::writeOutput: should not reach this point" << endl;
+          cerr << "VariableNode::writeOutput: should not reach this point" << '\n';
           exit(EXIT_FAILURE);
         }
       break;
@@ -1342,7 +1342,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           output << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         default:
-          cerr << "VariableNode::writeOutput: should not reach this point" << endl;
+          cerr << "VariableNode::writeOutput: should not reach this point" << '\n';
           exit(EXIT_FAILURE);
         }
       break;
@@ -1392,7 +1392,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           output << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
         default:
-          cerr << "VariableNode::writeOutput: should not reach this point" << endl;
+          cerr << "VariableNode::writeOutput: should not reach this point" << '\n';
           exit(EXIT_FAILURE);
         }
       break;
@@ -1411,14 +1411,14 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         output << "ds." << getName();
       else
         {
-          cerr << "VariableNode::writeOutput: Impossible case" << endl;
+          cerr << "VariableNode::writeOutput: Impossible case" << '\n';
           exit(EXIT_FAILURE);
         }
       break;
     case SymbolType::unusedEndogenous:
       cerr << "ERROR: You cannot use an endogenous variable in an expression if that variable has "
               "not been used in the model block."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
     case SymbolType::trend:
@@ -1426,7 +1426,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case SymbolType::statementDeclaredVariable:
     case SymbolType::excludedVariable:
     case SymbolType::databaseVariable:
-      cerr << "VariableNode::writeOutput: Impossible case" << endl;
+      cerr << "VariableNode::writeOutput: Impossible case" << '\n';
       exit(EXIT_FAILURE);
 
     case SymbolType::heterogeneousEndogenous:
@@ -1447,7 +1447,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         default:
           cerr << "VariableNode::writeOutput: unsupported output type for heterogeneousEndogenous "
                   "symbol"
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
       break;
@@ -1465,7 +1465,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         default:
           cerr << "VariableNode::writeOutput: unsupported output type for heterogeneousExogenous "
                   "symbol"
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
       break;
@@ -1482,7 +1482,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         default:
           cerr << "VariableNode::writeOutput: unsupported output type for heterogeneousParameter "
                   "symbol"
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
       break;
@@ -1545,7 +1545,7 @@ VariableNode::collectVARLHSVariable(set<expr_t>& result) const
     result.insert(const_cast<VariableNode*>(this));
   else
     {
-      cerr << "ERROR: you can only have endogenous variables or unary ops on LHS of VAR" << endl;
+      cerr << "ERROR: you can only have endogenous variables or unary ops on LHS of VAR" << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -1618,19 +1618,19 @@ VariableNode::computeChainRuleDerivative(
           ->getChainRuleDerivative(deriv_id, recursive_variables, non_null_chain_rule_derivatives,
                                    cache);
     case SymbolType::modFileLocalVariable:
-      cerr << "modFileLocalVariable is not derivable" << endl;
+      cerr << "modFileLocalVariable is not derivable" << '\n';
       exit(EXIT_FAILURE);
     case SymbolType::statementDeclaredVariable:
-      cerr << "statementDeclaredVariable is not derivable" << endl;
+      cerr << "statementDeclaredVariable is not derivable" << '\n';
       exit(EXIT_FAILURE);
     case SymbolType::unusedEndogenous:
-      cerr << "unusedEndogenous is not derivable" << endl;
+      cerr << "unusedEndogenous is not derivable" << '\n';
       exit(EXIT_FAILURE);
     case SymbolType::externalFunction:
     case SymbolType::epilogue:
     case SymbolType::excludedVariable:
     case SymbolType::databaseVariable:
-      cerr << "VariableNode::computeChainRuleDerivative: Impossible case" << endl;
+      cerr << "VariableNode::computeChainRuleDerivative: Impossible case" << '\n';
       exit(EXIT_FAILURE);
     }
   __builtin_unreachable(); // Silence GCC warning
@@ -2572,7 +2572,7 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
                   cerr << "UnaryOpNode::composeDerivatives: STEADY_STATE() should only be used on "
                        << "standalone variables (like STEADY_STATE(y)) to be derivable w.r.t. "
                           "parameters"
-                       << endl;
+                       << '\n';
                   exit(EXIT_FAILURE);
                 }
               if (datatree.symbol_table.getType(varg->symb_id) == SymbolType::endogenous)
@@ -2603,14 +2603,14 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
       if (datatree.getTypeByDerivID(deriv_id) == SymbolType::parameter)
         {
           cerr << "3rd derivative of STEADY_STATE node w.r.t. three parameters not implemented"
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
       else
         return datatree.Zero;
     case UnaryOpcode::expectation:
       cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::expectation"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     case UnaryOpcode::erf:
     case UnaryOpcode::erfc:
@@ -2631,10 +2631,10 @@ UnaryOpNode::composeDerivatives(expr_t darg, int deriv_id)
       else // erfc
         return datatree.AddUMinus(t15);
     case UnaryOpcode::diff:
-      cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::diff" << endl;
+      cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::diff" << '\n';
       exit(EXIT_FAILURE);
     case UnaryOpcode::sum:
-      cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::sum" << endl;
+      cerr << "UnaryOpNode::composeDerivatives: not implemented on UnaryOpcode::sum" << '\n';
       exit(EXIT_FAILURE);
     }
   __builtin_unreachable(); // Silence GCC warning
@@ -2724,7 +2724,7 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
       case UnaryOpcode::expectation:
         return cost;
       case UnaryOpcode::diff:
-        cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::diff" << endl;
+        cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::diff" << '\n';
         exit(EXIT_FAILURE);
       case UnaryOpcode::sum:
         return 0; // In the generated files, the SUM() operator behaves like a variable
@@ -2773,7 +2773,7 @@ UnaryOpNode::cost(int cost, bool is_matlab) const
       case UnaryOpcode::expectation:
         return cost;
       case UnaryOpcode::diff:
-        cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::diff" << endl;
+        cerr << "UnaryOpNode::cost: not implemented on UnaryOpcode::diff" << '\n';
         exit(EXIT_FAILURE);
       case UnaryOpcode::sum:
         return 0; // In the generated files, the SUM() operator behaves like a variable
@@ -3249,7 +3249,7 @@ UnaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case UnaryOpcode::expectation:
       if (!isLatexOutput(output_type))
         {
-          cerr << "UnaryOpNode::writeOutput: not implemented on UnaryOpcode::expectation" << endl;
+          cerr << "UnaryOpNode::writeOutput: not implemented on UnaryOpcode::expectation" << '\n';
           exit(EXIT_FAILURE);
         }
       output << R"(\mathbb{E}_{t)";
@@ -3394,24 +3394,24 @@ UnaryOpNode::eval_opcode(UnaryOpcode op_code, double v) noexcept(false)
       return v;
     case UnaryOpcode::steadyStateParamDeriv:
       cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::steadyStateParamDeriv"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     case UnaryOpcode::steadyStateParam2ndDeriv:
       cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::steadyStateParam2ndDeriv"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     case UnaryOpcode::expectation:
-      cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::expectation" << endl;
+      cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::expectation" << '\n';
       exit(EXIT_FAILURE);
     case UnaryOpcode::erf:
       return erf(v);
     case UnaryOpcode::erfc:
       return erfc(v);
     case UnaryOpcode::diff:
-      cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::diff" << endl;
+      cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::diff" << '\n';
       exit(EXIT_FAILURE);
     case UnaryOpcode::sum:
-      cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::sum" << endl;
+      cerr << "UnaryOpNode::eval_opcode: not implemented on UnaryOpcode::sum" << '\n';
       exit(EXIT_FAILURE);
     }
   __builtin_unreachable(); // Silence GCC warning
@@ -3449,7 +3449,7 @@ UnaryOpNode::writeBytecodeOutput(Bytecode::Writer& code_file,
           break;
         case ExprNodeBytecodeOutputType::dynamicAssignmentLHS:
         case ExprNodeBytecodeOutputType::staticAssignmentLHS:
-          cerr << "UnaryOpNode::writeBytecodeOutput: impossible case" << endl;
+          cerr << "UnaryOpNode::writeBytecodeOutput: impossible case" << '\n';
           exit(EXIT_FAILURE);
         }
       arg->writeBytecodeOutput(code_file, new_output_type, temporary_terms, temporary_terms_idxs,
@@ -3653,12 +3653,12 @@ UnaryOpNode::buildSimilarUnaryOpNode(expr_t alt_arg, DataTree& alt_datatree) con
     case UnaryOpcode::steadyStateParamDeriv:
       cerr << "UnaryOpNode::buildSimilarUnaryOpNode: UnaryOpcode::steadyStateParamDeriv can't be "
               "translated"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     case UnaryOpcode::steadyStateParam2ndDeriv:
       cerr << "UnaryOpNode::buildSimilarUnaryOpNode: UnaryOpcode::steadyStateParam2ndDeriv can't "
               "be translated"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     case UnaryOpcode::expectation:
       return alt_datatree.AddExpectation(expectation_information_set, alt_arg);
@@ -4003,7 +4003,7 @@ UnaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t& nodes,
       unary_op = "erfc";
       break;
     default:
-      cerr << "UnaryOpNode::substituteUnaryOpNodes: Shouldn't arrive here" << endl;
+      cerr << "UnaryOpNode::substituteUnaryOpNodes: Shouldn't arrive here" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -4025,7 +4025,7 @@ UnaryOpNode::substituteUnaryOpNodes(const lag_equivalence_table_t& nodes,
            going from leads to lags. */
         if (rit->second->maxLead() > 0)
           {
-            cerr << "Cannot substitute unary operations that contain leads" << endl;
+            cerr << "Cannot substitute unary operations that contain leads" << '\n';
             exit(EXIT_FAILURE);
           }
 
@@ -4189,7 +4189,7 @@ UnaryOpNode::substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNo
         if (!dynamic_cast<VariableNode*>(arg))
           {
             cerr << "ERROR: In Partial Information models, EXPECTATION(0)(X) "
-                 << "can only be used when X is a single variable." << endl;
+                 << "can only be used when X is a single variable." << '\n';
             exit(EXIT_FAILURE);
           }
 
@@ -5278,7 +5278,7 @@ BinaryOpNode::VarMaxLag(const set<expr_t>& lhs_lag_equiv) const
 void
 BinaryOpNode::collectVARLHSVariable([[maybe_unused]] set<expr_t>& result) const
 {
-  cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
+  cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -5425,7 +5425,7 @@ BinaryOpNode::normalizeEquationHelper(const set<expr_t>& contain_var, expr_t rhs
           }
       break;
     case BinaryOpcode::equal:
-      cerr << "BinaryOpCode::normalizeEquationHelper: this case should not happen" << endl;
+      cerr << "BinaryOpCode::normalizeEquationHelper: this case should not happen" << '\n';
       exit(EXIT_FAILURE);
     default:
       throw NormalizationFailed();
@@ -6038,7 +6038,7 @@ BinaryOpNode::getPacAREC(
 
   if (ec_params_and_vars.first < 0)
     {
-      cerr << "Error finding EC part of PAC equation" << endl;
+      cerr << "Error finding EC part of PAC equation" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -6063,7 +6063,7 @@ BinaryOpNode::getPacAREC(
             }
           catch (MatchFailureException& e)
             {
-              cerr << "Unsupported expression in PAC equation" << endl;
+              cerr << "Unsupported expression in PAC equation" << '\n';
               exit(EXIT_FAILURE);
             }
         }
@@ -6077,7 +6077,7 @@ BinaryOpNode::getPacAREC(
             pid = pidtmp;
           else if (*pidtmp)
             {
-              cerr << "unexpected parameter found in PAC equation" << endl;
+              cerr << "unexpected parameter found in PAC equation" << '\n';
               exit(EXIT_FAILURE);
             }
 
@@ -6089,7 +6089,7 @@ BinaryOpNode::getPacAREC(
                 {
                   cerr << "BinaryOpNode::getPacAREC: autoregressive terms must be of the form "
                           "'parameter*diff_lagged_variable"
-                       << endl;
+                       << '\n';
                   exit(EXIT_FAILURE);
                 }
               if (static_cast<int>(ar_params_and_vars.size()) < -vlagorig)
@@ -6296,14 +6296,14 @@ BinaryOpNode::fillAutoregressiveRow(int eqn, const vector<int>& lhs,
       if (AR.contains({eqn, -lag, *vid}))
         {
           cerr << "BinaryOpNode::fillAutoregressiveRow: Error filling AR matrix: "
-               << "lag/symb_id encountered more than once in equation" << endl;
+               << "lag/symb_id encountered more than once in equation" << '\n';
           exit(EXIT_FAILURE);
         }
       if (constant != 1 || !param_id)
         {
           cerr << "BinaryOpNode::fillAutoregressiveRow: autoregressive terms must be of the form "
                   "'parameter*lagged_variable"
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
       AR[{eqn, -lag, *vid}] = datatree.AddVariable(*param_id);
@@ -6856,7 +6856,7 @@ TrinaryOpNode::writeBytecodeExternalFunctionOutput(
 void
 TrinaryOpNode::collectVARLHSVariable([[maybe_unused]] set<expr_t>& result) const
 {
-  cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
+  cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -7372,7 +7372,7 @@ AbstractExternalFunctionNode::writeBytecodeExternalFunctionArguments(
 void
 AbstractExternalFunctionNode::collectVARLHSVariable([[maybe_unused]] set<expr_t>& result) const
 {
-  cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
+  cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -7853,7 +7853,7 @@ AbstractExternalFunctionNode::writePrhs(ostream& output, ExprNodeOutputType outp
       output << "  prhs[" << i++
              << "] = mxCreateDoubleScalar("; // All external_function arguments are scalars
       argument->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
-      output << ");" << endl;
+      output << ");" << '\n';
     }
 }
 
@@ -7932,7 +7932,7 @@ ExternalFunctionNode::writeBytecodeOutput(Bytecode::Writer& code_file,
     {
       cerr << "ERROR: The expression inside a steady_state operator cannot contain external "
               "functions"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -8052,7 +8052,7 @@ ExternalFunctionNode::writeOutput(ostream& output, ExprNodeOutputType output_typ
     {
       cerr << "ERROR: The expression inside a steady_state operator cannot contain external "
               "functions"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -8089,31 +8089,31 @@ ExternalFunctionNode::writeExternalFunctionOutput(
             output << ", *TEFD_" << indx;
           if (symb_id == second_deriv_symb_id)
             output << ", *TEFDD_" << indx;
-          output << ";" << endl;
+          output << ";" << '\n';
 
           if (symb_id == first_deriv_symb_id && symb_id == second_deriv_symb_id)
-            output << "int TEFDD_" << indx << "_nrows;" << endl;
+            output << "int TEFDD_" << indx << "_nrows;" << '\n';
 
           int nlhs = symb_id == first_deriv_symb_id && symb_id == second_deriv_symb_id ? 3
                      : symb_id == first_deriv_symb_id                                  ? 2
                                                                                        : 1;
-          output << "{" << endl
-                 << "  mxArray *plhs[" << nlhs << "], *prhs[" << arguments.size() << "];" << endl;
+          output << "{" << '\n'
+                 << "  mxArray *plhs[" << nlhs << "], *prhs[" << arguments.size() << "];" << '\n';
 
           writePrhs(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
           output << "  mexCallMATLAB(" << nlhs << ", plhs, " << arguments.size() << ", prhs, "
-                 << R"(")" << getName() << R"(");)" << endl;
+                 << R"(")" << getName() << R"(");)" << '\n';
 
-          output << "  TEF_" << indx << " = mxGetDoubles(plhs[0]);" << endl;
+          output << "  TEF_" << indx << " = mxGetDoubles(plhs[0]);" << '\n';
           if (symb_id == first_deriv_symb_id)
             {
-              output << "  TEFD_" << indx << " = mxGetDoubles(plhs[1]);" << endl;
+              output << "  TEFD_" << indx << " = mxGetDoubles(plhs[1]);" << '\n';
               if (symb_id == second_deriv_symb_id)
-                output << "  TEFDD_" << indx << " = mxGetDoubles(plhs[2]);" << endl
-                       << "  TEFDD_" << indx << "_nrows = (int)mxGetM(plhs[2]);" << endl;
+                output << "  TEFDD_" << indx << " = mxGetDoubles(plhs[2]);" << '\n'
+                       << "  TEFDD_" << indx << "_nrows = (int)mxGetM(plhs[2]);" << '\n';
             }
-          output << "}" << endl;
+          output << "}" << '\n';
         }
       else
         {
@@ -8127,7 +8127,7 @@ ExternalFunctionNode::writeExternalFunctionOutput(
           output << getName() << "(";
           writeExternalFunctionArguments(output, output_type, temporary_terms, temporary_terms_idxs,
                                          tef_terms);
-          output << ");" << endl;
+          output << ");" << '\n';
         }
     }
 }
@@ -8271,7 +8271,7 @@ FirstDerivExternalFunctionNode::writeOutput(ostream& output, ExprNodeOutputType 
     {
       cerr << "ERROR: The expression inside a steady_state operator cannot contain external "
               "functions"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -8307,7 +8307,7 @@ FirstDerivExternalFunctionNode::writeBytecodeOutput(
     {
       cerr << "ERROR: The expression inside a steady_state operator cannot contain external "
               "functions"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -8350,13 +8350,13 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(
     if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
       {
         output << "double *TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex
-               << ";" << endl
-               << "{" << endl
-               << "  const mwSize dims[2] = {1, " << arguments.size() << "};" << endl
-               << "  mxArray *plhs[1], *prhs[3];" << endl
-               << R"(  prhs[0] = mxCreateString(")" << getName() << R"(");)" << endl
-               << "  prhs[1] = mxCreateDoubleScalar(" << inputIndex << ");" << endl
-               << "  prhs[2] = mxCreateCellArray(2, dims);" << endl;
+               << ";" << '\n'
+               << "{" << '\n'
+               << "  const mwSize dims[2] = {1, " << arguments.size() << "};" << '\n'
+               << "  mxArray *plhs[1], *prhs[3];" << '\n'
+               << R"(  prhs[0] = mxCreateString(")" << getName() << R"(");)" << '\n'
+               << "  prhs[1] = mxCreateDoubleScalar(" << inputIndex << ");" << '\n'
+               << "  prhs[2] = mxCreateCellArray(2, dims);" << '\n';
 
         for (int i {0}; auto argument : arguments)
           {
@@ -8364,29 +8364,29 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(
                    << "mxCreateDoubleScalar("; // All external_function arguments are scalars
             argument->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs,
                                   tef_terms);
-            output << "));" << endl;
+            output << "));" << '\n';
           }
 
         output << "  mexCallMATLAB(1, plhs, 3, prhs,"
-               << R"("jacob_element");)" << endl
+               << R"("jacob_element");)" << '\n'
                << "  TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex
-               << " = mxGetDoubles(plhs[0]);" << endl
-               << "}" << endl;
+               << " = mxGetDoubles(plhs[0]);" << '\n'
+               << "}" << '\n';
       }
     else
       {
         tef_terms[{first_deriv_symb_id, arguments}] = static_cast<int>(tef_terms.size());
         int indx = getIndxInTefTerms(first_deriv_symb_id, tef_terms);
-        output << "double *TEFD_def_" << indx << ";" << endl
-               << "{" << endl
-               << "  mxArray *plhs[1], *prhs[" << arguments.size() << "];" << endl;
+        output << "double *TEFD_def_" << indx << ";" << '\n'
+               << "{" << '\n'
+               << "  mxArray *plhs[1], *prhs[" << arguments.size() << "];" << '\n';
 
         writePrhs(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
         output << "  mexCallMATLAB(1, plhs, " << arguments.size() << ", prhs,"
-               << R"(")" << datatree.symbol_table.getName(first_deriv_symb_id) << R"(");)" << endl
-               << "  TEFD_def_" << indx << " = mxGetDoubles(plhs[0]);" << endl
-               << "}" << endl;
+               << R"(")" << datatree.symbol_table.getName(first_deriv_symb_id) << R"(");)" << '\n'
+               << "  TEFD_def_" << indx << " = mxGetDoubles(plhs[0]);" << '\n'
+               << "}" << '\n';
       }
   else
     {
@@ -8405,7 +8405,7 @@ FirstDerivExternalFunctionNode::writeExternalFunctionOutput(
 
       if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
         output << "}";
-      output << ");" << endl;
+      output << ");" << '\n';
     }
 }
 
@@ -8546,7 +8546,7 @@ SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(
 expr_t
 SecondDerivExternalFunctionNode::composeDerivatives([[maybe_unused]] const vector<expr_t>& dargs)
 {
-  cerr << "ERROR: third order derivatives of external functions are not implemented" << endl;
+  cerr << "ERROR: third order derivatives of external functions are not implemented" << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -8612,7 +8612,7 @@ SecondDerivExternalFunctionNode::writeOutput(ostream& output, ExprNodeOutputType
     {
       cerr << "ERROR: The expression inside a steady_state operator cannot contain external "
               "functions"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -8678,14 +8678,14 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(
       {
         stringstream ending;
         output << "double *TEFDD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_"
-               << inputIndex1 << "_" << inputIndex2 << ";" << endl
-               << "{" << endl
-               << "  const mwSize dims[2]= {1, " << arguments.size() << "};" << endl
-               << "  mxArray *plhs[1], *prhs[4];" << endl
-               << R"(  prhs[0] = mxCreateString(")" << getName() << R"(");)" << endl
-               << "  prhs[1] = mxCreateDoubleScalar(" << inputIndex1 << ");" << endl
-               << "  prhs[2] = mxCreateDoubleScalar(" << inputIndex2 << ");" << endl
-               << "  prhs[3] = mxCreateCellArray(2, dims);" << endl;
+               << inputIndex1 << "_" << inputIndex2 << ";" << '\n'
+               << "{" << '\n'
+               << "  const mwSize dims[2]= {1, " << arguments.size() << "};" << '\n'
+               << "  mxArray *plhs[1], *prhs[4];" << '\n'
+               << R"(  prhs[0] = mxCreateString(")" << getName() << R"(");)" << '\n'
+               << "  prhs[1] = mxCreateDoubleScalar(" << inputIndex1 << ");" << '\n'
+               << "  prhs[2] = mxCreateDoubleScalar(" << inputIndex2 << ");" << '\n'
+               << "  prhs[3] = mxCreateCellArray(2, dims);" << '\n';
 
         for (int i {0}; auto argument : arguments)
           {
@@ -8693,29 +8693,29 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(
                    << "  mxCreateDoubleScalar("; // All external_function arguments are scalars
             argument->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs,
                                   tef_terms);
-            output << "));" << endl;
+            output << "));" << '\n';
           }
 
         output << "  mexCallMATLAB(1, plhs, 4, prhs, "
-               << R"("hess_element");)" << endl
+               << R"("hess_element");)" << '\n'
                << "  TEFDD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex1
-               << "_" << inputIndex2 << " = mxGetDoubles(plhs[0]);" << endl
-               << "}" << endl;
+               << "_" << inputIndex2 << " = mxGetDoubles(plhs[0]);" << '\n'
+               << "}" << '\n';
       }
     else
       {
         tef_terms[{second_deriv_symb_id, arguments}] = static_cast<int>(tef_terms.size());
         int indx = getIndxInTefTerms(second_deriv_symb_id, tef_terms);
-        output << "double *TEFDD_def_" << indx << ";" << endl
-               << "{" << endl
-               << "  mxArray *plhs[1], *prhs[" << arguments.size() << "];" << endl;
+        output << "double *TEFDD_def_" << indx << ";" << '\n'
+               << "{" << '\n'
+               << "  mxArray *plhs[1], *prhs[" << arguments.size() << "];" << '\n';
 
         writePrhs(output, output_type, temporary_terms, temporary_terms_idxs, tef_terms);
 
         output << "  mexCallMATLAB(1, plhs, " << arguments.size() << ", prhs, "
-               << R"(")" << datatree.symbol_table.getName(second_deriv_symb_id) << R"(");)" << endl
-               << "  TEFDD_def_" << indx << " = mxGetDoubles(plhs[0]);" << endl
-               << "}" << endl;
+               << R"(")" << datatree.symbol_table.getName(second_deriv_symb_id) << R"(");)" << '\n'
+               << "  TEFDD_def_" << indx << " = mxGetDoubles(plhs[0]);" << '\n'
+               << "}" << '\n';
       }
   else
     {
@@ -8735,7 +8735,7 @@ SecondDerivExternalFunctionNode::writeExternalFunctionOutput(
 
       if (second_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
         output << "}";
-      output << ");" << endl;
+      output << ");" << '\n';
     }
 }
 
@@ -8778,7 +8778,7 @@ SecondDerivExternalFunctionNode::writeJsonExternalFunctionOutput(
     }
 
   writeJsonExternalFunctionArguments(ef, temporary_terms, tef_terms, isdynamic);
-  ef << R"lit()"}})lit" << endl;
+  ef << R"lit()"}})lit" << '\n';
   efout.push_back(ef.str());
 }
 
@@ -8806,7 +8806,7 @@ SecondDerivExternalFunctionNode::writeBytecodeOutput(
     {
       cerr << "ERROR: The expression inside a steady_state operator cannot contain external "
               "functions"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -8901,7 +8901,7 @@ SubModelNode::computeTemporaryTerms(
     [[maybe_unused]] unordered_map<expr_t, pair<int, pair<int, int>>>& reference_count,
     [[maybe_unused]] bool is_matlab) const
 {
-  cerr << "SubModelNode::computeTemporaryTerms not implemented." << endl;
+  cerr << "SubModelNode::computeTemporaryTerms not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -8911,21 +8911,21 @@ SubModelNode::computeBlockTemporaryTerms(
     [[maybe_unused]] vector<vector<unordered_set<expr_t>>>& blocks_temporary_terms,
     [[maybe_unused]] unordered_map<expr_t, tuple<int, int, int>>& reference_count) const
 {
-  cerr << "SubModelNode::computeBlocksTemporaryTerms not implemented." << endl;
+  cerr << "SubModelNode::computeBlocksTemporaryTerms not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 expr_t
 SubModelNode::toStatic([[maybe_unused]] DataTree& static_datatree) const
 {
-  cerr << "SubModelNode::toStatic not implemented." << endl;
+  cerr << "SubModelNode::toStatic not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 void
 SubModelNode::prepareForDerivation()
 {
-  cerr << "SubModelNode::prepareForDerivation not implemented." << endl;
+  cerr << "SubModelNode::prepareForDerivation not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -8934,14 +8934,14 @@ SubModelNode::prepareForChainRuleDerivation(
     [[maybe_unused]] const map<int, BinaryOpNode*>& recursive_variables,
     [[maybe_unused]] unordered_map<expr_t, set<int>>& non_null_chain_rule_derivatives) const
 {
-  cerr << "SubModelNode::prepareForChainRuleDerivation not implemented." << endl;
+  cerr << "SubModelNode::prepareForChainRuleDerivation not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 expr_t
 SubModelNode::computeDerivative([[maybe_unused]] int deriv_id)
 {
-  cerr << "SubModelNode::computeDerivative not implemented." << endl;
+  cerr << "SubModelNode::computeDerivative not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -8952,77 +8952,77 @@ SubModelNode::computeChainRuleDerivative(
     [[maybe_unused]] unordered_map<expr_t, set<int>>& non_null_chain_rule_derivatives,
     [[maybe_unused]] unordered_map<expr_t, map<int, expr_t>>& cache)
 {
-  cerr << "SubModelNode::computeChainRuleDerivative not implemented." << endl;
+  cerr << "SubModelNode::computeChainRuleDerivative not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 int
 SubModelNode::maxEndoLead() const
 {
-  cerr << "SubModelNode::maxEndoLead not implemented." << endl;
+  cerr << "SubModelNode::maxEndoLead not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 int
 SubModelNode::maxExoLead() const
 {
-  cerr << "SubModelNode::maxExoLead not implemented." << endl;
+  cerr << "SubModelNode::maxExoLead not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 int
 SubModelNode::maxEndoLag() const
 {
-  cerr << "SubModelNode::maxEndoLead not implemented." << endl;
+  cerr << "SubModelNode::maxEndoLead not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 int
 SubModelNode::maxExoLag() const
 {
-  cerr << "SubModelNode::maxExoLead not implemented." << endl;
+  cerr << "SubModelNode::maxExoLead not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 int
 SubModelNode::maxLead() const
 {
-  cerr << "SubModelNode::maxLead not implemented." << endl;
+  cerr << "SubModelNode::maxLead not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 int
 SubModelNode::maxLag() const
 {
-  cerr << "SubModelNode::maxLag not implemented." << endl;
+  cerr << "SubModelNode::maxLag not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 expr_t
 SubModelNode::undiff() const
 {
-  cerr << "SubModelNode::undiff not implemented." << endl;
+  cerr << "SubModelNode::undiff not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 int
 SubModelNode::VarMaxLag([[maybe_unused]] const set<expr_t>& lhs_lag_equiv) const
 {
-  cerr << "SubModelNode::VarMaxLag not implemented." << endl;
+  cerr << "SubModelNode::VarMaxLag not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 expr_t
 SubModelNode::decreaseLeadsLags([[maybe_unused]] int n) const
 {
-  cerr << "SubModelNode::decreaseLeadsLags not implemented." << endl;
+  cerr << "SubModelNode::decreaseLeadsLags not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 int
 SubModelNode::countDiffs() const
 {
-  cerr << "SubModelNode::countDiffs not implemented." << endl;
+  cerr << "SubModelNode::countDiffs not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -9031,7 +9031,7 @@ SubModelNode::substituteEndoLeadGreaterThanTwo([[maybe_unused]] subst_table_t& s
                                                [[maybe_unused]] vector<BinaryOpNode*>& neweqs,
                                                [[maybe_unused]] bool deterministic_model) const
 {
-  cerr << "SubModelNode::substituteEndoLeadGreaterThanTwo not implemented." << endl;
+  cerr << "SubModelNode::substituteEndoLeadGreaterThanTwo not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -9039,7 +9039,7 @@ expr_t
 SubModelNode::substituteEndoLagGreaterThanTwo([[maybe_unused]] subst_table_t& subst_table,
                                               [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
 {
-  cerr << "SubModelNode::substituteEndoLagGreaterThanTwo not implemented." << endl;
+  cerr << "SubModelNode::substituteEndoLagGreaterThanTwo not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -9048,7 +9048,7 @@ SubModelNode::substituteExoLead([[maybe_unused]] subst_table_t& subst_table,
                                 [[maybe_unused]] vector<BinaryOpNode*>& neweqs,
                                 [[maybe_unused]] bool deterministic_model) const
 {
-  cerr << "SubModelNode::substituteExoLead not implemented." << endl;
+  cerr << "SubModelNode::substituteExoLead not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -9056,7 +9056,7 @@ expr_t
 SubModelNode::substituteExoLag([[maybe_unused]] subst_table_t& subst_table,
                                [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
 {
-  cerr << "SubModelNode::substituteExoLag not implemented." << endl;
+  cerr << "SubModelNode::substituteExoLag not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -9065,7 +9065,7 @@ SubModelNode::substituteHetEndoNonLinearLead([[maybe_unused]] int het_dim,
                                              [[maybe_unused]] subst_table_t& subst_table,
                                              [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
 {
-  cerr << "SubModelNode::substituteHetEndoNonLinearLead not implemented." << endl;
+  cerr << "SubModelNode::substituteHetEndoNonLinearLead not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -9113,7 +9113,7 @@ SubModelNode::computeXrefs([[maybe_unused]] EquationInfo& ei) const
 void
 SubModelNode::collectVARLHSVariable([[maybe_unused]] set<expr_t>& result) const
 {
-  cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << endl;
+  cerr << "ERROR: you can only have variables or unary ops on LHS of VAR" << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -9131,7 +9131,7 @@ SubModelNode::writeBytecodeOutput(
     [[maybe_unused]] const temporary_terms_idxs_t& temporary_terms_idxs,
     [[maybe_unused]] const deriv_node_temp_terms_t& tef_terms) const
 {
-  cerr << "SubModelNode::compile not implemented." << endl;
+  cerr << "SubModelNode::compile not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -9233,21 +9233,21 @@ SubModelNode::differentiateForwardVars([[maybe_unused]] const vector<string>& su
                                        [[maybe_unused]] subst_table_t& subst_table,
                                        [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
 {
-  cerr << "SubModelNode::differentiateForwardVars not implemented." << endl;
+  cerr << "SubModelNode::differentiateForwardVars not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 expr_t
 SubModelNode::decreaseLeadsLagsPredeterminedVariables() const
 {
-  cerr << "SubModelNode::decreaseLeadsLagsPredeterminedVariables not implemented." << endl;
+  cerr << "SubModelNode::decreaseLeadsLagsPredeterminedVariables not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 expr_t
 SubModelNode::replaceTrendVar() const
 {
-  cerr << "SubModelNode::replaceTrendVar not implemented." << endl;
+  cerr << "SubModelNode::replaceTrendVar not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -9255,14 +9255,14 @@ expr_t
 SubModelNode::detrend([[maybe_unused]] int symb_id, [[maybe_unused]] bool log_trend,
                       [[maybe_unused]] expr_t trend) const
 {
-  cerr << "SubModelNode::detrend not implemented." << endl;
+  cerr << "SubModelNode::detrend not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
 expr_t
 SubModelNode::removeTrendLeadLag([[maybe_unused]] const map<int, expr_t>& trend_symbols_map) const
 {
-  cerr << "SubModelNode::removeTrendLeadLag not implemented." << endl;
+  cerr << "SubModelNode::removeTrendLeadLag not implemented." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -9324,7 +9324,7 @@ VarExpectationNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
       return;
     }
 
-  cerr << "VarExpectationNode::writeOutput not implemented for non-LaTeX." << endl;
+  cerr << "VarExpectationNode::writeOutput not implemented for non-LaTeX." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -9335,7 +9335,7 @@ VarExpectationNode::substituteVarExpectation(const map<string, expr_t>& subst_ta
   if (it == subst_table.end())
     {
       cerr << "ERROR: unknown model '" << model_name << "' used in var_expectation expression"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
   return it->second;
@@ -9409,7 +9409,7 @@ PacExpectationNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
       return;
     }
 
-  cerr << "PacExpectationNode::writeOutput not implemented for non-LaTeX." << endl;
+  cerr << "PacExpectationNode::writeOutput not implemented for non-LaTeX." << '\n';
   exit(EXIT_FAILURE);
 }
 
@@ -9502,7 +9502,7 @@ PacTargetNonstationaryNode::writeOutput(
       return;
     }
 
-  cerr << "PacTargetNonstationaryNode::writeOutput not implemented for non-LaTeX." << endl;
+  cerr << "PacTargetNonstationaryNode::writeOutput not implemented for non-LaTeX." << '\n';
   exit(EXIT_FAILURE);
 }
 

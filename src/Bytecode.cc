@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022-2024 Dynare Team
+ * Copyright © 2022-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -32,7 +32,7 @@ Writer::Writer(const filesystem::path& filename)
   open(filename, ios::out | ios::binary);
   if (!is_open())
     {
-      cerr << R"(Error : Can't open file ")" << filename.string() << R"(" for writing)" << endl;
+      cerr << R"(Error : Can't open file ")" << filename.string() << R"(" for writing)" << '\n';
       exit(EXIT_FAILURE);
     }
 }

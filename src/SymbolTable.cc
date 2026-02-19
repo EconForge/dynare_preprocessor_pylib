@@ -254,15 +254,15 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
 
   if (exo_nbr() > 0)
     {
-      output << "M_.exo_names = cell(" << exo_nbr() << ",1);" << endl;
-      output << "M_.exo_names_tex = cell(" << exo_nbr() << ",1);" << endl;
-      output << "M_.exo_names_long = cell(" << exo_nbr() << ",1);" << endl;
+      output << "M_.exo_names = cell(" << exo_nbr() << ",1);" << '\n';
+      output << "M_.exo_names_tex = cell(" << exo_nbr() << ",1);" << '\n';
+      output << "M_.exo_names_long = cell(" << exo_nbr() << ",1);" << '\n';
       for (int id = 0; id < exo_nbr(); id++)
-        output << "M_.exo_names(" << id + 1 << ") = {'" << getName(exo_ids[id]) << "'};" << endl
+        output << "M_.exo_names(" << id + 1 << ") = {'" << getName(exo_ids[id]) << "'};" << '\n'
                << "M_.exo_names_tex(" << id + 1 << ") = {'" << getTeXName(exo_ids[id]) << "'};"
-               << endl
+               << '\n'
                << "M_.exo_names_long(" << id + 1 << ") = {'" << getLongName(exo_ids[id]) << "'};"
-               << endl;
+               << '\n';
       for (auto& partition : getPartitionsForType(SymbolType::exogenous))
         if (partition.first != "long_name")
           {
@@ -274,33 +274,33 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
                   output << it1->second;
                 output << "' ";
               }
-            output << "};" << endl;
+            output << "};" << '\n';
             if (partition.first == "status")
-              output << "M_ = set_observed_exogenous_variables(M_);" << endl;
+              output << "M_ = set_observed_exogenous_variables(M_);" << '\n';
             if (partition.first == "used")
-              output << "M_ = set_exogenous_variables_for_simulation(M_);" << endl;
+              output << "M_ = set_exogenous_variables_for_simulation(M_);" << '\n';
           }
     }
   else
     {
-      output << "M_.exo_names = {};" << endl;
-      output << "M_.exo_names_tex = {};" << endl;
-      output << "M_.exo_names_long = {};" << endl;
+      output << "M_.exo_names = {};" << '\n';
+      output << "M_.exo_names_tex = {};" << '\n';
+      output << "M_.exo_names_long = {};" << '\n';
     }
 
   if (exo_det_nbr() > 0)
     {
-      output << "M_.exo_det_names = cell(" << exo_det_nbr() << ",1);" << endl;
-      output << "M_.exo_det_names_tex = cell(" << exo_det_nbr() << ",1);" << endl;
-      output << "M_.exo_det_names_long = cell(" << exo_det_nbr() << ",1);" << endl;
+      output << "M_.exo_det_names = cell(" << exo_det_nbr() << ",1);" << '\n';
+      output << "M_.exo_det_names_tex = cell(" << exo_det_nbr() << ",1);" << '\n';
+      output << "M_.exo_det_names_long = cell(" << exo_det_nbr() << ",1);" << '\n';
       for (int id = 0; id < exo_det_nbr(); id++)
         output << "M_.exo_det_names(" << id + 1 << ") = {'" << getName(exo_det_ids[id]) << "'};"
-               << endl
+               << '\n'
                << "M_.exo_det_names_tex(" << id + 1 << ") = {'" << getTeXName(exo_det_ids[id])
-               << "'};" << endl
+               << "'};" << '\n'
                << "M_.exo_det_names_long(" << id + 1 << ") = {'" << getLongName(exo_det_ids[id])
-               << "'};" << endl;
-      output << "M_.exo_det_partitions = struct();" << endl;
+               << "'};" << '\n';
+      output << "M_.exo_det_partitions = struct();" << '\n';
       for (auto& partition : getPartitionsForType(SymbolType::exogenousDet))
         if (partition.first != "long_name")
           {
@@ -313,22 +313,22 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
                   output << it1->second;
                 output << "' ";
               }
-            output << "};" << endl;
+            output << "};" << '\n';
           }
     }
 
   if (endo_nbr() > 0)
     {
-      output << "M_.endo_names = cell(" << endo_nbr() << ",1);" << endl;
-      output << "M_.endo_names_tex = cell(" << endo_nbr() << ",1);" << endl;
-      output << "M_.endo_names_long = cell(" << endo_nbr() << ",1);" << endl;
+      output << "M_.endo_names = cell(" << endo_nbr() << ",1);" << '\n';
+      output << "M_.endo_names_tex = cell(" << endo_nbr() << ",1);" << '\n';
+      output << "M_.endo_names_long = cell(" << endo_nbr() << ",1);" << '\n';
       for (int id = 0; id < endo_nbr(); id++)
-        output << "M_.endo_names(" << id + 1 << ") = {'" << getName(endo_ids[id]) << "'};" << endl
+        output << "M_.endo_names(" << id + 1 << ") = {'" << getName(endo_ids[id]) << "'};" << '\n'
                << "M_.endo_names_tex(" << id + 1 << ") = {'" << getTeXName(endo_ids[id]) << "'};"
-               << endl
+               << '\n'
                << "M_.endo_names_long(" << id + 1 << ") = {'" << getLongName(endo_ids[id]) << "'};"
-               << endl;
-      output << "M_.endo_partitions = struct();" << endl;
+               << '\n';
+      output << "M_.endo_partitions = struct();" << '\n';
       for (auto& partition : getPartitionsForType(SymbolType::endogenous))
         if (partition.first != "long_name")
           {
@@ -340,27 +340,27 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
                   output << it1->second;
                 output << "' ";
               }
-            output << "};" << endl;
+            output << "};" << '\n';
           }
     }
 
   if (param_nbr() > 0)
     {
-      output << "M_.param_names = cell(" << param_nbr() << ",1);" << endl;
-      output << "M_.param_names_tex = cell(" << param_nbr() << ",1);" << endl;
-      output << "M_.param_names_long = cell(" << param_nbr() << ",1);" << endl;
+      output << "M_.param_names = cell(" << param_nbr() << ",1);" << '\n';
+      output << "M_.param_names_tex = cell(" << param_nbr() << ",1);" << '\n';
+      output << "M_.param_names_long = cell(" << param_nbr() << ",1);" << '\n';
       for (int id = 0; id < param_nbr(); id++)
         {
           output << "M_.param_names(" << id + 1 << ") = {'" << getName(param_ids[id]) << "'};"
-                 << endl
+                 << '\n'
                  << "M_.param_names_tex(" << id + 1 << ") = {'" << getTeXName(param_ids[id])
-                 << "'};" << endl
+                 << "'};" << '\n'
                  << "M_.param_names_long(" << id + 1 << ") = {'" << getLongName(param_ids[id])
-                 << "'};" << endl;
+                 << "'};" << '\n';
           if (getName(param_ids[id]) == "dsge_prior_weight")
-            output << "options_.dsge_var = 1;" << endl;
+            output << "options_.dsge_var = 1;" << '\n';
         }
-      output << "M_.param_partitions = struct();" << endl;
+      output << "M_.param_partitions = struct();" << '\n';
       for (auto& partition : getPartitionsForType(SymbolType::parameter))
         if (partition.first != "long_name")
           {
@@ -372,32 +372,32 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
                   output << it1->second;
                 output << "' ";
               }
-            output << "};" << endl;
+            output << "};" << '\n';
           }
     }
   else
     {
-      output << "M_.param_names = {};" << endl;
-      output << "M_.param_names_tex = {};" << endl;
-      output << "M_.param_names_long = {};" << endl;
+      output << "M_.param_names = {};" << '\n';
+      output << "M_.param_names_tex = {};" << '\n';
+      output << "M_.param_names_long = {};" << '\n';
     }
 
-  output << "M_.exo_det_nbr = " << exo_det_nbr() << ";" << endl
-         << "M_.exo_nbr = " << exo_nbr() << ";" << endl
-         << "M_.endo_nbr = " << endo_nbr() << ";" << endl
-         << "M_.param_nbr = " << param_nbr() << ";" << endl;
+  output << "M_.exo_det_nbr = " << exo_det_nbr() << ";" << '\n'
+         << "M_.exo_nbr = " << exo_nbr() << ";" << '\n'
+         << "M_.endo_nbr = " << endo_nbr() << ";" << '\n'
+         << "M_.param_nbr = " << param_nbr() << ";" << '\n';
 
   // Write the auxiliary variable table
-  output << "M_.orig_endo_nbr = " << orig_endo_nbr() << ";" << endl;
+  output << "M_.orig_endo_nbr = " << orig_endo_nbr() << ";" << '\n';
   if (aux_vars.size() == 0)
-    output << "M_.aux_vars = [];" << endl;
+    output << "M_.aux_vars = [];" << '\n';
   else
     for (int i = 0; i < static_cast<int>(aux_vars.size()); i++)
       {
         output << "M_.aux_vars(" << i + 1
-               << ").endo_index = " << getTypeSpecificID(aux_vars[i].symb_id) + 1 << ";" << endl
+               << ").endo_index = " << getTypeSpecificID(aux_vars[i].symb_id) + 1 << ";" << '\n'
                << "M_.aux_vars(" << i + 1 << ").type = " << aux_vars[i].get_type_id() << ";"
-               << endl;
+               << '\n';
         switch (aux_vars[i].type)
           {
           case AuxVarType::endoLead:
@@ -417,26 +417,26 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
           case AuxVarType::diffForward:
             output << "M_.aux_vars(" << i + 1
                    << ").orig_index = " << getTypeSpecificID(aux_vars[i].orig_symb_id.value()) + 1
-                   << ";" << endl
+                   << ";" << '\n'
                    << "M_.aux_vars(" << i + 1
-                   << ").orig_lead_lag = " << aux_vars[i].orig_lead_lag.value() << ";" << endl;
+                   << ").orig_lead_lag = " << aux_vars[i].orig_lead_lag.value() << ";" << '\n';
             break;
           case AuxVarType::unaryOp:
             output << "M_.aux_vars(" << i + 1 << ").unary_op = '" << aux_vars[i].unary_op << "';"
-                   << endl;
+                   << '\n';
             [[fallthrough]];
           case AuxVarType::diff:
             if (aux_vars[i].orig_symb_id)
               output << "M_.aux_vars(" << i + 1
                      << ").orig_index = " << getTypeSpecificID(*aux_vars[i].orig_symb_id) + 1 << ";"
-                     << endl
+                     << '\n'
                      << "M_.aux_vars(" << i + 1
-                     << ").orig_lead_lag = " << aux_vars[i].orig_lead_lag.value() << ";" << endl;
+                     << ").orig_lead_lag = " << aux_vars[i].orig_lead_lag.value() << ";" << '\n';
             break;
           case AuxVarType::multiplier:
             output << "M_.aux_vars(" << i + 1
                    << ").eq_nbr = " << aux_vars[i].equation_number_for_multiplier + 1 << ";"
-                   << endl;
+                   << '\n';
             break;
           }
 
@@ -444,7 +444,7 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
           {
             output << "M_.aux_vars(" << i + 1 << ").orig_expr = '";
             orig_expr->writeJsonOutput(output, {}, {});
-            output << "';" << endl;
+            output << "';" << '\n';
           }
       }
 
@@ -453,31 +453,31 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
       output << "M_.predetermined_variables = [ ";
       for (int predetermined_variable : predetermined_variables)
         output << getTypeSpecificID(predetermined_variable) + 1 << " ";
-      output << "];" << endl;
+      output << "];" << '\n';
     }
 
   if (observedVariablesNbr() > 0)
     {
-      output << "options_.varobs = cell(" << observedVariablesNbr() << ", 1);" << endl;
+      output << "options_.varobs = cell(" << observedVariablesNbr() << ", 1);" << '\n';
       for (int ic {1}; int it : varobs)
-        output << "options_.varobs(" << ic++ << ")  = {'" << getName(it) << "'};" << endl;
+        output << "options_.varobs(" << ic++ << ")  = {'" << getName(it) << "'};" << '\n';
 
       output << "options_.varobs_id = [ ";
       for (int varob : varobs)
         output << getTypeSpecificID(varob) + 1 << " ";
-      output << " ];" << endl;
+      output << " ];" << '\n';
     }
 
   if (observedExogenousVariablesNbr() > 0)
     {
-      output << "options_.varexobs = cell(1);" << endl;
+      output << "options_.varexobs = cell(1);" << '\n';
       for (int ic {1}; int it : varexobs)
-        output << "options_.varexobs(" << ic++ << ")  = {'" << getName(it) << "'};" << endl;
+        output << "options_.varexobs(" << ic++ << ")  = {'" << getName(it) << "'};" << '\n';
 
       output << "options_.varexobs_id = [ ";
       for (int varexob : varexobs)
         output << getTypeSpecificID(varexob) + 1 << " ";
-      output << " ];" << endl;
+      output << " ];" << '\n';
     }
 
   // Heterogeneous symbols
@@ -493,25 +493,25 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
     };
     output << field << " = {";
     helper(&SymbolTable::getName);
-    output << "};" << endl << field << "_tex = {";
+    output << "};" << '\n' << field << "_tex = {";
     helper(&SymbolTable::getTeXName);
-    output << "};" << endl << field << "_long = {";
+    output << "};" << '\n' << field << "_long = {";
     helper(&SymbolTable::getLongName);
-    output << "};" << endl;
+    output << "};" << '\n';
   };
   for (int het_dim {0}; het_dim < heterogeneity_table.size(); het_dim++)
     {
       const string basefield {"M_.heterogeneity(" + to_string(het_dim + 1) + ")."};
 
-      output << basefield << "endo_nbr = " << het_endo_nbr(het_dim) << ";" << endl;
+      output << basefield << "endo_nbr = " << het_endo_nbr(het_dim) << ";" << '\n';
       print_symb_names(basefield + "endo_names", het_endo_ids.at(het_dim));
 
-      output << basefield << "orig_endo_nbr = " << het_orig_endo_nbr(het_dim) << ";" << endl;
+      output << basefield << "orig_endo_nbr = " << het_orig_endo_nbr(het_dim) << ";" << '\n';
 
-      output << basefield << "exo_nbr = " << het_exo_nbr(het_dim) << ";" << endl;
+      output << basefield << "exo_nbr = " << het_exo_nbr(het_dim) << ";" << '\n';
       print_symb_names(basefield + "exo_names", het_exo_ids.at(het_dim));
 
-      output << basefield << "param_nbr = " << het_param_nbr(het_dim) << ";" << endl;
+      output << basefield << "param_nbr = " << het_param_nbr(het_dim) << ";" << '\n';
       print_symb_names(basefield + "param_names", het_param_ids.at(het_dim));
 
       const vector<AuxVarInfo>& hav = het_aux_vars[het_dim];
@@ -521,11 +521,11 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
         for (int i = 0; i < static_cast<int>(hav.size()); i++)
           {
             output << basefield << "aux_vars(" << i + 1
-                   << ").endo_index = " << getTypeSpecificID(hav[i].symb_id) + 1 << ";" << endl
+                   << ").endo_index = " << getTypeSpecificID(hav[i].symb_id) + 1 << ";" << '\n'
                    << basefield << "aux_vars(" << i + 1 << ").type = " << hav[i].get_type_id()
-                   << ";" << endl
+                   << ";" << '\n'
                    << basefield << "aux_vars(" << i + 1
-                   << ").eq_nbr = " << hav[i].equation_number_for_multiplier + 1 << ";" << endl;
+                   << ").eq_nbr = " << hav[i].equation_number_for_multiplier + 1 << ";" << '\n';
           }
     }
 }
@@ -542,7 +542,7 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) 
   catch (AlreadyDeclaredException& e)
     {
       cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
+           << ", this name is internally used by Dynare" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -566,7 +566,7 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
   catch (AlreadyDeclaredException& e)
     {
       cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
+           << ", this name is internally used by Dynare" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -616,7 +616,7 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index,
   catch (AlreadyDeclaredException& e)
     {
       cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
+           << ", this name is internally used by Dynare" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -641,7 +641,7 @@ SymbolTable::addLogTransformAuxiliaryVar(int orig_symb_id, int orig_lead_lag,
     {
       cerr << "ERROR: you should rename your variable called " << varname
            << ", it conflicts with the auxiliary variable created for representing the log of "
-           << getName(orig_symb_id) << endl;
+           << getName(orig_symb_id) << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -664,7 +664,7 @@ SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
   catch (AlreadyDeclaredException& e)
     {
       cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
+           << ", this name is internally used by Dynare" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -686,7 +686,7 @@ SymbolTable::addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_i
   catch (AlreadyDeclaredException& e)
     {
       cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
+           << ", this name is internally used by Dynare" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -708,7 +708,7 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, const optional<int>
   catch (AlreadyDeclaredException& e)
     {
       cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
+           << ", this name is internally used by Dynare" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -731,7 +731,7 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
   catch (AlreadyDeclaredException& e)
     {
       cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
+           << ", this name is internally used by Dynare" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -753,7 +753,7 @@ SymbolTable::addHeterogeneousMultiplierAuxiliaryVar(int het_dim, int index,
   catch (AlreadyDeclaredException& e)
     {
       cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
+           << ", this name is internally used by Dynare" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -775,7 +775,7 @@ SymbolTable::addHeterogeneousEndoLeadAuxiliaryVar(int het_dim, int index,
   catch (AlreadyDeclaredException& e)
     {
       cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
+           << ", this name is internally used by Dynare" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -796,7 +796,7 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) noexcept(false)
   catch (AlreadyDeclaredException& e)
     {
       cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
+           << ", this name is internally used by Dynare" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -817,7 +817,7 @@ SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, int orig_lead_lag,
   catch (AlreadyDeclaredException& e)
     {
       cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << endl;
+           << ", this name is internally used by Dynare" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -839,7 +839,7 @@ SymbolTable::addPacExpectationAuxiliaryVar(const string& name, expr_t expr_arg)
       cerr << "ERROR: the variable/parameter '" << name
            << "' conflicts with a variable that will be generated for a 'pac_expectation' "
               "expression. Please rename it."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -860,7 +860,7 @@ SymbolTable::addPacTargetNonstationaryAuxiliaryVar(const string& name, expr_t ex
       cerr << "ERROR: the variable/parameter '" << name
            << "' conflicts with a variable that will be generated for a 'pac_target_nonstationary' "
               "expression. Please rename it."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -881,7 +881,7 @@ SymbolTable::addAggregationOpAuxiliaryVar(const string& name, expr_t expr_arg)
         cerr << "ERROR: the variable/parameter '" << name
              << "' conflicts with a variable that will be generated for an aggregation operator. "
                 "Please rename it."
-             << endl;
+             << '\n';
         exit(EXIT_FAILURE);
       }
   }()};
@@ -1142,7 +1142,7 @@ SymbolTable::writeJsonOutput(ostream& output) const
             output << ", ";
           output << R"(")" << getName(varobs[i]) << R"(")";
         }
-      output << "]" << endl;
+      output << "]" << '\n';
 
       output << R"(, "varobs_ids": [)";
       for (size_t i = 0; i < varobs.size(); i++)
@@ -1151,7 +1151,7 @@ SymbolTable::writeJsonOutput(ostream& output) const
             output << ", ";
           output << getTypeSpecificID(varobs[i]) + 1;
         }
-      output << "]" << endl;
+      output << "]" << '\n';
     }
 
   if (observedExogenousVariablesNbr() > 0)
@@ -1163,7 +1163,7 @@ SymbolTable::writeJsonOutput(ostream& output) const
             output << ", ";
           output << R"(")" << getName(varexobs[i]) << R"(")";
         }
-      output << "]" << endl;
+      output << "]" << '\n';
 
       output << R"(, "varexobs_ids": [)";
       for (size_t i = 0; i < varexobs.size(); i++)
@@ -1172,15 +1172,15 @@ SymbolTable::writeJsonOutput(ostream& output) const
             output << ", ";
           output << getTypeSpecificID(varexobs[i]) + 1;
         }
-      output << "]" << endl;
+      output << "]" << '\n';
     }
   // Write the auxiliary variable table
-  output << R"(, "orig_endo_nbr": )" << orig_endo_nbr() << endl;
+  output << R"(, "orig_endo_nbr": )" << orig_endo_nbr() << '\n';
   if (aux_vars.size() == 0)
     output << R"(, "aux_vars": [])";
   else
     {
-      output << R"(, "aux_vars": [)" << endl;
+      output << R"(, "aux_vars": [)" << '\n';
       for (int i = 0; i < static_cast<int>(aux_vars.size()); i++)
         {
           if (i != 0)
@@ -1227,9 +1227,9 @@ SymbolTable::writeJsonOutput(ostream& output) const
               orig_expr->writeJsonOutput(output, {}, {});
               output << R"(")";
             }
-          output << '}' << endl;
+          output << '}' << '\n';
         }
-      output << "]" << endl;
+      output << "]" << '\n';
     }
 
   if (!heterogeneity_table.empty())
@@ -1248,7 +1248,7 @@ SymbolTable::writeJsonOutput(ostream& output) const
           writeJsonVarVector(output, het_param_ids.at(i));
           output << "}";
         }
-      output << "]" << endl;
+      output << "]" << '\n';
     }
 }
 
@@ -1265,9 +1265,9 @@ SymbolTable::writeJsonVarVector(ostream& output, const vector<int>& varvec) cons
              << R"("texName":")" << boost::replace_all_copy(getTeXName(varvec[i]), R"(\)", R"(\\)")
              << R"(", )"
              << R"("longName":")"
-             << boost::replace_all_copy(getLongName(varvec[i]), R"(\)", R"(\\)") << R"("})" << endl;
+             << boost::replace_all_copy(getLongName(varvec[i]), R"(\)", R"(\\)") << R"("})" << '\n';
     }
-  output << "]" << endl;
+  output << "]" << '\n';
 }
 
 int

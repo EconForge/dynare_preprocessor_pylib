@@ -56,7 +56,7 @@ SteadyStatement::writeOutput(ostream& output, [[maybe_unused]] const string& bas
                              [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "steady;" << endl;
+  output << "steady;" << '\n';
 }
 
 void
@@ -80,7 +80,7 @@ CheckStatement::writeOutput(ostream& output, [[maybe_unused]] const string& base
                             [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "oo_.dr.eigval = check(M_,options_,oo_);" << endl;
+  output << "oo_.dr.eigval = check(M_,options_,oo_);" << '\n';
 }
 
 void
@@ -112,7 +112,7 @@ ModelInfoStatement::writeOutput(ostream& output, [[maybe_unused]] const string& 
                                 [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_model_info_");
-  output << "model_info(options_model_info_);" << endl;
+  output << "model_info(options_model_info_);" << '\n';
 }
 
 void
@@ -147,15 +147,15 @@ SimulStatement::writeOutput(ostream& output, [[maybe_unused]] const string& base
   auto options_list_new = options_list; // Need a copy, because of const
   if (auto opt = options_list_new.get_if<OptionsList::StringVal>("datafile"))
     {
-      output << "options_.initval_file = true;" << endl
-             << "options_initvalf = struct();" << endl
-             << "options_initvalf.datafile = '" << *opt << "';" << endl
-             << "oo_.initval_series = histvalf_initvalf('INITVALF', M_, options_initvalf);" << endl;
+      output << "options_.initval_file = true;" << '\n'
+             << "options_initvalf = struct();" << '\n'
+             << "options_initvalf.datafile = '" << *opt << "';" << '\n'
+             << "oo_.initval_series = histvalf_initvalf('INITVALF', M_, options_initvalf);" << '\n';
       options_list_new.erase("datafile");
     }
   options_list_new.writeOutput(output);
-  output << "oo_ = perfect_foresight_setup(M_, options_, oo_);" << endl
-         << "[oo_, Simulated_time_series] = perfect_foresight_solver(M_, options_, oo_);" << endl;
+  output << "oo_ = perfect_foresight_setup(M_, options_, oo_);" << '\n'
+         << "[oo_, Simulated_time_series] = perfect_foresight_solver(M_, options_, oo_);" << '\n';
 }
 
 void
@@ -190,14 +190,14 @@ PerfectForesightSetupStatement::writeOutput(ostream& output,
   auto options_list_new = options_list; // Need a copy, because of const
   if (auto opt = options_list_new.get_if<OptionsList::StringVal>("datafile"))
     {
-      output << "options_.initval_file = true;" << endl
-             << "options_initvalf = struct();" << endl
-             << "options_initvalf.datafile = '" << *opt << "';" << endl
-             << "oo_.initval_series = histvalf_initvalf('INITVALF', M_, options_initvalf);" << endl;
+      output << "options_.initval_file = true;" << '\n'
+             << "options_initvalf = struct();" << '\n'
+             << "options_initvalf.datafile = '" << *opt << "';" << '\n'
+             << "oo_.initval_series = histvalf_initvalf('INITVALF', M_, options_initvalf);" << '\n';
       options_list_new.erase("datafile");
     }
   options_list_new.writeOutput(output);
-  output << "oo_ = perfect_foresight_setup(M_, options_, oo_);" << endl;
+  output << "oo_ = perfect_foresight_setup(M_, options_, oo_);" << '\n';
 }
 
 void
@@ -237,7 +237,7 @@ PerfectForesightSolverStatement::writeOutput(ostream& output,
                                              [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "[oo_, Simulated_time_series] = perfect_foresight_solver(M_, options_, oo_);" << endl;
+  output << "[oo_, Simulated_time_series] = perfect_foresight_solver(M_, options_, oo_);" << '\n';
 }
 
 void
@@ -271,7 +271,7 @@ PerfectForesightWithExpectationErrorsSetupStatement::writeOutput(
     [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "oo_ = perfect_foresight_with_expectation_errors_setup(M_, options_, oo_);" << endl;
+  output << "oo_ = perfect_foresight_with_expectation_errors_setup(M_, options_, oo_);" << '\n';
 }
 
 void
@@ -314,7 +314,7 @@ PerfectForesightWithExpectationErrorsSolverStatement::writeOutput(
   options_list.writeOutput(output);
   output << "[oo_, Simulated_time_series] = perfect_foresight_with_expectation_errors_solver(M_, "
             "options_, oo_);"
-         << endl;
+         << '\n';
 }
 
 void
@@ -343,7 +343,7 @@ PriorPosteriorFunctionStatement::checkPass([[maybe_unused]] ModFileStructure& mo
     {
       cerr << "ERROR: both the 'prior_function' and 'posterior_function' commands require the "
               "'function' option"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -359,7 +359,7 @@ PriorPosteriorFunctionStatement::writeOutput(ostream& output,
   output << "oo_ = execute_prior_posterior_function("
          << "'" << options_list.get<OptionsList::StringVal>("function") << "', "
          << "M_, options_, oo_, estim_params_, bayestopt_, dataset_, dataset_info, "
-         << "'" << type << "');" << endl;
+         << "'" << type << "');" << '\n';
 }
 
 void
@@ -408,7 +408,7 @@ StochSimulStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
       (hp && bandpass) || (hp && one_sided_hp) || (bandpass && one_sided_hp))
     {
       cerr << "ERROR: stoch_simul: can only use one of HP, one-sided HP, and bandpass filters"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -418,7 +418,7 @@ StochSimulStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: stoch_simul: " << e.message << endl;
+      cerr << "ERROR: stoch_simul: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -431,11 +431,11 @@ StochSimulStatement::writeOutput(ostream& output, [[maybe_unused]] const string&
   if (auto opt1 = options_list.get_if<OptionsList::NumVal>("order"),
       opt2 = options_list.get_if<OptionsList::NumVal>("k_order_solver");
       (opt2 && *opt2 == "true") || (opt1 && stoi(*opt1) >= 3))
-    output << "options_.k_order_solver = true;" << endl;
+    output << "options_.k_order_solver = true;" << '\n';
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "[info, oo_, options_, M_] = stoch_simul(M_, options_, oo_, var_list_);" << endl;
+  output << "[info, oo_, options_, M_] = stoch_simul(M_, options_, oo_, var_list_);" << '\n';
 }
 
 void
@@ -473,7 +473,7 @@ ForecastStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: forecast: " << e.message << endl;
+      cerr << "ERROR: forecast: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -484,7 +484,7 @@ ForecastStatement::writeOutput(ostream& output, [[maybe_unused]] const string& b
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "oo_.forecast = forecasts.run(var_list_,M_,options_,oo_,'simul');" << endl;
+  output << "oo_.forecast = forecasts.run(var_list_,M_,options_,oo_,'simul');" << '\n';
 }
 
 void
@@ -577,7 +577,7 @@ RamseyPolicyStatement::checkPass(ModFileStructure& mod_file_struct, WarningConso
       (hp && bandpass) || (hp && one_sided_hp) || (bandpass && one_sided_hp))
     {
       cerr << "ERROR: ramsey_policy: can only use one of hp, one-sided hp, and bandpass filters"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -587,7 +587,7 @@ RamseyPolicyStatement::checkPass(ModFileStructure& mod_file_struct, WarningConso
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: ramsey_policy: " << e.message << endl;
+      cerr << "ERROR: ramsey_policy: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -600,13 +600,13 @@ RamseyPolicyStatement::writeOutput(ostream& output, [[maybe_unused]] const strin
   if (auto opt1 = options_list.get_if<OptionsList::NumVal>("order"),
       opt2 = options_list.get_if<OptionsList::NumVal>("k_order_solver");
       (opt2 && *opt2 == "true") || (opt1 && stoi(*opt1) >= 3))
-    output << "options_.k_order_solver = true;" << endl;
+    output << "options_.k_order_solver = true;" << '\n';
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "[info, oo_, options_, M_] = stoch_simul(M_, options_, oo_, var_list_);" << endl
-         << "oo_.steady_state = oo_.dr.ys;" << endl
-         << "oo_.planner_objective_value = evaluate_planner_objective(M_, options_, oo_);" << endl;
+  output << "[info, oo_, options_, M_] = stoch_simul(M_, options_, oo_, var_list_);" << '\n'
+         << "oo_.steady_state = oo_.dr.ys;" << '\n'
+         << "oo_.planner_objective_value = evaluate_planner_objective(M_, options_, oo_);" << '\n';
 }
 
 void
@@ -637,7 +637,7 @@ EvaluatePlannerObjectiveStatement::writeOutput(ostream& output,
                                                [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "oo_.planner_objective_value = evaluate_planner_objective(M_, options_, oo_);" << endl;
+  output << "oo_.planner_objective_value = evaluate_planner_objective(M_, options_, oo_);" << '\n';
 }
 
 void
@@ -668,7 +668,7 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure& mod_file_struct,
 
   if (!options_list.contains("instruments"))
     {
-      cerr << "ERROR: discretionary_policy: the instruments option is required." << endl;
+      cerr << "ERROR: discretionary_policy: the instruments option is required." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -680,7 +680,7 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure& mod_file_struct,
       int order = stoi(*opt);
       if (order > 1)
         {
-          cerr << "ERROR: discretionary_policy: order > 1 is not yet implemented" << endl;
+          cerr << "ERROR: discretionary_policy: order > 1 is not yet implemented" << '\n';
           exit(EXIT_FAILURE);
         }
       mod_file_struct.order_option = max(mod_file_struct.order_option, order + 1);
@@ -706,7 +706,7 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure& mod_file_struct,
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: discretionary_policy: " << e.message << endl;
+      cerr << "ERROR: discretionary_policy: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -719,12 +719,12 @@ DiscretionaryPolicyStatement::writeOutput(ostream& output, [[maybe_unused]] cons
   if (auto opt1 = options_list.get_if<OptionsList::NumVal>("order"),
       opt2 = options_list.get_if<OptionsList::NumVal>("k_order_solver");
       (opt2 && *opt2 == "true") || (opt1 && stoi(*opt1) >= 3))
-    output << "options_.k_order_solver = true;" << endl;
+    output << "options_.k_order_solver = true;" << '\n';
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   output << "[info, oo_, options_, M_] = discretionary_policy(M_, options_, oo_, var_list_);"
-         << endl;
+         << '\n';
 }
 
 void
@@ -754,7 +754,7 @@ OccbinSetupStatement::writeOutput(ostream& output, [[maybe_unused]] const string
                                   [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_occbin_");
-  output << "[M_, options_] = occbin.setup(M_, options_, options_occbin_);" << endl;
+  output << "[M_, options_] = occbin.setup(M_, options_, options_occbin_);" << '\n';
 }
 
 void
@@ -781,7 +781,7 @@ OccbinSolverStatement::writeOutput(ostream& output, [[maybe_unused]] const strin
   options_list.writeOutput(output, "options_.occbin");
   output << "[oo_.dr, oo_.occbin.simul]= occbin.solver(M_, options_, oo_.dr , oo_.steady_state, "
             "oo_.exo_steady_state, oo_.exo_det_steady_state);"
-         << endl;
+         << '\n';
 }
 
 void
@@ -806,7 +806,7 @@ OccbinWriteRegimesStatement::writeOutput(ostream& output, [[maybe_unused]] const
                                          [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_.occbin");
-  output << "occbin.write_regimes_to_xls(oo_.occbin, M_, options_);" << endl;
+  output << "occbin.write_regimes_to_xls(oo_.occbin, M_, options_);" << '\n';
 }
 
 void
@@ -833,7 +833,7 @@ OccbinGraphStatement::writeOutput(ostream& output, [[maybe_unused]] const string
 {
   symbol_list.writeOutput("var_list_", output);
   options_list.writeOutput(output, "options_occbin_");
-  output << "occbin.graph(M_, options_, options_occbin_, oo_, var_list_);" << endl;
+  output << "occbin.graph(M_, options_, options_occbin_, oo_, var_list_);" << '\n';
 }
 
 void
@@ -903,13 +903,13 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
     if (mod_file_struct.dsge_var_calibrated.empty() && !mod_file_struct.dsge_var_estimated)
       {
         cerr << "ERROR: The estimation statement requires a dsge_var option to be passed "
-             << "if the dsge_varlag option is passed." << endl;
+             << "if the dsge_varlag option is passed." << '\n';
         exit(EXIT_FAILURE);
       }
 
   if (!mod_file_struct.dsge_var_calibrated.empty() && mod_file_struct.dsge_var_estimated)
     {
-      cerr << "ERROR: An estimation statement cannot take more than one dsge_var option." << endl;
+      cerr << "ERROR: An estimation statement cannot take more than one dsge_var option." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -917,7 +917,7 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
     {
       cerr << "ERROR: The estimation statement requires a data file to be supplied via the "
               "datafile option."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -925,7 +925,7 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
     {
       cerr << "ERROR: The mode_file option of the estimation statement is incompatible with the "
               "use_calibration option of the estimated_params_init block."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -936,7 +936,7 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
         {
           cerr << "ERROR: The mh_tune_jscale and mh_jscale options of the estimation statement are "
                   "incompatible."
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -944,7 +944,7 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
     {
       cerr << "ERROR: The option mh_tune_guess in estimation statement cannot be used without "
               "option mh_tune_jscale."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -957,7 +957,7 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
         {
           cerr << "ERROR: The filter_algorithm=gmf option is incompatible with "
                   "proposal_approximation=montecarlo in the estimation statement."
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
       if (auto opt_distribution = options_list.get_if<OptionsList::NumVal>(
@@ -966,7 +966,7 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
         {
           cerr << "ERROR: The filter_algorithm=gmf option is incompatible with "
                   "distribution_approximation=montecarlo in the estimation statement."
-               << endl;
+               << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -983,7 +983,7 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
            << symbol_table.getName(estimated_params_in_planner_discount[0])
            << ") that appears in the discount factor of the planner (i.e. in the "
               "'planner_discount' option)."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -993,7 +993,7 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: estimation: " << e.message << endl;
+      cerr << "ERROR: estimation: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -1006,20 +1006,20 @@ EstimationStatement::writeOutput(ostream& output, [[maybe_unused]] const string&
 
   // Special treatment for order option and particle filter
   if (auto opt = options_list.get_if<OptionsList::NumVal>("order"); !opt)
-    output << "options_.order = 1;" << endl;
+    output << "options_.order = 1;" << '\n';
   else if (int order {stoi(*opt)}; order >= 2)
     {
-      output << "options_.particle.status = true;" << endl;
+      output << "options_.particle.status = true;" << '\n';
       if (order > 2)
-        output << "options_.k_order_solver = true;" << endl;
+        output << "options_.k_order_solver = true;" << '\n';
     }
 
   // Do not check for the steady state in diffuse filter mode (#400)
   if (auto opt = options_list.get_if<OptionsList::NumVal>("diffuse_filter"); opt && *opt == "true")
-    output << "options_.steadystate.nocheck = true;" << endl;
+    output << "options_.steadystate.nocheck = true;" << '\n';
 
   symbol_list.writeOutput("var_list_", output);
-  output << "oo_recursive_=dynare_estimation(var_list_);" << endl;
+  output << "oo_recursive_=dynare_estimation(var_list_);" << '\n';
 }
 
 void
@@ -1069,13 +1069,13 @@ SensitivityStatement::writeOutput(ostream& output, [[maybe_unused]] const string
      and provide a generic mechanism for this situation (maybe using regexps).
      graph_format can then be turned into a VecCellStrVal. */
   if (auto opt = options_list.get_if<OptionsList::NumVal>("nodisplay"))
-    output << "options_.nodisplay = " << *opt << ";" << endl;
+    output << "options_.nodisplay = " << *opt << ";" << '\n';
   if (auto opt = options_list.get_if<OptionsList::NumVal>("nograph"))
-    output << "options_.nograph = " << *opt << ";" << endl;
+    output << "options_.nograph = " << *opt << ";" << '\n';
   if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("graph_format"))
     opt->writeOutput("options_.graph_format", output);
 
-  output << "gsa.run(M_,oo_,options_,bayestopt_,estim_params_,options_gsa);" << endl;
+  output << "gsa.run(M_,oo_,options_,bayestopt_,estim_params_,options_gsa);" << '\n';
 }
 
 void
@@ -1106,7 +1106,7 @@ RplotStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: rplot: " << e.message << endl;
+      cerr << "ERROR: rplot: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -1116,7 +1116,7 @@ RplotStatement::writeOutput(ostream& output, [[maybe_unused]] const string& base
                             [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
-  output << "rplot(var_list_);" << endl;
+  output << "rplot(var_list_);" << '\n';
 }
 
 void
@@ -1144,9 +1144,9 @@ DsampleStatement::writeOutput(ostream& output, [[maybe_unused]] const string& ba
                               [[maybe_unused]] bool minimal_workspace) const
 {
   if (val2 < 0)
-    output << "dsample(" << val1 << ");" << endl;
+    output << "dsample(" << val1 << ");" << '\n';
   else
-    output << "dsample(" << val1 << ", " << val2 << ");" << endl;
+    output << "dsample(" << val1 << ", " << val2 << ");" << '\n';
 }
 
 void
@@ -1183,7 +1183,7 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
           if (already_declared_corr.contains(x))
             {
               cerr << "ERROR: in `" << blockName() << "' block, the correlation between " << it.name
-                   << " and " << it.name2 << " is declared twice." << endl;
+                   << " and " << it.name2 << " is declared twice." << '\n';
               exit(EXIT_FAILURE);
             }
           else
@@ -1194,7 +1194,7 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
           if (already_declared_stderr.contains(it.name))
             {
               cerr << "ERROR: in `" << blockName() << "' block, the stderr of " << it.name
-                   << " is declared twice." << endl;
+                   << " is declared twice." << '\n';
               exit(EXIT_FAILURE);
             }
           else
@@ -1205,7 +1205,7 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
           if (already_declared_skew.contains(it.name))
             {
               cerr << "ERROR: in `" << blockName() << "' block, the skewness of " << it.name
-                   << " is declared twice." << endl;
+                   << " is declared twice." << '\n';
               exit(EXIT_FAILURE);
             }
           else
@@ -1216,7 +1216,7 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
           if (already_declared.contains(it.name))
             {
               cerr << "ERROR: in `" << blockName() << "' block, the symbol " << it.name
-                   << " is declared twice." << endl;
+                   << " is declared twice." << '\n';
               exit(EXIT_FAILURE);
             }
           else
@@ -1255,7 +1255,7 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
             cerr << "skewness of " << it.name;
           else // either a parameter, the stderr of an exo, or the measurement error of an endo
             cerr << "symbol " << it.name;
-          cerr << ". This behaviour is undefined." << endl;
+          cerr << ". This behaviour is undefined." << '\n';
           exit(EXIT_FAILURE);
         }
     }
@@ -1290,13 +1290,13 @@ EstimatedParamsStatement::checkPass(ModFileStructure& mod_file_struct,
                 {
                   cerr << "ERROR: in `estimated_params' block, skewness can only be specified for "
                           "exogenous variables, not for '"
-                       << it.name << "'." << endl;
+                       << it.name << "'." << '\n';
                   exit(EXIT_FAILURE);
                 }
             }
           catch (SymbolTable::UnknownSymbolNameException& e)
             {
-              cerr << "ERROR: in `estimated_params' block, unknown symbol: " << it.name << endl;
+              cerr << "ERROR: in `estimated_params' block, unknown symbol: " << it.name << '\n';
               exit(EXIT_FAILURE);
             }
         }
@@ -1309,7 +1309,7 @@ EstimatedParamsStatement::checkPass(ModFileStructure& mod_file_struct,
               {
                 cerr << "ERROR: The prior density is not defined for the beta distribution when "
                         "the mean = standard deviation = 0.5."
-                     << endl;
+                     << '\n';
                 exit(EXIT_FAILURE);
               }
           }
@@ -1332,17 +1332,17 @@ EstimatedParamsStatement::writeOutput(ostream& output, [[maybe_unused]] const st
   string indent;
   if (!overwrite)
     {
-      output << "if isempty(estim_params_)" << endl;
+      output << "if isempty(estim_params_)" << '\n';
       indent = "    ";
     }
-  output << indent << "estim_params_.var_exo = zeros(0, 10);" << endl
-         << indent << "estim_params_.var_endo = zeros(0, 10);" << endl
-         << indent << "estim_params_.corrx = zeros(0, 11);" << endl
-         << indent << "estim_params_.corrn = zeros(0, 11);" << endl
-         << indent << "estim_params_.param_vals = zeros(0, 10);" << endl
-         << indent << "estim_params_.skew_exo = zeros(0, 10);" << endl;
+  output << indent << "estim_params_.var_exo = zeros(0, 10);" << '\n'
+         << indent << "estim_params_.var_endo = zeros(0, 10);" << '\n'
+         << indent << "estim_params_.corrx = zeros(0, 11);" << '\n'
+         << indent << "estim_params_.corrn = zeros(0, 11);" << '\n'
+         << indent << "estim_params_.param_vals = zeros(0, 10);" << '\n'
+         << indent << "estim_params_.skew_exo = zeros(0, 10);" << '\n';
   if (!overwrite)
-    output << "end" << endl;
+    output << "end" << '\n';
 
   /* Note that we verify that parameters are not declared twice across
      concatenated blocks, because this case is not covered by the check
@@ -1360,22 +1360,22 @@ EstimatedParamsStatement::writeOutput(ostream& output, [[maybe_unused]] const st
         {
         case 1:
           if (symb_type == SymbolType::exogenous)
-            output << "if ~isempty(find(estim_params_.var_exo(:,1)==" << tsid << "))" << endl
-                   << "    error('The standard deviation for " << it.name << errmsg << "')" << endl
-                   << "end" << endl
+            output << "if ~isempty(find(estim_params_.var_exo(:,1)==" << tsid << "))" << '\n'
+                   << "    error('The standard deviation for " << it.name << errmsg << "')" << '\n'
+                   << "end" << '\n'
                    << "estim_params_.var_exo = [estim_params_.var_exo; ";
           else if (symb_type == SymbolType::endogenous)
-            output << "if ~isempty(find(estim_params_.var_endo(:,1)==" << tsid << "))" << endl
+            output << "if ~isempty(find(estim_params_.var_endo(:,1)==" << tsid << "))" << '\n'
                    << "    error('The standard deviation of the measurement error for " << it.name
-                   << errmsg << "')" << endl
-                   << "end" << endl
+                   << errmsg << "')" << '\n'
+                   << "end" << '\n'
                    << "estim_params_.var_endo = [estim_params_.var_endo; ";
           output << tsid;
           break;
         case 2:
-          output << "if ~isempty(find(estim_params_.param_vals(:,1)==" << tsid << "))" << endl
-                 << "    error('Parameter " << it.name << errmsg << "')" << endl
-                 << "end" << endl
+          output << "if ~isempty(find(estim_params_.param_vals(:,1)==" << tsid << "))" << '\n'
+                 << "    error('Parameter " << it.name << errmsg << "')" << '\n'
+                 << "end" << '\n'
                  << "estim_params_.param_vals = [estim_params_.param_vals; " << tsid;
           break;
         case 3:
@@ -1384,26 +1384,26 @@ EstimatedParamsStatement::writeOutput(ostream& output, [[maybe_unused]] const st
             output << "if ~isempty(find((estim_params_.corrx(:,1)==" << tsid
                    << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
                    << "(estim_params_.corrx(:,2)==" << tsid
-                   << " & estim_params_.corrx(:,1)==" << tsid2 << ")))" << endl
+                   << " & estim_params_.corrx(:,1)==" << tsid2 << ")))" << '\n'
                    << "    error('The correlation between " << it.name << " and " << it.name2
-                   << errmsg << "')" << endl
-                   << "end" << endl
+                   << errmsg << "')" << '\n'
+                   << "end" << '\n'
                    << "estim_params_.corrx = [estim_params_.corrx; ";
           else if (symb_type == SymbolType::endogenous)
             output << "if ~isempty(find((estim_params_.corrn(:,1)==" << tsid
                    << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
                    << "(estim_params_.corrn(:,2)==" << tsid
-                   << " & estim_params_.corrn(:,1)==" << tsid2 << ")))" << endl
+                   << " & estim_params_.corrn(:,1)==" << tsid2 << ")))" << '\n'
                    << "    error('The correlation between measurement errors on " << it.name
-                   << " and " << it.name2 << errmsg << "')" << endl
-                   << "end" << endl
+                   << " and " << it.name2 << errmsg << "')" << '\n'
+                   << "end" << '\n'
                    << "estim_params_.corrn = [estim_params_.corrn; ";
           output << tsid << ", " << symbol_table.getTypeSpecificID(it.name2) + 1;
           break;
         case 4: // Skewness (single shock name)
-          output << "if ~isempty(find(estim_params_.skew_exo(:,1)==" << tsid << "))" << endl
-                 << "    error('The skewness for " << it.name << errmsg << "')" << endl
-                 << "end" << endl
+          output << "if ~isempty(find(estim_params_.skew_exo(:,1)==" << tsid << "))" << '\n'
+                 << "    error('The skewness for " << it.name << errmsg << "')" << '\n'
+                 << "end" << '\n'
                  << "estim_params_.skew_exo = [estim_params_.skew_exo; ";
           output << tsid;
           break;
@@ -1424,7 +1424,7 @@ EstimatedParamsStatement::writeOutput(ostream& output, [[maybe_unused]] const st
       it.p4->writeOutput(output);
       output << ", ";
       it.jscale->writeOutput(output);
-      output << " ];" << endl;
+      output << " ];" << '\n';
     }
 }
 
@@ -1472,7 +1472,7 @@ EstimatedParamsStatement::writeJsonOutput(ostream& output) const
       it.p4->writeJsonOutput(output, {}, {});
       output << R"(", "jscale": ")";
       it.jscale->writeJsonOutput(output, {}, {});
-      output << R"("})" << endl;
+      output << R"("})" << '\n';
     }
   output << "]"
          << "}";
@@ -1501,7 +1501,7 @@ EstimatedParamsInitStatement::writeOutput(ostream& output, [[maybe_unused]] cons
                                           [[maybe_unused]] bool minimal_workspace) const
 {
   if (use_calibration)
-    output << "options_.use_calibration_initialization = 1;" << endl;
+    output << "options_.use_calibration_initialization = 1;" << '\n';
 
   bool skipline = false;
 
@@ -1514,40 +1514,40 @@ EstimatedParamsInitStatement::writeOutput(ostream& output, [[maybe_unused]] cons
         {
           if (symb_type == SymbolType::exogenous)
             {
-              output << "tmp1 = find(estim_params_.var_exo(:,1)==" << tsid << ");" << endl
-                     << "if isempty(tmp1)" << endl
+              output << "tmp1 = find(estim_params_.var_exo(:,1)==" << tsid << ");" << '\n'
+                     << "if isempty(tmp1)" << '\n'
                      << "    disp(sprintf('The standard deviation of %s is not estimated (the "
                         "value provided in estimated_params_init is not used).', M_.exo_names{"
-                     << tsid << "}))" << endl;
+                     << tsid << "}))" << '\n';
               skipline = true;
-              output << "else" << endl << "    estim_params_.var_exo(tmp1,2) = ";
+              output << "else" << '\n' << "    estim_params_.var_exo(tmp1,2) = ";
               it.init_val->writeOutput(output);
-              output << ";" << endl << "end" << endl;
+              output << ";" << '\n' << "end" << '\n';
             }
           else if (symb_type == SymbolType::endogenous)
             {
-              output << "tmp1 = find(estim_params_.var_endo(:,1)==" << tsid << ");" << endl
-                     << "if isempty(tmp1)" << endl
+              output << "tmp1 = find(estim_params_.var_endo(:,1)==" << tsid << ");" << '\n'
+                     << "if isempty(tmp1)" << '\n'
                      << "    disp(sprintf('The standard deviation of the measurement error on %s "
                         "is not estimated (the value provided in estimated_params_init is not "
                         "used).', M_.endo_names{"
-                     << tsid << "}))" << endl;
+                     << tsid << "}))" << '\n';
               skipline = true;
-              output << "else" << endl << "    estim_params_.var_endo(tmp1,2) = ";
+              output << "else" << '\n' << "    estim_params_.var_endo(tmp1,2) = ";
               it.init_val->writeOutput(output);
-              output << ";" << endl << "end" << endl;
+              output << ";" << '\n' << "end" << '\n';
             }
           else if (symb_type == SymbolType::parameter)
             {
-              output << "tmp1 = find(estim_params_.param_vals(:,1)==" << tsid << ");" << endl
-                     << "if isempty(tmp1)" << endl
+              output << "tmp1 = find(estim_params_.param_vals(:,1)==" << tsid << ");" << '\n'
+                     << "if isempty(tmp1)" << '\n'
                      << "    disp(sprintf('Parameter %s is not estimated (the value provided in "
                         "estimated_params_init is not used).', M_.param_names{"
-                     << tsid << "}))" << endl;
+                     << tsid << "}))" << '\n';
               skipline = true;
-              output << "else" << endl << "    estim_params_.param_vals(tmp1,2) = ";
+              output << "else" << '\n' << "    estim_params_.param_vals(tmp1,2) = ";
               it.init_val->writeOutput(output);
-              output << ";" << endl << "end" << endl;
+              output << ";" << '\n' << "end" << '\n';
             }
         }
       else if (it.type == 3)
@@ -1558,48 +1558,48 @@ EstimatedParamsInitStatement::writeOutput(ostream& output, [[maybe_unused]] cons
               output << "tmp1 = find((estim_params_.corrx(:,1)==" << tsid
                      << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
                      << "(estim_params_.corrx(:,2)==" << tsid
-                     << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << endl
-                     << "if isempty(tmp1)" << endl
+                     << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << '\n'
+                     << "if isempty(tmp1)" << '\n'
                      << "    disp(sprintf('The correlation between %s and %s is not estimated (the "
                         "value provided in estimated_params_init is not used).', M_.exo_names{"
-                     << tsid << "}, M_.exo_names{" << tsid2 << "}))" << endl;
+                     << tsid << "}, M_.exo_names{" << tsid2 << "}))" << '\n';
               skipline = true;
-              output << "else" << endl << "    estim_params_.corrx(tmp1,3) = ";
+              output << "else" << '\n' << "    estim_params_.corrx(tmp1,3) = ";
               it.init_val->writeOutput(output);
-              output << ";" << endl << "end" << endl;
+              output << ";" << '\n' << "end" << '\n';
             }
           else if (symb_type == SymbolType::endogenous)
             {
               output << "tmp1 = find((estim_params_.corrn(:,1)==" << tsid
                      << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
                      << "(estim_params_.corrn(:,2)==" << tsid
-                     << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << endl
-                     << "if isempty(tmp1)" << endl
+                     << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << '\n'
+                     << "if isempty(tmp1)" << '\n'
                      << "    disp(sprintf('The correlation between measurement errors on %s and %s "
                         "is not estimated (the value provided in estimated_params_init is not "
                         "used).', M_.endo_names{"
-                     << tsid << "}, M_.endo_names{" << tsid2 << "}))" << endl;
+                     << tsid << "}, M_.endo_names{" << tsid2 << "}))" << '\n';
               skipline = true;
-              output << "else" << endl << "    estim_params_.corrn(tmp1,3) = ";
+              output << "else" << '\n' << "    estim_params_.corrn(tmp1,3) = ";
               it.init_val->writeOutput(output);
-              output << ";" << endl << "end" << endl;
+              output << ";" << '\n' << "end" << '\n';
             }
         }
       else if (it.type == 4) // Skewness
         {
-          output << "tmp1 = find(estim_params_.skew_exo(:,1)==" << tsid << ");" << endl
-                 << "if isempty(tmp1)" << endl
+          output << "tmp1 = find(estim_params_.skew_exo(:,1)==" << tsid << ");" << '\n'
+                 << "if isempty(tmp1)" << '\n'
                  << "    disp(sprintf('The skewness of %s is not estimated (the value provided in "
                     "estimated_params_init is not used).', M_.exo_names{"
-                 << tsid << "}))" << endl;
+                 << tsid << "}))" << '\n';
           skipline = true;
-          output << "else" << endl << "    estim_params_.skew_exo(tmp1,2) = ";
+          output << "else" << '\n' << "    estim_params_.skew_exo(tmp1,2) = ";
           it.init_val->writeOutput(output);
-          output << ";" << endl << "end" << endl;
+          output << ";" << '\n' << "end" << '\n';
         }
     }
   if (skipline == true)
-    output << "skipline()" << endl;
+    output << "skipline()" << '\n';
 }
 
 void
@@ -1668,30 +1668,30 @@ EstimatedParamsBoundsStatement::writeOutput(ostream& output,
         {
           if (symb_type == SymbolType::exogenous)
             {
-              output << "tmp1 = find(estim_params_.var_exo(:,1)==" << tsid << ");" << endl
+              output << "tmp1 = find(estim_params_.var_exo(:,1)==" << tsid << ");" << '\n'
                      << "estim_params_.var_exo(tmp1,3) = ";
               it.low_bound->writeOutput(output);
-              output << ";" << endl << "estim_params_.var_exo(tmp1,4) = ";
+              output << ";" << '\n' << "estim_params_.var_exo(tmp1,4) = ";
               it.up_bound->writeOutput(output);
-              output << ";" << endl;
+              output << ";" << '\n';
             }
           else if (symb_type == SymbolType::endogenous)
             {
-              output << "tmp1 = find(estim_params_.var_endo(:,1)==" << tsid << ");" << endl
+              output << "tmp1 = find(estim_params_.var_endo(:,1)==" << tsid << ");" << '\n'
                      << "estim_params_.var_endo(tmp1,3) = ";
               it.low_bound->writeOutput(output);
-              output << ";" << endl << "estim_params_.var_endo(tmp1,4) = ";
+              output << ";" << '\n' << "estim_params_.var_endo(tmp1,4) = ";
               it.up_bound->writeOutput(output);
-              output << ";" << endl;
+              output << ";" << '\n';
             }
           else if (symb_type == SymbolType::parameter)
             {
-              output << "tmp1 = find(estim_params_.param_vals(:,1)==" << tsid << ");" << endl
+              output << "tmp1 = find(estim_params_.param_vals(:,1)==" << tsid << ");" << '\n'
                      << "estim_params_.param_vals(tmp1,3) = ";
               it.low_bound->writeOutput(output);
-              output << ";" << endl << "estim_params_.param_vals(tmp1,4) = ";
+              output << ";" << '\n' << "estim_params_.param_vals(tmp1,4) = ";
               it.up_bound->writeOutput(output);
-              output << ";" << endl;
+              output << ";" << '\n';
             }
         }
       else if (it.type == 3) // Correlation
@@ -1702,34 +1702,34 @@ EstimatedParamsBoundsStatement::writeOutput(ostream& output,
               output << "tmp1 = find((estim_params_.corrx(:,1)==" << tsid
                      << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
                      << "(estim_params_.corrx(:,2)==" << tsid
-                     << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << endl
+                     << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << '\n'
                      << "estim_params_.corrx(tmp1,4) = ";
               it.low_bound->writeOutput(output);
-              output << ";" << endl << "estim_params_.corrx(tmp1,5) = ";
+              output << ";" << '\n' << "estim_params_.corrx(tmp1,5) = ";
               it.up_bound->writeOutput(output);
-              output << ";" << endl;
+              output << ";" << '\n';
             }
           else if (symb_type == SymbolType::endogenous)
             {
               output << "tmp1 = find((estim_params_.corrn(:,1)==" << tsid
                      << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
                      << "(estim_params_.corrn(:,2)==" << tsid
-                     << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << endl
+                     << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << '\n'
                      << "estim_params_.corrn(tmp1,4) = ";
               it.low_bound->writeOutput(output);
-              output << ";" << endl << "estim_params_.corrn(tmp1,5) = ";
+              output << ";" << '\n' << "estim_params_.corrn(tmp1,5) = ";
               it.up_bound->writeOutput(output);
-              output << ";" << endl;
+              output << ";" << '\n';
             }
         }
       else if (it.type == 4) // Skewness
         {
-          output << "tmp1 = find(estim_params_.skew_exo(:,1)==" << tsid << ");" << endl
+          output << "tmp1 = find(estim_params_.skew_exo(:,1)==" << tsid << ");" << '\n'
                  << "estim_params_.skew_exo(tmp1,3) = ";
           it.low_bound->writeOutput(output);
-          output << ";" << endl << "estim_params_.skew_exo(tmp1,4) = ";
+          output << ";" << '\n' << "estim_params_.skew_exo(tmp1,4) = ";
           it.up_bound->writeOutput(output);
-          output << ";" << endl;
+          output << ";" << '\n';
         }
     }
 }
@@ -1791,32 +1791,32 @@ EstimatedParamsRemoveStatement::writeOutput(ostream& output,
       if (it.type < 3)
         {
           if (symb_type == SymbolType::exogenous)
-            output << "tmp1 = find(estim_params_.var_exo(:,1)==" << tsid << ");" << endl
-                   << "if isempty(tmp1)" << endl
+            output << "tmp1 = find(estim_params_.var_exo(:,1)==" << tsid << ");" << '\n'
+                   << "if isempty(tmp1)" << '\n'
                    << "    error('estimated_params_remove: the standard deviation of %s is "
                       "not estimated.', M_.exo_names{"
-                   << tsid << "})" << endl
-                   << "else" << endl
+                   << tsid << "})" << '\n'
+                   << "else" << '\n'
                    << "    estim_params_.var_exo(tmp1,:) = [];"
-                   << "end" << endl;
+                   << "end" << '\n';
           else if (symb_type == SymbolType::endogenous)
-            output << "tmp1 = find(estim_params_.var_endo(:,1)==" << tsid << ");" << endl
-                   << "if isempty(tmp1)" << endl
+            output << "tmp1 = find(estim_params_.var_endo(:,1)==" << tsid << ");" << '\n'
+                   << "if isempty(tmp1)" << '\n'
                    << "    error('estimated_params_remove: the standard deviation of the "
                       "measurement error on %s is not estimated.', M_.endo_names{"
-                   << tsid << "})" << endl
-                   << "else" << endl
+                   << tsid << "})" << '\n'
+                   << "else" << '\n'
                    << "    estim_params_.var_endo(tmp1,:) = [];"
-                   << "end" << endl;
+                   << "end" << '\n';
           else if (symb_type == SymbolType::parameter)
-            output << "tmp1 = find(estim_params_.param_vals(:,1)==" << tsid << ");" << endl
-                   << "if isempty(tmp1)" << endl
+            output << "tmp1 = find(estim_params_.param_vals(:,1)==" << tsid << ");" << '\n'
+                   << "if isempty(tmp1)" << '\n'
                    << "    error('estimated_params_remove: parameter %s is not "
                       "estimated.', M_.param_names{"
-                   << tsid << "})" << endl
-                   << "else" << endl
+                   << tsid << "})" << '\n'
+                   << "else" << '\n'
                    << "    estim_params_.param_vals(tmp1,:) = [];"
-                   << "end" << endl;
+                   << "end" << '\n';
         }
       else if (it.type == 3) // Correlation
         {
@@ -1825,37 +1825,37 @@ EstimatedParamsRemoveStatement::writeOutput(ostream& output,
             output << "tmp1 = find((estim_params_.corrx(:,1)==" << tsid
                    << " & estim_params_.corrx(:,2)==" << tsid2 << ") | "
                    << "(estim_params_.corrx(:,2)==" << tsid
-                   << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << endl
-                   << "if isempty(tmp1)" << endl
+                   << " & estim_params_.corrx(:,1)==" << tsid2 << "));" << '\n'
+                   << "if isempty(tmp1)" << '\n'
                    << "    error('estimated_params_remove: the correlation between %s and "
                       "%s is not estimated.', M_.exo_names{"
-                   << tsid << "}, M_.exo_names{" << tsid2 << "})" << endl
-                   << "else" << endl
+                   << tsid << "}, M_.exo_names{" << tsid2 << "})" << '\n'
+                   << "else" << '\n'
                    << "    estim_params_.corrx(tmp1,:) = [];"
-                   << "end" << endl;
+                   << "end" << '\n';
           else if (symb_type == SymbolType::endogenous)
             output << "tmp1 = find((estim_params_.corrn(:,1)==" << tsid
                    << " & estim_params_.corrn(:,2)==" << tsid2 << ") | "
                    << "(estim_params_.corrn(:,2)==" << tsid
-                   << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << endl
-                   << "if isempty(tmp1)" << endl
+                   << " & estim_params_.corrn(:,1)==" << tsid2 << "));" << '\n'
+                   << "if isempty(tmp1)" << '\n'
                    << "    error('estimated_params_remove: the correlation between "
                       "measurement errors on %s and %s is not estimated.', M_.endo_names{"
-                   << tsid << "}, M_.endo_names{" << tsid2 << "})" << endl
-                   << "else" << endl
+                   << tsid << "}, M_.endo_names{" << tsid2 << "})" << '\n'
+                   << "else" << '\n'
                    << "    estim_params_.corrn(tmp1,:) = [];"
-                   << "end" << endl;
+                   << "end" << '\n';
         }
       else if (it.type == 4) // Skewness
         {
-          output << "tmp1 = find(estim_params_.skew_exo(:,1)==" << tsid << ");" << endl
-                 << "if isempty(tmp1)" << endl
+          output << "tmp1 = find(estim_params_.skew_exo(:,1)==" << tsid << ");" << '\n'
+                 << "if isempty(tmp1)" << '\n'
                  << "    error('estimated_params_remove: the skewness of %s is not "
                     "estimated.', M_.exo_names{"
-                 << tsid << "})" << endl
-                 << "else" << endl
+                 << tsid << "})" << '\n'
+                 << "else" << '\n'
                  << "    estim_params_.skew_exo(tmp1,:) = [];"
-                 << "end" << endl;
+                 << "end" << '\n';
         }
     }
 }
@@ -1904,17 +1904,17 @@ void
 DeterministicTrendsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                           [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_.trend_coeff = {};" << endl;
+  output << "options_.trend_coeff = {};" << '\n';
   for (const auto& [name, val] : trend_elements)
     if (symbol_table.getType(name) == SymbolType::endogenous)
       {
-        output << "tmp1 = strmatch('" << name << "',M_.endogenous_names,'exact');" << endl
+        output << "tmp1 = strmatch('" << name << "',M_.endogenous_names,'exact');" << '\n'
                << "options_.deterministic_trend_coeffs{tmp1} = '";
         val->writeOutput(output);
-        output << "';" << endl;
+        output << "';" << '\n';
       }
     else
-      cerr << "Warning: Non-variable symbol used in deterministic_trends: " << name << endl;
+      cerr << "Warning: Non-variable symbol used in deterministic_trends: " << name << '\n';
 }
 
 void
@@ -1929,10 +1929,10 @@ DeterministicTrendsStatement::writeJsonOutput(ostream& output) const
           output << ", ";
         output << R"(")" << name << R"(": ")";
         val->writeJsonOutput(output, {}, {});
-        output << R"(")" << endl;
+        output << R"(")" << '\n';
       }
     else
-      cerr << "Warning: Non-variable symbol used in deterministic_trends: " << name << endl;
+      cerr << "Warning: Non-variable symbol used in deterministic_trends: " << name << '\n';
   output << "}"
          << "}";
 }
@@ -1947,17 +1947,17 @@ void
 ObservationTrendsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_.trend_coeff = {};" << endl;
+  output << "options_.trend_coeff = {};" << '\n';
   for (const auto& [name, val] : trend_elements)
     if (symbol_table.getType(name) == SymbolType::endogenous)
       {
-        output << "tmp1 = strmatch('" << name << "',options_.varobs,'exact');" << endl
+        output << "tmp1 = strmatch('" << name << "',options_.varobs,'exact');" << '\n'
                << "options_.trend_coeffs{tmp1} = '";
         val->writeOutput(output);
-        output << "';" << endl;
+        output << "';" << '\n';
       }
     else
-      cerr << "Warning: Non-variable symbol used in observation_trends: " << name << endl;
+      cerr << "Warning: Non-variable symbol used in observation_trends: " << name << '\n';
 }
 
 void
@@ -1972,10 +1972,10 @@ ObservationTrendsStatement::writeJsonOutput(ostream& output) const
           output << ", ";
         output << R"(")" << name << R"(": ")";
         val->writeJsonOutput(output, {}, {});
-        output << R"(")" << endl;
+        output << R"(")" << '\n';
       }
     else
-      cerr << "Warning: Non-variable symbol used in observation_trends: " << name << endl;
+      cerr << "Warning: Non-variable symbol used in observation_trends: " << name << '\n';
   output << "}"
          << "}";
 }
@@ -1992,7 +1992,7 @@ void
 FilterInitialStateStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                          [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "M_.filter_initial_state = cell(M_.endo_nbr, 2);" << endl;
+  output << "M_.filter_initial_state = cell(M_.endo_nbr, 2);" << '\n';
   for (const auto& [key, val] : filter_initial_state_elements)
     {
       auto [symb_id, lag] = key;
@@ -2020,7 +2020,7 @@ FilterInitialStateStatement::writeOutput(ostream& output, [[maybe_unused]] const
       output << "M_.filter_initial_state(" << symbol_table.getTypeSpecificID(symb_id) + 1
              << ",:) = {'" << symbol_table.getName(symb_id) << "', '";
       val->writeOutput(output);
-      output << ";'};" << endl;
+      output << ";'};" << '\n';
     }
 }
 
@@ -2053,7 +2053,7 @@ void
 OsrParamsStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings)
 {
   if (mod_file_struct.osr_params_present)
-    warnings << "WARNING: You have more than one osr_params statement in the .mod file." << endl;
+    warnings << "WARNING: You have more than one osr_params statement in the .mod file." << '\n';
   mod_file_struct.osr_params_present = true;
 
   try
@@ -2062,7 +2062,7 @@ OsrParamsStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolid
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: osr: " << e.message << endl;
+      cerr << "ERROR: osr: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -2072,11 +2072,11 @@ OsrParamsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& 
                                 [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("M_.osr.param_names", output);
-  output << "M_.osr.param_names = cellstr(M_.osr.param_names);" << endl
-         << "M_.osr.param_indices = zeros(length(M_.osr.param_names), 1);" << endl;
+  output << "M_.osr.param_names = cellstr(M_.osr.param_names);" << '\n'
+         << "M_.osr.param_indices = zeros(length(M_.osr.param_names), 1);" << '\n';
   for (int i {0}; auto& symbol : symbol_list.getSymbols())
     output << "M_.osr.param_indices(" << ++i << ") = " << symbol_table.getTypeSpecificID(symbol) + 1
-           << ";" << endl;
+           << ";" << '\n';
 }
 
 void
@@ -2103,7 +2103,7 @@ OsrParamsBoundsStatement::checkPass(ModFileStructure& mod_file_struct,
   if (!mod_file_struct.osr_params_present)
     {
       cerr << "ERROR: you must have an osr_params statement before the osr_params_bounds block."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -2115,7 +2115,7 @@ OsrParamsBoundsStatement::writeOutput(ostream& output, [[maybe_unused]] const st
 
   output << "M_.osr.param_bounds = [-inf(length(M_.osr.param_names), 1), "
             "inf(length(M_.osr.param_names), 1)];"
-         << endl;
+         << '\n';
 
   for (const auto& it : osr_params_list)
     {
@@ -2123,7 +2123,7 @@ OsrParamsBoundsStatement::writeOutput(ostream& output, [[maybe_unused]] const st
       it.low_bound->writeOutput(output);
       output << ", ";
       it.up_bound->writeOutput(output);
-      output << "];" << endl;
+      output << "];" << '\n';
     }
 }
 
@@ -2187,7 +2187,7 @@ OsrStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolidation&
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: osr: " << e.message << endl;
+      cerr << "ERROR: osr: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -2200,18 +2200,18 @@ OsrStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basena
   if (auto opt1 = options_list.get_if<OptionsList::NumVal>("order"),
       opt2 = options_list.get_if<OptionsList::NumVal>("k_order_solver");
       (opt2 && *opt2 == "true") || (opt1 && stoi(*opt1) >= 3))
-    output << "options_.k_order_solver = true;" << endl;
+    output << "options_.k_order_solver = true;" << '\n';
 
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   if (planner_discount_declared)
     output
         << "[info, oo_, options_, M_] = osr.run(M_, options_, oo_, var_list_, M_.osr.param_names);"
-        << endl;
+        << '\n';
   else
     output << "[info, oo_, options_, M_] = osr.run(M_, options_, oo_, "
               "var_list_, M_.osr.param_names, M_.osr.variable_indices, M_.osr.variable_weights);"
-           << endl;
+           << '\n';
 }
 
 void
@@ -2251,20 +2251,20 @@ void
 OptimWeightsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                    [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "%" << endl
-         << "% OPTIM_WEIGHTS" << endl
-         << "%" << endl
-         << "M_.osr.variable_weights = sparse(M_.endo_nbr,M_.endo_nbr);" << endl
-         << "M_.osr.variable_indices = [];" << endl
-         << endl;
+  output << "%" << '\n'
+         << "% OPTIM_WEIGHTS" << '\n'
+         << "%" << '\n'
+         << "M_.osr.variable_weights = sparse(M_.endo_nbr,M_.endo_nbr);" << '\n'
+         << "M_.osr.variable_indices = [];" << '\n'
+         << '\n';
 
   for (const auto& [name, value] : var_weights)
     {
       int id = symbol_table.getTypeSpecificID(name) + 1;
       output << "M_.osr.variable_weights(" << id << "," << id << ") = ";
       value->writeOutput(output);
-      output << ";" << endl;
-      output << "M_.osr.variable_indices = [M_.osr.variable_indices; " << id << "];" << endl;
+      output << ";" << '\n';
+      output << "M_.osr.variable_indices = [M_.osr.variable_indices; " << id << "];" << '\n';
     }
 
   for (const auto& [names, value] : covar_weights)
@@ -2273,9 +2273,9 @@ OptimWeightsStatement::writeOutput(ostream& output, [[maybe_unused]] const strin
       int id2 = symbol_table.getTypeSpecificID(names.second) + 1;
       output << "M_.osr.variable_weights(" << id1 << "," << id2 << ") = ";
       value->writeOutput(output);
-      output << ";" << endl;
+      output << ";" << '\n';
       output << "M_.osr.variable_indices = [M_.osr.variable_indices; " << id1 << "; " << id2 << "];"
-             << endl;
+             << '\n';
     }
 }
 
@@ -2327,7 +2327,7 @@ DynaSaveStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: dynasave: " << e.message << endl;
+      cerr << "ERROR: dynasave: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -2337,7 +2337,7 @@ DynaSaveStatement::writeOutput(ostream& output, [[maybe_unused]] const string& b
                                [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
-  output << "dynasave('" << filename << "',var_list_);" << endl;
+  output << "dynasave('" << filename << "',var_list_);" << '\n';
 }
 
 void
@@ -2372,7 +2372,7 @@ DynaTypeStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: dynatype: " << e.message << endl;
+      cerr << "ERROR: dynatype: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -2382,7 +2382,7 @@ DynaTypeStatement::writeOutput(ostream& output, [[maybe_unused]] const string& b
                                [[maybe_unused]] bool minimal_workspace) const
 {
   symbol_list.writeOutput("var_list_", output);
-  output << "dynatype('" << filename << "',var_list_);" << endl;
+  output << "dynatype('" << filename << "',var_list_);" << '\n';
 }
 
 void
@@ -2410,13 +2410,13 @@ ModelComparisonStatement::writeOutput(ostream& output, [[maybe_unused]] const st
 {
   options_list.writeOutput(output);
 
-  output << "ModelNames_ = {};" << endl << "ModelPriors_ = [];" << endl;
+  output << "ModelNames_ = {};" << '\n' << "ModelPriors_ = [];" << '\n';
 
   for (const auto& [name, prior] : filename_list)
-    output << "ModelNames_ = { ModelNames_{:} '" << name << "'};" << endl
-           << "ModelPriors_ = [ ModelPriors_ ; " << prior << "];" << endl;
+    output << "ModelNames_ = { ModelNames_{:} '" << name << "'};" << '\n'
+           << "ModelPriors_ = [ ModelPriors_ ; " << prior << "];" << '\n';
 
-  output << "oo_ = model_comparison(ModelNames_,ModelPriors_,oo_,options_,M_.fname);" << endl;
+  output << "oo_ = model_comparison(ModelNames_,ModelPriors_,oo_,options_,M_.fname);" << '\n';
 }
 
 void
@@ -2461,7 +2461,7 @@ PlannerObjectiveStatement::checkPass(ModFileStructure& mod_file_struct,
       cerr << "ERROR: You cannot include exogenous variables (or variables of undeclared type) in "
               "the planner objective. Please "
            << "define an auxiliary endogenous variable like eps_aux=epsilon and use it instead "
-           << "of the varexo." << endl;
+           << "of the varexo." << '\n';
       exit(EXIT_FAILURE);
     }
   mod_file_struct.planner_objective_present = true;
@@ -2525,7 +2525,7 @@ BVARDensityStatement::writeOutput(ostream& output, [[maybe_unused]] const string
                                   [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "bvar.density(" << maxnlags << ");" << endl;
+  output << "bvar.density(" << maxnlags << ");" << '\n';
 }
 
 void
@@ -2557,7 +2557,7 @@ BVARForecastStatement::writeOutput(ostream& output, [[maybe_unused]] const strin
                                    [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "bvar.forecast(" << nlags << ");" << endl;
+  output << "bvar.forecast(" << nlags << ");" << '\n';
 }
 
 void
@@ -2588,7 +2588,7 @@ void
 BVARIRFStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                               [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "bvar.irf(" << nirf << ",'" << identificationname << "');" << endl;
+  output << "bvar.irf(" << nirf << ",'" << identificationname << "');" << '\n';
 }
 
 void
@@ -2614,7 +2614,7 @@ SBVARStatement::writeOutput(ostream& output, [[maybe_unused]] const string& base
                             [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "sbvar(M_,options_);" << endl;
+  output << "sbvar(M_,options_);" << '\n';
 }
 
 void
@@ -2644,7 +2644,7 @@ MSSBVAREstimationStatement::checkPass(ModFileStructure& mod_file_struct,
       && (!options_list.contains("datafile") || !options_list.contains("ms.initial_year")))
     {
       cerr << "ERROR: If you do not pass no_create_init to ms_estimation, "
-           << "you must pass the datafile and initial_year options." << endl;
+           << "you must pass the datafile and initial_year options." << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -2653,10 +2653,10 @@ void
 MSSBVAREstimationStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl
-         << "options_.datafile = '';" << endl;
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << '\n'
+         << "options_.datafile = '';" << '\n';
   options_list.writeOutput(output);
-  output << "[options_, oo_] = ms_estimation(M_, options_, oo_);" << endl;
+  output << "[options_, oo_] = ms_estimation(M_, options_, oo_);" << '\n';
 }
 
 void
@@ -2687,15 +2687,15 @@ void
 MSSBVARSimulationStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << '\n';
   options_list.writeOutput(output);
 
   // Redeclare drop option if necessary
   if ((options_list.contains("ms.mh_replic") || options_list.contains("ms.thinning_factor"))
       && !options_list.contains("ms.drop"))
-    output << "options_.ms.drop = 0.1*options_.ms.mh_replic*options_.ms.thinning_factor;" << endl;
+    output << "options_.ms.drop = 0.1*options_.ms.mh_replic*options_.ms.thinning_factor;" << '\n';
 
-  output << "[options_, oo_] = ms_simulation(M_, options_, oo_);" << endl;
+  output << "[options_, oo_] = ms_simulation(M_, options_, oo_);" << '\n';
 }
 
 void
@@ -2726,9 +2726,9 @@ void
 MSSBVARComputeMDDStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << '\n';
   options_list.writeOutput(output);
-  output << "[options_, oo_] = ms_compute_mdd(M_, options_, oo_);" << endl;
+  output << "[options_, oo_] = ms_compute_mdd(M_, options_, oo_);" << '\n';
 }
 
 void
@@ -2759,7 +2759,7 @@ MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure& mod_file_struc
       && options_list.contains("ms.filtered_probabilities"))
     {
       cerr << "ERROR: You may only pass one of real_time_smoothed "
-           << "and filtered_probabilities to ms_compute_probabilities." << endl;
+           << "and filtered_probabilities to ms_compute_probabilities." << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -2769,9 +2769,9 @@ MSSBVARComputeProbabilitiesStatement::writeOutput(ostream& output,
                                                   [[maybe_unused]] const string& basename,
                                                   [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << '\n';
   options_list.writeOutput(output);
-  output << "[options_, oo_] = ms_compute_probabilities(M_, options_, oo_);" << endl;
+  output << "[options_, oo_] = ms_compute_probabilities(M_, options_, oo_);" << '\n';
 }
 
 void
@@ -2806,7 +2806,7 @@ MSSBVARIrfStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
       || (filtered_probabilities_present && regimes_present) || (regimes_present && regime_present))
     {
       cerr << "ERROR: You may only pass one of regime, regimes and "
-           << "filtered_probabilities to ms_irf" << endl;
+           << "filtered_probabilities to ms_irf" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -2816,7 +2816,7 @@ MSSBVARIrfStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: ms_irf: " << e.message << endl;
+      cerr << "ERROR: ms_irf: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -2825,10 +2825,10 @@ void
 MSSBVARIrfStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                  [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << '\n';
   symbol_list.writeOutput("var_list_", output);
   options_list.writeOutput(output);
-  output << "[options_, oo_] = ms_irf(var_list_,M_, options_, oo_);" << endl;
+  output << "[options_, oo_] = ms_irf(var_list_,M_, options_, oo_);" << '\n';
 }
 
 void
@@ -2861,7 +2861,7 @@ MSSBVARForecastStatement::checkPass(ModFileStructure& mod_file_struct,
 
   if (options_list.contains("ms.regimes") && options_list.contains("ms.regime"))
     {
-      cerr << "ERROR: You may only pass one of regime and regimes to ms_forecast" << endl;
+      cerr << "ERROR: You may only pass one of regime and regimes to ms_forecast" << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -2870,9 +2870,9 @@ void
 MSSBVARForecastStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                       [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << '\n';
   options_list.writeOutput(output);
-  output << "[options_, oo_] = ms_forecast(M_, options_, oo_);" << endl;
+  output << "[options_, oo_] = ms_forecast(M_, options_, oo_);" << '\n';
 }
 
 void
@@ -2906,7 +2906,7 @@ MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure& mod_file_stru
       || (filtered_probabilities_present && regimes_present) || (regimes_present && regime_present))
     {
       cerr << "ERROR: You may only pass one of regime, regimes and "
-           << "filtered_probabilities to ms_variance_decomposition" << endl;
+           << "filtered_probabilities to ms_variance_decomposition" << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -2916,9 +2916,9 @@ MSSBVARVarianceDecompositionStatement::writeOutput(ostream& output,
                                                    [[maybe_unused]] const string& basename,
                                                    [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << endl;
+  output << "options_ = initialize_ms_sbvar_options(M_, options_);" << '\n';
   options_list.writeOutput(output);
-  output << "[options_, oo_] = ms_variance_decomposition(M_, options_, oo_);" << endl;
+  output << "[options_, oo_] = ms_variance_decomposition(M_, options_, oo_);" << '\n';
 }
 
 void
@@ -2940,7 +2940,7 @@ IdentificationStatement::IdentificationStatement(OptionsList options_list_arg) :
       opt && stoi(*opt) == 0)
     {
       cerr << "ERROR: The max_dim_cova_group option to identification only accepts integers > 0."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -2957,7 +2957,7 @@ IdentificationStatement::checkPass(ModFileStructure& mod_file_struct,
       if (order < 1 || order > 3)
         {
           cerr << "ERROR: the order option of identification command must be between 1 and 3"
-               << endl;
+               << '\n';
 
           exit(EXIT_FAILURE);
         }
@@ -2981,14 +2981,14 @@ IdentificationStatement::writeOutput(ostream& output, [[maybe_unused]] const str
      and provide a generic mechanism for this situation (maybe using regexps).
      graph_format can then be turned into a VecCellStrVal. */
   if (auto opt = options_list.get_if<OptionsList::NumVal>("nodisplay"))
-    output << "options_.nodisplay = " << *opt << ";" << endl;
+    output << "options_.nodisplay = " << *opt << ";" << '\n';
   if (auto opt = options_list.get_if<OptionsList::NumVal>("nograph"))
-    output << "options_.nograph = " << *opt << ";" << endl;
+    output << "options_.nograph = " << *opt << ";" << '\n';
   if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("graph_format"))
     opt->writeOutput("options_.graph_format", output);
 
   output << "identification.run(M_,oo_,options_,bayestopt_,estim_params_,"
-         << "options_ident);" << endl;
+         << "options_ident);" << '\n';
 }
 
 void
@@ -3113,7 +3113,7 @@ ShockDecompositionStatement::checkPass(ModFileStructure& mod_file_struct,
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: shock_decomposition: " << e.message << endl;
+      cerr << "ERROR: shock_decomposition: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -3125,7 +3125,7 @@ ShockDecompositionStatement::writeOutput(ostream& output, [[maybe_unused]] const
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   output << "oo_ = shock_decomposition(M_,oo_,options_,var_list_,bayestopt_,estim_params_);"
-         << endl;
+         << '\n';
 }
 
 void
@@ -3167,7 +3167,7 @@ RealtimeShockDecompositionStatement::checkPass(ModFileStructure& mod_file_struct
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: realtime_shock_decomposition: " << e.message << endl;
+      cerr << "ERROR: realtime_shock_decomposition: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -3181,7 +3181,7 @@ RealtimeShockDecompositionStatement::writeOutput(ostream& output,
   symbol_list.writeOutput("var_list_", output);
   output
       << "oo_ = realtime_shock_decomposition(M_,oo_,options_,var_list_,bayestopt_,estim_params_);"
-      << endl;
+      << '\n';
 }
 
 void
@@ -3219,7 +3219,7 @@ PlotShockDecompositionStatement::checkPass([[maybe_unused]] ModFileStructure& mo
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: plot_shock_decomposition: " << e.message << endl;
+      cerr << "ERROR: plot_shock_decomposition: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -3229,10 +3229,10 @@ PlotShockDecompositionStatement::writeOutput(ostream& output,
                                              [[maybe_unused]] const string& basename,
                                              [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_ = set_default_plot_shock_decomposition_options(options_);" << endl;
+  output << "options_ = set_default_plot_shock_decomposition_options(options_);" << '\n';
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "oo_ = plot_shock_decomposition(M_, oo_, options_, var_list_);" << endl;
+  output << "oo_ = plot_shock_decomposition(M_, oo_, options_, var_list_);" << '\n';
 }
 
 void
@@ -3274,7 +3274,7 @@ InitialConditionDecompositionStatement::checkPass(ModFileStructure& mod_file_str
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: initial_condition_decomposition: " << e.message << endl;
+      cerr << "ERROR: initial_condition_decomposition: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -3284,12 +3284,12 @@ InitialConditionDecompositionStatement::writeOutput(ostream& output,
                                                     [[maybe_unused]] const string& basename,
                                                     [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_ = set_default_initial_condition_decomposition_options(options_);" << endl;
+  output << "options_ = set_default_initial_condition_decomposition_options(options_);" << '\n';
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
   output << "oo_ = initial_condition_decomposition(M_, oo_, options_, var_list_, bayestopt_, "
             "estim_params_);"
-         << endl;
+         << '\n';
 }
 
 void
@@ -3325,7 +3325,7 @@ SqueezeShockDecompositionStatement::checkPass([[maybe_unused]] ModFileStructure&
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: squeeze_shock_decomposition: " << e.message << endl;
+      cerr << "ERROR: squeeze_shock_decomposition: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -3336,11 +3336,11 @@ SqueezeShockDecompositionStatement::writeOutput(ostream& output,
                                                 [[maybe_unused]] bool minimal_workspace) const
 {
   if (symbol_list.empty())
-    output << "oo_ = squeeze_shock_decomposition(M_, oo_, options_);" << endl;
+    output << "oo_ = squeeze_shock_decomposition(M_, oo_, options_);" << '\n';
   else
     {
       symbol_list.writeOutput("var_list_", output);
-      output << "oo_ = squeeze_shock_decomposition(M_, oo_, options_, var_list_);" << endl;
+      output << "oo_ = squeeze_shock_decomposition(M_, oo_, options_, var_list_);" << '\n';
     }
 }
 
@@ -3367,7 +3367,7 @@ ConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure& mod_f
 {
   if (!options_list.contains("parameter_set"))
     {
-      cerr << "ERROR: You must pass the `parameter_set` option to conditional_forecast" << endl;
+      cerr << "ERROR: You must pass the `parameter_set` option to conditional_forecast" << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -3379,7 +3379,7 @@ ConditionalForecastStatement::writeOutput(ostream& output, [[maybe_unused]] cons
   options_list.writeOutput(output, "options_cond_fcst_");
   output << "oo_.conditional_forecast=conditional_forecasts.run(M_,options_,"
          << "oo_,bayestopt_,estim_params_,constrained_paths_, constrained_vars_,"
-         << "options_cond_fcst_);" << endl;
+         << "options_cond_fcst_);" << '\n';
 }
 
 void
@@ -3411,7 +3411,7 @@ PlotConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure& m
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: plot_conditional_forecast: " << e.message << endl;
+      cerr << "ERROR: plot_conditional_forecast: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -3423,9 +3423,9 @@ PlotConditionalForecastStatement::writeOutput(ostream& output,
 {
   symbol_list.writeOutput("var_list_", output);
   if (periods)
-    output << "conditional_forecasts.plot(var_list_, " << *periods << ",options_,oo_);" << endl;
+    output << "conditional_forecasts.plot(var_list_, " << *periods << ",options_,oo_);" << '\n';
   else
-    output << "conditional_forecasts.plot(var_list_,[],options_,oo_);" << endl;
+    output << "conditional_forecasts.plot(var_list_,[],options_,oo_);" << '\n';
 }
 
 void
@@ -3474,14 +3474,14 @@ SvarIdentificationStatement::checkPass(ModFileStructure& mod_file_struct,
     mod_file_struct.svar_identification_present = true;
   else
     {
-      cerr << "ERROR: You may only have one svar_identification block in your .mod file." << endl;
+      cerr << "ERROR: You may only have one svar_identification block in your .mod file." << '\n';
       exit(EXIT_FAILURE);
     }
 
   if (upper_cholesky_present && lower_cholesky_present)
     {
       cerr << "ERROR: Within the svar_identification statement, you may only have one of "
-           << "upper_cholesky and lower_cholesky." << endl;
+           << "upper_cholesky and lower_cholesky." << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -3491,16 +3491,16 @@ SvarIdentificationStatement::writeOutput(ostream& output, [[maybe_unused]] const
                                          [[maybe_unused]] bool minimal_workspace) const
 {
   assert(!(upper_cholesky_present && lower_cholesky_present));
-  output << "%" << endl << "% SVAR IDENTIFICATION" << endl << "%" << endl;
+  output << "%" << '\n' << "% SVAR IDENTIFICATION" << '\n' << "%" << '\n';
 
   if (upper_cholesky_present)
-    output << "options_.ms.upper_cholesky=1;" << endl;
+    output << "options_.ms.upper_cholesky=1;" << '\n';
 
   if (lower_cholesky_present)
-    output << "options_.ms.lower_cholesky=1;" << endl;
+    output << "options_.ms.lower_cholesky=1;" << '\n';
 
   if (constants_exclusion_present)
-    output << "options_.ms.constants_exclusion=1;" << endl;
+    output << "options_.ms.constants_exclusion=1;" << '\n';
 
   if (!upper_cholesky_present && !lower_cholesky_present)
     {
@@ -3514,7 +3514,7 @@ SvarIdentificationStatement::writeOutput(ostream& output, [[maybe_unused]] const
           cerr << "ERROR: lag = " << r << ", number of endogenous variables = " << n
                << ", number of exogenous variables = " << m
                << ". If this is not a logical error in the specification"
-               << " of the .mod file, please report it to the Dynare Team." << endl;
+               << " of the .mod file, please report it to the Dynare Team." << '\n';
           exit(EXIT_FAILURE);
         }
       if (n < 1)
@@ -3522,11 +3522,11 @@ SvarIdentificationStatement::writeOutput(ostream& output, [[maybe_unused]] const
           cerr
               << "ERROR: Number of endogenous variables = " << n << "< 1. If this is not a logical "
               << "error in the specification of the .mod file, please report it to the Dynare Team."
-              << endl;
+              << '\n';
           exit(EXIT_FAILURE);
         }
-      output << "options_.ms.Qi = cell(" << n << ",1);" << endl
-             << "options_.ms.Ri = cell(" << n << ",1);" << endl;
+      output << "options_.ms.Qi = cell(" << n << ",1);" << '\n'
+             << "options_.ms.Ri = cell(" << n << ",1);" << '\n';
 
       for (auto& it : restrictions)
         {
@@ -3543,16 +3543,16 @@ SvarIdentificationStatement::writeOutput(ostream& output, [[maybe_unused]] const
                        << "current endog var index = " << it.variable << ". Index "
                        << "out of bounds. If the above does not represent a logical error, please "
                           "report this to the Dynare Team."
-                       << endl;
+                       << '\n';
                   exit(EXIT_FAILURE);
                 }
               output << "options_.ms.Ri{" << it.equation << "}(" << it.restriction_nbr << ", "
                      << col << ") = ";
             }
           it.value->writeOutput(output);
-          output << ";" << endl;
+          output << ";" << '\n';
         }
-      output << "options_.ms.nlags = " << r << ";" << endl;
+      output << "options_.ms.nlags = " << r << ";" << '\n';
     }
 }
 
@@ -3604,7 +3604,7 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
             {
               cerr
                   << "ERROR: restrictions in the subsample statement must be specified in the form "
-                  << "[current_period_regime, next_period_regime, transition_probability]" << endl;
+                  << "[current_period_regime, next_period_regime, transition_probability]" << '\n';
               exit(EXIT_FAILURE);
             }
 
@@ -3616,14 +3616,14 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
                 {
                   cerr << "ERROR: the regimes specified in the restrictions option must be "
                        << "<= the number of regimes specified in the number_of_regimes option"
-                       << endl;
+                       << '\n';
                   exit(EXIT_FAILURE);
                 }
 
               if (restriction_map.contains({from_regime, to_regime}))
                 {
                   cerr << "ERROR: two restrictions were given for: " << from_regime << ", "
-                       << to_regime << endl;
+                       << to_regime << '\n';
                   exit(EXIT_FAILURE);
                 }
 
@@ -3631,7 +3631,7 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
               if (transition_probability > 1.0)
                 {
                   cerr << "ERROR: the transition probability, " << transition_probability
-                       << " must be less than 1" << endl;
+                       << " must be less than 1" << '\n';
                   exit(EXIT_FAILURE);
                 }
               restriction_map[{from_regime, to_regime}] = transition_probability;
@@ -3655,7 +3655,7 @@ MarkovSwitchingStatement::checkPass(ModFileStructure& mod_file_struct,
   if (++mod_file_struct.last_markov_switching_chain != chainNumber)
     {
       cerr << "ERROR: The markov_switching chain option takes consecutive integers "
-           << "beginning at 1." << endl;
+           << "beginning at 1." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -3686,14 +3686,14 @@ MarkovSwitchingStatement::checkPass(ModFileStructure& mod_file_struct,
               if (row_trans_prob_sum[i] != 1.0)
                 {
                   cerr << "ERROR: When all transitions probabilities are specified for a certain "
-                       << "regime, they must sum to 1" << endl;
+                       << "regime, they must sum to 1" << '\n';
                   exit(EXIT_FAILURE);
                 }
             }
           else if (row_trans_prob_sum[i] >= 1.0)
             {
               cerr << "ERROR: When transition probabilites are not specified for every regime, "
-                   << "their sum must be < 1" << endl;
+                   << "their sum must be < 1" << '\n';
               exit(EXIT_FAILURE);
             }
 
@@ -3702,14 +3702,14 @@ MarkovSwitchingStatement::checkPass(ModFileStructure& mod_file_struct,
               if (col_trans_prob_sum[i] != 1.0)
                 {
                   cerr << "ERROR: When all transitions probabilities are specified for a certain "
-                       << "regime, they must sum to 1" << endl;
+                       << "regime, they must sum to 1" << '\n';
                   exit(EXIT_FAILURE);
                 }
             }
           else if (col_trans_prob_sum[i] >= 1.0)
             {
               cerr << "ERROR: When transition probabilites are not specified for every regime, "
-                   << "their sum must be < 1" << endl;
+                   << "their sum must be < 1" << '\n';
               exit(EXIT_FAILURE);
             }
         }
@@ -3750,11 +3750,11 @@ MarkovSwitchingStatement::writeOutput(ostream& output, [[maybe_unused]] const st
       {
         cerr << "MarkovSwitchingStatement::writeOutput: incorrect value type for 'ms.duration' "
                 "option"
-             << endl;
+             << '\n';
         exit(EXIT_FAILURE);
       }
   })};
-  output << ";" << endl;
+  output << ";" << '\n';
 
   int NOR {stoi(options_list.get<OptionsList::NumVal>("ms.number_of_regimes"))};
   for (int i {0}; i < NOR; i++)
@@ -3763,12 +3763,12 @@ MarkovSwitchingStatement::writeOutput(ostream& output, [[maybe_unused]] const st
              << ").duration = options_.ms.duration";
       if (isDurationAVec)
         output << "(" << i + 1 << ")";
-      output << ";" << endl;
+      output << ";" << '\n';
     }
 
   for (int restrictions_index {0}; const auto& [regimes, prob] : restriction_map)
     output << "options_.ms.ms_chain(" << chainNumber << ").restrictions(" << ++restrictions_index
-           << ") = {[" << regimes.first << ", " << regimes.second << ", " << prob << "]};" << endl;
+           << ") = {[" << regimes.first << ", " << regimes.second << ", " << prob << "]};" << '\n';
 }
 
 void
@@ -3833,13 +3833,13 @@ SvarStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basen
           output << "[";
           for (int viit : *opt)
             output << viit << ";";
-          output << "];" << endl;
+          output << "];" << '\n';
         }
       else
-        output << opt->front() << ";" << endl;
+        output << opt->front() << ";" << '\n';
     }
   else
-    output << "'ALL';" << endl;
+    output << "'ALL';" << '\n';
 }
 
 void
@@ -3859,7 +3859,7 @@ SvarGlobalIdentificationCheckStatement::writeOutput(ostream& output,
                                                     [[maybe_unused]] const string& basename,
                                                     [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "svar_global_identification_check(options_);" << std::endl;
+  output << "svar_global_identification_check(options_);" << '\n';
 }
 
 void
@@ -3876,7 +3876,7 @@ void
 SetTimeStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                               [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_.initial_period = " << period << endl;
+  output << "options_.initial_period = " << period << '\n';
 }
 
 void
@@ -3900,21 +3900,21 @@ EstimationDataStatement::checkPass(ModFileStructure& mod_file_struct,
     if (stoi(*opt) <= 0)
       {
         cerr << "ERROR: The nobs option of the data statement only accepts positive integers."
-             << endl;
+             << '\n';
         exit(EXIT_FAILURE);
       }
 
   bool has_file = options_list.contains("file"), has_series = options_list.contains("series");
   if (!has_file && !has_series)
     {
-      cerr << "ERROR: The file or series option must be passed to the data statement." << endl;
+      cerr << "ERROR: The file or series option must be passed to the data statement." << '\n';
       exit(EXIT_FAILURE);
     }
   if (has_file && has_series)
     {
       cerr << "ERROR: The file and series options cannot be used simultaneously in the data "
               "statement."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -3953,22 +3953,22 @@ SubsamplesStatement::writeOutput(ostream& output, [[maybe_unused]] const string&
                                  [[maybe_unused]] bool minimal_workspace) const
 {
   output << "subsamples_indx = get_new_or_existing_ei_index('subsamples_index', '" << name1 << "','"
-         << name2 << "');" << endl
+         << name2 << "');" << '\n'
          << "estimation_info.subsamples_index(subsamples_indx) = {'" << name1;
   if (!name2.empty())
     output << ":" << name2;
-  output << "'};" << endl
-         << "estimation_info.subsamples(subsamples_indx).range = {};" << endl
-         << "estimation_info.subsamples(subsamples_indx).range_index = {};" << endl;
+  output << "'};" << '\n'
+         << "estimation_info.subsamples(subsamples_indx).range = {};" << '\n'
+         << "estimation_info.subsamples(subsamples_indx).range_index = {};" << '\n';
 
   for (int map_indx {1}; const auto& [range, dates] : subsample_declaration_map)
     {
       output << "estimation_info.subsamples(subsamples_indx).range_index(" << map_indx << ") = {'"
-             << range << "'};" << endl
+             << range << "'};" << '\n'
              << "estimation_info.subsamples(subsamples_indx).range(" << map_indx
-             << ").date1 = " << dates.first << ";" << endl
+             << ").date1 = " << dates.first << ";" << '\n'
              << "estimation_info.subsamples(subsamples_indx).range(" << map_indx
-             << ").date2 = " << dates.second << ";" << endl;
+             << ").date2 = " << dates.second << ";" << '\n';
       map_indx++;
     }
 
@@ -3987,7 +3987,7 @@ SubsamplesStatement::writeOutput(ostream& output, [[maybe_unused]] const string&
       lhs_field = "measurement_error";
       break;
     default:
-      cerr << "subsamples: invalid symbol type for " << name1 << endl;
+      cerr << "subsamples: invalid symbol type for " << name1 << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -3998,7 +3998,7 @@ SubsamplesStatement::writeOutput(ostream& output, [[maybe_unused]] const string&
   output << "_prior_index', '" << name1 << "', '";
   if (!name2.empty())
     output << name2;
-  output << "');" << endl;
+  output << "');" << '\n';
 
   lhs_field = "estimation_info." + lhs_field;
   if (!name2.empty())
@@ -4006,14 +4006,14 @@ SubsamplesStatement::writeOutput(ostream& output, [[maybe_unused]] const string&
   output << lhs_field << "_prior_index(eifind) = {'" << name1;
   if (!name2.empty())
     output << ":" << name2;
-  output << "'};" << endl;
+  output << "'};" << '\n';
 
-  output << lhs_field << "(eifind).subsample_prior = estimation_info.empty_prior;" << endl
+  output << lhs_field << "(eifind).subsample_prior = estimation_info.empty_prior;" << '\n'
          << lhs_field << "(eifind).subsample_prior(1:" << subsample_declaration_map.size()
-         << ") = estimation_info.empty_prior;" << endl
+         << ") = estimation_info.empty_prior;" << '\n'
          << lhs_field
          << "(eifind).range_index = estimation_info.subsamples(subsamples_indx).range_index;"
-         << endl;
+         << '\n';
 }
 
 void
@@ -4055,16 +4055,16 @@ SubsamplesEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const st
                                       [[maybe_unused]] bool minimal_workspace) const
 {
   output << "subsamples_to_indx = get_new_or_existing_ei_index('subsamples_index', '" << to_name1
-         << "','" << to_name2 << "');" << endl
+         << "','" << to_name2 << "');" << '\n'
          << "estimation_info.subsamples_index(subsamples_to_indx) = {'" << to_name1;
   if (!to_name2.empty())
     output << ":" << to_name2;
-  output << "'};" << endl
+  output << "'};" << '\n'
          << "subsamples_from_indx = get_existing_subsamples_indx('" << from_name1 << "','"
-         << from_name2 << "');" << endl
+         << from_name2 << "');" << '\n'
          << "estimation_info.subsamples(subsamples_to_indx) = "
             "estimation_info.subsamples(subsamples_from_indx);"
-         << endl;
+         << '\n';
 
   // Initialize associated subsample substructures in estimation_info
   const SymbolType symb_type = symbol_table.getType(to_name1);
@@ -4081,7 +4081,7 @@ SubsamplesEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const st
       lhs_field = "measurement_error";
       break;
     default:
-      cerr << "subsamples: invalid symbol type for " << to_name1 << endl;
+      cerr << "subsamples: invalid symbol type for " << to_name1 << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -4092,7 +4092,7 @@ SubsamplesEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const st
   output << "_prior_index', '" << to_name1 << "', '";
   if (!to_name2.empty())
     output << to_name2;
-  output << "');" << endl;
+  output << "');" << '\n';
 
   lhs_field = "estimation_info." + lhs_field;
   if (!to_name2.empty())
@@ -4100,16 +4100,16 @@ SubsamplesEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const st
   output << lhs_field << "_prior_index(eifind) = {'" << to_name1;
   if (!to_name2.empty())
     output << ":" << to_name2;
-  output << "'};" << endl;
+  output << "'};" << '\n';
 
-  output << lhs_field << "(eifind).subsample_prior = estimation_info.empty_prior;" << endl
+  output << lhs_field << "(eifind).subsample_prior = estimation_info.empty_prior;" << '\n'
          << lhs_field
          << "(eifind).subsample_prior(1:size(estimation_info.subsamples(subsamples_to_indx).range_"
             "index,2)) = estimation_info.empty_prior;"
-         << endl
+         << '\n'
          << lhs_field
          << "(eifind).range_index = estimation_info.subsamples(subsamples_to_indx).range_index;"
-         << endl;
+         << '\n';
 }
 
 void
@@ -4140,25 +4140,25 @@ JointPriorStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struc
 {
   if (joint_parameters.size() < 2)
     {
-      cerr << "ERROR: you must pass at least two parameters to the joint prior statement" << endl;
+      cerr << "ERROR: you must pass at least two parameters to the joint prior statement" << '\n';
       exit(EXIT_FAILURE);
     }
 
   if (prior_shape == PriorDistributions::noShape)
     {
-      cerr << "ERROR: You must pass the shape option to the prior statement." << endl;
+      cerr << "ERROR: You must pass the shape option to the prior statement." << '\n';
       exit(EXIT_FAILURE);
     }
 
   if (!options_list.contains("mean") && !options_list.contains("mode"))
     {
-      cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << endl;
+      cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << '\n';
       exit(EXIT_FAILURE);
     }
 
   if (auto opt = options_list.get_if<OptionsList::VecValueVal>("domain"); opt && opt->size() != 4)
     {
-      cerr << "ERROR: You must pass exactly four values to the domain option." << endl;
+      cerr << "ERROR: You must pass exactly four values to the domain option." << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -4169,16 +4169,16 @@ JointPriorStatement::writeOutput(ostream& output, [[maybe_unused]] const string&
 {
   for (const auto& joint_parameter : joint_parameters)
     output << "eifind = get_new_or_existing_ei_index('joint_parameter_prior_index', '"
-           << joint_parameter << "', '');" << endl
+           << joint_parameter << "', '');" << '\n'
            << "estimation_info.joint_parameter_prior_index(eifind) = {'" << joint_parameter << "'};"
-           << endl;
+           << '\n';
 
   output << "key = {[";
   for (const auto& joint_parameter : joint_parameters)
     output << "get_new_or_existing_ei_index('joint_parameter_prior_index', '" << joint_parameter
-           << "', '') ..." << endl
+           << "', '') ..." << '\n'
            << "    ";
-  output << "]};" << endl;
+  output << "]};" << '\n';
 
   string lhs_field("estimation_info.joint_parameter_tmp");
 
@@ -4189,28 +4189,28 @@ JointPriorStatement::writeOutput(ostream& output, [[maybe_unused]] const string&
   writeOutputHelper(output, "mode", lhs_field);
 
   assert(prior_shape != PriorDistributions::noShape);
-  output << lhs_field << ".shape = " << static_cast<int>(prior_shape) << ";" << endl;
+  output << lhs_field << ".shape = " << static_cast<int>(prior_shape) << ";" << '\n';
 
   writeOutputHelper(output, "shift", lhs_field);
   writeOutputHelper(output, "stdev", lhs_field);
   writeOutputHelper(output, "truncate", lhs_field);
   writeOutputHelper(output, "variance", lhs_field);
 
-  output << "estimation_info.joint_parameter_tmp = [key, ..." << endl
-         << "    " << lhs_field << ".domain , ..." << endl
-         << "    " << lhs_field << ".interval , ..." << endl
-         << "    " << lhs_field << ".mean , ..." << endl
-         << "    " << lhs_field << ".median , ..." << endl
-         << "    " << lhs_field << ".mode , ..." << endl
-         << "    " << lhs_field << ".shape , ..." << endl
-         << "    " << lhs_field << ".shift , ..." << endl
-         << "    " << lhs_field << ".stdev , ..." << endl
-         << "    " << lhs_field << ".truncate , ..." << endl
-         << "    " << lhs_field << ".variance];" << endl
+  output << "estimation_info.joint_parameter_tmp = [key, ..." << '\n'
+         << "    " << lhs_field << ".domain , ..." << '\n'
+         << "    " << lhs_field << ".interval , ..." << '\n'
+         << "    " << lhs_field << ".mean , ..." << '\n'
+         << "    " << lhs_field << ".median , ..." << '\n'
+         << "    " << lhs_field << ".mode , ..." << '\n'
+         << "    " << lhs_field << ".shape , ..." << '\n'
+         << "    " << lhs_field << ".shift , ..." << '\n'
+         << "    " << lhs_field << ".stdev , ..." << '\n'
+         << "    " << lhs_field << ".truncate , ..." << '\n'
+         << "    " << lhs_field << ".variance];" << '\n'
          << "estimation_info.joint_parameter = [estimation_info.joint_parameter; "
             "estimation_info.joint_parameter_tmp];"
-         << endl
-         << "estimation_info=rmfield(estimation_info, 'joint_parameter_tmp');" << endl;
+         << '\n'
+         << "estimation_info=rmfield(estimation_info, 'joint_parameter_tmp');" << '\n';
 }
 
 void
@@ -4253,13 +4253,13 @@ JointPriorStatement::writeOutputHelper(ostream& output, const string& field,
         }
       else
         {
-          cerr << "JointPriorStatement::writeOutputHelper: unhandled alternative" << endl;
+          cerr << "JointPriorStatement::writeOutputHelper: unhandled alternative" << '\n';
           exit(EXIT_FAILURE);
         }
     });
   else
     output << "{}";
-  output << "};" << endl;
+  output << "};" << '\n';
 }
 
 void
@@ -4309,7 +4309,7 @@ JointPriorStatement::writeJsonOutput(ostream& output) const
       output << R"("weibull")";
       break;
     case PriorDistributions::noShape:
-      cerr << "Impossible case." << endl;
+      cerr << "Impossible case." << '\n';
       exit(EXIT_FAILURE);
     }
   output << "}";
@@ -4332,13 +4332,13 @@ BasicPriorStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struc
 {
   if (prior_shape == PriorDistributions::noShape)
     {
-      cerr << "ERROR: You must pass the shape option to the prior statement." << endl;
+      cerr << "ERROR: You must pass the shape option to the prior statement." << '\n';
       exit(EXIT_FAILURE);
     }
 
   if (!options_list.contains("mean") && !options_list.contains("mode"))
     {
-      cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << endl;
+      cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -4346,13 +4346,13 @@ BasicPriorStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struc
       (!has_stdev && !variance) || (has_stdev && variance))
     {
       cerr << "ERROR: You must pass exactly one of stdev and variance to the prior statement."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
   if (auto opt = options_list.get_if<OptionsList::VecValueVal>("domain"); opt && opt->size() != 2)
     {
-      cerr << "ERROR: You must pass exactly two values to the domain option." << endl;
+      cerr << "ERROR: You must pass exactly two values to the domain option." << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -4372,7 +4372,7 @@ BasicPriorStatement::get_base_name(const SymbolType symb_type, string& lhs_field
 void
 BasicPriorStatement::writeCommonOutput(ostream& output, const string& lhs_field) const
 {
-  output << lhs_field << " = estimation_info.empty_prior;" << endl;
+  output << lhs_field << " = estimation_info.empty_prior;" << '\n';
 
   writeCommonOutputHelper(output, "domain", lhs_field);
   writeCommonOutputHelper(output, "interval", lhs_field);
@@ -4381,7 +4381,7 @@ BasicPriorStatement::writeCommonOutput(ostream& output, const string& lhs_field)
   writeCommonOutputHelper(output, "mode", lhs_field);
 
   assert(prior_shape != PriorDistributions::noShape);
-  output << lhs_field << ".shape = " << static_cast<int>(prior_shape) << ";" << endl;
+  output << lhs_field << ".shape = " << static_cast<int>(prior_shape) << ";" << '\n';
 
   writeCommonOutputHelper(output, "shift", lhs_field);
   writeCommonOutputHelper(output, "stdev", lhs_field);
@@ -4391,7 +4391,7 @@ BasicPriorStatement::writeCommonOutput(ostream& output, const string& lhs_field)
     {
       output << lhs_field << ".variance = ";
       variance->writeOutput(output);
-      output << ";" << endl;
+      output << ";" << '\n';
     }
 }
 
@@ -4415,9 +4415,9 @@ BasicPriorStatement::writePriorOutput(ostream& output, string& lhs_field, const 
   else
     {
       output << "subsamples_indx = get_existing_subsamples_indx('" << name << "','" << name2
-             << "');" << endl
+             << "');" << '\n'
              << "eisind = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');"
-             << endl;
+             << '\n';
       lhs_field += ".subsample_prior(eisind)";
     }
   writeCommonOutput(output, lhs_field);
@@ -4492,8 +4492,8 @@ PriorStatement::writeOutput(ostream& output, [[maybe_unused]] const string& base
 {
   string lhs_field = "estimation_info.parameter(eifind)";
   output << "eifind = get_new_or_existing_ei_index('parameter_prior_index', '" << name << "', '');"
-         << endl
-         << "estimation_info.parameter_prior_index(eifind) = {'" << name << "'};" << endl;
+         << '\n'
+         << "estimation_info.parameter_prior_index(eifind) = {'" << name << "'};" << '\n';
   writePriorOutput(output, lhs_field, "");
 }
 
@@ -4522,8 +4522,8 @@ StdPriorStatement::writeOutput(ostream& output, [[maybe_unused]] const string& b
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
   output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_prior_index', '" << name
-         << "', '');" << endl
-         << "estimation_info." << lhs_field << "_prior_index(eifind) = {'" << name << "'};" << endl;
+         << "', '');" << '\n'
+         << "estimation_info." << lhs_field << "_prior_index(eifind) = {'" << name << "'};" << '\n';
 
   lhs_field = "estimation_info." + lhs_field + "(eifind)";
   writePriorOutput(output, lhs_field, "");
@@ -4557,7 +4557,7 @@ CorrPriorStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolid
     {
       cerr << "ERROR: In the corr(A,B).prior statement, A and B must be of the same type. "
            << "In your case, " << name << " and " << name1 << " are of different "
-           << "types." << endl;
+           << "types." << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -4570,9 +4570,9 @@ CorrPriorStatement::writeOutput(ostream& output, [[maybe_unused]] const string& 
   get_base_name(symbol_table.getType(name), lhs_field);
 
   output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_corr_prior_index', '"
-         << name << "', '" << name1 << "');" << endl
+         << name << "', '" << name1 << "');" << '\n'
          << "estimation_info." << lhs_field << "_corr_prior_index(eifind) = {'" << name << ":"
-         << name1 << "'};" << endl;
+         << name1 << "'};" << '\n';
 
   lhs_field = "estimation_info." + lhs_field + "_corr(eifind)";
   writePriorOutput(output, lhs_field, name1);
@@ -4613,7 +4613,7 @@ PriorEqualStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struc
       || (from_declaration_type != "par" && from_declaration_type != "std"
           && from_declaration_type != "corr"))
     {
-      cerr << "Internal Dynare Error" << endl;
+      cerr << "Internal Dynare Error" << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -4650,14 +4650,14 @@ PriorEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const string&
     rhs_field += "_corr";
 
   output << "ei_to_ind = get_new_or_existing_ei_index('" << lhs_field << "_prior_index', '"
-         << to_name1 << "', '" << to_name2 << "');" << endl
+         << to_name1 << "', '" << to_name2 << "');" << '\n'
          << "ei_from_ind = get_new_or_existing_ei_index('" << rhs_field << "_prior_index', '"
-         << from_name1 << "', '" << from_name2 << "');" << endl
+         << from_name1 << "', '" << from_name2 << "');" << '\n'
          << "estimation_info." << lhs_field << "_prior_index(ei_to_ind) = {'" << to_name1;
 
   if (to_declaration_type == "corr")
     output << ":" << to_name2;
-  output << "'};" << endl;
+  output << "'};" << '\n';
 
   if (to_declaration_type == "par")
     lhs_field = "parameter";
@@ -4673,9 +4673,9 @@ PriorEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const string&
   else
     {
       output << "subsamples_to_indx = get_existing_subsamples_indx('" << to_name1 << "','"
-             << to_name2 << "');" << endl
+             << to_name2 << "');" << '\n'
              << "ei_to_ss_ind = get_subsamples_range_indx(subsamples_to_indx, '"
-             << to_subsample_name << "');" << endl;
+             << to_subsample_name << "');" << '\n';
       lhs_field += ".subsample_prior(ei_to_ss_ind)";
     }
 
@@ -4684,13 +4684,13 @@ PriorEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const string&
   else
     {
       output << "subsamples_from_indx = get_existing_subsamples_indx('" << from_name1 << "','"
-             << from_name2 << "');" << endl
+             << from_name2 << "');" << '\n'
              << "ei_from_ss_ind = get_subsamples_range_indx(subsamples_from_indx, '"
-             << from_subsample_name << "');" << endl;
+             << from_subsample_name << "');" << '\n';
       rhs_field += ".subsample_prior(ei_from_ss_ind)";
     }
 
-  output << lhs_field << " = " << rhs_field << ";" << endl;
+  output << lhs_field << " = " << rhs_field << ";" << '\n';
 }
 
 void
@@ -4731,7 +4731,7 @@ BasicOptionsStatement::get_base_name(const SymbolType symb_type, string& lhs_fie
 void
 BasicOptionsStatement::writeCommonOutput(ostream& output, const string& lhs_field) const
 {
-  output << lhs_field << " = estimation_info.empty_options;" << endl;
+  output << lhs_field << " = estimation_info.empty_options;" << '\n';
 
   writeCommonOutputHelper(output, "bounds", lhs_field);
   writeCommonOutputHelper(output, "init", lhs_field);
@@ -4759,9 +4759,9 @@ BasicOptionsStatement::writeOptionsOutput(ostream& output, string& lhs_field,
   else
     {
       output << "subsamples_indx = get_existing_subsamples_indx('" << name << "','" << name2
-             << "');" << endl
+             << "');" << '\n'
              << "eisind = get_subsamples_range_indx(subsamples_indx, '" << subsample_name << "');"
-             << endl;
+             << '\n';
       lhs_field += ".subsample_options(eisind)";
     }
   writeCommonOutput(output, lhs_field);
@@ -4792,8 +4792,8 @@ OptionsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& ba
 {
   string lhs_field = "estimation_info.parameter(eifind)";
   output << "eifind = get_new_or_existing_ei_index('parameter_options_index', '" << name
-         << "', '');" << endl
-         << "estimation_info.parameter_options_index(eifind) = {'" << name << "'};" << endl;
+         << "', '');" << '\n'
+         << "estimation_info.parameter_options_index(eifind) = {'" << name << "'};" << '\n';
   writeOptionsOutput(output, lhs_field, "");
 }
 
@@ -4820,9 +4820,9 @@ StdOptionsStatement::writeOutput(ostream& output, [[maybe_unused]] const string&
   string lhs_field;
   get_base_name(symbol_table.getType(name), lhs_field);
   output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_options_index', '" << name
-         << "', '');" << endl
+         << "', '');" << '\n'
          << "estimation_info." << lhs_field << "_options_index(eifind) = {'" << name << "'};"
-         << endl;
+         << '\n';
 
   lhs_field = "estimation_info." + lhs_field + "(eifind)";
   writeOptionsOutput(output, lhs_field, "");
@@ -4853,7 +4853,7 @@ CorrOptionsStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_stru
     {
       cerr << "ERROR: In the corr(A,B).options statement, A and B must be of the same type. "
            << "In your case, " << name << " and " << name1 << " are of different "
-           << "types." << endl;
+           << "types." << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -4866,9 +4866,9 @@ CorrOptionsStatement::writeOutput(ostream& output, [[maybe_unused]] const string
   get_base_name(symbol_table.getType(name), lhs_field);
 
   output << "eifind = get_new_or_existing_ei_index('" << lhs_field << "_corr_options_index', '"
-         << name << "', '" << name1 << "');" << endl
+         << name << "', '" << name1 << "');" << '\n'
          << "estimation_info." << lhs_field << "_corr_options_index(eifind) = {'" << name << ":"
-         << name1 << "'};" << endl;
+         << name1 << "'};" << '\n';
 
   lhs_field = "estimation_info." + lhs_field + "_corr(eifind)";
   writeOptionsOutput(output, lhs_field, name1);
@@ -4910,7 +4910,7 @@ OptionsEqualStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_str
       || (from_declaration_type != "par" && from_declaration_type != "std"
           && from_declaration_type != "corr"))
     {
-      cerr << "Internal Dynare Error" << endl;
+      cerr << "Internal Dynare Error" << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -4959,14 +4959,14 @@ OptionsEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const strin
     rhs_field += "_corr";
 
   output << "ei_to_ind = get_new_or_existing_ei_index('" << lhs_field << "_options_index', '"
-         << to_name1 << "', '" << to_name2 << "');" << endl
+         << to_name1 << "', '" << to_name2 << "');" << '\n'
          << "ei_from_ind = get_new_or_existing_ei_index('" << rhs_field << "_options_index', '"
-         << from_name1 << "', '" << from_name2 << "');" << endl
+         << from_name1 << "', '" << from_name2 << "');" << '\n'
          << "estimation_info." << lhs_field << "_options_index(ei_to_ind) = {'" << to_name1;
 
   if (to_declaration_type == "corr")
     output << ":" << to_name2;
-  output << "'};" << endl;
+  output << "'};" << '\n';
 
   if (to_declaration_type == "par")
     lhs_field = "parameter";
@@ -4982,9 +4982,9 @@ OptionsEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const strin
   else
     {
       output << "subsamples_to_indx = get_existing_subsamples_indx('" << to_name1 << "','"
-             << to_name2 << "');" << endl
+             << to_name2 << "');" << '\n'
              << "ei_to_ss_ind = get_subsamples_range_indx(subsamples_to_indx, '"
-             << to_subsample_name << "');" << endl;
+             << to_subsample_name << "');" << '\n';
       lhs_field += ".subsample_options(ei_to_ss_ind)";
     }
 
@@ -4993,13 +4993,13 @@ OptionsEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const strin
   else
     {
       output << "subsamples_from_indx = get_existing_subsamples_indx('" << from_name1 << "','"
-             << from_name2 << "');" << endl
+             << from_name2 << "');" << '\n'
              << "ei_from_ss_ind = get_subsamples_range_indx(subsamples_from_indx, '"
-             << from_subsample_name << "');" << endl;
+             << from_subsample_name << "');" << '\n';
       rhs_field += ".subsample_options(ei_from_ss_ind)";
     }
 
-  output << lhs_field << " = " << rhs_field << ";" << endl;
+  output << lhs_field << " = " << rhs_field << ";" << '\n';
 }
 
 CalibSmootherStatement::CalibSmootherStatement(SymbolList symbol_list_arg,
@@ -5021,7 +5021,7 @@ CalibSmootherStatement::checkPass(ModFileStructure& mod_file_struct, WarningCons
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: calib_smoother: " << e.message << endl;
+      cerr << "ERROR: calib_smoother: " << e.message << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -5032,13 +5032,13 @@ CalibSmootherStatement::writeOutput(ostream& output, [[maybe_unused]] const stri
 {
   options_list.writeOutput(output);
   if (!options_list.contains("parameter_set"))
-    output << "options_.parameter_set = 'calibration';" << endl;
+    output << "options_.parameter_set = 'calibration';" << '\n';
   symbol_list.writeOutput("var_list_", output);
-  output << "options_.smoother = true;" << endl
-         << "options_.order = 1;" << endl
+  output << "options_.smoother = true;" << '\n'
+         << "options_.order = 1;" << '\n'
          << "[oo_, M_, options_, bayestopt_] = evaluate_smoother(options_.parameter_set, "
             "var_list_, M_, oo_, options_, bayestopt_, estim_params_);"
-         << endl;
+         << '\n';
 }
 
 void
@@ -5071,7 +5071,7 @@ ExtendedPathStatement::checkPass(ModFileStructure& mod_file_struct,
 
   if (!options_list.contains("periods"))
     {
-      cerr << "ERROR: the 'periods' option of 'extended_path' is mandatory" << endl;
+      cerr << "ERROR: the 'periods' option of 'extended_path' is mandatory" << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -5098,10 +5098,10 @@ ExtendedPathStatement::writeOutput(ostream& output, [[maybe_unused]] const strin
   // Set k_order_solver if hybrid > 2
   if (auto opt = options_list.get_if<OptionsList::NumVal>("ep.stochastic.hybrid_order");
       opt && stoi(*opt) > 2)
-    output << "options_.k_order_solver = true;" << endl;
+    output << "options_.k_order_solver = true;" << '\n';
 
   output << "[Simulated_time_series, oo_] = extended_path([], " << periods
-         << ", [], options_, M_, oo_);" << endl;
+         << ", [], options_, M_, oo_);" << '\n';
 }
 
 void
@@ -5120,7 +5120,7 @@ void
 ModelDiagnosticsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                        [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "model_diagnostics(M_,options_,oo_);" << endl;
+  output << "model_diagnostics(M_,options_,oo_);" << '\n';
 }
 
 void
@@ -5139,7 +5139,7 @@ Smoother2histvalStatement::writeOutput(ostream& output, [[maybe_unused]] const s
                                        [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output, "options_smoother2histval");
-  output << "smoother2histval(options_smoother2histval);" << endl;
+  output << "smoother2histval(options_smoother2histval);" << '\n';
 }
 
 void
@@ -5180,7 +5180,7 @@ MethodOfMomentsStatement::checkPass(ModFileStructure& mod_file_struct,
     {
       cerr << "ERROR: The 'method_of_moments' statement requires a method to be supplied via the "
               "'mom_method' option. Possible values are 'GMM', 'SMM', or 'IRF_MATCHING'."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -5190,7 +5190,7 @@ MethodOfMomentsStatement::checkPass(ModFileStructure& mod_file_struct,
     {
       cerr << "ERROR: The 'method_of_moments' statement requires a data file to be supplied via "
               "the 'datafile' option."
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -5204,7 +5204,7 @@ MethodOfMomentsStatement::checkPass(ModFileStructure& mod_file_struct,
 
   if (!mod_file_struct.GMM_present && mod_file_struct.analytic_standard_errors_present)
     {
-      cerr << "ERROR: The analytic_standard_errors statement requires the GMM option." << endl;
+      cerr << "ERROR: The analytic_standard_errors statement requires the GMM option." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -5214,7 +5214,7 @@ MethodOfMomentsStatement::checkPass(ModFileStructure& mod_file_struct,
 
   if (!mod_file_struct.GMM_present && mod_file_struct.analytic_jacobian_present)
     {
-      cerr << "ERROR: The analytic_jacobian statement requires the GMM option." << endl;
+      cerr << "ERROR: The analytic_jacobian statement requires the GMM option." << '\n';
       exit(EXIT_FAILURE);
     }
 
@@ -5224,7 +5224,7 @@ MethodOfMomentsStatement::checkPass(ModFileStructure& mod_file_struct,
       (hp && bandpass) || (hp && one_sided_hp) || (bandpass && one_sided_hp))
     {
       cerr << "ERROR: method_of_moments: can only use one of HP, one-sided HP, and bandpass filters"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
 }
@@ -5237,7 +5237,7 @@ MethodOfMomentsStatement::writeOutput(ostream& output, [[maybe_unused]] const st
 
   output << "[oo_, options_mom_, M_] = mom.run(bayestopt_, options_, oo_, estim_params_, M_, "
             "options_mom_);"
-         << endl;
+         << '\n';
 }
 
 void
@@ -5273,15 +5273,15 @@ GenerateIRFsStatement::writeOutput(ostream& output, [[maybe_unused]] const strin
   output << "options_.irf_opt.irf_shock_graphtitles = { ";
   for (const auto& generate_irf_name : generate_irf_names)
     output << "'" << generate_irf_name << "'; ";
-  output << "};" << endl;
+  output << "};" << '\n';
 
   output << "options_.irf_opt.irf_shocks = zeros(M_.exo_nbr, " << generate_irf_names.size() << ");"
-         << endl;
+         << '\n';
 
   for (size_t i = 0; i < generate_irf_names.size(); i++)
     for (auto& [exo_name, exo_value] : generate_irf_elements[i])
       output << "options_.irf_opt.irf_shocks(M_.exo_names == '" << exo_name << "', " << i + 1
-             << ") = " << exo_value << ";" << endl;
+             << ") = " << exo_value << ";" << '\n';
 }
 
 void
@@ -5328,7 +5328,7 @@ void
 MatchedMomentsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                      [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "M_.matched_moments = {" << endl;
+  output << "M_.matched_moments = {" << '\n';
   for (const auto& [symb_ids, lags, powers] : moments)
     {
       output << "  [";
@@ -5340,15 +5340,15 @@ MatchedMomentsStatement::writeOutput(ostream& output, [[maybe_unused]] const str
       output << "], [";
       for (int p : powers)
         output << p << ',';
-      output << "]," << endl;
+      output << "]," << '\n';
     }
-  output << "};" << endl;
+  output << "};" << '\n';
 }
 
 void
 MatchedMomentsStatement::writeJsonOutput(ostream& output) const
 {
-  output << R"({"statementName": "matched_moments", "moments": [)" << endl;
+  output << R"({"statementName": "matched_moments", "moments": [)" << '\n';
   for (bool printed_something {false}; const auto& [symb_ids, lags, powers] : moments)
     {
       if (exchange(printed_something, true))
@@ -5374,9 +5374,9 @@ MatchedMomentsStatement::writeJsonOutput(ostream& output) const
             output << ',';
           output << p;
         }
-      output << "]}" << endl;
+      output << "]}" << '\n';
     }
-  output << "]}" << endl;
+  output << "]}" << '\n';
 }
 
 OccbinConstraintsStatement::OccbinConstraintsStatement(
@@ -5392,13 +5392,13 @@ OccbinConstraintsStatement::checkPass(ModFileStructure& mod_file_struct,
 {
   if (mod_file_struct.occbin_constraints_present)
     {
-      cerr << "ERROR: Multiple 'occbin_constraints' blocks are not allowed" << endl;
+      cerr << "ERROR: Multiple 'occbin_constraints' blocks are not allowed" << '\n';
       exit(EXIT_FAILURE);
     }
   if (constraints.size() > 2)
     {
       cerr << "ERROR: only up to two constraints are supported in 'occbin_constraints' block"
-           << endl;
+           << '\n';
       exit(EXIT_FAILURE);
     }
   mod_file_struct.occbin_constraints_present = true;
@@ -5408,40 +5408,40 @@ void
 OccbinConstraintsStatement::writeOutput(ostream& output, const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "M_.occbin.constraint_nbr = " << constraints.size() << ';' << endl
-         << "M_.occbin.pswitch = [" << endl;
+  output << "M_.occbin.constraint_nbr = " << constraints.size() << ';' << '\n'
+         << "M_.occbin.pswitch = [" << '\n';
   for (const auto& [name, bind, relax, error_bind, error_relax] : constraints)
     output << data_tree.symbol_table.getTypeSpecificID(
                   ParsingDriver::buildOccbinBindParamName(name))
                   + 1
            << ' ';
-  output << "];" << endl
-         << "options_.occbin = struct();" << endl
-         << "options_.occbin = occbin.set_default_options(options_.occbin, M_);" << endl
-         << "oo_.dr=set_state_space(oo_.dr,M_);" << endl;
+  output << "];" << '\n'
+         << "options_.occbin = struct();" << '\n'
+         << "options_.occbin = occbin.set_default_options(options_.occbin, M_);" << '\n'
+         << "oo_.dr=set_state_space(oo_.dr,M_);" << '\n';
 
   filesystem::path filename {"+" + basename + "/occbin_difference.m"};
   ofstream diff_output {filename, ios::out | ios::binary};
   if (!diff_output.is_open())
     {
-      cerr << "Error: Can't open file " << filename.string() << " for writing" << endl;
+      cerr << "Error: Can't open file " << filename.string() << " for writing" << '\n';
       exit(EXIT_FAILURE);
     }
   diff_output
       << "function [binding, relax, err] = occbin_difference(zdatalinear, params, steady_state)"
-      << endl;
+      << '\n';
   for (int idx {1}; const auto& [name, bind, relax, error_bind, error_relax] : constraints)
     {
       diff_output << "binding.constraint_" << idx << " = ";
       dynamic_cast<ExprNode*>(bind)->writeOutput(diff_output,
                                                  ExprNodeOutputType::occbinDifferenceFile);
-      diff_output << ';' << endl << "relax.constraint_" << idx << " = ";
+      diff_output << ';' << '\n' << "relax.constraint_" << idx << " = ";
       if (relax)
         dynamic_cast<ExprNode*>(relax)->writeOutput(diff_output,
                                                     ExprNodeOutputType::occbinDifferenceFile);
       else
         diff_output << "~binding.constraint_" << idx;
-      diff_output << ';' << endl << "err.binding_constraint_" << idx << " = ";
+      diff_output << ';' << '\n' << "err.binding_constraint_" << idx << " = ";
       if (error_bind)
         error_bind->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
       else
@@ -5452,7 +5452,7 @@ OccbinConstraintsStatement::writeOutput(ostream& output, const string& basename,
           bind->arg2->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
           diff_output << "))";
         }
-      diff_output << ';' << endl << "err.relax_constraint_" << idx << " = ";
+      diff_output << ';' << '\n' << "err.relax_constraint_" << idx << " = ";
       if (error_relax)
         error_relax->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
       else if (relax)
@@ -5478,17 +5478,17 @@ OccbinConstraintsStatement::writeOutput(ostream& output, const string& basename,
           bind->arg2->writeOutput(diff_output, ExprNodeOutputType::occbinDifferenceFile);
           diff_output << "))";
         }
-      diff_output << ';' << endl;
+      diff_output << ';' << '\n';
       idx++;
     }
-  diff_output << "end" << endl;
+  diff_output << "end" << '\n';
   diff_output.close();
 }
 
 void
 OccbinConstraintsStatement::writeJsonOutput(ostream& output) const
 {
-  output << R"({"statementName": "occbin_constraints", "constraints": [)" << endl;
+  output << R"({"statementName": "occbin_constraints", "constraints": [)" << '\n';
   for (bool printed_something {false};
        const auto& [name, bind, relax, error_bind, error_relax] : constraints)
     {
@@ -5505,9 +5505,9 @@ OccbinConstraintsStatement::writeJsonOutput(ostream& output) const
       output << R"(", "error_relax": ")";
       if (error_relax)
         error_relax->writeJsonOutput(output, {}, {});
-      output << R"(" })" << endl;
+      output << R"(" })" << '\n';
     }
-  output << "]}" << endl;
+  output << "]}" << '\n';
 }
 
 ResidStatement::ResidStatement(OptionsList options_list_arg) : options_list {move(options_list_arg)}
@@ -5519,7 +5519,7 @@ ResidStatement::writeOutput(ostream& output, [[maybe_unused]] const string& base
                             [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
-  output << "display_static_residuals(M_, options_, oo_);" << endl;
+  output << "display_static_residuals(M_, options_, oo_);" << '\n';
 }
 
 void
@@ -5544,7 +5544,7 @@ MatchedIrfsStatement::writeOutput(ostream& output, [[maybe_unused]] const string
                                   [[maybe_unused]] bool minimal_workspace) const
 {
   if (overwrite)
-    output << "M_.matched_irfs = {};" << endl;
+    output << "M_.matched_irfs = {};" << '\n';
 
   for (const auto& [key, vec] : values_weights)
     {
@@ -5558,7 +5558,7 @@ MatchedIrfsStatement::writeOutput(ostream& output, [[maybe_unused]] const string
           weight->writeOutput(output);
           output << "; ";
         }
-      output << "}}];" << endl;
+      output << "}}];" << '\n';
     }
 }
 
@@ -5602,7 +5602,7 @@ MatchedIrfsWeightsStatement::writeOutput(ostream& output, [[maybe_unused]] const
                                          [[maybe_unused]] bool minimal_workspace) const
 {
   if (overwrite)
-    output << "M_.matched_irfs_weights = {};" << endl;
+    output << "M_.matched_irfs_weights = {};" << '\n';
 
   for (const auto& [key, val] : weights)
     {
@@ -5611,7 +5611,7 @@ MatchedIrfsWeightsStatement::writeOutput(ostream& output, [[maybe_unused]] const
              << periods1 << ", '" << exo1 << "', '" << endo2 << "', " << periods2 << ", '" << exo2
              << "', ";
       val->writeOutput(output);
-      output << "}];" << endl;
+      output << "}];" << '\n';
     }
 }
 
@@ -5646,7 +5646,7 @@ HeterogeneitySolveStatement::writeOutput(ostream& output, [[maybe_unused]] const
   options_list.writeOutput(output, "options_.heterogeneity.solve");
   output << "oo_.heterogeneity.dr = heterogeneity.solve(M_, "
             "options_.heterogeneity.solve, oo_.heterogeneity);"
-         << endl;
+         << '\n';
 }
 
 void
@@ -5674,7 +5674,7 @@ HeterogeneitySimulateStatement::writeOutput(ostream& output,
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "[oo_, options_] = heterogeneity.simulate(M_, options_, oo_, var_list_);" << endl;
+  output << "[oo_, options_] = heterogeneity.simulate(M_, options_, oo_, var_list_);" << '\n';
 }
 
 void

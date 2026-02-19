@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2024 Dynare Team
+ * Copyright © 2019-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -106,7 +106,7 @@ void
 Environment::print(ostream& output, const vector<string>& vars, int line, bool save) const
 {
   if (!save && !variables.empty())
-    output << "Macro Variables (at line " << line << "):" << endl;
+    output << "Macro Variables (at line " << line << "):" << '\n';
 
   // For sorting the symbols in a case-insensitive way, see #128
   auto case_insensitive_string_less = [](const string& a, const string& b) {
@@ -128,7 +128,7 @@ Environment::print(ostream& output, const vector<string>& vars, int line, bool s
         printVariable(output, it, line, save);
 
   if (!save && !functions.empty())
-    output << "Macro Functions (at line " << line << "):" << endl;
+    output << "Macro Functions (at line " << line << "):" << '\n';
 
   if (vars.empty())
     {
@@ -154,7 +154,7 @@ Environment::printVariable(ostream& output, const string& name, int line, bool s
   getVariable(name)->eval(const_cast<Environment&>(*this))->print(output, save);
   if (save)
     output << ";";
-  output << endl;
+  output << '\n';
 }
 
 void
@@ -174,5 +174,5 @@ Environment::printFunction(ostream& output, const string& name, int line, bool s
 
   if (save)
     output << "';";
-  output << endl;
+  output << '\n';
 }

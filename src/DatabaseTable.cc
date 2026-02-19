@@ -75,7 +75,7 @@ DatabaseTable::writeOutput(ostream& output) const
         output << ", ";
       output << "'" << name << "'";
     }
-  output << "};" << endl;
+  output << "};" << '\n';
 }
 
 void
@@ -90,5 +90,5 @@ DatabaseTable::writeJsonOutput(ostream& output) const
         output << ", ";
       output << '"' << name << '"';
     }
-  output << "]" << endl;
+  output << "]" << '\n';
 }

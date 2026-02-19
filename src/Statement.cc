@@ -1,5 +1,5 @@
 /*
- * Copyright © 2006-2023 Dynare Team
+ * Copyright © 2006-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -60,7 +60,7 @@ NativeStatement::writeOutput(ostream& output, [[maybe_unused]] const string& bas
 
   string ns = regex_replace(native_statement, regex_lookbehind, "dates('$&')");
   ns = regex_replace(ns, regex_dollar, "$2"); // replace $DATE with DATE
-  output << ns << endl;
+  output << ns << '\n';
 }
 
 void
@@ -118,7 +118,7 @@ void
 VerbatimStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                [[maybe_unused]] bool minimal_workspace) const
 {
-  output << verbatim_statement << endl;
+  output << verbatim_statement << '\n';
 }
 
 void
@@ -180,12 +180,12 @@ OptionsList::writeOutput(ostream& output, const string& option_group) const
   if (size_t idx = option_group.find_last_of('.'); idx != string::npos)
     {
       output << "if ~isfield(" << option_group.substr(0, idx) << ",'"
-             << option_group.substr(idx + 1) << "')" << endl;
-      output << "    " << option_group << " = struct();" << endl;
-      output << "end" << endl;
+             << option_group.substr(idx + 1) << "')" << '\n';
+      output << "    " << option_group << " = struct();" << '\n';
+      output << "end" << '\n';
     }
   else
-    output << option_group << " = struct();" << endl;
+    output << option_group << " = struct();" << '\n';
 
   writeOutputCommon(output, option_group);
 }
@@ -286,7 +286,7 @@ OptionsList::writeOutputCommon(ostream& output, const string& option_group) cons
                 }
               else
                 static_assert(always_false_v<T>, "Non-exhaustive visitor!");
-              output << ";" << endl;
+              output << ";" << '\n';
             }
         },
         val);
