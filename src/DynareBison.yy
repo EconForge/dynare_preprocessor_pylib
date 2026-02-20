@@ -96,6 +96,9 @@ str_tolower(string s)
 }
 
 %token AIM_SOLVER ANALYTIC_DERIVATION ANALYTIC_DERIVATION_MODE AR POSTERIOR_SAMPLING_METHOD
+%token POSTERIOR_IMPORTANCE_SAMPLING_STATUS POSTERIOR_IMPORTANCE_SAMPLING_FILTER
+%token POSTERIOR_IMPORTANCE_SAMPLING_ORIG_DNAME POSTERIOR_IMPORTANCE_SAMPLING_ORIG_FNAME
+%token POSTERIOR_IMPORTANCE_SAMPLING_ORIG_FILTER POSTERIOR_IMPORTANCE_SAMPLING_SUB_DRAWS
 %token BALANCED_GROWTH_TEST_TOL BAYESIAN_IRF BETA_PDF BLOCK USE_CALIBRATION SILENT_OPTIMIZER
 %token BVAR_DENSITY BVAR_FORECAST BVAR_IRF NODECOMPOSITION DR_DISPLAY_TOL HUGE_NUMBER FIG_NAME WRITE_XLS
 %token BVAR_PRIOR_DECAY BVAR_PRIOR_FLAT BVAR_PRIOR_LAMBDA INTERACTIVE SCREEN_SHOCKS STEADYSTATE
@@ -147,10 +150,16 @@ str_tolower(string s)
 %token TEX RAMSEY_MODEL RAMSEY_POLICY RAMSEY_CONSTRAINTS PLANNER_DISCOUNT PLANNER_DISCOUNT_LATEX_NAME
 %token DISCRETIONARY_POLICY DISCRETIONARY_TOL EVALUATE_PLANNER_OBJECTIVE
 %token OCCBIN_SETUP OCCBIN_SOLVER OCCBIN_WRITE_REGIMES OCCBIN_GRAPH SIMUL_MAXIT LIKELIHOOD_MAXIT SMOOTHER_MAXIT SIMUL_PERIODS LIKELIHOOD_PERIODS SMOOTHER_PERIODS
-%token SIMUL_CURB_RETRENCH LIKELIHOOD_CURB_RETRENCH SMOOTHER_CURB_RETRENCH SIMUL_CHECK_AHEAD_PERIODS SIMUL_MAX_CHECK_AHEAD_PERIODS SIMUL_RESET_CHECK_AHEAD_PERIODS
+%token FILTER_PARTICLE_DRAW_STATES_FROM_EMPIRICAL_DENSITY
+%token FILTER_PARTICLE_STATE_IMPORTANCE_SAMPLING_PKF_INIT FILTER_PARTICLE_STATE_IMPORTANCE_SAMPLING_SLICE_OVERRIDE_ITERATION FILTER_PARTICLE_STATE_IMPORTANCE_SAMPLING_SLICE_BURNIN
+%token FILTER_PARTICLE_INITIAL_STATE_ERGODIC_SIMUL FILTER_PARTICLE_DIAGNOSTICS_STATUS FILTER_PARTICLE_DIAGNOSTICS_GRAPH_PERIODS FILTER_PARTICLE_DIAGNOSTICS_NOGRAPH FILTER_PARTICLE_NUMBER_OF_PARTICLES FILTER_PARTICLE_NUMBER_OF_SHOCKS_PER_PARTICLE FILTER_PARTICLE_STATE_DRAWS
+%token OCCBIN_PARTICLE_STATUS FILTER_PARTICLE_USE_PKF_UPDATED_STATE_THRESHOLD FILTER_INIT_PERIODS_USING_PARTICLES FILTER_PARTICLE_STATE_IMPORTANCE_SAMPLING_LOGPOST_CRIT_THRESHOLD
+%token SIMUL_CURB_RETRENCH LIKELIHOOD_CURB_RETRENCH SMOOTHER_CURB_RETRENCH SIMUL_CHECK_AHEAD_PERIODS SIMUL_MAX_CHECK_AHEAD_PERIODS SIMUL_RESET_CHECK_AHEAD_PERIODS SIMUL_RESET_REGIME_IN_NEW_PERIOD
 %token LIKELIHOOD_CHECK_AHEAD_PERIODS LIKELIHOOD_MAX_CHECK_AHEAD_PERIODS SMOOTHER_CHECK_AHEAD_PERIODS SMOOTHER_MAX_CHECK_AHEAD_PERIODS
-%token SIMUL_DEBUG SMOOTHER_DEBUG SIMUL_PERIODIC_SOLUTION LIKELIHOOD_PERIODIC_SOLUTION SMOOTHER_PERIODIC_SOLUTION
-%token LIKELIHOOD_INVERSION_FILTER SMOOTHER_INVERSION_FILTER FILTER_USE_RELEXATION
+%token SIMUL_DEBUG SMOOTHER_DEBUG SMOOTHER_PLOT SMOOTHER_FIRST_PERIOD_OCCBIN_UPDATE SMOOTHER_MAX_NUMBER_OF_ITERATIONS SIMUL_PERIODIC_SOLUTION SIMUL_PERIODIC_SOLUTION_THRESHOLD SIMUL_PERIODIC_SOLUTION_STRICT LIKELIHOOD_PERIODIC_SOLUTION SMOOTHER_PERIODIC_SOLUTION
+%token LIKELIHOOD_INVERSION_FILTER SMOOTHER_INVERSION_FILTER FILTER_USE_RELAXATION
+%token LIKELIHOOD_BRUTE_FORCE_REGIME_GUESS LIKELIHOOD_BRUTE_FORCE_EXTRA_REGIME_GUESS
+%token LIKELIHOOD_FIRST_PERIOD_BINDING_REGIME_ALLOWED LIKELIHOOD_FIRST_PERIOD_OCCBIN_UPDATE
 %token LIKELIHOOD_PIECEWISE_KALMAN_FILTER SMOOTHER_PIECEWISE_KALMAN_FILTER LIKELIHOOD_MAX_KALMAN_ITERATIONS
 %token <string> AIM TEX_NAME TRUE BIND RELAX ERROR_BIND ERROR_RELAX
 %token UNIFORM_PDF USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
@@ -2913,8 +2922,11 @@ occbin_setup_option : o_occbin_simul_periods
                     | o_occbin_simul_check_ahead_periods
                     | o_occbin_simul_max_check_ahead_periods
                     | o_occbin_simul_periodic_solution
+                    | o_occbin_simul_periodic_solution_threshold
+                    | o_occbin_simul_periodic_solution_strict
                     | o_occbin_simul_debug
                     | o_occbin_simul_reset_check_ahead_periods
+                    | o_occbin_simul_reset_regime_in_new_period
                     | o_occbin_likelihood_periods
                     | o_occbin_likelihood_maxit
                     | o_occbin_likelihood_curb_retrench
@@ -2922,6 +2934,10 @@ occbin_setup_option : o_occbin_simul_periods
                     | o_occbin_likelihood_max_check_ahead_periods
                     | o_occbin_likelihood_periodic_solution
                     | o_occbin_likelihood_max_kalman_iterations
+                    | o_occbin_likelihood_brute_force_regime_guess
+                    | o_occbin_likelihood_brute_force_extra_regime_guess
+                    | o_occbin_likelihood_first_period_binding_regime_allowed
+                    | o_occbin_likelihood_first_period_occbin_update
                     | o_occbin_likelihood_inversion_filter
                     | o_occbin_likelihood_piecewise_kalman_filter
                     | o_occbin_smoother_periods
@@ -2932,8 +2948,32 @@ occbin_setup_option : o_occbin_simul_periods
                     | o_occbin_smoother_periodic_solution
                     | o_occbin_smoother_inversion_filter
                     | o_occbin_smoother_piecewise_kalman_filter
+                    | o_occbin_smoother_plot
+                    | o_occbin_smoother_first_period_occbin_update
+                    | o_occbin_smoother_max_number_of_iterations
                     | o_occbin_smoother_debug
                     | o_occbin_filter_use_relaxation
+                    | o_occbin_filter_particle_state_importance_sampling_pkf_init
+                    | o_occbin_filter_particle_initial_state_ergodic_simul
+                    | o_occbin_filter_particle_diagnostics_status
+                    | o_occbin_filter_particle_diagnostics_graph_periods
+                    | o_occbin_filter_particle_diagnostics_nograph
+                    | o_occbin_filter_particle_number_of_particles
+                    | o_occbin_filter_particle_number_of_shocks_per_particle
+                    | o_occbin_filter_particle_state_draws
+                    | o_occbin_filter_particle_status
+                    | o_occbin_filter_particle_use_pkf_updated_state_threshold
+                    | o_occbin_filter_particle_state_importance_sampling_logpost_crit_threshold
+                    | o_occbin_filter_particle_draw_states_from_empirical_density
+                    | o_occbin_filter_particle_state_importance_sampling_slice_override_iteration
+                    | o_occbin_filter_particle_state_importance_sampling_slice_burnin
+                    | o_occbin_filter_init_periods_using_particles
+                    | o_occbin_posterior_importance_sampling_status
+                    | o_occbin_posterior_importance_sampling_filter
+                    | o_occbin_posterior_importance_sampling_orig_dname
+                    | o_occbin_posterior_importance_sampling_orig_fname
+                    | o_occbin_posterior_importance_sampling_orig_filter
+                    | o_occbin_posterior_importance_sampling_sub_draws
                     ;
 
 occbin_solver : OCCBIN_SOLVER ';'
@@ -2952,8 +2992,11 @@ occbin_solver_option : o_occbin_simul_periods
                      | o_occbin_simul_check_ahead_periods
                      | o_occbin_simul_max_check_ahead_periods
                      | o_occbin_simul_reset_check_ahead_periods
+                     | o_occbin_simul_reset_regime_in_new_period
                      | o_occbin_simul_debug
                      | o_occbin_simul_periodic_solution
+                     | o_occbin_simul_periodic_solution_threshold
+                     | o_occbin_simul_periodic_solution_strict
                      ;
 
 occbin_write_regimes : OCCBIN_WRITE_REGIMES ';'
@@ -4859,8 +4902,18 @@ o_occbin_simul_curb_retrench : SIMUL_CURB_RETRENCH { driver.option_num("simul.cu
 o_occbin_simul_check_ahead_periods : SIMUL_CHECK_AHEAD_PERIODS EQUAL INT_NUMBER { driver.option_num("simul.check_ahead_periods", $3); };
 o_occbin_simul_max_check_ahead_periods : SIMUL_MAX_CHECK_AHEAD_PERIODS EQUAL INT_NUMBER { driver.option_num("simul.max_check_ahead_periods", $3); };
 o_occbin_simul_reset_check_ahead_periods : SIMUL_RESET_CHECK_AHEAD_PERIODS { driver.option_num("simul.reset_check_ahead_periods_in_new_period", "true"); };
+o_occbin_simul_reset_regime_in_new_period : SIMUL_RESET_REGIME_IN_NEW_PERIOD
+                                            { driver.option_num("simul.reset_regime_in_new_period", "true"); }
+                                          | SIMUL_RESET_REGIME_IN_NEW_PERIOD EQUAL boolean
+                                            { driver.option_num("simul.reset_regime_in_new_period", $3); };
 o_occbin_simul_debug : SIMUL_DEBUG { driver.option_num("simul.debug", "true"); };
 o_occbin_simul_periodic_solution : SIMUL_PERIODIC_SOLUTION { driver.option_num("simul.periodic_solution", "true"); };
+o_occbin_simul_periodic_solution_threshold : SIMUL_PERIODIC_SOLUTION_THRESHOLD EQUAL INT_NUMBER
+                                              { driver.option_num("simul.periodic_solution_threshold", $3); };
+o_occbin_simul_periodic_solution_strict : SIMUL_PERIODIC_SOLUTION_STRICT
+                                          { driver.option_num("simul.periodic_solution_strict", "true"); }
+                                        | SIMUL_PERIODIC_SOLUTION_STRICT EQUAL boolean
+                                          { driver.option_num("simul.periodic_solution_strict", $3); };
 
 // Some options to "occbin_setup"
 o_occbin_likelihood_inversion_filter : LIKELIHOOD_INVERSION_FILTER { driver.option_num("likelihood.inversion_filter", "true"); };
@@ -4872,6 +4925,18 @@ o_occbin_likelihood_check_ahead_periods : LIKELIHOOD_CHECK_AHEAD_PERIODS EQUAL I
 o_occbin_likelihood_max_check_ahead_periods : LIKELIHOOD_MAX_CHECK_AHEAD_PERIODS EQUAL INT_NUMBER { driver.option_num("likelihood.max_check_ahead_periods", $3); };
 o_occbin_likelihood_periodic_solution : LIKELIHOOD_PERIODIC_SOLUTION { driver.option_num("likelihood.periodic_solution", "true"); };
 o_occbin_likelihood_max_kalman_iterations : LIKELIHOOD_MAX_KALMAN_ITERATIONS EQUAL INT_NUMBER { driver.option_num("likelihood.max_number_of_iterations", $3); };
+o_occbin_likelihood_brute_force_regime_guess : LIKELIHOOD_BRUTE_FORCE_REGIME_GUESS
+                                                { driver.option_num("likelihood.brute_force_regime_guess", "true"); }
+                                              | LIKELIHOOD_BRUTE_FORCE_REGIME_GUESS EQUAL boolean
+                                                { driver.option_num("likelihood.brute_force_regime_guess", $3); };
+o_occbin_likelihood_brute_force_extra_regime_guess : LIKELIHOOD_BRUTE_FORCE_EXTRA_REGIME_GUESS
+                                                      { driver.option_num("likelihood.brute_force_extra_regime_guess", "true"); }
+                                                    | LIKELIHOOD_BRUTE_FORCE_EXTRA_REGIME_GUESS EQUAL boolean
+                                                      { driver.option_num("likelihood.brute_force_extra_regime_guess", $3); };
+o_occbin_likelihood_first_period_binding_regime_allowed : LIKELIHOOD_FIRST_PERIOD_BINDING_REGIME_ALLOWED EQUAL INT_NUMBER
+                                                          { driver.option_num("likelihood.first_period_binding_regime_allowed", $3); };
+o_occbin_likelihood_first_period_occbin_update : LIKELIHOOD_FIRST_PERIOD_OCCBIN_UPDATE EQUAL INT_NUMBER
+                                                  { driver.option_num("likelihood.first_period_occbin_update", $3); };
 o_occbin_smoother_inversion_filter : SMOOTHER_INVERSION_FILTER { driver.option_num("smoother.inversion_filter", "true"); };
 o_occbin_smoother_piecewise_kalman_filter : SMOOTHER_PIECEWISE_KALMAN_FILTER { driver.option_num("smoother.inversion_filter", "false"); };
 o_occbin_smoother_maxit : SMOOTHER_MAXIT EQUAL INT_NUMBER { driver.option_num("smoother.maxit", $3); };
@@ -4881,7 +4946,77 @@ o_occbin_smoother_check_ahead_periods : SMOOTHER_CHECK_AHEAD_PERIODS EQUAL INT_N
 o_occbin_smoother_max_check_ahead_periods : SMOOTHER_MAX_CHECK_AHEAD_PERIODS EQUAL INT_NUMBER { driver.option_num("smoother.max_check_ahead_periods", $3); };
 o_occbin_smoother_debug : SMOOTHER_DEBUG { driver.option_num("smoother.debug", "true"); };
 o_occbin_smoother_periodic_solution : SMOOTHER_PERIODIC_SOLUTION { driver.option_num("smoother.periodic_solution", "true"); };
-o_occbin_filter_use_relaxation : FILTER_USE_RELEXATION { driver.option_num("filter.use_relaxation", "true"); };
+o_occbin_smoother_plot : SMOOTHER_PLOT
+                          { driver.option_num("smoother.plot", "true"); }
+                        | SMOOTHER_PLOT EQUAL boolean
+                          { driver.option_num("smoother.plot", $3); };
+o_occbin_smoother_first_period_occbin_update : SMOOTHER_FIRST_PERIOD_OCCBIN_UPDATE EQUAL INT_NUMBER
+                                               { driver.option_num("smoother.first_period_occbin_update", $3); };
+o_occbin_smoother_max_number_of_iterations : SMOOTHER_MAX_NUMBER_OF_ITERATIONS EQUAL INT_NUMBER
+                                             { driver.option_num("smoother.max_number_of_iterations", $3); };
+o_occbin_filter_use_relaxation : FILTER_USE_RELAXATION { driver.option_num("filter.use_relaxation", "true"); }
+                               | FILTER_USE_RELAXATION EQUAL boolean { driver.option_num("filter.use_relaxation", $3); };
+o_occbin_filter_particle_state_importance_sampling_pkf_init : FILTER_PARTICLE_STATE_IMPORTANCE_SAMPLING_PKF_INIT
+                                                              { driver.option_num("filter.particle.state_importance_sampling.pkf_init", "true"); }
+                                                            | FILTER_PARTICLE_STATE_IMPORTANCE_SAMPLING_PKF_INIT EQUAL boolean
+                                                              { driver.option_num("filter.particle.state_importance_sampling.pkf_init", $3); };
+o_occbin_filter_particle_initial_state_ergodic_simul : FILTER_PARTICLE_INITIAL_STATE_ERGODIC_SIMUL
+                                                       { driver.option_num("filter.particle.initial_state_ergodic_simul", "true"); }
+                                                     | FILTER_PARTICLE_INITIAL_STATE_ERGODIC_SIMUL EQUAL boolean
+                                                       { driver.option_num("filter.particle.initial_state_ergodic_simul", $3); };
+o_occbin_filter_particle_diagnostics_status : FILTER_PARTICLE_DIAGNOSTICS_STATUS
+                                              { driver.option_num("filter.particle.diagnostics.status", "true"); }
+                                            | FILTER_PARTICLE_DIAGNOSTICS_STATUS EQUAL boolean
+                                              { driver.option_num("filter.particle.diagnostics.status", $3); };
+o_occbin_filter_particle_diagnostics_graph_periods : FILTER_PARTICLE_DIAGNOSTICS_GRAPH_PERIODS EQUAL vec_int
+                                                     { driver.option_vec_int("filter.particle.diagnostics.graph_periods", $3); }
+                                                   | FILTER_PARTICLE_DIAGNOSTICS_GRAPH_PERIODS EQUAL vec_int_number
+                                                     { driver.option_vec_int("filter.particle.diagnostics.graph_periods", $3); };
+o_occbin_filter_particle_diagnostics_nograph : FILTER_PARTICLE_DIAGNOSTICS_NOGRAPH
+                                               { driver.option_num("filter.particle.diagnostics.nograph", "true"); }
+                                             | FILTER_PARTICLE_DIAGNOSTICS_NOGRAPH EQUAL boolean
+                                               { driver.option_num("filter.particle.diagnostics.nograph", $3); };
+o_occbin_filter_particle_number_of_particles : FILTER_PARTICLE_NUMBER_OF_PARTICLES EQUAL INT_NUMBER
+                                               { driver.option_num("filter.particle.number_of_particles", $3); };
+o_occbin_filter_particle_number_of_shocks_per_particle : FILTER_PARTICLE_NUMBER_OF_SHOCKS_PER_PARTICLE EQUAL INT_NUMBER
+                                                         { driver.option_num("filter.particle.number_of_shocks_per_particle", $3); };
+o_occbin_filter_particle_state_draws : FILTER_PARTICLE_STATE_DRAWS EQUAL vec_value
+                                       { driver.option_vec_value("filter.particle.state_draws", $3); };
+o_occbin_filter_particle_status : OCCBIN_PARTICLE_STATUS
+                                  { driver.option_num("filter.particle.status", "true"); }
+                                | OCCBIN_PARTICLE_STATUS EQUAL boolean
+                                  { driver.option_num("filter.particle.status", $3); };
+o_occbin_filter_particle_use_pkf_updated_state_threshold : FILTER_PARTICLE_USE_PKF_UPDATED_STATE_THRESHOLD EQUAL INT_NUMBER
+                                                           { driver.option_num("filter.particle.use_pkf_updated_state_threshold", $3); };
+o_occbin_filter_particle_state_importance_sampling_logpost_crit_threshold : FILTER_PARTICLE_STATE_IMPORTANCE_SAMPLING_LOGPOST_CRIT_THRESHOLD EQUAL non_negative_number
+                                                                            { driver.option_num("filter.particle.state_importance_sampling.logpost_crit_threshold", $3); };
+o_occbin_filter_particle_draw_states_from_empirical_density : FILTER_PARTICLE_DRAW_STATES_FROM_EMPIRICAL_DENSITY
+                                                              { driver.option_num("filter.particle.draw_states_from_empirical_density", "true"); }
+                                                            | FILTER_PARTICLE_DRAW_STATES_FROM_EMPIRICAL_DENSITY EQUAL boolean
+                                                              { driver.option_num("filter.particle.draw_states_from_empirical_density", $3); };
+o_occbin_filter_particle_state_importance_sampling_slice_override_iteration : FILTER_PARTICLE_STATE_IMPORTANCE_SAMPLING_SLICE_OVERRIDE_ITERATION EQUAL INT_NUMBER
+                                                                              { driver.option_num("filter.particle.state_importance_sampling.slice_override_iteration", $3); };
+o_occbin_filter_particle_state_importance_sampling_slice_burnin : FILTER_PARTICLE_STATE_IMPORTANCE_SAMPLING_SLICE_BURNIN EQUAL INT_NUMBER
+                                                                  { driver.option_num("filter.particle.state_importance_sampling.slice_burnin", $3); };
+o_occbin_filter_init_periods_using_particles : FILTER_INIT_PERIODS_USING_PARTICLES
+                                               { driver.option_num("filter.init_periods_using_particles", "true"); }
+                                             | FILTER_INIT_PERIODS_USING_PARTICLES EQUAL boolean
+                                               { driver.option_num("filter.init_periods_using_particles", $3); };
+
+o_occbin_posterior_importance_sampling_status : POSTERIOR_IMPORTANCE_SAMPLING_STATUS
+                                                { driver.option_num("posterior_importance_sampling.status", "true"); }
+                                              | POSTERIOR_IMPORTANCE_SAMPLING_STATUS EQUAL boolean
+                                                { driver.option_num("posterior_importance_sampling.status", $3); };
+o_occbin_posterior_importance_sampling_filter : POSTERIOR_IMPORTANCE_SAMPLING_FILTER EQUAL QUOTED_STRING
+                                                { driver.option_str("posterior_importance_sampling.filter", $3); };
+o_occbin_posterior_importance_sampling_orig_dname : POSTERIOR_IMPORTANCE_SAMPLING_ORIG_DNAME EQUAL filename
+                                                    { driver.option_str("posterior_importance_sampling.orig_dname", $3); };
+o_occbin_posterior_importance_sampling_orig_fname : POSTERIOR_IMPORTANCE_SAMPLING_ORIG_FNAME EQUAL filename
+                                                    { driver.option_str("posterior_importance_sampling.orig_fname", $3); };
+o_occbin_posterior_importance_sampling_orig_filter : POSTERIOR_IMPORTANCE_SAMPLING_ORIG_FILTER EQUAL QUOTED_STRING
+                                                     { driver.option_str("posterior_importance_sampling.orig_filter", $3); };
+o_occbin_posterior_importance_sampling_sub_draws : POSTERIOR_IMPORTANCE_SAMPLING_SUB_DRAWS EQUAL INT_NUMBER
+                                                   { driver.option_num("posterior_importance_sampling.sub_draws", $3); };
 
 // Some options to "occbin_write_regimes"
 o_occbin_write_regimes_periods : PERIODS EQUAL vec_int
