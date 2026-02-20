@@ -350,7 +350,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>skewed_kalman_prune_tol 	{return token::SKEWED_KALMAN_PRUNE_TOL;}
 <DYNARE_STATEMENT>skewed_kalman_rank_deficiency_transform 	{return token::SKEWED_KALMAN_RANK_DEFICIENCY_TRANSFORM;}
 <DYNARE_STATEMENT>skewed_kalman_mvnlogcdf 	{return token::SKEWED_KALMAN_MVNLOGCDF;}
-<DYNARE_STATEMENT>skewed_kalman_smoother_skip 	{return token::SKEWED_KALMAN_SMOOTHER_SKIP;}
 <DYNARE_STATEMENT>forecast 	{return token::FORECAST;}
 <DYNARE_STATEMENT>smoother 	{return token::SMOOTHER;}
 <DYNARE_STATEMENT>bayesian_irf 	{return token::BAYESIAN_IRF;}
