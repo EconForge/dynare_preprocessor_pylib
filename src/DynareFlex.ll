@@ -310,6 +310,22 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>nograph   		{return token::NOGRAPH;}
 <DYNARE_STATEMENT>posterior_graph   		{return token::POSTERIOR_GRAPH;}
 <DYNARE_STATEMENT>posterior_nograph   		{return token::POSTERIOR_NOGRAPH;}
+<DYNARE_STATEMENT>filter_particle_state_importance_sampling_pkf_init {return token::FILTER_PARTICLE_STATE_IMPORTANCE_SAMPLING_PKF_INIT;}
+<DYNARE_STATEMENT>filter_particle_state_importance_sampling_slice_override_iteration {return token::FILTER_PARTICLE_STATE_IMPORTANCE_SAMPLING_SLICE_OVERRIDE_ITERATION;}
+<DYNARE_STATEMENT>filter_particle_state_importance_sampling_slice_burnin {return token::FILTER_PARTICLE_STATE_IMPORTANCE_SAMPLING_SLICE_BURNIN;}
+<DYNARE_STATEMENT>filter_particle_initial_state_ergodic_simul {return token::FILTER_PARTICLE_INITIAL_STATE_ERGODIC_SIMUL;}
+<DYNARE_STATEMENT>filter_particle_diagnostics {return token::FILTER_PARTICLE_DIAGNOSTICS_STATUS;}
+<DYNARE_STATEMENT>filter_particle_diagnostics_graph_periods {return token::FILTER_PARTICLE_DIAGNOSTICS_GRAPH_PERIODS;}
+<DYNARE_STATEMENT>filter_particle_diagnostics_nograph {return token::FILTER_PARTICLE_DIAGNOSTICS_NOGRAPH;}
+<DYNARE_STATEMENT>filter_particle_number_of_particles {return token::FILTER_PARTICLE_NUMBER_OF_PARTICLES;}
+<DYNARE_STATEMENT>filter_particle_number_of_shocks_per_particle {return token::FILTER_PARTICLE_NUMBER_OF_SHOCKS_PER_PARTICLE;}
+<DYNARE_STATEMENT>particle_filtering {return token::OCCBIN_PARTICLE_STATUS;}
+<DYNARE_STATEMENT>filter_particle_state_draws {return token::FILTER_PARTICLE_STATE_DRAWS;}
+<DYNARE_STATEMENT>filter_particle_use_pkf_updated_state_threshold {return token::FILTER_PARTICLE_USE_PKF_UPDATED_STATE_THRESHOLD;}
+<DYNARE_STATEMENT>filter_particle_state_importance_sampling_logpost_crit_threshold {return token::FILTER_PARTICLE_STATE_IMPORTANCE_SAMPLING_LOGPOST_CRIT_THRESHOLD;}
+
+<DYNARE_STATEMENT>filter_particle_draw_states_from_empirical_density {return token::FILTER_PARTICLE_DRAW_STATES_FROM_EMPIRICAL_DENSITY;}
+<DYNARE_STATEMENT>filter_init_periods_using_particles {return token::FILTER_INIT_PERIODS_USING_PARTICLES;}
 <DYNARE_STATEMENT>nodisplay     {return token::NODISPLAY;}
 <DYNARE_STATEMENT>graph_format  {return token::GRAPH_FORMAT;}
 <DYNARE_STATEMENT>eps  {yylval->emplace<string>(yytext); return token::EPS;}
@@ -604,13 +620,19 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>simul_check_ahead_periods {return token::SIMUL_CHECK_AHEAD_PERIODS;}
 <DYNARE_STATEMENT>simul_max_check_ahead_periods {return token::SIMUL_MAX_CHECK_AHEAD_PERIODS;}
 <DYNARE_STATEMENT>simul_reset_check_ahead_periods {return token::SIMUL_RESET_CHECK_AHEAD_PERIODS;}
+<DYNARE_STATEMENT>simul_reset_regime_in_new_period {return token::SIMUL_RESET_REGIME_IN_NEW_PERIOD;}
 <DYNARE_STATEMENT>likelihood_check_ahead_periods {return token::LIKELIHOOD_CHECK_AHEAD_PERIODS;}
 <DYNARE_STATEMENT>likelihood_max_check_ahead_periods {return token::LIKELIHOOD_MAX_CHECK_AHEAD_PERIODS;}
 <DYNARE_STATEMENT>smoother_check_ahead_periods {return token::SMOOTHER_CHECK_AHEAD_PERIODS;}
 <DYNARE_STATEMENT>smoother_max_check_ahead_periods {return token::SMOOTHER_MAX_CHECK_AHEAD_PERIODS;}
 <DYNARE_STATEMENT>simul_debug {return token::SIMUL_DEBUG;}
 <DYNARE_STATEMENT>smoother_debug {return token::SMOOTHER_DEBUG;}
+<DYNARE_STATEMENT>smoother_plot {return token::SMOOTHER_PLOT;}
+<DYNARE_STATEMENT>smoother_first_period_occbin_update {return token::SMOOTHER_FIRST_PERIOD_OCCBIN_UPDATE;}
+<DYNARE_STATEMENT>smoother_max_number_of_iterations {return token::SMOOTHER_MAX_NUMBER_OF_ITERATIONS;}
 <DYNARE_STATEMENT>simul_periodic_solution {return token::SIMUL_PERIODIC_SOLUTION;}
+<DYNARE_STATEMENT>simul_periodic_solution_threshold {return token::SIMUL_PERIODIC_SOLUTION_THRESHOLD;}
+<DYNARE_STATEMENT>simul_periodic_solution_strict {return token::SIMUL_PERIODIC_SOLUTION_STRICT;}
 <DYNARE_STATEMENT>likelihood_periodic_solution {return token::LIKELIHOOD_PERIODIC_SOLUTION;}
 <DYNARE_STATEMENT>smoother_periodic_solution {return token::SMOOTHER_PERIODIC_SOLUTION;}
 <DYNARE_STATEMENT>likelihood_inversion_filter {return token::LIKELIHOOD_INVERSION_FILTER;}
@@ -618,7 +640,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>likelihood_max_kalman_iterations {return token::LIKELIHOOD_MAX_KALMAN_ITERATIONS;}
 <DYNARE_STATEMENT>smoother_inversion_filter {return token::SMOOTHER_INVERSION_FILTER;}
 <DYNARE_STATEMENT>smoother_piecewise_kalman_filter {return token::SMOOTHER_PIECEWISE_KALMAN_FILTER;}
-<DYNARE_STATEMENT>filter_use_relaxation {return token::FILTER_USE_RELEXATION;}
+<DYNARE_STATEMENT>filter_use_relaxation {return token::FILTER_USE_RELAXATION;}
 <DYNARE_STATEMENT>function_convergence_criterion {return token::FUNCTION_CONVERGENCE_CRITERION;}
 <DYNARE_STATEMENT>parameter_convergence_criterion {return token::PARAMETER_CONVERGENCE_CRITERION;}
 <DYNARE_STATEMENT>number_of_large_perturbations {return token::NUMBER_OF_LARGE_PERTURBATIONS;}
@@ -734,6 +756,12 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>dr_display_tol {return token::DR_DISPLAY_TOL;}
 <DYNARE_STATEMENT>posterior_sampling_method {return token::POSTERIOR_SAMPLING_METHOD;}
 <DYNARE_STATEMENT>posterior_sampler_options {return token::POSTERIOR_SAMPLER_OPTIONS;}
+<DYNARE_STATEMENT>posterior_importance_sampling {return token::POSTERIOR_IMPORTANCE_SAMPLING_STATUS;}
+<DYNARE_STATEMENT>posterior_importance_sampling_filter {return token::POSTERIOR_IMPORTANCE_SAMPLING_FILTER;}
+<DYNARE_STATEMENT>posterior_importance_sampling_orig_dname {return token::POSTERIOR_IMPORTANCE_SAMPLING_ORIG_DNAME;}
+<DYNARE_STATEMENT>posterior_importance_sampling_orig_fname {return token::POSTERIOR_IMPORTANCE_SAMPLING_ORIG_FNAME;}
+<DYNARE_STATEMENT>posterior_importance_sampling_orig_filter {return token::POSTERIOR_IMPORTANCE_SAMPLING_ORIG_FILTER;}
+<DYNARE_STATEMENT>posterior_importance_sampling_sub_draws {return token::POSTERIOR_IMPORTANCE_SAMPLING_SUB_DRAWS;}
 <DYNARE_STATEMENT>silent_optimizer {return token::SILENT_OPTIMIZER;}
 <DYNARE_STATEMENT>lmmcp {return token::LMMCP;}
 <DYNARE_STATEMENT>additional_optimizer_steps	{return token::ADDITIONAL_OPTIMIZER_STEPS;}
