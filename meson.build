@@ -2,7 +2,7 @@
 # It is not used when building Dynare as a whole.
 
 project('dynare-preprocessor', 'cpp',
-        version : '7-unstable',
+        version : '8-unstable',
         license : 'GPL-3.0-or-later',
         license_files : 'COPYING',
         # NB: update C++ standard in .clang-format whenever the following is modified
