@@ -2491,6 +2491,26 @@ options_eq_opt : symbol '.' OPTIONS
                  { $$ = {"corr", $3, $5, $8}; }
                ;
 
+kalman_filter_primary_options : | o_kalman_algo
+                                | o_kalman_tol
+                                | o_use_univariate_filters_if_singularity_is_detected
+                                | o_diffuse_filter
+                                | o_diffuse_kalman_tol
+                                | o_lik_init
+                                | o_heteroskedastic_filter
+                                | o_skewed_kalman_prune_tol
+                                | o_skewed_kalman_rank_deficiency_transform
+                                | o_skewed_kalman_mvnlogcdf
+                                ;
+
+kalman_smoother_primary_options : | o_smoother_redux
+                                  | o_filter_decomposition
+                                  | o_smoothed_state_uncertainty
+                                  | o_filter_covariance
+                                  | o_updated_covariance
+                                  ;
+
+
 estimation : ESTIMATION ';'
              { driver.run_estimation({}); }
            | ESTIMATION '(' estimation_options_list ')' ';'
@@ -2505,12 +2525,13 @@ estimation_options_list : estimation_options_list COMMA estimation_options
                         | estimation_options
                         ;
 
-estimation_options : o_datafile
+estimation_options : kalman_filter_primary_options
+                   | kalman_smoother_primary_options
+                   | o_datafile
                    | o_nobs
                    | o_est_first_obs
                    | o_prefilter
                    | o_presample
-                   | o_lik_init
                    | o_nograph
                    | o_posterior_nograph
                    | o_nodisplay
@@ -2555,9 +2576,6 @@ estimation_options : o_datafile
                    | o_filtered_vars
                    | o_conditional_likelihood
                    | o_fast_kalman_filter
-                   | o_kalman_algo
-                   | o_kalman_tol
-                   | o_diffuse_kalman_tol
                    | o_xls_sheet
                    | o_xls_range
                    | o_filter_step_ahead
@@ -2569,7 +2587,6 @@ estimation_options : o_datafile
                    | o_mh_initialize_from_previous_mcmc_directory
                    | o_mh_initialize_from_previous_mcmc_record
                    | o_mh_initialize_from_previous_mcmc_prior
-                   | o_diffuse_filter
                    | o_estimate_initial_states_endogenous_prior
                    | o_frequentist_smoother
                    | o_estimation_use_pct
@@ -2577,11 +2594,6 @@ estimation_options : o_datafile
                    | o_order
                    | o_aim_solver
                    | o_partial_information
-                   | o_filter_covariance
-                   | o_updated_covariance
-                   | o_filter_decomposition
-                   | o_smoothed_state_uncertainty
-                   | o_smoother_redux
                    | o_selected_variables_only
                    | o_conditional_variance_decomposition
                    | o_cova_compute
@@ -2598,7 +2610,6 @@ estimation_options : o_datafile
                    | o_analytic_derivation
                    | o_ar
                    | o_endogenous_prior
-                   | o_use_univariate_filters_if_singularity_is_detected
                    | o_qz_zero_threshold
                    | o_taper_steps
                    | o_geweke_interval
@@ -2639,10 +2650,6 @@ estimation_options : o_datafile
                    | o_stderr_multiples
                    | o_diagonal_only
                    | o_no_init_estimation_check_first_obs
-                   | o_heteroskedastic_filter
-                   | o_skewed_kalman_prune_tol
-                   | o_skewed_kalman_rank_deficiency_transform
-                   | o_skewed_kalman_mvnlogcdf
                    ;
 
 name_value_pair : QUOTED_STRING COMMA QUOTED_STRING
@@ -2792,7 +2799,8 @@ identification_options_list : identification_option COMMA identification_options
                             | identification_option
                             ;
 
-identification_option : o_ar
+identification_option : kalman_filter_primary_options
+                      | o_ar
                       | o_useautocorr
                       | o_load_ident_files
                       | o_prior_mc
@@ -2803,12 +2811,9 @@ identification_option : o_ar
                       | o_replic
                       | o_gsa_sample_file
                       | o_parameter_set
-                      | o_lik_init
-                      | o_kalman_algo
                       | o_nograph
                       | o_nodisplay
                       | o_graph_format
-                      | o_diffuse_filter
                       | o_prior_trunc
                       | o_analytic_derivation
                       | o_analytic_derivation_mode
@@ -3497,14 +3502,10 @@ sensitivity_option : o_gsa_identification
                    | o_load_ident_files
                    | o_useautocorr
                    | o_ar
-                   | o_kalman_algo
-                   | o_kalman_tol
-                   | o_lik_init
-                   | o_diffuse_filter
-                   | o_diffuse_kalman_tol
                    | o_analytic_derivation
                    | o_analytic_derivation_mode
-                   | o_smoother_redux
+                   | kalman_filter_primary_options
+                   | kalman_smoother_primary_options
                    ;
 
 shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomposition_options_list
@@ -3523,14 +3524,11 @@ shock_decomposition_option : o_parameter_set
                            | o_shock_decomposition_with_epilogue
                            | o_prefilter
                            | o_loglinear
-                           | o_diffuse_kalman_tol
-                           | o_diffuse_filter
-                           | o_kalman_algo
-                           | o_kalman_tol
                            | o_lik_init
                            | o_xls_sheet
-                           | o_xls_range
-                           | o_smoother_redux
+                           | o_xls_range                           
+                           | kalman_filter_primary_options
+                           | kalman_smoother_primary_options
                            ;
 
 realtime_shock_decomposition_options_list : realtime_shock_decomposition_option COMMA realtime_shock_decomposition_options_list
@@ -3699,25 +3697,17 @@ calib_smoother_options_list : calib_smoother_option COMMA calib_smoother_options
                             | calib_smoother_option
                             ;
 
-calib_smoother_option : o_filtered_vars
+calib_smoother_option : kalman_filter_primary_options
+                      | kalman_smoother_primary_options
+                      | o_filtered_vars
                       | o_filter_step_ahead
                       | o_datafile
                       | o_prefilter
-                      | o_kalman_algo
-                      | o_kalman_tol
                       | o_loglinear
                       | o_first_obs
-                      | o_filter_covariance
-                      | o_updated_covariance
-                      | o_filter_decomposition
-                      | o_diffuse_kalman_tol
-                      | o_diffuse_filter
-                      | o_smoothed_state_uncertainty
-                      | o_smoother_redux
                       | o_parameter_set
                       | o_xls_sheet
                       | o_xls_range
-                      | o_heteroskedastic_filter
                       | o_nobs
                       ;
 
