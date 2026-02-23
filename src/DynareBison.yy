@@ -162,7 +162,7 @@ str_tolower(string s)
 %token LIKELIHOOD_FIRST_PERIOD_BINDING_REGIME_ALLOWED LIKELIHOOD_FIRST_PERIOD_OCCBIN_UPDATE
 %token LIKELIHOOD_PIECEWISE_KALMAN_FILTER SMOOTHER_PIECEWISE_KALMAN_FILTER LIKELIHOOD_MAX_KALMAN_ITERATIONS
 %token <string> AIM TEX_NAME TRUE BIND RELAX ERROR_BIND ERROR_RELAX
-%token UNIFORM_PDF USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED
+%token UNIFORM_PDF USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED USE_UNIVARIATE_SMOOTHER_IF_SINGULARITY_IS_DETECTED
 %token VALUES SCALES VAR VAREXO VAREXO_DET VARIABLE VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL WRITE_LATEX_STEADY_STATE_MODEL
 %token XLS_SHEET XLS_RANGE LMMCP BANDPASS_FILTER COLORMAP VAR_MODEL PAC_MODEL QOQ YOY AOA PAC_EXPECTATION TREND_COMPONENT_MODEL
@@ -2508,6 +2508,7 @@ kalman_smoother_primary_options : | o_smoother_redux
                                   | o_smoothed_state_uncertainty
                                   | o_filter_covariance
                                   | o_updated_covariance
+                                  | o_use_univariate_smoother_if_singularity_is_detected
                                   ;
 
 
@@ -4787,6 +4788,9 @@ o_analytic_derivation : ANALYTIC_DERIVATION { driver.option_num("analytic_deriva
 o_analytic_derivation_mode : ANALYTIC_DERIVATION_MODE EQUAL signed_number { driver.option_num("analytic_derivation_mode", $3); }
 o_endogenous_prior : ENDOGENOUS_PRIOR { driver.option_num("endogenous_prior", "true"); }
 o_use_univariate_filters_if_singularity_is_detected : USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED EQUAL INT_NUMBER { driver.option_num("use_univariate_filters_if_singularity_is_detected", $3); }
+o_use_univariate_smoother_if_singularity_is_detected : USE_UNIVARIATE_SMOOTHER_IF_SINGULARITY_IS_DETECTED { driver.option_num("use_univariate_smoother_if_singularity_is_detected", "true"); }
+                                                     | USE_UNIVARIATE_SMOOTHER_IF_SINGULARITY_IS_DETECTED EQUAL boolean { driver.option_num("use_univariate_smoother_if_singularity_is_detected", $3); }
+                                                     ;
 o_mcmc_jumping_covariance : MCMC_JUMPING_COVARIANCE EQUAL HESSIAN
                             { driver.option_str("MCMC_jumping_covariance", "hessian"); }
                           | MCMC_JUMPING_COVARIANCE EQUAL PRIOR_VARIANCE
