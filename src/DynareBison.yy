@@ -3504,6 +3504,7 @@ sensitivity_option : o_gsa_identification
                    | o_diffuse_kalman_tol
                    | o_analytic_derivation
                    | o_analytic_derivation_mode
+                   | o_smoother_redux
                    ;
 
 shock_decomposition_options_list : shock_decomposition_option COMMA shock_decomposition_options_list
