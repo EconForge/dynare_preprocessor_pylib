@@ -1291,10 +1291,13 @@ Init2shocksStatement::writeJsonOutput(ostream& output) const
 
 HeteroskedasticShocksStatement::HeteroskedasticShocksStatement(
     bool overwrite_arg, heteroskedastic_shocks_t values_arg, heteroskedastic_shocks_t scales_arg,
+    heteroskedastic_shocks_t endo_values_arg, heteroskedastic_shocks_t endo_scales_arg,
     const SymbolTable& symbol_table_arg) :
     overwrite {overwrite_arg},
-    values {move(values_arg)},
-    scales {move(scales_arg)},
+    exo_values {move(values_arg)},
+    exo_scales {move(scales_arg)},
+    endo_values {move(endo_values_arg)},
+    endo_scales {move(endo_scales_arg)},
     symbol_table {symbol_table_arg}
 {
 }
@@ -1306,12 +1309,16 @@ HeteroskedasticShocksStatement::writeOutput(ostream& output,
 {
   // NB: The first initialization of the fields is done in ModFile::writeMOutput()
   if (overwrite)
-    output << "M_.heteroskedastic_shocks.Qvalue_orig = struct([]);" << '\n'
-           << "M_.heteroskedastic_shocks.Qscale_orig = struct([]);" << '\n';
+    {
+      output << "M_.heteroskedastic_shocks.Qvalue_orig = struct([]);" << '\n'
+             << "M_.heteroskedastic_shocks.Qscale_orig = struct([]);" << '\n'
+             << "M_.heteroskedastic_shocks.Hvalue_orig = struct([]);" << '\n'
+             << "M_.heteroskedastic_shocks.Hscale_orig = struct([]);" << '\n';
+    }
 
   output << "M_.heteroskedastic_shocks.Qvalue_orig = [M_.heteroskedastic_shocks.Qvalue_orig;"
          << '\n';
-  for (const auto& [symb_id, vec] : values)
+  for (const auto& [symb_id, vec] : exo_values)
     for (int tsid = symbol_table.getTypeSpecificID(symb_id);
          const auto& [period_range, value] : vec)
       {
@@ -1324,7 +1331,7 @@ HeteroskedasticShocksStatement::writeOutput(ostream& output,
   output << "];" << '\n'
          << "M_.heteroskedastic_shocks.Qscale_orig = [M_.heteroskedastic_shocks.Qscale_orig;"
          << '\n';
-  for (const auto& [symb_id, vec] : scales)
+  for (const auto& [symb_id, vec] : exo_scales)
     for (int tsid = symbol_table.getTypeSpecificID(symb_id);
          const auto& [period_range, scale] : vec)
       {
@@ -1335,14 +1342,45 @@ HeteroskedasticShocksStatement::writeOutput(ostream& output,
         output << ");" << '\n';
       }
   output << "];" << '\n';
+
+  // Output endogenous heteroskedastic shocks (H_scale)
+  if (!endo_values.empty() || !endo_scales.empty())
+    {
+      output << "M_.heteroskedastic_shocks.Hvalue_orig = [M_.heteroskedastic_shocks.Hvalue_orig;"
+             << endl;
+      for (const auto& [symb_id, vec] : endo_values)
+        for (int tsid = symbol_table.getTypeSpecificID(symb_id);
+             const auto& [period_range, value] : vec)
+          {
+            output << "struct('endo_id', " << tsid + 1 << ",'periods',";
+            visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+            output << ",'value',";
+            value->writeOutput(output);
+            output << ");" << endl;
+          }
+      output << "];" << endl
+             << "M_.heteroskedastic_shocks.Hscale_orig = [M_.heteroskedastic_shocks.Hscale_orig;"
+             << endl;
+      for (const auto& [symb_id, vec] : endo_scales)
+        for (int tsid = symbol_table.getTypeSpecificID(symb_id);
+             const auto& [period_range, scale] : vec)
+          {
+            output << "struct('endo_id', " << tsid + 1 << ",'periods',";
+            visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+            output << ",'scale',";
+            scale->writeOutput(output);
+            output << ");" << endl;
+          }
+      output << "];" << endl;
+    }
 }
 
 void
 HeteroskedasticShocksStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "heteroskedastic_shocks")"
-         << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "shocks_values": [)";
-  for (bool printed_something {false}; const auto& [symb_id, vec] : values)
+         << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "shocks_exo_values": [)";
+  for (bool printed_something {false}; const auto& [symb_id, vec] : exo_values)
     {
       if (exchange(printed_something, true))
         output << ", ";
@@ -1360,8 +1398,46 @@ HeteroskedasticShocksStatement::writeJsonOutput(ostream& output) const
         }
       output << "]}";
     }
-  output << R"(], "shocks_scales": [)";
-  for (bool printed_something {false}; const auto& [symb_id, vec] : scales)
+  output << R"(], "shocks_exo_scales": [)";
+  for (bool printed_something {false}; const auto& [symb_id, vec] : exo_scales)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << R"({"var": ")" << symbol_table.getName(symb_id) << R"(", )"
+             << R"("scales": [)";
+      for (bool printed_something2 {false}; const auto& [period_range, value] : vec)
+        {
+          if (exchange(printed_something2, true))
+            output << ", ";
+          output << "{";
+          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+          output << R"("value": ")";
+          value->writeJsonOutput(output, {}, {});
+          output << R"("})";
+        }
+      output << "]}";
+    }
+  output << R"(], "shocks_endo_values": [)";
+  for (bool printed_something {false}; const auto& [symb_id, vec] : endo_values)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << R"({"var": ")" << symbol_table.getName(symb_id) << R"(", )"
+             << R"("values": [)";
+      for (bool printed_something2 {false}; const auto& [period_range, value] : vec)
+        {
+          if (exchange(printed_something2, true))
+            output << ", ";
+          output << "{";
+          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+          output << R"("value": ")";
+          value->writeJsonOutput(output, {}, {});
+          output << R"("})";
+        }
+      output << "]}";
+    }
+  output << R"(], "shocks_endo_scales": [)";
+  for (bool printed_something {false}; const auto& [symb_id, vec] : endo_scales)
     {
       if (exchange(printed_something, true))
         output << ", ";

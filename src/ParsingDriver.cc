@@ -1250,10 +1250,13 @@ void
 ParsingDriver::end_heteroskedastic_shocks(bool overwrite)
 {
   mod_file->addStatement(make_unique<HeteroskedasticShocksStatement>(
-      overwrite, move(heteroskedastic_shocks_values), move(heteroskedastic_shocks_scales),
+      overwrite, move(heteroskedastic_shocks_exo_values), move(heteroskedastic_shocks_exo_scales),
+      move(heteroskedastic_shocks_endo_values), move(heteroskedastic_shocks_endo_scales),
       mod_file->symbol_table));
-  heteroskedastic_shocks_values.clear();
-  heteroskedastic_shocks_scales.clear();
+  heteroskedastic_shocks_exo_values.clear();
+  heteroskedastic_shocks_exo_scales.clear();
+  heteroskedastic_shocks_endo_values.clear();
+  heteroskedastic_shocks_endo_scales.clear();
 }
 
 void
@@ -1345,13 +1348,8 @@ ParsingDriver::add_heteroskedastic_shock(
     const string& var, const vector<AbstractShocksStatement::period_range_t>& periods,
     const vector<expr_t>& values, bool scales)
 {
-  check_symbol_is_exogenous(var, false);
-
+  check_symbol_is_endogenous_or_exogenous(var, false);
   int symb_id = mod_file->symbol_table.getID(var);
-
-  if ((!scales && heteroskedastic_shocks_values.contains(symb_id))
-      || (scales && heteroskedastic_shocks_scales.contains(symb_id)))
-    error("heteroskedastic_shocks: variable " + var + " declared twice");
 
   if (periods.size() != values.size())
     error("heteroskedastic_shocks: variable " + var
@@ -1362,10 +1360,28 @@ ParsingDriver::add_heteroskedastic_shock(
   for (size_t i = 0; i < periods.size(); i++)
     v.emplace_back(periods[i], values[i]);
 
-  if (scales)
-    heteroskedastic_shocks_scales[symb_id] = v;
+  if (mod_file->symbol_table.getType(var) == SymbolType::exogenous)
+    {
+      // For exogenous variables: Q_scale
+      if ((!scales && heteroskedastic_shocks_exo_values.contains(symb_id))
+          || (scales && heteroskedastic_shocks_exo_scales.contains(symb_id)))
+        error("heteroskedastic_shocks: variable " + var + " declared twice");
+      if (scales)
+        heteroskedastic_shocks_exo_scales[symb_id] = v;
+      else
+        heteroskedastic_shocks_exo_values[symb_id] = v;
+    }
   else
-    heteroskedastic_shocks_values[symb_id] = v;
+    {
+      // For endogenous variables: H_scale
+      if ((!scales && heteroskedastic_shocks_endo_values.contains(symb_id))
+          || (scales && heteroskedastic_shocks_endo_scales.contains(symb_id)))
+        error("heteroskedastic_shocks: variable " + var + " declared twice");
+      if (scales)
+        heteroskedastic_shocks_endo_scales[symb_id] = v;
+      else
+        heteroskedastic_shocks_endo_values[symb_id] = v;
+    }
 }
 
 void

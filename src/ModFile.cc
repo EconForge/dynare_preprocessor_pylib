@@ -1281,6 +1281,8 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
               << "M_.shock_paths = struct([]);" << '\n'
               << "M_.heteroskedastic_shocks.Qvalue_orig = struct([]);" << '\n'
               << "M_.heteroskedastic_shocks.Qscale_orig = struct([]);" << '\n'
+              << "M_.heteroskedastic_shocks.Hvalue_orig = struct([]);" << '\n'
+              << "M_.heteroskedastic_shocks.Hscale_orig = struct([]);" << '\n'
               << "M_.matched_irfs = {};" << '\n'
               << "M_.matched_irfs_weights = {};" << '\n'
               << "M_.perfect_foresight_controlled_paths = struct([]);" << '\n';
