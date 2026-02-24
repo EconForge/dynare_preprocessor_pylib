@@ -246,6 +246,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <INITIAL>matched_irfs {BEGIN DYNARE_BLOCK; return token::MATCHED_IRFS;}
 <INITIAL>matched_irfs_weights {BEGIN DYNARE_BLOCK; return token::MATCHED_IRFS_WEIGHTS;}
 <INITIAL>perfect_foresight_controlled_paths {BEGIN DYNARE_BLOCK; return token::PERFECT_FORESIGHT_CONTROLLED_PATHS;}
+<INITIAL>filter_tunes {BEGIN DYNARE_BLOCK; return token::FILTER_TUNES;}
 
  /* For the semicolon after an "end" keyword */
 <INITIAL>; {return Dynare::parser::token_type (yytext[0]);}

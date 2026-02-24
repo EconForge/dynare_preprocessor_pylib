@@ -262,6 +262,8 @@ private:
   // Temporary storages for pac_target_info
   string pac_target_info_name;
   PacModelTable::target_component_t pac_target_info_component;
+  // Temporary storage for filter_tunes
+  FilterTunesStatement::tunes_t tunes;
 
   //! The mod file representation constructed by this ParsingDriver
   unique_ptr<ModFile> mod_file;
@@ -1013,6 +1015,11 @@ public:
   [[nodiscard]] bool database_exists(const string& name) const;
   void begin_shock_paths(const variant<int, string>& learnt_in_period);
   void end_shock_paths(bool overwrite);
+
+  void add_filter_tunes_elem(const string& name,
+                             vector<AbstractShocksStatement::period_range_t>&& periods,
+                             const vector<expr_t>& values, const vector<expr_t>& stderrs);
+  void end_filter_tunes();
 
   // Returns true iff the string is a legal symbol identifier (see NAME token in lexer)
   static bool isSymbolIdentifier(const string& str);

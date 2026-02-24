@@ -241,7 +241,7 @@ CHECK_JACOBIAN_SINGULARITY
 %token TIME_ITERATION_MAX_ITER TIME_ITERATION_TOL TIME_ITERATION_LEARNING_RATE TIME_ITERATION_VERBOSITY
 %token TIME_ITERATION_SOLVER_TOLF TIME_ITERATION_SOLVER_TOLX TIME_ITERATION_SOLVER_FACTOR
 %token TIME_ITERATION_SOLVER_MAX_ITER TIME_ITERATION_SOLVER_STOP_ON_ERROR TIME_ITERATION_EARLY_STOPPING
-%token CALIBRATION_TOLF CALIBRATION_MAX_ITER CALIBRATION_VERBOSITY CALIBRATION_TARGET_EQUATIONS
+%token CALIBRATION_TOLF CALIBRATION_MAX_ITER CALIBRATION_VERBOSITY CALIBRATION_TARGET_EQUATIONS FILTER_TUNES
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -436,6 +436,7 @@ statement : parameters
           | heterogeneity_compute_steady_state
           | heterogeneity_solve
           | heterogeneity_simulate
+          | filter_tunes
           ;
 
 dsample : DSAMPLE INT_NUMBER ';'
@@ -4057,6 +4058,21 @@ matched_irfs_weights_elem_var_varexo : symbol '(' INT_NUMBER ')' COMMA symbol
                                          $$ = {$1, $3, $6};
                                        }
                                      ;
+
+filter_tunes : FILTER_TUNES ';' filter_tunes_list END ';'
+               { driver.end_filter_tunes(); }
+             ;
+
+filter_tunes_list : filter_tunes_elem
+                  | filter_tunes_list filter_tunes_elem
+                  ;
+
+filter_tunes_elem : VAR symbol ';' PERIODS period_list ';' VALUES expression_list ';'
+                    { driver.add_filter_tunes_elem($2, move($5), $8, {}); }
+                  | VAR symbol ';' PERIODS period_list ';' VALUES expression_list ';'
+                    STDERR expression_list ';'
+                    { driver.add_filter_tunes_elem($2, move($5), $8, move($11)); }
+                  ;
 
 o_solve_algo : SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("solve_algo", $3); };
 o_stack_solve_algo : STACK_SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("stack_solve_algo", $3); };

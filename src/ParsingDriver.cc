@@ -4467,3 +4467,41 @@ ParsingDriver::end_shock_paths(bool overwrite)
   shock_paths_exo.clear();
   shock_paths_controlled.clear();
 }
+
+void
+ParsingDriver::add_filter_tunes_elem(const string& name,
+                                     vector<AbstractShocksStatement::period_range_t>&& periods,
+                                     const vector<expr_t>& values, const vector<expr_t>& stderrs)
+{
+  check_symbol_is_endogenous(name);
+
+  if (periods.size() != values.size())
+    error("filter_tunes: variable " + name
+          + ": number of periods is different from number of shock values");
+
+  if (stderrs.size() > 1 && stderrs.size() != periods.size())
+    error("filter_tunes: variable " + name
+          + ": heteroskedastic measurement errors but number of measurement errors is different "
+            "from number of periods");
+
+  auto& v = tunes[mod_file->symbol_table.getID(name)];
+
+  v.reserve(v.size() + periods.size());
+  for (size_t i {0}; i < periods.size(); i++)
+    {
+      expr_t measurement_error {data_tree->Zero};
+      if (stderrs.size() == 1)
+        measurement_error = stderrs.front();
+      else if (stderrs.size() > 1)
+        measurement_error = stderrs[i];
+
+      v.emplace_back(move(periods[i]), values[i], measurement_error);
+    }
+}
+
+void
+ParsingDriver::end_filter_tunes()
+{
+  mod_file->addStatement(make_unique<FilterTunesStatement>(move(tunes), mod_file->symbol_table));
+  tunes.clear();
+}

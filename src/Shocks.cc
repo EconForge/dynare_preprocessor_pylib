@@ -22,6 +22,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
+#include <ranges>
 #include <utility>
 
 #include "Shocks.hh"
@@ -1612,4 +1613,68 @@ ShockPathsStatement::writeEvaluationFunctionFile(const string& basename) const
 
   output << "end" << '\n';
   output.close();
+}
+
+FilterTunesStatement::FilterTunesStatement(tunes_t tunes_arg, const SymbolTable& symbol_table_arg) :
+    tunes {move(tunes_arg)}, symbol_table {symbol_table_arg}
+{
+}
+
+void
+FilterTunesStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                                [[maybe_unused]] WarningConsolidation& warnings)
+{
+  for (int id : views::keys(tunes))
+    if (symbol_table.isObservedVariable(id))
+      {
+        cerr << "filter_tunes: variable " << symbol_table.getName(id)
+             << " is declared as an observable" << endl;
+        exit(EXIT_FAILURE);
+      }
+}
+
+void
+FilterTunesStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
+                                  [[maybe_unused]] bool minimal_workspace) const
+{
+  output << "M_.filter_tunes = [ M_.filter_tunes;" << '\n';
+  for (const auto& [id, tunes_vec] : tunes)
+    for (const auto& [period_range, value, std_err] : tunes_vec)
+      {
+        output << "struct('endo_id'," << symbol_table.getTypeSpecificID(id) + 1 << ",'periods',";
+        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+        output << ",'value',";
+        value->writeOutput(output);
+        output << ",'stderr',";
+        std_err->writeOutput(output);
+        output << ");" << '\n';
+      }
+  output << "];" << '\n';
+}
+
+void
+FilterTunesStatement::writeJsonOutput(ostream& output) const
+{
+  output << R"({"statementName": "filter_tunes", "tunes": [)";
+  for (bool printed_something {false}; const auto& [id, tunes_vec] : tunes)
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << R"({"var": ")" << symbol_table.getName(id) << R"(", )"
+             << R"("values": [)";
+      for (bool printed_something2 {false}; const auto& [period_range, value, std_err] : tunes_vec)
+        {
+          if (exchange(printed_something2, true))
+            output << ", ";
+          output << "{";
+          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+          output << R"(, "value": ")";
+          value->writeJsonOutput(output, {}, {});
+          output << R"(", "stderr": ")";
+          std_err->writeJsonOutput(output, {}, {});
+          output << R"("})";
+        }
+      output << "]}";
+    }
+  output << "]}";
 }

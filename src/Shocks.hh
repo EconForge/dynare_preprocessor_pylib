@@ -422,4 +422,20 @@ private:
   void writeEvaluationFunctionFile(const string& basename) const;
 };
 
+class FilterTunesStatement : public Statement
+{
+public:
+  // symb_id → vector of (period range, value, measurement error – possibly zero)
+  using tunes_t = map<int, vector<tuple<AbstractShocksStatement::period_range_t, expr_t, expr_t>>>;
+
+  FilterTunesStatement(tunes_t tunes_arg, const SymbolTable& symbol_table_arg);
+  void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
+  void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
+  void writeJsonOutput(ostream& output) const override;
+
+private:
+  const tunes_t tunes;
+  const SymbolTable& symbol_table;
+};
+
 #endif
