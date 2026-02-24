@@ -266,43 +266,6 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
-  if (symbol_table.exists("dsge_prior_weight"))
-    {
-      if (symbol_table.getType("dsge_prior_weight") != SymbolType::parameter)
-        {
-          cerr << "ERROR: dsge_prior_weight may only be used as a parameter." << '\n';
-          exit(EXIT_FAILURE);
-        }
-      else
-        warnings << "WARNING: When estimating a DSGE-Var, declaring dsge_prior_weight as a "
-                 << "parameter is deprecated. The preferred method is to do this via "
-                 << "the dsge_var option in the estimation statement." << '\n';
-
-      if (mod_file_struct.dsge_var_estimated || !mod_file_struct.dsge_var_calibrated.empty())
-        {
-          cerr << "ERROR: dsge_prior_weight can either be declared as a parameter (deprecated) or "
-                  "via the dsge_var option "
-               << "to the estimation statement (preferred), but not both." << '\n';
-          exit(EXIT_FAILURE);
-        }
-
-      if (!mod_file_struct.dsge_prior_weight_initialized
-          && !mod_file_struct.dsge_prior_weight_in_estimated_params)
-        {
-          cerr << "ERROR: If dsge_prior_weight is declared as a parameter, it must either be "
-                  "initialized or placed in the "
-               << "estimated_params block." << '\n';
-          exit(EXIT_FAILURE);
-        }
-
-      if (mod_file_struct.dsge_prior_weight_initialized
-          && mod_file_struct.dsge_prior_weight_in_estimated_params)
-        {
-          cerr << "ERROR: dsge_prior_weight cannot be both initialized and estimated." << '\n';
-          exit(EXIT_FAILURE);
-        }
-    }
-
   if (mod_file_struct.dsge_prior_weight_in_estimated_params)
     {
       if (!mod_file_struct.dsge_var_estimated && !mod_file_struct.dsge_var_calibrated.empty())
@@ -312,12 +275,10 @@ ModFile::checkPass(bool nostrict, bool stochastic)
                << "via the dsge_var option in the estimation statement." << '\n';
           exit(EXIT_FAILURE);
         }
-      else if (!mod_file_struct.dsge_var_estimated && !symbol_table.exists("dsge_prior_weight"))
+      else if (!mod_file_struct.dsge_var_estimated)
         {
-          cerr << "ERROR: If dsge_prior_weight is in the estimated_params block, it must either be "
-                  "declared as a parameter "
-               << "(deprecated) or the dsge_var option must be passed to the estimation statement "
-                  "(preferred)."
+          cerr << "ERROR: If dsge_prior_weight is in the estimated_params block, the dsge_var "
+                  "option must be passed to the estimation statement."
                << '\n';
           exit(EXIT_FAILURE);
         }

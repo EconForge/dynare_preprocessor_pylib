@@ -357,8 +357,6 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
                  << "'};" << '\n'
                  << "M_.param_names_long(" << id + 1 << ") = {'" << getLongName(param_ids[id])
                  << "'};" << '\n';
-          if (getName(param_ids[id]) == "dsge_prior_weight")
-            output << "options_.dsge_var = 1;" << '\n';
         }
       output << "M_.param_partitions = struct();" << '\n';
       for (auto& partition : getPartitionsForType(SymbolType::parameter))
