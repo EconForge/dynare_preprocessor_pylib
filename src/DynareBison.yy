@@ -176,7 +176,7 @@ str_tolower(string s)
 %token EXP LOG LN LOG10 SIN COS TAN ASIN ACOS ATAN SINH COSH TANH ASINH ACOSH ATANH ERF ERFC DIFF AUXILIARY_MODEL_NAME
 %token SQRT CBRT NORMCDF NORMPDF STEADY_STATE EXPECTATION
 /* GSA analysis */
-%token SENSITIVITY DYNARE_SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
+%token SENSITIVITY MORRIS STAB REDFORM PPRIOR PRIOR_RANGE PPOST ILPTAU MORRIS_NLIV
 %token MORRIS_NTRA NSAM LOAD_REDFORM LOAD_RMSE LOAD_STAB ALPHA2_STAB LOGTRANS_REDFORM THRESHOLD_REDFORM
 %token KSSTAT_REDFORM ALPHA2_REDFORM NAMENDO NAMLAGENDO NAMEXO RMSE LIK_ONLY VAR_RMSE PFILT_RMSE ISTART_RMSE
 %token ALPHA_RMSE ALPHA2_RMSE
@@ -3434,16 +3434,6 @@ sensitivity : SENSITIVITY ';'
               { driver.sensitivity(); }
             | SENSITIVITY '(' sensitivity_options_list ')' ';'
               { driver.sensitivity(); }
-            | DYNARE_SENSITIVITY ';'
-              {
-                driver.warning("The 'dynare_sensitivity' command is deprecated. It has been renamed 'sensitivity'.");
-                driver.sensitivity();
-              }
-            | DYNARE_SENSITIVITY '(' sensitivity_options_list ')' ';'
-              {
-                driver.warning("The 'dynare_sensitivity' command is deprecated. It has been renamed 'sensitivity'.");
-                driver.sensitivity();
-              }
             ;
 
 sensitivity_options_list : sensitivity_option COMMA sensitivity_options_list
