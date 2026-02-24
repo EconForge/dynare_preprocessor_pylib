@@ -80,7 +80,7 @@ struct ModFileStructure
   //! Whether an svar_identification statement is present
   bool svar_identification_present {false};
   //! Whether an identification statement is present or the identification option of
-  //! dynare_sensitivity statement is equal to one
+  //! sensitivity statement is equal to one
   bool identification_present {false};
   //! The maximum of the “order” option in identification statements
   int identification_order {0};
