@@ -114,7 +114,7 @@ str_tolower(string s)
 %token DEFAULT FIXED_POINT FLIP OPT_ALGO COMPILATION_SETUP COMPILER ADD_FLAGS SUBSTITUTE_FLAGS ADD_LIBS SUBSTITUTE_LIBS
 %token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
 %token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
-%token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER HP_NGRID FILTERED_THEORETICAL_MOMENTS_GRID HYBRID USE_FIRST_ORDER_SOLUTION ONE_SIDED_HP_FILTER
+%token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER FILTERED_THEORETICAL_MOMENTS_GRID HYBRID USE_FIRST_ORDER_SOLUTION ONE_SIDED_HP_FILTER
 %token INTEGRATION TENSOR_GAUSSIAN_QUADRATURE STROUD NUMBER_OF_QUADRATURE_NODES TREE SPARSE PERFECT
 %token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INVARS
 %token <string> INT_NUMBER
@@ -2019,7 +2019,6 @@ stoch_simul_primary_options : o_solve_algo
                             | o_stderr_multiples
                             | o_diagonal_only
                             | o_hp_filter
-                            | o_hp_ngrid
                             | o_filtered_theoretical_moments_grid
                             | o_periods
                             | o_simul_replic
@@ -4103,10 +4102,6 @@ o_nomodelsummary : NOMODELSUMMARY { driver.option_num("nomodelsummary", "true");
 o_irf : IRF EQUAL INT_NUMBER { driver.option_num("irf", $3); };
 o_irf_shocks : IRF_SHOCKS EQUAL '(' symbol_list ')' { driver.option_symbol_list("irf_shocks", $4); };
 o_hp_filter : HP_FILTER EQUAL non_negative_number { driver.option_num("hp_filter", $3); };
-o_hp_ngrid : HP_NGRID EQUAL INT_NUMBER {
-                                         driver.warning("The 'hp_ngrid' option is deprecated. It has been superseded by the 'filtered_theoretical_moments_grid' option.");
-                                         driver.option_num("filtered_theoretical_moments_grid", $3);
-                                       };
 o_filtered_theoretical_moments_grid : FILTERED_THEORETICAL_MOMENTS_GRID EQUAL INT_NUMBER { driver.option_num("filtered_theoretical_moments_grid", $3); };
 o_one_sided_hp_filter : ONE_SIDED_HP_FILTER EQUAL non_negative_number { driver.option_num("one_sided_hp_filter", $3); };
 o_periods : PERIODS EQUAL INT_NUMBER { driver.option_num("periods", $3); };
