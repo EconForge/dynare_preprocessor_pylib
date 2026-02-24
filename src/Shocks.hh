@@ -326,18 +326,21 @@ public:
 class HeteroskedasticShocksStatement : public Statement
 {
 public:
-  // Maps exo symb_id to list of pairs (period range, value/scale)
+  // Maps exo/endo symb_id to list of pairs (period range, value/scale)
   using heteroskedastic_shocks_t
       = map<int, vector<pair<AbstractShocksStatement::period_range_t, expr_t>>>;
 
 private:
   const bool overwrite;
-  const heteroskedastic_shocks_t values, scales;
+  const heteroskedastic_shocks_t exo_values, exo_scales;   // for exogenous (Q_scale)
+  const heteroskedastic_shocks_t endo_values, endo_scales; // for endogenous (H_scale)
   const SymbolTable& symbol_table;
 
 public:
   HeteroskedasticShocksStatement(bool overwrite_arg, heteroskedastic_shocks_t values_arg,
                                  heteroskedastic_shocks_t scales_arg,
+                                 heteroskedastic_shocks_t endo_values_arg,
+                                 heteroskedastic_shocks_t endo_scales_arg,
                                  const SymbolTable& symbol_table_arg);
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;

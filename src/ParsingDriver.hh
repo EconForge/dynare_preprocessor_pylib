@@ -184,9 +184,12 @@ private:
   ShockPathsStatement::exo_paths_t shock_paths_exo;
   PerfectForesightControlledPathsStatement::paths_t shock_paths_controlled;
   bool is_parsing_shock_paths_controlled {false};
-  //! Temporary storage for values and scales of heteroskedastic_shocks
-  HeteroskedasticShocksStatement::heteroskedastic_shocks_t heteroskedastic_shocks_values,
-      heteroskedastic_shocks_scales;
+  //! Temporary storage for values and scales of heteroskedastic_shocks (exogenous)
+  HeteroskedasticShocksStatement::heteroskedastic_shocks_t heteroskedastic_shocks_exo_values,
+      heteroskedastic_shocks_exo_scales;
+  //! Temporary storage for values and scales of heteroskedastic_shocks (endogenous)
+  HeteroskedasticShocksStatement::heteroskedastic_shocks_t heteroskedastic_shocks_endo_values,
+      heteroskedastic_shocks_endo_scales;
   //! Temporary storage for initval blocks
   InitOrEndValStatement::init_values_t init_values;
   /* Temporary storage for endval blocks. Uses a type that encompasses both
