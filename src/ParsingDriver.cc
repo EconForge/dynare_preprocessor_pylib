@@ -239,18 +239,23 @@ ParsingDriver::parameters(
     const optional<string>& heterogeneity_dimension)
 {
   for (auto& [name, tex_name, partition] : symbol_list)
-    if (heterogeneity_dimension)
-      try
-        {
-          declare_symbol(name, SymbolType::heterogeneousParameter, tex_name, partition,
-                         mod_file->heterogeneity_table.getID(*heterogeneity_dimension));
-        }
-      catch (HeterogeneityTable::UnknownDimensionNameException&)
-        {
-          error("Unknown heterogeneity dimension: " + *heterogeneity_dimension);
-        }
-    else
-      declare_parameter(name, tex_name, partition);
+    {
+      if (name == "dsge_prior_weight")
+        error("dsge_prior_weight cannot be declared as a parameter. Use the dsge_var option in "
+              "the estimation statement instead.");
+      if (heterogeneity_dimension)
+        try
+          {
+            declare_symbol(name, SymbolType::heterogeneousParameter, tex_name, partition,
+                           mod_file->heterogeneity_table.getID(*heterogeneity_dimension));
+          }
+        catch (HeterogeneityTable::UnknownDimensionNameException&)
+          {
+            error("Unknown heterogeneity dimension: " + *heterogeneity_dimension);
+          }
+      else
+        declare_parameter(name, tex_name, partition);
+    }
 }
 
 void

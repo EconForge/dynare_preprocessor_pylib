@@ -35,9 +35,6 @@ void
 InitParamStatement::checkPass(ModFileStructure& mod_file_struct,
                               [[maybe_unused]] WarningConsolidation& warnings)
 {
-  if (symbol_table.getName(symb_id) == "dsge_prior_weight")
-    mod_file_struct.dsge_prior_weight_initialized = true;
-
   // Needed for the workaround discussed in dynare#1173
   if (symbol_table.getName(symb_id) == "optimal_policy_discount_factor")
     param_value->collectVariables(SymbolType::parameter,
