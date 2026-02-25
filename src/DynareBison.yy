@@ -3514,7 +3514,6 @@ shock_decomposition_option : o_parameter_set
                            | o_shock_decomposition_with_epilogue
                            | o_prefilter
                            | o_loglinear
-                           | o_lik_init
                            | o_xls_sheet
                            | o_xls_range                           
                            | kalman_filter_primary_options
