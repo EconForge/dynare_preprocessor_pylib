@@ -106,7 +106,7 @@ public:
   void check_symbol_is_exogenous(const string& name, bool allow_exo_det);
 
   //! Known sub-fields for the use_pct estimation option
-  static constexpr array use_pct_estimation_known_fields {"sampler"};
+  static constexpr array use_pct_estimation_known_fields {"dime", "sampler", "smc_initialization"};
 
 private:
   //! Checks for symbol existence in model block. If it doesn't exist, an error message is stored to
