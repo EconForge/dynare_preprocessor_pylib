@@ -8015,12 +8015,13 @@ ExternalFunctionNode::writeJsonOutput(ostream& output, const temporary_terms_t& 
 
   try
     {
+      // Compute the TEF index first, so that nothing is written to output if an exception is thrown
       int tef_idx = getIndxInTefTerms(symb_id, tef_terms);
       output << "TEF_" << tef_idx;
     }
   catch (UnknownFunctionNameAndArgs&)
     {
-      // When writing the JSON output at parsing pass, we don’t use TEF terms
+      // When writing the JSON output at parsing pass or in M_.lhs, we don’t use TEF terms
       output << getName() << "(";
       writeJsonExternalFunctionArguments(output, temporary_terms, tef_terms, isdynamic);
       output << ")";
@@ -8237,15 +8238,33 @@ FirstDerivExternalFunctionNode::writeJsonOutput(ostream& output,
   const int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
   assert(first_deriv_symb_id != ExternalFunctionsTable::IDSetButNoNameProvided);
 
-  const int tmpIndx = inputIndex - 1;
+  try
+    {
+      // Compute the TEF index first, so that nothing is written to output if an exception is thrown
+      int tef_idx {[&]() {
+        if (first_deriv_symb_id == symb_id
+            || first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
+          return getIndxInTefTerms(symb_id, tef_terms);
+        else
+          return getIndxInTefTerms(first_deriv_symb_id, tef_terms);
+      }()};
 
-  if (first_deriv_symb_id == symb_id)
-    output << "TEFD_" << getIndxInTefTerms(symb_id, tef_terms) << "[" << tmpIndx << "]";
-  else if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
-    output << "TEFD_fdd_" << getIndxInTefTerms(symb_id, tef_terms) << "_" << inputIndex;
-  else
-    output << "TEFD_def_" << getIndxInTefTerms(first_deriv_symb_id, tef_terms) << "[" << tmpIndx
-           << "]";
+      if (first_deriv_symb_id == symb_id)
+        output << "TEFD_" << tef_idx << "[" << inputIndex - 1 << "]";
+      else if (first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
+        output << "TEFD_fdd_" << tef_idx << "_" << inputIndex;
+      else
+        output << "TEFD_def_" << tef_idx << "[" << inputIndex - 1 << "]";
+    }
+  catch (UnknownFunctionNameAndArgs&)
+    {
+      /* When writing M_.lhs, we don’t use TEF terms. First derivative nodes can appear in equations
+         in a Ramsey context (see #143). Output an expression that is not directly evaluable, but
+         that at least conveys the right information. */
+      output << "∂" << getName() << "/∂" << inputIndex << "(";
+      writeJsonExternalFunctionArguments(output, temporary_terms, tef_terms, isdynamic);
+      output << ")";
+    }
 }
 
 void
