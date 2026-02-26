@@ -2490,7 +2490,7 @@ options_eq_opt : symbol '.' OPTIONS
                  { $$ = {"corr", $3, $5, $8}; }
                ;
 
-kalman_filter_primary_options : | o_kalman_algo
+kalman_filter_primary_options : o_kalman_algo
                                 | o_kalman_tol
                                 | o_use_univariate_filters_if_singularity_is_detected
                                 | o_diffuse_filter
@@ -2502,7 +2502,7 @@ kalman_filter_primary_options : | o_kalman_algo
                                 | o_skewed_kalman_mvnlogcdf
                                 ;
 
-kalman_smoother_primary_options : | o_smoother_redux
+kalman_smoother_primary_options : o_smoother_redux
                                   | o_filter_decomposition
                                   | o_smoothed_state_uncertainty
                                   | o_filter_covariance
