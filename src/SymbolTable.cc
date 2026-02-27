@@ -982,6 +982,9 @@ SymbolTable::predeterminedNbr() const
 void
 SymbolTable::addObservedVariable(int symb_id) noexcept(false)
 {
+  if (frozen)
+    throw FrozenException();
+
   validateSymbID(symb_id);
   assert(getType(symb_id) == SymbolType::endogenous);
   varobs.push_back(symb_id);
@@ -990,6 +993,9 @@ SymbolTable::addObservedVariable(int symb_id) noexcept(false)
 int
 SymbolTable::observedVariablesNbr() const
 {
+  if (!frozen)
+    throw NotYetFrozenException();
+
   return static_cast<int>(varobs.size());
 }
 
@@ -1002,6 +1008,10 @@ SymbolTable::isObservedVariable(int symb_id) const
 int
 SymbolTable::getObservedVariableIndex(int symb_id) const
 {
+  // Observed variables can be removed in changeType()
+  if (!frozen)
+    throw NotYetFrozenException();
+
   auto it = ranges::find(varobs, symb_id);
   assert(it != varobs.end());
   return static_cast<int>(it - varobs.begin());

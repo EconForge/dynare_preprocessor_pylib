@@ -2372,7 +2372,7 @@ ParsingDriver::sensitivity()
 void
 ParsingDriver::check_varobs()
 {
-  if (mod_file->symbol_table.observedVariablesNbr() > 0)
+  if (exchange(varobs_seen, true))
     error("varobs: you cannot have several 'varobs' statements in the same MOD file");
 }
 

@@ -281,6 +281,8 @@ private:
   bool ramsey_model_seen {false};
   //! True if a ramsey_policy statement has already been seen
   bool ramsey_policy_seen {false};
+  // True if a “varobs” statement has already been seen
+  bool varobs_seen {false};
 
   [[nodiscard]] bool
   is_parsing_epilogue() const
