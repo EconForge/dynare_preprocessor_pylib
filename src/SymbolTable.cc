@@ -172,6 +172,15 @@ SymbolTable::changeType(int id, SymbolType newtype) noexcept(false)
 
   validateSymbID(id);
 
+  if (isObservedVariable(id) && newtype != SymbolType::endogenous)
+    erase(varobs, id);
+
+  if (predetermined_variables.contains(id) && newtype != SymbolType::endogenous)
+    predetermined_variables.erase(id);
+
+  if (with_log_transform.contains(id) && newtype != SymbolType::endogenous)
+    with_log_transform.erase(id);
+
   type_table[id] = newtype;
 }
 
