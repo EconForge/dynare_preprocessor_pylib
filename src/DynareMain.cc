@@ -524,12 +524,6 @@ main(int argc, char** argv)
       exit(EXIT_FAILURE);
     }
 
-  if (mod_file->use_dll && language == LanguageOutputType::python)
-    {
-      cerr << "ERROR: `use_dll` option is not compatible with Python" << endl;
-      exit(EXIT_FAILURE);
-    }
-
   if (mod_file->use_dll)
     ModelTree::initializeMEXCompilationWorkers(max(jthread::hardware_concurrency(), 1U), dynareroot,
                                                mexext);
