@@ -191,15 +191,25 @@ public:
 
   void writeJuliaOutput(const string& basename) const;
 
+  void writePythonOutput(const string& basename, bool use_jax, bool use_numba) const;
+
+  void writeJsonOutput(const string& basename, JsonOutputPointType json,
+                       JsonFileOutputType json_output_mode, bool onlyjson,
+                       bool jsonderivsimple = false);
+
+private:
+  void writePythonDriverFile(const string& basename, bool use_jax, bool use_numba) const;
+  void writePythonInitFile(const filesystem::path& python_dir) const;
+  void writePythonModelInterfaceFile(const filesystem::path& python_dir, bool use_jax,
+                                     bool use_numba) const;
+  void writePythonTypeStubs(const string& basename) const;
+
   void computeChecksum();
   //! Write JSON representation of ModFile object
   //! Initially created to enable Julia to work with .mod files
   //! Potentially outputs ModFile after the various parts of processing (parsing, checkPass,
   //! transformPass, computingPass) Allows user of other host language platforms (python, fortran,
   //! etc) to provide support for dynare .mod files
-  void writeJsonOutput(const string& basename, JsonOutputPointType json,
-                       JsonFileOutputType json_output_mode, bool onlyjson,
-                       bool jsonderivsimple = false);
 };
 
 #endif

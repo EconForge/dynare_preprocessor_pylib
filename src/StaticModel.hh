@@ -156,6 +156,8 @@ public:
   void writeStaticFile(const string& basename, bool use_dll, const string& mexext,
                        const filesystem::path& matlabroot, bool julia) const;
 
+  void writePythonStaticFile(const string& basename, bool use_jax, bool use_numba) const;
+
   //! Write JSON Output (used by PlannerObjectiveStatement)
   void writeJsonOutput(ostream& output) const;
 
@@ -168,6 +170,10 @@ public:
   //! Writes file containing static parameters derivatives
   template<bool julia>
   void writeParamsDerivativesFile(const string& basename) const;
+
+  //! Writes Python file containing static parameters derivatives
+  void writePythonStaticParamsDerivatives(const string& basename, bool use_jax,
+                                          bool use_numba) const;
 
   //! Writes LaTeX file with the equations of the static model
   void writeLatexFile(const string& basename, bool write_equation_tags) const;

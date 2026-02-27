@@ -1241,6 +1241,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case SymbolType::endogenous:
       switch (int tsid {getTypeSpecificID()}; output_type)
         {
+        case ExprNodeOutputType::pythonDynamicModel:
         case ExprNodeOutputType::juliaDynamicModel:
         case ExprNodeOutputType::matlabDynamicModel:
         case ExprNodeOutputType::CDynamicModel:
@@ -1250,6 +1251,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           output << "y" << LEFT_ARRAY_SUBSCRIPT(output_type) << i
                  << RIGHT_ARRAY_SUBSCRIPT(output_type);
           break;
+        case ExprNodeOutputType::pythonStaticModel:
         case ExprNodeOutputType::CStaticModel:
         case ExprNodeOutputType::juliaStaticModel:
         case ExprNodeOutputType::matlabStaticModel:
@@ -1260,6 +1262,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::matlabOutsideModel:
           output << "oo_.steady_state(" << tsid + 1 << ")";
           break;
+        case ExprNodeOutputType::pythonDynamicSteadyStateOperator:
         case ExprNodeOutputType::juliaDynamicSteadyStateOperator:
         case ExprNodeOutputType::matlabDynamicSteadyStateOperator:
           output << "steady_state" << LEFT_ARRAY_SUBSCRIPT(output_type) << tsid + 1
@@ -1267,6 +1270,9 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           break;
         case ExprNodeOutputType::CDynamicSteadyStateOperator:
           output << "steady_state[" << tsid << "]";
+          break;
+        case ExprNodeOutputType::pythonSteadyStateFile:
+          output << "ys[" << tsid << "]";
           break;
         case ExprNodeOutputType::juliaSteadyStateFile:
         case ExprNodeOutputType::steadyStateFile:
@@ -1305,6 +1311,8 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::juliaDynamicModel:
         case ExprNodeOutputType::matlabDynamicModel:
         case ExprNodeOutputType::CDynamicModel:
+        case ExprNodeOutputType::pythonDynamicModel:
+        case ExprNodeOutputType::pythonStaticModel:
           assert(lag == 0);
           [[fallthrough]];
         case ExprNodeOutputType::CStaticModel:
@@ -1319,6 +1327,9 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           break;
         case ExprNodeOutputType::matlabDynamicSteadyStateOperator:
           output << "oo_.exo_steady_state(" << i << ")";
+          break;
+        case ExprNodeOutputType::pythonSteadyStateFile:
+          output << "exo[" << i << "]";
           break;
         case ExprNodeOutputType::juliaSteadyStateFile:
         case ExprNodeOutputType::steadyStateFile:
@@ -1352,9 +1363,11 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           + ARRAY_SUBSCRIPT_OFFSET(output_type);
       switch (output_type)
         {
+        case ExprNodeOutputType::pythonDynamicModel:
         case ExprNodeOutputType::juliaDynamicModel:
         case ExprNodeOutputType::matlabDynamicModel:
         case ExprNodeOutputType::CDynamicModel:
+        case ExprNodeOutputType::pythonStaticModel:
           assert(lag == 0);
           [[fallthrough]];
         case ExprNodeOutputType::CStaticModel:
@@ -1369,6 +1382,9 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
           break;
         case ExprNodeOutputType::matlabDynamicSteadyStateOperator:
           output << "oo_.exo_det_steady_state(" << getTypeSpecificID() + 1 << ")";
+          break;
+        case ExprNodeOutputType::pythonSteadyStateFile:
+          output << "exo[" << i << "]";
           break;
         case ExprNodeOutputType::juliaSteadyStateFile:
         case ExprNodeOutputType::steadyStateFile:
@@ -3198,6 +3214,8 @@ UnaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
       ExprNodeOutputType new_output_type;
       switch (output_type)
         {
+        case ExprNodeOutputType::pythonDynamicModel:
+
         case ExprNodeOutputType::matlabDynamicModel:
         case ExprNodeOutputType::occbinDifferenceFile:
           new_output_type = ExprNodeOutputType::matlabDynamicSteadyStateOperator;
@@ -5140,6 +5158,8 @@ BinaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
                                                                   // see dynare#1826
           || output_type == ExprNodeOutputType::juliaTimeDataFrame)
         output << " .^";
+      else if (isPythonOutput(output_type))
+        output << "**";
       else
         output << "^";
       break;

@@ -961,3 +961,63 @@ DataTree::writeCHelpersDeclaration(ostream& output) const
   if (isUnaryOpUsed(UnaryOpcode::sign))
     output << "extern inline double sign(double x);" << '\n';
 }
+
+string
+DataTree::writePythonHelpersImports(bool use_jax, bool use_numba)
+{
+  string imports = "import numpy as np\n"
+                   "from numpy import log, exp, sqrt\n"
+                   "from scipy.stats import norm\n"
+                   "from typing import Tuple, Optional\n";
+
+  if (use_jax)
+    imports += "import jax\n"
+               "import jax.numpy as jnp\n"
+               "from jax import jit\n";
+
+  if (use_numba)
+    imports += "from numba import jit, prange\n";
+
+  return imports;
+}
+
+string
+DataTree::writePythonHelpersDecorator(bool use_jax, bool use_numba)
+{
+  if (use_jax)
+    return "@jit\n";
+  else if (use_numba)
+    return "@jit(nopython=True, cache=True)\n";
+  else
+    return "";
+}
+
+string
+DataTree::writePythonHelpersDefinition()
+{
+  return "# Helper functions for derivatives\n"
+         "def getPowerDeriv(x, p, k):\n"
+         "    \"\"\"Compute the k-th derivative of x^p\"\"\"\n"
+         "    if k == 1:\n"
+         "        if abs(p) < 1e-12:\n"
+         "            return 0.0\n"
+         "        else:\n"
+         "            return p * x**(p - 1)\n"
+         "    elif k == 2:\n"
+         "        if abs(p) < 1e-12:\n"
+         "            return 0.0\n"
+         "        else:\n"
+         "            return p * (p - 1) * x**(p - 2)\n"
+         "    else:\n"
+         "        # General case for k-th derivative\n"
+         "        result = 1.0\n"
+         "        for i in range(k):\n"
+         "            result *= (p - i)\n"
+         "        return result * x**(p - k)\n\n";
+}
+
+string
+DataTree::writePythonHelpersImportFromInit()
+{
+  return "from . import getPowerDeriv\n";
+}
