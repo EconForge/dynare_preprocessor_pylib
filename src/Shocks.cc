@@ -1307,71 +1307,31 @@ HeteroskedasticShocksStatement::writeOutput(ostream& output,
                                             [[maybe_unused]] const string& basename,
                                             [[maybe_unused]] bool minimal_workspace) const
 {
-  // NB: The first initialization of the fields is done in ModFile::writeMOutput()
-  if (overwrite)
+  for (const auto& [matrix, type, data] :
+       {tuple {"Q", "value", &exo_values}, tuple {"Q", "scale", &exo_scales},
+        tuple {"H", "value", &endo_values}, tuple {"H", "scale", &endo_scales}})
     {
-      output << "M_.heteroskedastic_shocks.Qvalue_orig = struct([]);" << '\n'
-             << "M_.heteroskedastic_shocks.Qscale_orig = struct([]);" << '\n'
-             << "M_.heteroskedastic_shocks.Hvalue_orig = struct([]);" << '\n'
-             << "M_.heteroskedastic_shocks.Hscale_orig = struct([]);" << '\n';
-    }
+      // NB: The first initialization of the fields is done in ModFile::writeMOutput()
+      if (overwrite)
+        output << "M_.heteroskedastic_shocks." << matrix << type << "_orig = struct([]);" << '\n';
 
-  output << "M_.heteroskedastic_shocks.Qvalue_orig = [M_.heteroskedastic_shocks.Qvalue_orig;"
-         << '\n';
-  for (const auto& [symb_id, vec] : exo_values)
-    for (int tsid = symbol_table.getTypeSpecificID(symb_id);
-         const auto& [period_range, value] : vec)
-      {
-        output << "struct('exo_id', " << tsid + 1 << ",'periods',";
-        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
-        output << ",'value',";
-        value->writeOutput(output);
-        output << ");" << '\n';
-      }
-  output << "];" << '\n'
-         << "M_.heteroskedastic_shocks.Qscale_orig = [M_.heteroskedastic_shocks.Qscale_orig;"
-         << '\n';
-  for (const auto& [symb_id, vec] : exo_scales)
-    for (int tsid = symbol_table.getTypeSpecificID(symb_id);
-         const auto& [period_range, scale] : vec)
-      {
-        output << "struct('exo_id', " << tsid + 1 << ",'periods',";
-        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
-        output << ",'scale',";
-        scale->writeOutput(output);
-        output << ");" << '\n';
-      }
-  output << "];" << '\n';
-
-  // Output endogenous heteroskedastic shocks (H_scale)
-  if (!endo_values.empty() || !endo_scales.empty())
-    {
-      output << "M_.heteroskedastic_shocks.Hvalue_orig = [M_.heteroskedastic_shocks.Hvalue_orig;"
-             << endl;
-      for (const auto& [symb_id, vec] : endo_values)
-        for (int tsid = symbol_table.getTypeSpecificID(symb_id);
-             const auto& [period_range, value] : vec)
-          {
-            output << "struct('endo_id', " << tsid + 1 << ",'periods',";
-            visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
-            output << ",'value',";
-            value->writeOutput(output);
-            output << ");" << endl;
-          }
-      output << "];" << endl
-             << "M_.heteroskedastic_shocks.Hscale_orig = [M_.heteroskedastic_shocks.Hscale_orig;"
-             << endl;
-      for (const auto& [symb_id, vec] : endo_scales)
-        for (int tsid = symbol_table.getTypeSpecificID(symb_id);
-             const auto& [period_range, scale] : vec)
-          {
-            output << "struct('endo_id', " << tsid + 1 << ",'periods',";
-            visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
-            output << ",'scale',";
-            scale->writeOutput(output);
-            output << ");" << endl;
-          }
-      output << "];" << endl;
+      if (!data->empty())
+        {
+          output << "M_.heteroskedastic_shocks." << matrix << type
+                 << "_orig = [M_.heteroskedastic_shocks." << matrix << type << "_orig;" << '\n';
+          for (const auto& [symb_id, vec] : *data)
+            for (int tsid = symbol_table.getTypeSpecificID(symb_id);
+                 const auto& [period_range, value] : vec)
+              {
+                output << "struct('" << (matrix == "Q"s ? "exo" : "endo") << "_id', " << tsid + 1
+                       << ",'periods',";
+                visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+                output << ",'" << type << "',";
+                value->writeOutput(output);
+                output << ");" << '\n';
+              }
+          output << "];" << '\n';
+        }
     }
 }
 
@@ -1379,83 +1339,34 @@ void
 HeteroskedasticShocksStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "heteroskedastic_shocks")"
-         << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "shocks_exo_values": [)";
-  for (bool printed_something {false}; const auto& [symb_id, vec] : exo_values)
+         << R"(, "overwrite": )" << boolalpha << overwrite;
+
+  for (const auto& [symb_type, shock_type, data] :
+       {tuple {"exo", "values", &exo_values}, tuple {"exo", "scales", &exo_scales},
+        tuple {"endo", "values", &endo_values}, tuple {"endo", "scales", &endo_scales}})
     {
-      if (exchange(printed_something, true))
-        output << ", ";
-      output << R"({"var": ")" << symbol_table.getName(symb_id) << R"(", )"
-             << R"("values": [)";
-      for (bool printed_something2 {false}; const auto& [period_range, value] : vec)
+      output << R"(, "shocks_)" << symb_type << '_' << shock_type << R"(": [)";
+      for (bool printed_something {false}; const auto& [symb_id, vec] : *data)
         {
-          if (exchange(printed_something2, true))
+          if (exchange(printed_something, true))
             output << ", ";
-          output << "{";
-          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
-          output << R"(, "value": ")";
-          value->writeJsonOutput(output, {}, {});
-          output << R"("})";
+          output << R"({"var": ")" << symbol_table.getName(symb_id) << R"(", ")" << shock_type
+                 << R"(": [)";
+          for (bool printed_something2 {false}; const auto& [period_range, value] : vec)
+            {
+              if (exchange(printed_something2, true))
+                output << ", ";
+              output << "{";
+              visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+              output << R"(, "value": ")";
+              value->writeJsonOutput(output, {}, {});
+              output << R"("})";
+            }
+          output << "]}";
         }
-      output << "]}";
+      output << ']';
     }
-  output << R"(], "shocks_exo_scales": [)";
-  for (bool printed_something {false}; const auto& [symb_id, vec] : exo_scales)
-    {
-      if (exchange(printed_something, true))
-        output << ", ";
-      output << R"({"var": ")" << symbol_table.getName(symb_id) << R"(", )"
-             << R"("scales": [)";
-      for (bool printed_something2 {false}; const auto& [period_range, value] : vec)
-        {
-          if (exchange(printed_something2, true))
-            output << ", ";
-          output << "{";
-          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
-          output << R"(, "value": ")";
-          value->writeJsonOutput(output, {}, {});
-          output << R"("})";
-        }
-      output << "]}";
-    }
-  output << R"(], "shocks_endo_values": [)";
-  for (bool printed_something {false}; const auto& [symb_id, vec] : endo_values)
-    {
-      if (exchange(printed_something, true))
-        output << ", ";
-      output << R"({"var": ")" << symbol_table.getName(symb_id) << R"(", )"
-             << R"("values": [)";
-      for (bool printed_something2 {false}; const auto& [period_range, value] : vec)
-        {
-          if (exchange(printed_something2, true))
-            output << ", ";
-          output << "{";
-          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
-          output << R"(, "value": ")";
-          value->writeJsonOutput(output, {}, {});
-          output << R"("})";
-        }
-      output << "]}";
-    }
-  output << R"(], "shocks_endo_scales": [)";
-  for (bool printed_something {false}; const auto& [symb_id, vec] : endo_scales)
-    {
-      if (exchange(printed_something, true))
-        output << ", ";
-      output << R"({"var": ")" << symbol_table.getName(symb_id) << R"(", )"
-             << R"("scales": [)";
-      for (bool printed_something2 {false}; const auto& [period_range, value] : vec)
-        {
-          if (exchange(printed_something2, true))
-            output << ", ";
-          output << "{";
-          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
-          output << R"(, "value": ")";
-          value->writeJsonOutput(output, {}, {});
-          output << R"("})";
-        }
-      output << "]}";
-    }
-  output << "]}";
+  output << "}";
 }
 
 ShockPathsStatement::ShockPathsStatement(
