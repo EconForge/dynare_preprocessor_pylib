@@ -118,6 +118,7 @@ public:
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) const;
   //! Write the steady state file
   void writeSteadyStateFile(const string& basename, bool julia) const;
+  void writePythonSteadyStateFile(const string& basename, bool use_jax, bool use_numba) const;
   //! Writes LaTeX file with the equations of the dynamic model (for the steady state model)
   void writeLatexSteadyStateFile(const string& basename) const;
   //! Writes JSON output

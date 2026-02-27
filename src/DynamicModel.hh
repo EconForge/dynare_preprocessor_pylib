@@ -33,6 +33,7 @@ using namespace std;
 class DynamicModel : public ModelTree
 {
   friend class StaticModel; // For reading static_mfs from converting constructor
+
 public:
   //! A reference to the trend component model table
   TrendComponentModelTable& trend_component_model_table;
@@ -412,9 +413,15 @@ public:
   void writeDynamicFile(const string& basename, bool use_dll, const string& mexext,
                         const filesystem::path& matlabroot, bool julia) const;
 
+  void writePythonDynamicFile(const string& basename, bool use_jax, bool use_numba) const;
+
   //! Writes file containing parameters derivatives
   template<bool julia>
   void writeParamsDerivativesFile(const string& basename) const;
+
+  //! Writes Python file containing dynamic parameters derivatives
+  void writePythonDynamicParamsDerivatives(const string& basename, bool use_jax,
+                                           bool use_numba) const;
 
   //! Creates mapping for variables and equations they are present in
   void createVariableMapping();

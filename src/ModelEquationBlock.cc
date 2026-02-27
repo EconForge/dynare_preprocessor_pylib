@@ -603,3 +603,70 @@ Epilogue::computingPassBlock([[maybe_unused]] const eval_context_t& eval_context
 {
   // Disable block decomposition on epilogue blocks
 }
+
+void
+SteadyStateModel::writePythonSteadyStateFile(const string& basename, bool use_jax,
+                                             bool use_numba) const
+{
+  filesystem::path model_dir {basename};
+  model_dir /= "python";
+  filesystem::create_directories(model_dir);
+
+  string filename = model_dir.string() + "/steadystate.py";
+  ofstream output {filename, ios::out | ios::binary};
+  if (!output.is_open())
+    {
+      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  output << writePythonHelpersImports(use_jax, use_numba) << endl
+         << writePythonHelpersImportFromInit() << endl
+         << endl;
+
+  output << "def steadystate(y, exo, params):" << endl;
+  if (def_table.size() == 0)
+    {
+      output << "    return y, params, 0" << endl;
+      output.close();
+      return;
+    }
+
+  temporary_terms_t temp_terms_union;
+  deriv_node_temp_terms_t tef_terms;
+  temporary_terms_idxs_t temporary_terms_idxs;
+
+  for (const auto& [symb_ids, value] : def_table)
+    {
+      output << "    ";
+      if (symb_ids.size() > 1)
+        {
+          for (size_t j = 0; j < symb_ids.size(); j++)
+            {
+              getVariable(symb_ids[j])
+                  ->writeOutput(output, ExprNodeOutputType::pythonStaticModel, temp_terms_union,
+                                temporary_terms_idxs, tef_terms);
+              if (j < symb_ids.size() - 1)
+                output << ", ";
+            }
+          output << " = ";
+        }
+      else
+        {
+          getVariable(symb_ids[0])
+              ->writeOutput(output, ExprNodeOutputType::pythonStaticModel, temp_terms_union,
+                            temporary_terms_idxs, tef_terms);
+          output << " = ";
+        }
+
+      value->writeOutput(output, ExprNodeOutputType::pythonStaticModel, temp_terms_union,
+                         temporary_terms_idxs, tef_terms);
+      output << endl;
+    }
+
+  output << "    # Auxiliary equations" << endl;
+  static_model.writeAuxVarRecursiveDefinitions(output, ExprNodeOutputType::pythonStaticModel);
+
+  output << "    return y, params, 0" << endl;
+  output.close();
+}

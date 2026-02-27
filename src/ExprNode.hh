@@ -108,7 +108,11 @@ enum class ExprNodeOutputType
   matlabDseries,                    // MATLAB/Octave code for dseries
   juliaTimeDataFrame,               // Julia code for TimeDataFrame objects
   epilogueFile,                     // MATLAB/Octave code, in the generated epilogue file
-  occbinDifferenceFile              // MATLAB/Octave code, in the generated occbin_difference file
+  occbinDifferenceFile,             // MATLAB/Octave code, in the generated occbin_difference file
+  pythonStaticModel,                // Python code, static model
+  pythonDynamicModel,               // Python code, dynamic model
+  pythonDynamicSteadyStateOperator, // Python code, dynamic model, inside a steady state operator
+  pythonSteadyStateFile             // Python code, in the generated steady state file
 };
 
 // Possible types of output when writing ExprNode(s) in bytecode
@@ -142,6 +146,15 @@ isJuliaOutput(ExprNodeOutputType output_type)
          || output_type == ExprNodeOutputType::juliaDynamicSteadyStateOperator
          || output_type == ExprNodeOutputType::juliaSteadyStateFile
          || output_type == ExprNodeOutputType::juliaTimeDataFrame;
+}
+
+constexpr bool
+isPythonOutput(ExprNodeOutputType output_type)
+{
+  return output_type == ExprNodeOutputType::pythonStaticModel
+         || output_type == ExprNodeOutputType::pythonDynamicModel
+         || output_type == ExprNodeOutputType::pythonDynamicSteadyStateOperator
+         || output_type == ExprNodeOutputType::pythonSteadyStateFile;
 }
 
 constexpr bool
@@ -184,7 +197,7 @@ ARRAY_SUBSCRIPT_OFFSET(ExprNodeOutputType output_type)
   return static_cast<int>(isMatlabOutput(output_type) || isJuliaOutput(output_type));
 }
 
-// Left and right array subscript delimiters: '(' and ')' for Matlab, '[' and ']' for C
+// Left and right array subscript delimiters: '(' and ')' for Matlab, '[' and ']' for C/Python/Julia
 constexpr char
 LEFT_ARRAY_SUBSCRIPT(ExprNodeOutputType output_type)
 {

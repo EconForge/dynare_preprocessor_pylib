@@ -2181,3 +2181,58 @@ ModelTree::writeDriverSparseIndicesHelper(const string& prefix, ostream& output)
       output << "]);" << '\n';
     }
 }
+
+void
+ModelTree::writePythonSparseIndicesHelper(const string& prefix, ostream& output, bool use_jax) const
+{
+  const string np_or_jnp = use_jax ? "jnp" : "np";
+
+  output << "def " << prefix << "_g1_sparse_indices():" << endl
+         << "    \"\"\"Return sparse indices for Jacobian in COO format.\"\"\"" << endl;
+
+  // Write row indices
+  output << "    g1_i = " << np_or_jnp << ".array([";
+  for (bool first {true}; const auto& [indices, d1] : jacobian_sparse_column_major_order)
+    {
+      if (!exchange(first, false))
+        output << ", ";
+      output << indices.first;
+    }
+  output << "], dtype=" << np_or_jnp << ".int32)" << endl;
+
+  // Write column indices
+  output << "    g1_j = " << np_or_jnp << ".array([";
+  for (bool first {true}; const auto& [indices, d1] : jacobian_sparse_column_major_order)
+    {
+      if (!exchange(first, false))
+        output << ", ";
+      output << indices.second;
+    }
+  output << "], dtype=" << np_or_jnp << ".int32)" << endl;
+
+  output << "    return g1_i, g1_j" << endl << endl;
+
+  // Write indices for higher-order derivatives
+  for (int i {2}; i <= computed_derivs_order; i++)
+    {
+      output << "def " << prefix << "_g" << i << "_sparse_indices():" << endl
+             << "    \"\"\"Return sparse indices for order " << i << " derivatives.\"\"\"" << endl
+             << "    indices = " << np_or_jnp << ".array([" << endl;
+
+      for (bool first {true}; const auto& [vidx, d] : derivatives[i])
+        {
+          if (!exchange(first, false))
+            output << "," << endl;
+          output << "        [";
+          for (bool row_number {true}, inner_first {true}; int it : vidx)
+            {
+              if (!exchange(inner_first, false))
+                output << ", ";
+              output << (exchange(row_number, false) ? it : getJacobianCol(it));
+            }
+          output << "]";
+        }
+      output << endl << "    ], dtype=" << np_or_jnp << ".int32)" << endl;
+      output << "    return indices" << endl << endl;
+    }
+}

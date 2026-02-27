@@ -34,6 +34,7 @@ enum class LanguageOutputType
 {
   matlab, // outputs files for MATLAB/Octave processing
   julia,  // outputs files for Julia
+  python, // outputs files for Python (NumPy/SciPy)
 };
 
 enum class JsonFileOutputType

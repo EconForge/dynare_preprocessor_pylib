@@ -358,6 +358,9 @@ protected:
      The “prefix” will be prepended to variable names to construct objects under M_. */
   void writeDriverSparseIndicesHelper(const string& prefix, ostream& output) const;
 
+  // Helper for writing sparse derivatives indices in Python
+  void writePythonSparseIndicesHelper(const string& prefix, ostream& output, bool use_jax) const;
+
   // Helper for writing sparse derivatives indices in JSON
   template<bool dynamic>
   void writeJsonSparseIndicesHelper(ostream& output) const;
@@ -769,12 +772,16 @@ ModelTree::writeTemporaryTerms(const temporary_terms_t& tt, temporary_terms_t& t
       if (dynamic_cast<AbstractExternalFunctionNode*>(it))
         it->writeExternalFunctionOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
 
+      if constexpr (isPythonOutput(output_type))
+        output << "    ";
+
       // NOLINTNEXTLINE(clang-analyzer-core.CallAndMessage)
       it->writeOutput(output, output_type, tt, tt_idxs, tef_terms);
       output << " = ";
       it->writeOutput(output, output_type, temp_term_union, tt_idxs, tef_terms);
 
-      if constexpr (isCOutput(output_type) || isMatlabOutput(output_type))
+      if constexpr ((isCOutput(output_type) || isMatlabOutput(output_type))
+                    && !isPythonOutput(output_type))
         output << ";";
       output << '\n';
 
@@ -809,7 +816,10 @@ ModelTree::writeModelEquations(ostream& output, const temporary_terms_t& tempora
           lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
           output << ") - (";
           rhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-          output << ");" << '\n';
+          output << ")";
+          if constexpr (!isPythonOutput(output_type))
+            output << ";";
+          output << '\n';
         }
       else // The right-hand side of the equation is empty ==> residual=lhs;
         {
@@ -817,7 +827,9 @@ ModelTree::writeModelEquations(ostream& output, const temporary_terms_t& tempora
                  << eq + ARRAY_SUBSCRIPT_OFFSET(output_type) << RIGHT_ARRAY_SUBSCRIPT(output_type)
                  << " = ";
           lhs->writeOutput(output, output_type, temporary_terms, temporary_terms_idxs);
-          output << ";" << '\n';
+          if constexpr (!isPythonOutput(output_type))
+            output << ";";
+          output << '\n';
         }
     }
 }
@@ -849,12 +861,14 @@ ModelTree::writeModelFileHelper() const
       // constant)
       for (int k {0}; const auto& [row_col, d1] : jacobian_sparse_column_major_order)
         {
-          d_output[1] << "g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
+          d_output[1] << "    g1_v" << LEFT_ARRAY_SUBSCRIPT(output_type)
                       << k + ARRAY_SUBSCRIPT_OFFSET(output_type)
                       << RIGHT_ARRAY_SUBSCRIPT(output_type) << "=";
           d1->writeOutput(d_output[1], output_type, temp_term_union, temporary_terms_idxs,
                           tef_terms);
-          d_output[1] << ";" << '\n';
+          if constexpr (!isPythonOutput(output_type))
+            d_output[1] << ";";
+          d_output[1] << '\n';
           k++;
         }
     }

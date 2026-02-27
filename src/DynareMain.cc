@@ -56,13 +56,13 @@ usage()
           "[conffile=path_to_config_file] [parallel_follower_open_mode] "
           "[parallel_test] [parallel_use_psexec=true|false]"
        << " [-D<variable>[=<value>]] [-I/path] [nostrict] [stochastic] [fast] [minimal_workspace] "
-          "[compute_xrefs] [output=first|second|third] [language=matlab|julia]"
+          "[compute_xrefs] [output=first|second|third] [language=matlab|julia|python]"
        << " [params_derivs_order=0|1|2] [transform_unary_ops] "
           "[exclude_eqs=<equation_tag_list_or_file>] [include_eqs=<equation_tag_list_or_file>]"
        << " [json=parse|check|transform|compute] [jsonstdout] [onlyjson] [jsonderivsimple] "
           "[nopathchange] [nopreprocessoroutput]"
        << " [mexext=<extension>] [matlabroot=<path>] [onlymodel] [notime] [use_dll] "
-          "[nocommutativity]"
+          "[nocommutativity] [usejax] [usenumba]"
        << '\n';
   exit(EXIT_FAILURE);
 }
@@ -169,6 +169,8 @@ main(int argc, char** argv)
   filesystem::path matlabroot;
   bool onlymodel = false;
   bool use_dll = false;
+  bool use_jax = false;
+  bool use_numba = false;
 
   for (auto s : options)
     {
@@ -346,12 +348,18 @@ main(int argc, char** argv)
             language = LanguageOutputType::matlab;
           else if (s == "julia")
             language = LanguageOutputType::julia;
+          else if (s == "python")
+            language = LanguageOutputType::python;
           else
             {
               cerr << "Incorrect syntax for language option" << '\n';
               usage();
             }
         }
+      else if (s == "usejax")
+        use_jax = true;
+      else if (s == "usenumba")
+        use_numba = true;
       else if (s == "jsonstdout")
         json_output_mode = JsonFileOutputType::standardout;
       else if (s == "onlyjson")
@@ -506,7 +514,19 @@ main(int argc, char** argv)
 
   if (mod_file->use_dll && language == LanguageOutputType::julia)
     {
-      cerr << "ERROR: `use_dll` option is not compatible with Julia" << '\n';
+      cerr << "ERROR: `use_dll` option is not compatible with Julia" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (mod_file->use_dll && language == LanguageOutputType::python)
+    {
+      cerr << "ERROR: `use_dll` option is not compatible with Python" << endl;
+      exit(EXIT_FAILURE);
+    }
+
+  if (mod_file->use_dll && language == LanguageOutputType::python)
+    {
+      cerr << "ERROR: `use_dll` option is not compatible with Python" << endl;
       exit(EXIT_FAILURE);
     }
 
@@ -540,6 +560,8 @@ main(int argc, char** argv)
   // Write output files
   if (language == LanguageOutputType::julia)
     mod_file->writeJuliaOutput(basename);
+  else if (language == LanguageOutputType::python)
+    mod_file->writePythonOutput(basename, use_jax, use_numba);
   else
     mod_file->writeMOutput(basename, clear_all, clear_global, no_warn, console, nograph,
                            nointeractive, config, check_model_changes, minimal_workspace,

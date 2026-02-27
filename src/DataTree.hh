@@ -307,6 +307,11 @@ public:
      depending on the optimization decision by the compiler.
      See https://en.cppreference.com/w/c/language/inline */
   void writeCHelpersDeclaration(ostream& output) const;
+  // Writes Python helper functions for model output
+  static std::string writePythonHelpersDefinition();
+  static std::string writePythonHelpersImports(bool use_jax, bool use_numba);
+  static std::string writePythonHelpersImportFromInit();
+  static std::string writePythonHelpersDecorator(bool use_jax, bool use_numba);
   //! Thrown when trying to access an unknown variable by deriv_id
   class UnknownDerivIDException
   {
