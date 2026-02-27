@@ -514,13 +514,13 @@ main(int argc, char** argv)
 
   if (mod_file->use_dll && language == LanguageOutputType::julia)
     {
-      cerr << "ERROR: `use_dll` option is not compatible with Julia" << endl;
+      cerr << "ERROR: `use_dll` option is not compatible with Julia" << '\n';
       exit(EXIT_FAILURE);
     }
 
   if (mod_file->use_dll && language == LanguageOutputType::python)
     {
-      cerr << "ERROR: `use_dll` option is not compatible with Python" << endl;
+      cerr << "ERROR: `use_dll` option is not compatible with Python" << '\n';
       exit(EXIT_FAILURE);
     }
 

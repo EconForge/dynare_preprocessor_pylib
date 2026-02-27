@@ -819,27 +819,27 @@ StaticModel::writePythonStaticFile(const string& basename, bool use_jax, bool us
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename << " for writing" << '\n';
       exit(EXIT_FAILURE);
     }
 
-  output << writePythonHelpersImports(use_jax, use_numba) << endl
-         << writePythonHelpersImportFromInit() << endl
-         << endl;
+  output << writePythonHelpersImports(use_jax, use_numba) << '\n'
+         << writePythonHelpersImportFromInit() << '\n'
+         << '\n';
 
   // Write sparse indices functions
   writePythonSparseIndicesHelper("static", output, use_jax);
 
   // static_resid
   output << "def static_resid(y: np.ndarray, x: np.ndarray, params: np.ndarray) -> np.ndarray:"
-         << endl;
+         << '\n';
   if (use_jax && use_numba)
     output << "    # Performance decorator removed for compatibility"
-           << endl; // Or handle appropriately
+           << '\n'; // Or handle appropriately
 
   if (!temporary_terms_idxs.empty())
     output << "    T = " << (use_jax ? "jnp" : "np") << ".zeros(" << temporary_terms_idxs.size()
-           << ")" << endl;
+           << ")" << '\n';
 
   temporary_terms_t temp_terms_union;
   deriv_node_temp_terms_t tef_terms;
@@ -849,7 +849,7 @@ StaticModel::writePythonStaticFile(const string& basename, bool use_jax, bool us
       temporary_terms_derivatives[0], temp_terms_union, temporary_terms_idxs, output, tef_terms);
 
   output << "    residual = " << (use_jax ? "jnp" : "np") << ".zeros(" << equations.size() << ")"
-         << endl;
+         << '\n';
 
   // Write equations
   for (int eq = 0; eq < static_cast<int>(equations.size()); eq++)
@@ -863,19 +863,19 @@ StaticModel::writePythonStaticFile(const string& basename, bool use_jax, bool us
       output << " - (";
       rhs->writeOutput(output, ExprNodeOutputType::pythonStaticModel, temp_terms_union,
                        temporary_terms_idxs, tef_terms);
-      output << ")" << endl;
+      output << ")" << '\n';
     }
 
-  output << "    return residual" << endl << endl;
+  output << "    return residual" << '\n' << '\n';
 
   // static_g1 (Jacobian)
   output << "def static_g1(y: np.ndarray, x: np.ndarray, params: np.ndarray) -> np.ndarray:"
-         << endl;
+         << '\n';
   if (computed_derivs_order >= 1)
     {
       if (!temporary_terms_idxs.empty())
         output << "    T = " << (use_jax ? "jnp" : "np") << ".zeros(" << temporary_terms_idxs.size()
-               << ")" << endl;
+               << ")" << '\n';
 
       writeTemporaryTerms<ExprNodeOutputType::pythonStaticModel>(
           temporary_terms_derivatives[1], temp_terms_union, temporary_terms_idxs, output,
@@ -883,7 +883,7 @@ StaticModel::writePythonStaticFile(const string& basename, bool use_jax, bool us
     }
 
   output << "    g1_v = " << (use_jax ? "jnp" : "np") << ".zeros("
-         << jacobian_sparse_column_major_order.size() << ")" << endl;
+         << jacobian_sparse_column_major_order.size() << ")" << '\n';
 
   int i = 0;
   for (const auto& [indices, d1] : jacobian_sparse_column_major_order)
@@ -891,26 +891,26 @@ StaticModel::writePythonStaticFile(const string& basename, bool use_jax, bool us
       output << "    g1_v[" << i << "] = ";
       d1->writeOutput(output, ExprNodeOutputType::pythonStaticModel, temp_terms_union,
                       temporary_terms_idxs, tef_terms);
-      output << endl;
+      output << '\n';
       i++;
     }
-  output << "    return g1_v" << endl << endl;
+  output << "    return g1_v" << '\n' << '\n';
 
   // static_g2, g3...
   for (int o = 2; o <= computed_derivs_order; o++)
     {
       output << "def static_g" << o
-             << "(y: np.ndarray, x: np.ndarray, params: np.ndarray) -> np.ndarray:" << endl;
+             << "(y: np.ndarray, x: np.ndarray, params: np.ndarray) -> np.ndarray:" << '\n';
       if (!temporary_terms_idxs.empty())
         output << "    T = " << (use_jax ? "jnp" : "np") << ".zeros(" << temporary_terms_idxs.size()
-               << ")" << endl;
+               << ")" << '\n';
 
       writeTemporaryTerms<ExprNodeOutputType::pythonStaticModel>(
           temporary_terms_derivatives[o], temp_terms_union, temporary_terms_idxs, output,
           tef_terms);
 
       output << "    g" << o << "_v = " << (use_jax ? "jnp" : "np") << ".zeros("
-             << derivatives[o].size() << ")" << endl;
+             << derivatives[o].size() << ")" << '\n';
 
       int idx = 0;
       for (const auto& [indices, d] : derivatives[o])
@@ -918,10 +918,10 @@ StaticModel::writePythonStaticFile(const string& basename, bool use_jax, bool us
           output << "    g" << o << "_v[" << idx << "] = ";
           d->writeOutput(output, ExprNodeOutputType::pythonStaticModel, temp_terms_union,
                          temporary_terms_idxs, tef_terms);
-          output << endl;
+          output << '\n';
           idx++;
         }
-      output << "    return g" << o << "_v" << endl << endl;
+      output << "    return g" << o << "_v" << '\n' << '\n';
     }
 
   // Auxiliary variables
@@ -931,14 +931,14 @@ StaticModel::writePythonStaticFile(const string& basename, bool use_jax, bool us
     {
       output << "def set_auxiliary_variables(y: np.ndarray, x: np.ndarray, params: np.ndarray) -> "
                 "np.ndarray:"
-             << endl
-             << "    \"\"\"Compute auxiliary variables of the static model.\"\"\"" << endl;
+             << '\n'
+             << "    \"\"\"Compute auxiliary variables of the static model.\"\"\"" << '\n';
       // Add indentation to each line of auxiliary equations
       istringstream aux_stream(aux_output.str());
       string line;
       while (getline(aux_stream, line))
-        output << "    " << line << endl;
-      output << "    return y" << endl << endl;
+        output << "    " << line << '\n';
+      output << "    return y" << '\n' << '\n';
     }
 
   output.close();
@@ -963,54 +963,54 @@ StaticModel::writePythonStaticParamsDerivatives(const string& basename, bool use
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename << " for writing" << '\n';
       exit(EXIT_FAILURE);
     }
 
-  output << writePythonHelpersImports(use_jax, use_numba) << endl
-         << writePythonHelpersImportFromInit() << endl
-         << endl;
+  output << writePythonHelpersImports(use_jax, use_numba) << '\n'
+         << writePythonHelpersImportFromInit() << '\n'
+         << '\n';
 
   // Write main function
   output << "def static_params_derivs(y: np.ndarray, x: np.ndarray, params: np.ndarray) -> "
             "Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, "
             "np.ndarray]:"
-         << endl
-         << "    \"\"\"" << endl
-         << "    Compute derivatives of the static model with respect to parameters." << endl
-         << endl
-         << "    Parameters" << endl
-         << "    ----------" << endl
-         << "    y : array_like" << endl
-         << "        Endogenous variables" << endl
-         << "    x : array_like" << endl
-         << "        Exogenous variables" << endl
-         << "    params : array_like" << endl
-         << "        Model parameters" << endl
-         << endl
-         << "    Returns" << endl
-         << "    -------" << endl
-         << "    rp : ndarray" << endl
-         << "        Jacobian of static model residuals w.r.t. parameters" << endl
-         << "        Sparse format: (row, col, value) tuples" << endl
-         << "    g1p : ndarray" << endl
-         << "        Derivative of Jacobian w.r.t. parameters" << endl
-         << "        Format: (eq, var, param, value)" << endl
-         << "    rpp : ndarray" << endl
-         << "        Second derivative of residuals w.r.t. parameters" << endl
-         << "        Format: (eq, param1, param2, value)" << endl
-         << "    g1pp : ndarray" << endl
-         << "        Second derivative of Jacobian w.r.t. parameters" << endl
-         << "        Format: (eq, var, param1, param2, value)" << endl
-         << "    g2p : ndarray" << endl
-         << "        Derivative of Hessian w.r.t. parameters" << endl
-         << "        Format: (eq, var1, var2, param, value)" << endl
-         << "    \"\"\"" << endl;
+         << '\n'
+         << "    \"\"\"" << '\n'
+         << "    Compute derivatives of the static model with respect to parameters." << '\n'
+         << '\n'
+         << "    Parameters" << '\n'
+         << "    ----------" << '\n'
+         << "    y : array_like" << '\n'
+         << "        Endogenous variables" << '\n'
+         << "    x : array_like" << '\n'
+         << "        Exogenous variables" << '\n'
+         << "    params : array_like" << '\n'
+         << "        Model parameters" << '\n'
+         << '\n'
+         << "    Returns" << '\n'
+         << "    -------" << '\n'
+         << "    rp : ndarray" << '\n'
+         << "        Jacobian of static model residuals w.r.t. parameters" << '\n'
+         << "        Sparse format: (row, col, value) tuples" << '\n'
+         << "    g1p : ndarray" << '\n'
+         << "        Derivative of Jacobian w.r.t. parameters" << '\n'
+         << "        Format: (eq, var, param, value)" << '\n'
+         << "    rpp : ndarray" << '\n'
+         << "        Second derivative of residuals w.r.t. parameters" << '\n'
+         << "        Format: (eq, param1, param2, value)" << '\n'
+         << "    g1pp : ndarray" << '\n'
+         << "        Second derivative of Jacobian w.r.t. parameters" << '\n'
+         << "        Format: (eq, var, param1, param2, value)" << '\n'
+         << "    g2p : ndarray" << '\n'
+         << "        Derivative of Hessian w.r.t. parameters" << '\n'
+         << "        Format: (eq, var1, var2, param, value)" << '\n'
+         << "    \"\"\"" << '\n';
 
   // Temporary terms
   if (!params_derivs_temporary_terms_idxs.empty())
     output << "    T = " << (use_jax ? "jnp" : "np") << ".zeros("
-           << params_derivs_temporary_terms_idxs.size() << ")" << endl;
+           << params_derivs_temporary_terms_idxs.size() << ")" << '\n';
 
   // Write temporary terms (already indented by writeTemporaryTerms)
   if (!tt_output.str().empty())
@@ -1024,31 +1024,31 @@ StaticModel::writePythonStaticParamsDerivatives(const string& basename, bool use
   int g2p_count = params_derivatives.at({2, 1}).size();
 
   // Initialize arrays
-  output << endl;
+  output << '\n';
   if (rp_count > 0)
     output << "    rp_i = " << (use_jax ? "jnp" : "np") << ".zeros(" << rp_count << ", dtype=int)"
-           << endl
+           << '\n'
            << "    rp_j = " << (use_jax ? "jnp" : "np") << ".zeros(" << rp_count << ", dtype=int)"
-           << endl
-           << "    rp_v = " << (use_jax ? "jnp" : "np") << ".zeros(" << rp_count << ")" << endl;
+           << '\n'
+           << "    rp_v = " << (use_jax ? "jnp" : "np") << ".zeros(" << rp_count << ")" << '\n';
 
   if (g1p_count > 0)
     output << "    g1p = " << (use_jax ? "jnp" : "np") << ".zeros((" << g1p_count << ", 4))"
-           << endl;
+           << '\n';
 
   if (rpp_count > 0)
     output << "    rpp = " << (use_jax ? "jnp" : "np") << ".zeros((" << rpp_count << ", 4))"
-           << endl;
+           << '\n';
 
   if (g1pp_count > 0)
     output << "    g1pp = " << (use_jax ? "jnp" : "np") << ".zeros((" << g1pp_count << ", 5))"
-           << endl;
+           << '\n';
 
   if (g2p_count > 0)
     output << "    g2p = " << (use_jax ? "jnp" : "np") << ".zeros((" << g2p_count << ", 5))"
-           << endl;
+           << '\n';
 
-  output << endl;
+  output << '\n';
 
   // Write derivatives with proper indentation
   auto write_python_derivs = [&output](ostringstream& deriv_output) {
@@ -1057,7 +1057,7 @@ StaticModel::writePythonStaticParamsDerivatives(const string& basename, bool use
         istringstream deriv_stream(deriv_output.str());
         string line;
         while (getline(deriv_stream, line))
-          output << "    " << line << endl;
+          output << "    " << line << '\n';
       }
   };
 
@@ -1068,7 +1068,7 @@ StaticModel::writePythonStaticParamsDerivatives(const string& basename, bool use
   write_python_derivs(g2p_output);
 
   // Return statement
-  output << endl << "    return rp_i, rp_j, rp_v, g1p, rpp, g1pp, g2p" << endl;
+  output << '\n' << "    return rp_i, rp_j, rp_v, g1p, rpp, g1pp, g2p" << '\n';
 
   output.close();
 }

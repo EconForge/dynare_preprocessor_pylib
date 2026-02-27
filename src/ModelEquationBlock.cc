@@ -616,18 +616,18 @@ SteadyStateModel::writePythonSteadyStateFile(const string& basename, bool use_ja
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
     {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << endl;
+      cerr << "ERROR: Can't open file " << filename << " for writing" << '\n';
       exit(EXIT_FAILURE);
     }
 
-  output << writePythonHelpersImports(use_jax, use_numba) << endl
-         << writePythonHelpersImportFromInit() << endl
-         << endl;
+  output << writePythonHelpersImports(use_jax, use_numba) << '\n'
+         << writePythonHelpersImportFromInit() << '\n'
+         << '\n';
 
-  output << "def steadystate(y, exo, params):" << endl;
+  output << "def steadystate(y, exo, params):" << '\n';
   if (def_table.size() == 0)
     {
-      output << "    return y, params, 0" << endl;
+      output << "    return y, params, 0" << '\n';
       output.close();
       return;
     }
@@ -661,12 +661,12 @@ SteadyStateModel::writePythonSteadyStateFile(const string& basename, bool use_ja
 
       value->writeOutput(output, ExprNodeOutputType::pythonStaticModel, temp_terms_union,
                          temporary_terms_idxs, tef_terms);
-      output << endl;
+      output << '\n';
     }
 
-  output << "    # Auxiliary equations" << endl;
+  output << "    # Auxiliary equations" << '\n';
   static_model.writeAuxVarRecursiveDefinitions(output, ExprNodeOutputType::pythonStaticModel);
 
-  output << "    return y, params, 0" << endl;
+  output << "    return y, params, 0" << '\n';
   output.close();
 }

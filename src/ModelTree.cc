@@ -2187,8 +2187,8 @@ ModelTree::writePythonSparseIndicesHelper(const string& prefix, ostream& output,
 {
   const string np_or_jnp = use_jax ? "jnp" : "np";
 
-  output << "def " << prefix << "_g1_sparse_indices():" << endl
-         << "    \"\"\"Return sparse indices for Jacobian in COO format.\"\"\"" << endl;
+  output << "def " << prefix << "_g1_sparse_indices():" << '\n'
+         << "    \"\"\"Return sparse indices for Jacobian in COO format.\"\"\"" << '\n';
 
   // Write row indices
   output << "    g1_i = " << np_or_jnp << ".array([";
@@ -2198,7 +2198,7 @@ ModelTree::writePythonSparseIndicesHelper(const string& prefix, ostream& output,
         output << ", ";
       output << indices.first;
     }
-  output << "], dtype=" << np_or_jnp << ".int32)" << endl;
+  output << "], dtype=" << np_or_jnp << ".int32)" << '\n';
 
   // Write column indices
   output << "    g1_j = " << np_or_jnp << ".array([";
@@ -2208,21 +2208,21 @@ ModelTree::writePythonSparseIndicesHelper(const string& prefix, ostream& output,
         output << ", ";
       output << indices.second;
     }
-  output << "], dtype=" << np_or_jnp << ".int32)" << endl;
+  output << "], dtype=" << np_or_jnp << ".int32)" << '\n';
 
-  output << "    return g1_i, g1_j" << endl << endl;
+  output << "    return g1_i, g1_j" << '\n' << '\n';
 
   // Write indices for higher-order derivatives
   for (int i {2}; i <= computed_derivs_order; i++)
     {
-      output << "def " << prefix << "_g" << i << "_sparse_indices():" << endl
-             << "    \"\"\"Return sparse indices for order " << i << " derivatives.\"\"\"" << endl
-             << "    indices = " << np_or_jnp << ".array([" << endl;
+      output << "def " << prefix << "_g" << i << "_sparse_indices():" << '\n'
+             << "    \"\"\"Return sparse indices for order " << i << " derivatives.\"\"\"" << '\n'
+             << "    indices = " << np_or_jnp << ".array([" << '\n';
 
       for (bool first {true}; const auto& [vidx, d] : derivatives[i])
         {
           if (!exchange(first, false))
-            output << "," << endl;
+            output << "," << '\n';
           output << "        [";
           for (bool row_number {true}, inner_first {true}; int it : vidx)
             {
@@ -2232,7 +2232,7 @@ ModelTree::writePythonSparseIndicesHelper(const string& prefix, ostream& output,
             }
           output << "]";
         }
-      output << endl << "    ], dtype=" << np_or_jnp << ".int32)" << endl;
-      output << "    return indices" << endl << endl;
+      output << '\n' << "    ], dtype=" << np_or_jnp << ".int32)" << '\n';
+      output << "    return indices" << '\n' << '\n';
     }
 }
