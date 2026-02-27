@@ -1392,7 +1392,7 @@ HeteroskedasticShocksStatement::writeJsonOutput(ostream& output) const
             output << ", ";
           output << "{";
           visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
-          output << R"("value": ")";
+          output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
         }
@@ -1411,7 +1411,7 @@ HeteroskedasticShocksStatement::writeJsonOutput(ostream& output) const
             output << ", ";
           output << "{";
           visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
-          output << R"("value": ")";
+          output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
         }
@@ -1430,7 +1430,7 @@ HeteroskedasticShocksStatement::writeJsonOutput(ostream& output) const
             output << ", ";
           output << "{";
           visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
-          output << R"("value": ")";
+          output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
         }
@@ -1449,7 +1449,7 @@ HeteroskedasticShocksStatement::writeJsonOutput(ostream& output) const
             output << ", ";
           output << "{";
           visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
-          output << R"("value": ")";
+          output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
         }
