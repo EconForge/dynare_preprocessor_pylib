@@ -189,7 +189,7 @@ str_tolower(string s)
 %token PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX
 %token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
-%token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE UPDATED_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY SMOOTHER_REDUX
+%token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE UPDATED_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY SMOOTHED_SHOCK_VARIANCE SMOOTHER_REDUX
 %token EQ_CMS TLINDX TLNUMBER RESTRICTIONS POSTERIOR_SAMPLER_OPTIONS
 %token OUTPUT_FILE_TAG HORIZON
 %token SBVAR TREND_VAR DEFLATOR GROWTH_FACTOR MS_IRF MS_VARIANCE_DECOMPOSITION GROWTH
@@ -2505,6 +2505,7 @@ kalman_filter_primary_options : o_kalman_algo
 kalman_smoother_primary_options : o_smoother_redux
                                   | o_filter_decomposition
                                   | o_smoothed_state_uncertainty
+                                  | o_smoothed_shock_variance
                                   | o_filter_covariance
                                   | o_updated_covariance
                                   | o_use_univariate_smoother_if_singularity_is_detected
@@ -4697,6 +4698,11 @@ o_filter_decomposition : FILTER_DECOMPOSITION
                          ;
 o_smoothed_state_uncertainty : SMOOTHED_STATE_UNCERTAINTY
                            { driver.option_num("smoothed_state_uncertainty", "true"); }
+                         ;
+o_smoothed_shock_variance : SMOOTHED_SHOCK_VARIANCE
+                           { driver.option_num("smoothed_shock_variance", "true"); }
+                         | SMOOTHED_SHOCK_VARIANCE EQUAL boolean
+                           { driver.option_num("smoothed_shock_variance", $3); }
                          ;
 o_smoother_redux : SMOOTHER_REDUX
                            { driver.option_num("smoother_redux", "true"); }
