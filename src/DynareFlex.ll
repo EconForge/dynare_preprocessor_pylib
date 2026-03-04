@@ -729,6 +729,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>updated_covariance {return token::UPDATED_COVARIANCE; }
 <DYNARE_STATEMENT>filter_decomposition {return token::FILTER_DECOMPOSITION; }
 <DYNARE_STATEMENT>smoothed_state_uncertainty {return token::SMOOTHED_STATE_UNCERTAINTY; }
+<DYNARE_STATEMENT>smoothed_shock_variance {return token::SMOOTHED_SHOCK_VARIANCE; }
 <DYNARE_STATEMENT>smoother_redux {return token::SMOOTHER_REDUX; }
 <DYNARE_STATEMENT>selected_variables_only {return token::SELECTED_VARIABLES_ONLY; }
 <DYNARE_STATEMENT>pruning {return token::PRUNING; }
