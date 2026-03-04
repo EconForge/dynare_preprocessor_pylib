@@ -1081,7 +1081,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_BLOCK>pac_target_nonstationary {return token::PAC_TARGET_NONSTATIONARY;}
 <DYNARE_BLOCK>sum {return token::SUM;}
 <DYNARE_STATEMENT>discount {return token::DISCOUNT;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>varobs {return token::VAROBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>nan {return token::NAN_CONSTANT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>inf {return token::INF_CONSTANT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>constants {return token::CONSTANTS;}
