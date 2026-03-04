@@ -987,6 +987,8 @@ SymbolTable::addObservedVariable(int symb_id) noexcept(false)
 
   validateSymbID(symb_id);
   assert(getType(symb_id) == SymbolType::endogenous);
+  if (isObservedVariable(symb_id))
+    throw AlreadyDeclaredAsObservedException {symb_id};
   varobs.push_back(symb_id);
 }
 

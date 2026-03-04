@@ -2381,7 +2381,14 @@ ParsingDriver::add_varobs(const string& name)
 {
   check_symbol_is_endogenous(name);
   int symb_id = mod_file->symbol_table.getID(name);
-  mod_file->symbol_table.addObservedVariable(symb_id);
+  try
+    {
+      mod_file->symbol_table.addObservedVariable(symb_id);
+    }
+  catch (SymbolTable::AlreadyDeclaredAsObservedException&)
+    {
+      error("varobs: '" + name + "' has already been declared as an observable");
+    }
 }
 
 void

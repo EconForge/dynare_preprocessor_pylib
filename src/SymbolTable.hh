@@ -237,6 +237,12 @@ public:
     const int id;
   };
 
+  // Thrown when declaring an observed variable twice
+  struct AlreadyDeclaredAsObservedException
+  {
+    const int id;
+  };
+
 private:
   //! Factorized code for adding aux lag variables
   int addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag,
