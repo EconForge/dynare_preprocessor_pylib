@@ -466,18 +466,6 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
       output << " ];" << '\n';
     }
 
-  if (observedExogenousVariablesNbr() > 0)
-    {
-      output << "options_.varexobs = cell(1);" << '\n';
-      for (int ic {1}; int it : varexobs)
-        output << "options_.varexobs(" << ic++ << ")  = {'" << getName(it) << "'};" << '\n';
-
-      output << "options_.varexobs_id = [ ";
-      for (int varexob : varexobs)
-        output << getTypeSpecificID(varexob) + 1 << " ";
-      output << " ];" << '\n';
-    }
-
   // Heterogeneous symbols
   // FIXME: the following helper could be used to simplify non-heterogenous variables
   auto print_symb_names = [this, &output](const string& field, const auto& symb_ids) {
@@ -1010,34 +998,6 @@ SymbolTable::getObservedVariableIndex(int symb_id) const
   return static_cast<int>(it - varobs.begin());
 }
 
-void
-SymbolTable::addObservedExogenousVariable(int symb_id) noexcept(false)
-{
-  validateSymbID(symb_id);
-  assert(getType(symb_id) == SymbolType::exogenous);
-  varexobs.push_back(symb_id);
-}
-
-int
-SymbolTable::observedExogenousVariablesNbr() const
-{
-  return static_cast<int>(varexobs.size());
-}
-
-bool
-SymbolTable::isObservedExogenousVariable(int symb_id) const
-{
-  return ranges::find(varexobs, symb_id) != varexobs.end();
-}
-
-int
-SymbolTable::getObservedExogenousVariableIndex(int symb_id) const
-{
-  auto it = ranges::find(varexobs, symb_id);
-  assert(it != varexobs.end());
-  return static_cast<int>(it - varexobs.begin());
-}
-
 vector<int>
 SymbolTable::getTrendVarIds() const
 {
@@ -1056,17 +1016,6 @@ SymbolTable::getExogenous() const
     if (getType(it.second) == SymbolType::exogenous)
       exogs.insert(it.second);
   return exogs;
-}
-
-set<int>
-SymbolTable::getObservedExogenous() const
-{
-  set<int> oexogs;
-  for (const auto& it : symbol_table)
-    if (getType(it.second) == SymbolType::exogenous)
-      if (isObservedExogenousVariable(it.second))
-        oexogs.insert(it.second);
-  return oexogs;
 }
 
 set<int>
@@ -1152,26 +1101,6 @@ SymbolTable::writeJsonOutput(ostream& output) const
       output << "]" << '\n';
     }
 
-  if (observedExogenousVariablesNbr() > 0)
-    {
-      output << R"(, "varexobs": [)";
-      for (size_t i = 0; i < varexobs.size(); i++)
-        {
-          if (i != 0)
-            output << ", ";
-          output << R"(")" << getName(varexobs[i]) << R"(")";
-        }
-      output << "]" << '\n';
-
-      output << R"(, "varexobs_ids": [)";
-      for (size_t i = 0; i < varexobs.size(); i++)
-        {
-          if (i != 0)
-            output << ", ";
-          output << getTypeSpecificID(varexobs[i]) + 1;
-        }
-      output << "]" << '\n';
-    }
   // Write the auxiliary variable table
   output << R"(, "orig_endo_nbr": )" << orig_endo_nbr() << '\n';
   if (aux_vars.size() == 0)

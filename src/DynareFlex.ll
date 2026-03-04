@@ -122,7 +122,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <INITIAL>set_time {BEGIN DYNARE_STATEMENT; return token::SET_TIME;}
 <INITIAL>data {BEGIN DYNARE_STATEMENT; return token::DATA;}
 <INITIAL>varobs 	{BEGIN DYNARE_STATEMENT; return token::VAROBS;}
-<INITIAL>varexobs 	{BEGIN DYNARE_STATEMENT; return token::VAREXOBS;}
 <INITIAL>rplot	 	{BEGIN DYNARE_STATEMENT; return token::RPLOT;}
 <INITIAL>osr_params 	{BEGIN DYNARE_STATEMENT; return token::OSR_PARAMS;}
 <INITIAL>osr	 	{BEGIN DYNARE_STATEMENT; return token::OSR;}
@@ -1083,7 +1082,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_BLOCK>sum {return token::SUM;}
 <DYNARE_STATEMENT>discount {return token::DISCOUNT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>varobs {return token::VAROBS;}
-<DYNARE_STATEMENT,DYNARE_BLOCK>varexobs {return token::VAREXOBS;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>nan {return token::NAN_CONSTANT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>inf {return token::INF_CONSTANT;}
 <DYNARE_STATEMENT,DYNARE_BLOCK>constants {return token::CONSTANTS;}

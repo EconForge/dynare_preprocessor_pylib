@@ -163,7 +163,7 @@ str_tolower(string s)
 %token LIKELIHOOD_PIECEWISE_KALMAN_FILTER SMOOTHER_PIECEWISE_KALMAN_FILTER LIKELIHOOD_MAX_KALMAN_ITERATIONS
 %token <string> AIM TEX_NAME TRUE BIND RELAX ERROR_BIND ERROR_RELAX
 %token UNIFORM_PDF USE_DLL USEAUTOCORR GSA_SAMPLE_FILE USE_UNIVARIATE_FILTERS_IF_SINGULARITY_IS_DETECTED USE_UNIVARIATE_SMOOTHER_IF_SINGULARITY_IS_DETECTED
-%token VALUES SCALES VAR VAREXO VAREXO_DET VARIABLE VAROBS VAREXOBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
+%token VALUES SCALES VAR VAREXO VAREXO_DET VARIABLE VAROBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL WRITE_LATEX_STEADY_STATE_MODEL
 %token XLS_SHEET XLS_RANGE LMMCP BANDPASS_FILTER COLORMAP VAR_MODEL PAC_MODEL QOQ YOY AOA PAC_EXPECTATION TREND_COMPONENT_MODEL
 %token DATABASE SHOCK_PATHS
@@ -345,7 +345,6 @@ statement : parameters
           | deterministic_trends
           | observation_trends
           | filter_initial_state
-          | varexobs
           | dsample
           | rplot
           | optim_weights
@@ -2695,16 +2694,6 @@ varobs_list : varobs_list symbol
               { driver.add_varobs($3); }
             | symbol
               { driver.add_varobs($1); }
-            ;
-
-varexobs : VAREXOBS { driver.check_varexobs(); } varexobs_list ';';
-
-varexobs_list : varexobs_list symbol
-              { driver.add_varexobs($2); }
-            | varexobs_list COMMA symbol
-              { driver.add_varexobs($3); }
-            | symbol
-              { driver.add_varexobs($1); }
             ;
 
 deterministic_trends : DETERMINISTIC_TRENDS ';' trend_list END ';' { driver.set_deterministic_trends(); };

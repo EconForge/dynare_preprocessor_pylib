@@ -2722,15 +2722,13 @@ DynamicModel::findUnusedEndogenous()
 set<int>
 DynamicModel::findUnusedExogenous()
 {
-  set<int> usedExo, unusedExo, unobservedExo;
+  set<int> usedExo, unusedExo;
   for (auto& equation : equations)
     equation->collectVariables(SymbolType::exogenous, usedExo);
   for (auto& equation : static_only_equations)
     equation->collectVariables(SymbolType::exogenous, usedExo);
-  set<int> observedExo = symbol_table.getObservedExogenous();
   set<int> allExo = symbol_table.getExogenous();
-  ranges::set_difference(allExo, observedExo, inserter(unobservedExo, unobservedExo.begin()));
-  ranges::set_difference(unobservedExo, usedExo, inserter(unusedExo, unusedExo.begin()));
+  ranges::set_difference(allExo, usedExo, inserter(unusedExo, unusedExo.begin()));
   return unusedExo;
 }
 
