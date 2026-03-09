@@ -4337,7 +4337,9 @@ o_forecast : FORECAST EQUAL INT_NUMBER { driver.option_num("forecast", $3); };
 o_smoother : SMOOTHER { driver.option_num("smoother", "true"); };
 o_moments_varendo : MOMENTS_VARENDO { driver.option_num("moments_varendo", "true"); };
 o_contemporaneous_correlation : CONTEMPORANEOUS_CORRELATION { driver.option_num("contemporaneous_correlation", "true"); };
-o_filtered_vars : FILTERED_VARS { driver.option_num("filtered_vars", "true"); };
+o_filtered_vars : FILTERED_VARS { driver.option_num("filtered_vars", "true"); }
+              | FILTERED_VARS EQUAL boolean { driver.option_num("filtered_vars", $3); }
+              ;
 o_relative_irf : RELATIVE_IRF { driver.option_num("relative_irf", "true"); };
 o_fast_kalman_filter : FAST_KALMAN_FILTER  { driver.option_num("fast_kalman_filter", "true"); };
 o_kalman_algo : KALMAN_ALGO EQUAL INT_NUMBER { driver.option_num("kalman_algo", $3); };
@@ -4661,7 +4663,9 @@ o_equations : EQUATIONS EQUAL vec_int
             | EQUATIONS EQUAL vec_int_number
               { driver.option_vec_int("ms.equations", $3); }
             ;
-o_silent_optimizer : SILENT_OPTIMIZER { driver.option_num("silent_optimizer", "true"); };
+o_silent_optimizer : SILENT_OPTIMIZER { driver.option_num("silent_optimizer", "true"); }
+                   | SILENT_OPTIMIZER EQUAL boolean { driver.option_num("silent_optimizer", $3); }
+                   ;
 o_instruments : INSTRUMENTS EQUAL '(' symbol_list ')' { driver.option_symbol_list("instruments", $4); };
 
 o_ext_func_name : NAME EQUAL namespace_qualified_filename { $$ = {"name", $3}; };
@@ -4678,15 +4682,21 @@ o_second_deriv_provided : SECOND_DERIV_PROVIDED EQUAL namespace_qualified_filena
                         ;
 o_filter_covariance : FILTER_COVARIANCE
                         { driver.option_num("filter_covariance", "true"); }
+                      | FILTER_COVARIANCE EQUAL boolean
+                        { driver.option_num("filter_covariance", $3); }
                       ;
 o_updated_covariance : UPDATED_COVARIANCE
                         { driver.option_num("updated_covariance", "true"); }
 
 o_filter_decomposition : FILTER_DECOMPOSITION
                            { driver.option_num("filter_decomposition", "true"); }
+                         | FILTER_DECOMPOSITION EQUAL boolean
+                           { driver.option_num("filter_decomposition", $3); }
                          ;
 o_smoothed_state_uncertainty : SMOOTHED_STATE_UNCERTAINTY
                            { driver.option_num("smoothed_state_uncertainty", "true"); }
+                         | SMOOTHED_STATE_UNCERTAINTY EQUAL boolean
+                           { driver.option_num("smoothed_state_uncertainty", $3); }
                          ;
 o_smoothed_shock_variance : SMOOTHED_SHOCK_VARIANCE
                            { driver.option_num("smoothed_shock_variance", "true"); }
@@ -4695,6 +4705,9 @@ o_smoothed_shock_variance : SMOOTHED_SHOCK_VARIANCE
                          ;
 o_smoother_redux : SMOOTHER_REDUX
                            { driver.option_num("smoother_redux", "true"); }
+                         | SMOOTHER_REDUX EQUAL boolean
+                           { driver.option_num("smoother_redux", $3); }
+                         ;
 
 o_selected_variables_only : SELECTED_VARIABLES_ONLY
                            { driver.option_num("selected_variables_only", "true"); }
@@ -4811,7 +4824,9 @@ o_use_shock_groups : USE_SHOCK_GROUPS { driver.option_str("plot_shock_decomp.use
 o_colormap : COLORMAP EQUAL symbol { driver.option_num("plot_shock_decomp.colormap", $3); };
 o_icd_colormap : COLORMAP EQUAL symbol { driver.option_num("initial_condition_decomp.colormap", $3); };
 o_no_init_estimation_check_first_obs : NO_INIT_ESTIMATION_CHECK_FIRST_OBS { driver.option_num("no_init_estimation_check_first_obs", "true"); };
-o_heteroskedastic_filter : HETEROSKEDASTIC_FILTER { driver.option_num("heteroskedastic_filter", "true"); };
+o_heteroskedastic_filter : HETEROSKEDASTIC_FILTER { driver.option_num("heteroskedastic_filter", "true"); }
+                         | HETEROSKEDASTIC_FILTER EQUAL boolean { driver.option_num("heteroskedastic_filter", $3); }
+                         ;
 o_pfwee_constant_simulation_length : CONSTANT_SIMULATION_LENGTH { driver.option_num("pfwee.constant_simulation_length", "true"); };
 o_fsolve_options : FSOLVE_OPTIONS EQUAL '(' name_value_pair_list ')' { driver.option_str("fsolve_options", $4); };
 
