@@ -91,9 +91,9 @@ EquationTags::writeCheckSumInfo(ostream& output) const
 }
 
 void
-EquationTags::writeOutput(ostream& output) const
+EquationTags::writeOutput(ostream& output, const string& varname) const
 {
-  output << "M_.equations_tags = {" << '\n';
+  output << varname << " = {" << '\n';
   for (const auto& [eqn, tags] : eqn_tags)
     for (const auto& [key, value] : tags)
       output << "  " << eqn + 1 << " , '" << key << "' , '" << value << "' ;" << '\n';

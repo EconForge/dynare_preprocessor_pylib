@@ -794,4 +794,7 @@ HeterogeneousModel::writeDriverOutput(ostream& output) const
         output << ", ";
     }
   output << "};" << '\n';
+
+  equation_tags.writeOutput(output, "M_.heterogeneity(" + to_string(heterogeneity_dimension + 1)
+                                        + ").equations_tags");
 }

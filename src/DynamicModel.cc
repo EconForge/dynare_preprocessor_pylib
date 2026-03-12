@@ -762,7 +762,7 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
   output << "];" << '\n';
 
   // Write equation tags
-  equation_tags.writeOutput(output);
+  equation_tags.writeOutput(output, "M_.equations_tags");
 
   // Write mapping for variables and equations they are present in
   for (const auto& variable : variableMapping)
