@@ -3818,6 +3818,7 @@ heterogeneity_load_steady_state_options_list : heterogeneity_load_steady_state_o
 
 heterogeneity_load_steady_state_options : o_heterogeneity_steady_state_filename
                                         | o_heterogeneity_steady_state_variable
+                                        | o_heterogeneity_steady_state_tolf
                                         ;
 
 heterogeneity_compute_steady_state : HETEROGENEITY_COMPUTE_STEADY_STATE ';'
@@ -4146,6 +4147,7 @@ o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_filename : FILENAME EQUAL filename { driver.option_str("filename", $3); };
 o_heterogeneity_steady_state_filename : FILENAME EQUAL filename { driver.option_str("steady_state_file_name", $3); };
 o_heterogeneity_steady_state_variable : VARIABLE EQUAL symbol { driver.option_str("steady_state_variable_name", $3); };
+o_heterogeneity_steady_state_tolf : TOLF EQUAL non_negative_number { driver.option_num("check.tolf", $3); };
 o_truncation_horizon : TRUNCATION_HORIZON EQUAL INT_NUMBER { driver.option_num("truncation_horizon", $3); };
 o_forward_max_iter : FORWARD_MAX_ITER EQUAL INT_NUMBER { driver.option_num("forward.max_iter", $3); };
 o_forward_tol : FORWARD_TOL EQUAL non_negative_number { driver.option_num("forward.tol", $3); };
