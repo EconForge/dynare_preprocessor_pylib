@@ -3133,23 +3133,6 @@ DynamicModel::substituteModelLocalVariables()
 }
 
 set<int>
-DynamicModel::getEquationNumbersFromTags(const set<string>& eqtags) const
-{
-  set<int> eqnumbers;
-  for (auto& eqtag : eqtags)
-    {
-      set<int> tmp = equation_tags.getEqnsByTag("name", eqtag);
-      if (tmp.empty())
-        {
-          cerr << "ERROR: looking for equation tag " << eqtag << " failed." << '\n';
-          exit(EXIT_FAILURE);
-        }
-      eqnumbers.insert(tmp.begin(), tmp.end());
-    }
-  return eqnumbers;
-}
-
-set<int>
 DynamicModel::findPacExpectationEquationNumbers() const
 {
   set<int> eqnumbers;

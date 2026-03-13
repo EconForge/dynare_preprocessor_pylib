@@ -715,9 +715,6 @@ public:
   /*! Equations with MCP tags are excluded, see dynare#1697 */
   void simplifyEquations();
 
-  // Converts a set of equation tags into the corresponding set of equation numbers
-  set<int> getEquationNumbersFromTags(const set<string>& eqtags) const;
-
   // Returns the set of equations (as numbers) which have a pac_expectation operator
   set<int> findPacExpectationEquationNumbers() const;
 

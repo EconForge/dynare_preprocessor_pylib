@@ -606,7 +606,18 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
     for (auto& tag : tags)
       var_tcm_eqtags.insert(tag);
 
-  set<int> unary_ops_eqs = dynamic_model.getEquationNumbersFromTags(var_tcm_eqtags);
+  set<int> unary_ops_eqs {[&]() {
+    try
+      {
+        return dynamic_model.getEquationNumbersFromNames(var_tcm_eqtags);
+      }
+    catch (ModelTree::UnknownEquationNameException& e)
+      {
+        cerr << "ERROR: var_model/trend_component_model: there is no equation named " << e.name
+             << "." << '\n';
+        exit(EXIT_FAILURE);
+      }
+  }()};
   unary_ops_eqs.merge(dynamic_model.findPacExpectationEquationNumbers());
 
   // Check that no variable in VAR/TCM/PAC equations was declared with “var(log)”

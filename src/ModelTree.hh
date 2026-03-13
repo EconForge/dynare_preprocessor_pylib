@@ -707,6 +707,15 @@ public:
   // Write the definitions of the auxiliary variables (assumed to be in recursive order)
   void writeAuxVarRecursiveDefinitions(ostream& output, ExprNodeOutputType output_type) const;
 
+  /* Converts a set of equation names into the corresponding set of equation numbers.
+     Throws UnknownEquationNameException if some name does not match any equation. */
+  set<int> getEquationNumbersFromNames(const set<string>& names) const;
+
+  struct UnknownEquationNameException
+  {
+    const string name;
+  };
+
   static string
   BlockSim(BlockSimulationType type)
   {

@@ -2236,3 +2236,17 @@ ModelTree::writePythonSparseIndicesHelper(const string& prefix, ostream& output,
       output << "    return indices" << '\n' << '\n';
     }
 }
+
+set<int>
+ModelTree::getEquationNumbersFromNames(const set<string>& names) const
+{
+  set<int> numbers;
+  for (auto& name : names)
+    {
+      set<int> tmp = equation_tags.getEqnsByTag("name", name);
+      if (tmp.empty())
+        throw UnknownEquationNameException {name};
+      numbers.insert(tmp.begin(), tmp.end());
+    }
+  return numbers;
+}
