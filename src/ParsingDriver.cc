@@ -2408,12 +2408,13 @@ ParsingDriver::set_deterministic_trends()
 }
 
 void
-ParsingDriver::set_trend_element(string arg1, expr_t arg2)
+ParsingDriver::set_trend_element(const string& arg1, expr_t arg2)
 {
   check_symbol_is_endogenous(arg1);
-  if (trend_elements.contains(arg1))
+  int symb_id {mod_file->symbol_table.getID(arg1)};
+  if (trend_elements.contains(symb_id))
     error("observation_trends/deterministic_trends: " + arg1 + " declared twice");
-  trend_elements[move(arg1)] = arg2;
+  trend_elements.emplace(symb_id, arg2);
 }
 
 void

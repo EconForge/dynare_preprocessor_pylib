@@ -322,7 +322,7 @@ public:
 class ObservationTrendsStatement : public Statement
 {
 public:
-  using trend_elements_t = map<string, expr_t>;
+  using trend_elements_t = map<int, expr_t>;
 
 private:
   const trend_elements_t trend_elements;
@@ -338,15 +338,12 @@ public:
 
 class DeterministicTrendsStatement : public Statement
 {
-public:
-  using trend_elements_t = map<string, expr_t>;
-
 private:
-  const trend_elements_t trend_elements;
+  const ObservationTrendsStatement::trend_elements_t trend_elements;
   const SymbolTable& symbol_table;
 
 public:
-  DeterministicTrendsStatement(trend_elements_t trend_elements_arg,
+  DeterministicTrendsStatement(ObservationTrendsStatement::trend_elements_t trend_elements_arg,
                                const SymbolTable& symbol_table_arg);
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;

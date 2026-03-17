@@ -1895,8 +1895,9 @@ EstimatedParamsRemoveStatement::writeJsonOutput(ostream& output) const
          << "}";
 }
 
-DeterministicTrendsStatement::DeterministicTrendsStatement(trend_elements_t trend_elements_arg,
-                                                           const SymbolTable& symbol_table_arg) :
+DeterministicTrendsStatement::DeterministicTrendsStatement(
+    ObservationTrendsStatement::trend_elements_t trend_elements_arg,
+    const SymbolTable& symbol_table_arg) :
     trend_elements {move(trend_elements_arg)}, symbol_table {symbol_table_arg}
 {
 }
@@ -1915,11 +1916,11 @@ DeterministicTrendsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "deterministic_trends", )"
          << R"("trends" : {)";
-  for (bool printed_something {false}; const auto& [name, val] : trend_elements)
+  for (bool printed_something {false}; const auto& [symb_id, val] : trend_elements)
     {
       if (exchange(printed_something, true))
         output << ", ";
-      output << R"(")" << name << R"(": ")";
+      output << R"(")" << symbol_table.getName(symb_id) << R"(": ")";
       val->writeJsonOutput(output, {}, {});
       output << R"(")" << '\n';
     }
@@ -1937,10 +1938,10 @@ void
 ObservationTrendsStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
                                       [[maybe_unused]] WarningConsolidation& warnings)
 {
-  for (const string& name : views::keys(trend_elements))
-    if (!symbol_table.isObservedVariable(symbol_table.getID(name)))
+  for (int symb_id : views::keys(trend_elements))
+    if (!symbol_table.isObservedVariable(symb_id))
       {
-        cerr << "ERROR: variable " << name
+        cerr << "ERROR: variable " << symbol_table.getName(symb_id)
              << " in observation_trends block is not an observed variable" << '\n';
         exit(EXIT_FAILURE);
       }
@@ -1951,10 +1952,10 @@ ObservationTrendsStatement::writeOutput(ostream& output, [[maybe_unused]] const 
                                         [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_.trend_coeff = {};" << '\n';
-  for (const auto& [name, val] : trend_elements)
+  for (const auto& [symb_id, val] : trend_elements)
     {
-      output << "tmp1 = strmatch('" << name << "',options_.varobs,'exact');" << '\n'
-             << "options_.trend_coeffs{tmp1} = '";
+      output << "options_.trend_coeffs{" << symbol_table.getObservedVariableIndex(symb_id) + 1
+             << "} = '";
       val->writeOutput(output);
       output << "';" << '\n';
     }
@@ -1965,11 +1966,11 @@ ObservationTrendsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "observation_trends", )"
          << R"("trends" : {)";
-  for (bool printed_something {false}; const auto& [name, val] : trend_elements)
+  for (bool printed_something {false}; const auto& [symb_id, val] : trend_elements)
     {
       if (exchange(printed_something, true))
         output << ", ";
-      output << R"(")" << name << R"(": ")";
+      output << R"(")" << symbol_table.getName(symb_id) << R"(": ")";
       val->writeJsonOutput(output, {}, {});
       output << R"(")" << '\n';
     }

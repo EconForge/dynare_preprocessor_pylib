@@ -693,7 +693,7 @@ public:
   void forecast(vector<string> symbol_list);
   void set_trends();
   void set_deterministic_trends();
-  void set_trend_element(string arg1, expr_t arg2);
+  void set_trend_element(const string& arg1, expr_t arg2);
   //! filter_initial_state block
   void set_filter_initial_state();
   //! element for filter_initial_state block
