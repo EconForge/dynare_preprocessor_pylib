@@ -21,6 +21,7 @@
 #include <cassert>
 #include <iostream>
 #include <iterator>
+#include <ranges>
 #include <sstream>
 
 using namespace std;
@@ -1944,20 +1945,30 @@ ObservationTrendsStatement::ObservationTrendsStatement(trend_elements_t trend_el
 }
 
 void
+ObservationTrendsStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
+                                      [[maybe_unused]] WarningConsolidation& warnings)
+{
+  for (const string& name : views::keys(trend_elements))
+    if (!symbol_table.isObservedVariable(symbol_table.getID(name)))
+      {
+        cerr << "ERROR: variable " << name
+             << " in observation_trends block is not an observed variable" << '\n';
+        exit(EXIT_FAILURE);
+      }
+}
+
+void
 ObservationTrendsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
   output << "options_.trend_coeff = {};" << '\n';
   for (const auto& [name, val] : trend_elements)
-    if (symbol_table.getType(name) == SymbolType::endogenous)
-      {
-        output << "tmp1 = strmatch('" << name << "',options_.varobs,'exact');" << '\n'
-               << "options_.trend_coeffs{tmp1} = '";
-        val->writeOutput(output);
-        output << "';" << '\n';
-      }
-    else
-      cerr << "Warning: Non-variable symbol used in observation_trends: " << name << '\n';
+    {
+      output << "tmp1 = strmatch('" << name << "',options_.varobs,'exact');" << '\n'
+             << "options_.trend_coeffs{tmp1} = '";
+      val->writeOutput(output);
+      output << "';" << '\n';
+    }
 }
 
 void
@@ -1966,16 +1977,13 @@ ObservationTrendsStatement::writeJsonOutput(ostream& output) const
   output << R"({"statementName": "observation_trends", )"
          << R"("trends" : {)";
   for (bool printed_something {false}; const auto& [name, val] : trend_elements)
-    if (symbol_table.getType(name) == SymbolType::endogenous)
-      {
-        if (exchange(printed_something, true))
-          output << ", ";
-        output << R"(")" << name << R"(": ")";
-        val->writeJsonOutput(output, {}, {});
-        output << R"(")" << '\n';
-      }
-    else
-      cerr << "Warning: Non-variable symbol used in observation_trends: " << name << '\n';
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << R"(")" << name << R"(": ")";
+      val->writeJsonOutput(output, {}, {});
+      output << R"(")" << '\n';
+    }
   output << "}"
          << "}";
 }
