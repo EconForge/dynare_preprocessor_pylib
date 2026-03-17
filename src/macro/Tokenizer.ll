@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 /*
- * Copyright © 2019-2025 Dynare Team
+ * Copyright © 2019-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -58,7 +58,7 @@ using token = Tokenizer::parser::token;
 
 SPC  [ \t]+
 EOL  (\r)?\n
-CONT \\\\{SPC}*
+CONT \\\\
 
 %%
  /* Code put at the beginning of yylex() */
@@ -181,7 +181,7 @@ CONT \\\\{SPC}*
 <eval>{EOL}+                              { }
 <eval>\}                                  { BEGIN(INITIAL); return token::END_EVAL; }
 
-<expr,end_line>{CONT}("//".*)?{SPC}*{EOL} { yylloc->step(); }
+<expr,end_line>{CONT}{SPC}*("//".*)?{EOL} { yylloc->step(); }
 <expr,end_line>{SPC}*("//".*)?{EOL}       { BEGIN(INITIAL); return token::EOL; }
 
 <INITIAL>^{SPC}*@#{SPC}*                  { BEGIN(directive); }
@@ -192,7 +192,7 @@ CONT \\\\{SPC}*
 <directive,expr,eval,end_line><<EOF>>     { driver.error(*yylloc, "unexpected end of file"); }
 
 <*>.                                      { yylval->build<string>(yytext); return token::TEXT; }
-<*>.|{EOL}                                { driver.error(*yylloc, "character unrecognized by lexer"); }
+<*>{EOL}                                  { driver.error(*yylloc, "unexpected end of line"); }
 
 %%
 
