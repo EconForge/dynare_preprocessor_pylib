@@ -1902,20 +1902,12 @@ DeterministicTrendsStatement::DeterministicTrendsStatement(trend_elements_t tren
 }
 
 void
-DeterministicTrendsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
+DeterministicTrendsStatement::writeOutput([[maybe_unused]] ostream& output,
+                                          [[maybe_unused]] const string& basename,
                                           [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "options_.trend_coeff = {};" << '\n';
-  for (const auto& [name, val] : trend_elements)
-    if (symbol_table.getType(name) == SymbolType::endogenous)
-      {
-        output << "tmp1 = strmatch('" << name << "',M_.endogenous_names,'exact');" << '\n'
-               << "options_.deterministic_trend_coeffs{tmp1} = '";
-        val->writeOutput(output);
-        output << "';" << '\n';
-      }
-    else
-      cerr << "Warning: Non-variable symbol used in deterministic_trends: " << name << '\n';
+  cerr << "ERROR: deterministic_trends is not implemented for MATLAB/Octave" << '\n';
+  exit(EXIT_FAILURE);
 }
 
 void
