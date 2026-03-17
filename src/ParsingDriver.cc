@@ -2412,7 +2412,7 @@ ParsingDriver::set_trend_element(string arg1, expr_t arg2)
 {
   check_symbol_existence(arg1);
   if (trend_elements.contains(arg1))
-    error("observation_trends: " + arg1 + " declared twice");
+    error("observation_trends/deterministic_trends: " + arg1 + " declared twice");
   trend_elements[move(arg1)] = arg2;
 }
 
