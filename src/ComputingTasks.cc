@@ -1916,16 +1916,13 @@ DeterministicTrendsStatement::writeJsonOutput(ostream& output) const
   output << R"({"statementName": "deterministic_trends", )"
          << R"("trends" : {)";
   for (bool printed_something {false}; const auto& [name, val] : trend_elements)
-    if (symbol_table.getType(name) == SymbolType::endogenous)
-      {
-        if (exchange(printed_something, true))
-          output << ", ";
-        output << R"(")" << name << R"(": ")";
-        val->writeJsonOutput(output, {}, {});
-        output << R"(")" << '\n';
-      }
-    else
-      cerr << "Warning: Non-variable symbol used in deterministic_trends: " << name << '\n';
+    {
+      if (exchange(printed_something, true))
+        output << ", ";
+      output << R"(")" << name << R"(": ")";
+      val->writeJsonOutput(output, {}, {});
+      output << R"(")" << '\n';
+    }
   output << "}"
          << "}";
 }
