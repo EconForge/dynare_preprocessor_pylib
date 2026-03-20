@@ -476,7 +476,7 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
     }
 
   // Heterogeneous symbols
-  // FIXME: the following helper could be used to simplify non-heterogenous variables
+  // FIXME: the following helper could be used to simplify non-heterogeneous variables
   auto print_symb_names = [this, &output](const string& field, const auto& symb_ids) {
     auto helper = [this, &output, &symb_ids](auto nameMethod) {
       for (bool first_printed {false}; int symb_id : symb_ids)

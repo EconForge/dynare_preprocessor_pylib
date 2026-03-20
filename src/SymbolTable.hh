@@ -137,7 +137,7 @@ private:
   map<int, map<string, string>> partition_value_map;
   //! Maps IDs to types
   vector<SymbolType> type_table;
-  // Maps IDs of heterogenous symbols to heterogeneity dimension IDs
+  // Maps IDs of heterogeneous symbols to heterogeneity dimension IDs
   map<int, int> heterogeneity_dimensions;
 
   //! Maps symbol IDs to type specific IDs
@@ -267,7 +267,7 @@ public:
   int addSymbol(const string& name, SymbolType type, const string& tex_name,
                 const vector<pair<string, string>>& partition_value,
                 const optional<int>& heterogeneity_dimension) noexcept(false);
-  //! Add a (non-heterogenous) symbol without its TeX name (will be equal to its name)
+  //! Add a (non-heterogeneous) symbol without its TeX name (will be equal to its name)
   /*! Returns the symbol ID */
   int addSymbol(const string& name, SymbolType type) noexcept(false);
   //! Adds an auxiliary variable for endogenous with lead >= 2
