@@ -946,6 +946,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
              << heterogeneity_table.getName(dim) << "'!" << '\n';
         exit(EXIT_FAILURE);
       }
+
+  // Create static model
+  static_model = static_cast<StaticModel>(dynamic_model);
 }
 
 void
@@ -957,8 +960,7 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
       if (nonstationary_variables)
         trend_dynamic_model.runTrendTest(global_eval_context);
 
-      // Compute static model and its derivatives
-      static_model = static_cast<StaticModel>(dynamic_model);
+      // Compute static model derivatives
       if (!no_static)
         {
           if (mod_file_struct.stoch_simul_present || mod_file_struct.estimation_present
