@@ -108,8 +108,8 @@ public:
   //! Add an expression of the form "var = expr;"
   void addDefinition(int symb_id, expr_t expr, optional<int> lineno = nullopt);
   //! Add an expression of the form "[ var1, var2, ... ] = expr;"
-  void addMultipleDefinitions(const vector<int>& symb_ids, expr_t expr,
-                              optional<int> lineno = nullopt);
+  void addMultipleDefinitions(vector<int> symb_ids, expr_t expr, optional<int> lineno = nullopt);
+
   //! Checks that definitions are in a recursive order, and that no variable is declared twice
   /*!
     \param[in] ramsey_model Is there a Ramsey model in the MOD file? If yes, then disable the check

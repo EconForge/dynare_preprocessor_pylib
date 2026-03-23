@@ -3877,7 +3877,7 @@ ParsingDriver::add_steady_state_model_equal_multiple(const vector<string>& symbo
       ids.push_back(id);
     }
 
-  mod_file->steady_state_model.addMultipleDefinitions(ids, expr, location.begin.line);
+  mod_file->steady_state_model.addMultipleDefinitions(move(ids), expr, location.begin.line);
 }
 
 void

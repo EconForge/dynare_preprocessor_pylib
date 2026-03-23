@@ -125,14 +125,12 @@ SteadyStateModel::addDefinition(int symb_id, expr_t expr, optional<int> lineno)
          || symbol_table.getType(symb_id) == SymbolType::parameter);
 
   // Add the variable
-  vector v {symb_id};
-  def_table.emplace_back(v, expr);
+  def_table.emplace_back(vector {symb_id}, expr);
   def_table_lineno.push_back(lineno);
 }
 
 void
-SteadyStateModel::addMultipleDefinitions(const vector<int>& symb_ids, expr_t expr,
-                                         optional<int> lineno)
+SteadyStateModel::addMultipleDefinitions(vector<int> symb_ids, expr_t expr, optional<int> lineno)
 {
   for (int symb_id : symb_ids)
     {
@@ -141,7 +139,7 @@ SteadyStateModel::addMultipleDefinitions(const vector<int>& symb_ids, expr_t exp
              || symbol_table.getType(symb_id) == SymbolType::modFileLocalVariable
              || symbol_table.getType(symb_id) == SymbolType::parameter);
     }
-  def_table.emplace_back(symb_ids, expr);
+  def_table.emplace_back(move(symb_ids), expr);
   def_table_lineno.push_back(lineno);
 }
 
