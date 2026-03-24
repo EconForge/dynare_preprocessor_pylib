@@ -3265,11 +3265,7 @@ UnaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
       }
       return;
     case UnaryOpcode::expectation:
-      if (!isLatexOutput(output_type))
-        {
-          cerr << "UnaryOpNode::writeOutput: not implemented on UnaryOpcode::expectation" << '\n';
-          exit(EXIT_FAILURE);
-        }
+      assert(isLatexOutput(output_type));
       output << R"(\mathbb{E}_{t)";
       if (expectation_information_set != 0)
         {
@@ -3286,6 +3282,7 @@ UnaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
       output << "erfc";
       break;
     case UnaryOpcode::diff:
+      assert(isLatexOutput(output_type));
       output << "diff";
       break;
     case UnaryOpcode::sum:
