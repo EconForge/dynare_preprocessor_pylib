@@ -1469,8 +1469,10 @@ public:
   expr_t toStatic(DataTree& static_datatree) const override;
   void computeXrefs(EquationInfo& ei) const override;
   BinaryOpNode* normalizeEquationHelper(const set<expr_t>& contain_var, expr_t rhs) const override;
-  //! Try to normalize an equation with respect to a given dynamic variable.
-  /*! Should only be called on Equal nodes. The variable must appear in the equation. */
+  /* Try to normalize an equation with respect to a given dynamic variable.
+     Should only be called on Equal nodes. The variable must appear in the equation.
+     Returns an equal node of the form symbol = RHS if the normalization succeeds.
+     Throws exception NormalizationFailed otherwise. */
   [[nodiscard]] BinaryOpNode* normalizeEquation(int symb_id, int lag) const;
   [[nodiscard]] int maxEndoLead() const override;
   [[nodiscard]] int maxExoLead() const override;
