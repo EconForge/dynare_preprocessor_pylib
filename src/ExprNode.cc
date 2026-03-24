@@ -3693,7 +3693,24 @@ expr_t
 UnaryOpNode::toStatic(DataTree& static_datatree) const
 {
   expr_t sarg = arg->toStatic(static_datatree);
-  return buildSimilarUnaryOpNode(sarg, static_datatree);
+
+  using enum UnaryOpcode;
+  switch (op_code)
+    {
+    case expectation:
+      throw StaticConversionException {
+          "cannot convert expectation() operator to static expression"};
+    case steadyStateParamDeriv:
+    case steadyStateParam2ndDeriv:
+      throw StaticConversionException {
+          "cannot convert steady state derivative to static expression"};
+    case steadyState:
+      return sarg;
+    case diff:
+      return datatree.Zero;
+    default:
+      return buildSimilarUnaryOpNode(sarg, static_datatree);
+    }
 }
 
 void

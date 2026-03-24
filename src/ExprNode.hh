@@ -537,13 +537,23 @@ public:
                                    const deriv_node_temp_terms_t& tef_terms) const
       = 0;
 
-  //! Creates a static version of this node
-  /*!
-    This method duplicates the current node by creating a similar node from which all leads/lags
-    have been stripped, adds the result in the static_datatree argument (and not in the original
-    datatree), and returns it.
+  /* Creates a static version of this node
+
+     This method duplicates the current node by creating a similar node from which all leads/lags
+     have been stripped, the diff and steady_state operators have been removed, then adds the result
+     in the static_datatree argument (and not in the original datatree) and returns it.
+
+     Throws StaticConversionException if conversion cannot be done (e.g. there is an expectation
+     operator).
+
+     The isInStaticForm() applied on the result will return true.
   */
   virtual expr_t toStatic(DataTree& static_datatree) const = 0;
+
+  struct StaticConversionException
+  {
+    const string message;
+  };
 
   /*!
     Compute cross references for equations
