@@ -485,13 +485,14 @@ public:
       const temporary_terms_t& temporary_terms, const temporary_terms_idxs_t& temporary_terms_idxs,
       deriv_node_temp_terms_t& tef_terms) const;
 
-  //! Computes the set of all variables of a given symbol type in the expression (with information
-  //! on lags)
-  /*!
+  /* Computes the set of all variables of a given symbol type in the expression (with information
+     on lags)
+
     Variables are stored as integer pairs of the form (symb_id, lag).
     They are added to the set given in argument.
     Note that model local variables are substituted by their expression in the computation
     (and added if type_arg = ModelLocalVariable).
+    Note that namespace-qualified variables are included in the result.
   */
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const = 0;
 
@@ -501,21 +502,23 @@ public:
   //! Finds LHS variable in a VAR equation
   virtual void collectVARLHSVariable(set<expr_t>& result) const = 0;
 
-  //! Computes the set of all variables of a given symbol type in the expression (without
-  //! information on lags)
-  /*!
+  /* Computes the set of all variables of a given symbol type in the expression (without
+      information on lags)
+
     Variables are stored as symb_id.
     They are added to the set given in argument.
     Note that model local variables are substituted by their expression in the computation
     (and added if type_arg = ModelLocalVariable).
+    Note that namespace-qualified variables are included in the result.
   */
   void collectVariables(SymbolType type_arg, set<int>& result) const;
 
-  //! Computes the set of endogenous variables in the expression
-  /*!
+  /* Computes the set of endogenous variables in the expression
+
     Endogenous are stored as integer pairs of the form (type_specific_id, lag).
     They are added to the set given in argument.
     Note that model local variables are substituted by their expression in the computation.
+    Note that namespace-qualified variables are included in the result.
   */
   void collectEndogenous(set<pair<int, int>>& result) const;
 
@@ -971,7 +974,8 @@ public:
      exogenous deterministic */
   [[nodiscard]] bool isConstant() const;
 
-  // Returns true if the expression contains an exogenous or an exogenous deterministic
+  /* Returns true if the expression contains an exogenous or an exogenous deterministic.
+     Note that namespace-qualified variables are taken into account. */
   [[nodiscard]] bool hasExogenous() const;
 
   // Substitutes orig_symb_id(±l) with exp(aux_symb_id(±l)) (used for “var(log)”)
