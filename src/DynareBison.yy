@@ -720,6 +720,8 @@ expression : '(' expression ')'
                          $$ = driver.add_initval_variable(symbol_name);
                        else if (namespace_name == "prev")
                          $$ = driver.add_prev_variable(symbol_name);
+                       else if (namespace_name == "self")
+                         $$ = driver.add_self_variable(symbol_name, driver.add_non_negative_constant("0"));
                        else
                          $$ = driver.add_database_variable(namespace_name, symbol_name);
                      }
