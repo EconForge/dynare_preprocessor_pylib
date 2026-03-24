@@ -827,8 +827,8 @@ public:
   [[nodiscard]] virtual expr_t removeTrendLeadLag(const map<int, expr_t>& trend_symbols_map) const
       = 0;
 
-  //! Returns true if the expression is in static form (no lead, no lag, no expectation, no
-  //! STEADY_STATE)
+  /* Returns true if the expression is in static form (no lead, no lag, no expectation, no
+     diff, no STEADY_STATE) */
   [[nodiscard]] virtual bool isInStaticForm() const = 0;
 
   //! Matches a linear combination of variables (endo or exo), where scalars can be

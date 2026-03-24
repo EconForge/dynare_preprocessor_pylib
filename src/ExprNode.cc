@@ -4292,7 +4292,8 @@ bool
 UnaryOpNode::isInStaticForm() const
 {
   if (op_code == UnaryOpcode::steadyState || op_code == UnaryOpcode::steadyStateParamDeriv
-      || op_code == UnaryOpcode::steadyStateParam2ndDeriv || op_code == UnaryOpcode::expectation)
+      || op_code == UnaryOpcode::steadyStateParam2ndDeriv || op_code == UnaryOpcode::expectation
+      || op_code == UnaryOpcode::diff)
     return false;
   else
     return arg->isInStaticForm();

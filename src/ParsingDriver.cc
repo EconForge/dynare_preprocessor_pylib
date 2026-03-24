@@ -3097,7 +3097,7 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
     {
       // If the equation is tagged [static]
       if (!id->isInStaticForm())
-        error("An equation tagged [static] cannot contain leads, lags, expectations or "
+        error("An equation tagged [static] cannot contain leads, lags, expectations, diff or "
               "STEADY_STATE operators");
 
       dynamic_model->addStaticOnlyEquation(id, location.begin.line,
