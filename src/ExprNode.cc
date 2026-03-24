@@ -622,6 +622,11 @@ NumConstNode::collectDynamicVariables([[maybe_unused]] SymbolType type_arg,
 }
 
 void
+NumConstNode::collectSelfVariables([[maybe_unused]] set<pair<int, int>>& result) const
+{
+}
+
+void
 NumConstNode::computeSubExprContainingVariable([[maybe_unused]] int symb_id,
                                                [[maybe_unused]] int lag,
                                                [[maybe_unused]] set<expr_t>& contain_var) const
@@ -1573,6 +1578,13 @@ VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& 
     result.emplace(symb_id, lag);
   if (get_type() == SymbolType::modelLocalVariable)
     datatree.getLocalVariable(symb_id, lag)->collectDynamicVariables(type_arg, result);
+}
+
+void
+VariableNode::collectSelfVariables(set<pair<int, int>>& result) const
+{
+  if (get_type() == SymbolType::modelLocalVariable)
+    datatree.getLocalVariable(symb_id, lag)->collectSelfVariables(result);
 }
 
 void
@@ -3494,6 +3506,12 @@ UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& r
 }
 
 void
+UnaryOpNode::collectSelfVariables(set<pair<int, int>>& result) const
+{
+  arg->collectSelfVariables(result);
+}
+
+void
 UnaryOpNode::computeSubExprContainingVariable(int symb_id, int lag, set<expr_t>& contain_var) const
 {
   if (op_code == UnaryOpcode::diff)
@@ -5324,6 +5342,13 @@ BinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& 
   arg2->collectDynamicVariables(type_arg, result);
 }
 
+void
+BinaryOpNode::collectSelfVariables(set<pair<int, int>>& result) const
+{
+  arg1->collectSelfVariables(result);
+  arg2->collectSelfVariables(result);
+}
+
 expr_t
 BinaryOpNode::Compute_RHS(expr_t arg1, expr_t arg2, int op, int op_type) const
 {
@@ -6904,6 +6929,14 @@ TrinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>&
 }
 
 void
+TrinaryOpNode::collectSelfVariables(set<pair<int, int>>& result) const
+{
+  arg1->collectSelfVariables(result);
+  arg2->collectSelfVariables(result);
+  arg3->collectSelfVariables(result);
+}
+
+void
 TrinaryOpNode::computeSubExprContainingVariable(int symb_id, int lag,
                                                 set<expr_t>& contain_var) const
 {
@@ -7417,6 +7450,13 @@ AbstractExternalFunctionNode::collectDynamicVariables(SymbolType type_arg,
 {
   for (auto argument : arguments)
     argument->collectDynamicVariables(type_arg, result);
+}
+
+void
+AbstractExternalFunctionNode::collectSelfVariables(set<pair<int, int>>& result) const
+{
+  for (auto argument : arguments)
+    argument->collectSelfVariables(result);
 }
 
 double
@@ -9178,6 +9218,11 @@ SubModelNode::collectDynamicVariables([[maybe_unused]] SymbolType type_arg,
 }
 
 void
+SubModelNode::collectSelfVariables([[maybe_unused]] set<pair<int, int>>& result) const
+{
+}
+
+void
 SubModelNode::writeBytecodeOutput(
     [[maybe_unused]] Bytecode::Writer& code_file,
     [[maybe_unused]] ExprNodeBytecodeOutputType output_type,
@@ -10135,4 +10180,11 @@ bool
 NamespaceQualifiedVariableNode::containsDate() const
 {
   return Namespace == NamespaceType::learnt_in && holds_alternative<string>(learnt_in_period);
+}
+
+void
+NamespaceQualifiedVariableNode::collectSelfVariables(set<pair<int, int>>& result) const
+{
+  if (Namespace == NamespaceType::self)
+    result.emplace(symb_id, lag);
 }

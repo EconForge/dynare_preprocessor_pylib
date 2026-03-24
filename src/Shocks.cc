@@ -1389,6 +1389,27 @@ ShockPathsStatement::checkPass(ModFileStructure& mod_file_struct,
   index = ++mod_file_struct.shock_paths_number;
   if (!(holds_alternative<int>(learnt_in_period) && get<int>(learnt_in_period) == 1))
     mod_file_struct.shock_paths_learnt_in_present = true;
+
+  for (const auto& [symb_id, shock_vec] : exo_paths)
+    for (const auto& [period_range, value] : shock_vec)
+      {
+        set<pair<int, int>> self_vars;
+        value->collectSelfVariables(self_vars);
+        for (const auto& [symb_id2, lag] : self_vars)
+          {
+            if (symb_id != symb_id2)
+              {
+                cerr << "ERROR: in the definition of '" << symbol_table.getName(symb_id)
+                     << "' in a 'shock_paths' block, referencing another variable using 'self."
+                     << symbol_table.getName(symb_id2);
+                if (lag != 0)
+                  cerr << "(" << lag << ")";
+                cerr << "' is not allowed" << endl;
+                exit(EXIT_FAILURE);
+              }
+            assert(lag < 0); // Already checked in ParsingDriver::add_self_variable()
+          }
+      }
 }
 
 void
