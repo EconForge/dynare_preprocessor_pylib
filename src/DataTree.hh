@@ -346,7 +346,7 @@ public:
   struct UnknownLocalVariableException
   {
     //! Symbol ID
-    int id;
+    const int id;
   };
 
   [[nodiscard]] expr_t
