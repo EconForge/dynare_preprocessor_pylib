@@ -924,6 +924,8 @@ public:
   void add_steady_state_model_equal(const string& varname, expr_t expr);
   //! Add a multiple assignment equation in steady_state_model block
   void add_steady_state_model_equal_multiple(const vector<string>& symbol_list, expr_t expr);
+  // Add an implicit definition in steady_state_model block
+  void add_steady_state_model_solve_from_equation(const string& symbol, const string& eqname);
   //! Ends declaration of trend variable
   void end_trend_var(bool log_trend, expr_t growth_factor,
                      const vector<pair<string, string>>& symbol_list);

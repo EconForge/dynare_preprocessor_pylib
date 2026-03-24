@@ -936,6 +936,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_BLOCK>weights {return token::WEIGHTS;}
 <DYNARE_BLOCK>exogenize {return token::EXOGENIZE;}
 <DYNARE_BLOCK>endogenize {return token::ENDOGENIZE;}
+<DYNARE_BLOCK>solve_from_equation {return token::SOLVE_FROM_EQUATION;}
 
  /* Inside Dynare statement */
 <DYNARE_STATEMENT>solve_algo {return token::SOLVE_ALGO;}

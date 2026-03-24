@@ -4436,3 +4436,17 @@ DynamicModel::writePythonDynamicParamsDerivatives(const string& basename, bool u
 
   output.close();
 }
+
+set<int>
+DynamicModel::getStaticOnlyEquationNumbersFromNames(const set<string>& names) const
+{
+  set<int> numbers;
+  for (auto& name : names)
+    {
+      set<int> tmp = static_only_equations_equation_tags.getEqnsByTag("name", name);
+      if (tmp.empty())
+        throw UnknownEquationNameException {name};
+      numbers.insert(tmp.begin(), tmp.end());
+    }
+  return numbers;
+}

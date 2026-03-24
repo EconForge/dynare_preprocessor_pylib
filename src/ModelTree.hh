@@ -716,6 +716,13 @@ public:
     const string name;
   };
 
+  // Get an equation expression by its number
+  BinaryOpNode*
+  getEquation(int eqn) const
+  {
+    return equations.at(eqn);
+  }
+
   static string
   BlockSim(BlockSimulationType type)
   {

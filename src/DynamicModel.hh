@@ -756,6 +756,17 @@ public:
 
   // Checks that all alternatives are declared for all Occbin regimes in all equations
   void checkOccbinRegimes() const;
+
+  // Get a static-only equation expression by its number
+  BinaryOpNode*
+  getStaticOnlyEquation(int eqn) const
+  {
+    return static_only_equations.at(eqn);
+  }
+
+  /* Converts a set of equation names into the corresponding set of static-only equation numbers.
+     Throws UnknownEquationNameException if some name does not match any equation. */
+  set<int> getStaticOnlyEquationNumbersFromNames(const set<string>& names) const;
 };
 
 template<bool julia>

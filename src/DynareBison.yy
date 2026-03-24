@@ -242,6 +242,7 @@ CHECK_JACOBIAN_SINGULARITY
 %token TIME_ITERATION_SOLVER_TOLF TIME_ITERATION_SOLVER_TOLX TIME_ITERATION_SOLVER_FACTOR
 %token TIME_ITERATION_SOLVER_MAX_ITER TIME_ITERATION_SOLVER_STOP_ON_ERROR TIME_ITERATION_EARLY_STOPPING
 %token CALIBRATION_TOLF CALIBRATION_MAX_ITER CALIBRATION_VERBOSITY CALIBRATION_TARGET_EQUATIONS FILTER_TUNES
+%token SOLVE_FROM_EQUATION
 
 %token <vector<string>> SYMBOL_VEC
 
@@ -3663,6 +3664,8 @@ steady_state_equation : symbol EQUAL expression ';'
                         { driver.add_steady_state_model_equal($1, $3); }
                       | '[' symbol_list ']' EQUAL expression ';'
                         { driver.add_steady_state_model_equal_multiple($2, $5); }
+                      | symbol EQUAL SOLVE_FROM_EQUATION '(' QUOTED_STRING ')' ';'
+                        { driver.add_steady_state_model_solve_from_equation($1, $5); }
                       ;
 
 calib_smoother : CALIB_SMOOTHER ';'

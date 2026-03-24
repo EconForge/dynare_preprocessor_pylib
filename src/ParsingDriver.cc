@@ -3881,6 +3881,100 @@ ParsingDriver::add_steady_state_model_equal_multiple(const vector<string>& symbo
 }
 
 void
+ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
+                                                          const string& eqname)
+{
+  int symb_id {[&]() {
+    try
+      {
+        return mod_file->symbol_table.getID(symbol);
+      }
+    catch (SymbolTable::UnknownSymbolNameException& e)
+      {
+        error("Unknown symbol: " + symbol);
+      }
+  }()};
+
+  // NB: model-local variables cannot be defined in this way (we substitute them out below)
+  if (SymbolType type = mod_file->symbol_table.getType(symb_id);
+      type != SymbolType::endogenous && type != SymbolType::parameter)
+    error(symbol + " has incorrect type");
+
+  /* NB: we derive the implicit definition of the symbol from the dynamic model before any
+     transformation, because otherwise it may include auxiliary variables that will complicate the
+     symbolic manipulation. As a consequence, we must deal with some needed transformations here
+     (model local variables substitution). */
+
+  /* Retrieve the equation corresponding to the given name.
+     static-only equations have priority over dynamic ones. */
+  BinaryOpNode* eq_dynamic {[&]() {
+    try
+      {
+        // First try static-only equations
+        auto eqns = mod_file->dynamic_model.getStaticOnlyEquationNumbersFromNames({eqname});
+        if (eqns.size() > 1)
+          error("There are several equations named '" + eqname + "' and marked [static]");
+        return mod_file->dynamic_model.getStaticOnlyEquation(*eqns.begin());
+      }
+    catch (ModelTree::UnknownEquationNameException&)
+      {
+        // If no static-only equation found, search among dynamic one
+        try
+          {
+            auto eqns = mod_file->dynamic_model.getEquationNumbersFromNames({eqname});
+            if (eqns.size() > 1)
+              error("There are several equations named '" + eqname + "'");
+            return mod_file->dynamic_model.getEquation(*eqns.begin());
+          }
+        catch (ModelTree::UnknownEquationNameException&)
+          {
+            error("There is no equation named '" + eqname + "'");
+          }
+      }
+  }()};
+
+  // Substitute out model-local variables
+  try
+    {
+      eq_dynamic = dynamic_cast<BinaryOpNode*>(eq_dynamic->substituteModelLocalVariables());
+    }
+  catch (DataTree::UnknownLocalVariableException& e)
+    {
+      error("Model-local variable '" + mod_file->symbol_table.getName(e.id)
+            + "' is not defined in equation '" + eqname + "'");
+    }
+
+  // Convert the equation to a static form
+  BinaryOpNode* eq_static {[&]() {
+    try
+      {
+        return dynamic_cast<BinaryOpNode*>(eq_dynamic->toStatic(mod_file->steady_state_model));
+      }
+    catch (ExprNode::StaticConversionException& e)
+      {
+        error("The equation named '" + eqname
+              + "' cannot be converted to a static expression: " + e.message);
+      }
+  }()};
+
+  // Solve for the symbol definition by normalizing the equation
+  expr_t value {[&]() {
+    try
+      {
+        BinaryOpNode* normalized_eq = eq_static->normalizeEquation(symb_id, 0);
+        return normalized_eq->arg2;
+      }
+    catch (ExprNode::NormalizationFailed&)
+      {
+        error("The equation named '" + eqname
+              + "' could not be rearranged to implicitly define symbol + '" + symbol + "'");
+      }
+  }()};
+
+  mod_file->steady_state_model.addDefinition(symb_id, value, location.begin.line);
+}
+
+void
 ParsingDriver::add_graph_format(string name)
 {
   graph_formats.emplace_back(move(name));
