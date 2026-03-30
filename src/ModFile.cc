@@ -417,6 +417,14 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   set<int> unusedExo;
   ranges::set_difference(unusedExo0, mod_file_struct.pac_params,
                          inserter(unusedExo, unusedExo.begin()));
+  // Exclude exogenous used in heterogeneous model blocks
+  set<int> usedAggregateExo;
+  for (const auto& hm : heterogeneous_models)
+    usedAggregateExo.merge(hm.getUsedAggregateExogenous());
+  set<int> filteredUnusedExo;
+  ranges::set_difference(unusedExo, usedAggregateExo,
+                         inserter(filteredUnusedExo, filteredUnusedExo.end()));
+  unusedExo = move(filteredUnusedExo);
   if (unusedExo.size() > 0)
     {
       string unused_exos;
@@ -579,6 +587,14 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
 
   // Check that all declared endogenous are used in equations
   set<int> unusedEndogs = dynamic_model.findUnusedEndogenous();
+  // Exclude endogenous used in heterogeneous model blocks
+  set<int> usedAggregateEndogs;
+  for (const auto& hm : heterogeneous_models)
+    usedAggregateEndogs.merge(hm.getUsedAggregateEndogenous());
+  set<int> filteredUnusedEndogs;
+  ranges::set_difference(unusedEndogs, usedAggregateEndogs,
+                         inserter(filteredUnusedEndogs, filteredUnusedEndogs.end()));
+  unusedEndogs = move(filteredUnusedEndogs);
   bool unusedEndogsIsErr = !nostrict && !mod_file_struct.bvar_present && unusedEndogs.size();
   for (int unusedEndog : unusedEndogs)
     if (nostrict)

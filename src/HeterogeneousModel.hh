@@ -64,6 +64,8 @@ public:
   void writeDriverOutput(ostream& output) const;
 
   [[nodiscard]] set<int> getUsedParameters() const;
+  [[nodiscard]] set<int> getUsedAggregateEndogenous() const;
+  [[nodiscard]] set<int> getUsedAggregateExogenous() const;
 
   [[nodiscard]] int getJacobianCol(int deriv_id) const override;
   [[nodiscard]] int getJacobianColsNbr() const override;
