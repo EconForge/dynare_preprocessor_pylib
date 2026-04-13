@@ -478,8 +478,8 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
     }
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous
-  // and parameters can be swapped NB: we use data_tree here, to avoid a crash in the
-  // occbin_constraints case
+  // and parameters can be swapped.
+  // NB: we use data_tree here, to avoid a crash in the occbin_constraints or epilogue case
   return data_tree->AddVariable(symb_id, lag);
 }
 

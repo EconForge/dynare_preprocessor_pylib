@@ -375,16 +375,13 @@ SteadyStateModel::getUsedParameters() const
 
 Epilogue::Epilogue(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
                    ExternalFunctionsTable& external_functions_table_arg,
-                   HeterogeneityTable& heterogeneity_table_arg, DatabaseTable& database_table_arg,
-                   TrendComponentModelTable& trend_component_model_table_arg,
-                   VarModelTable& var_model_table_arg) :
-    DynamicModel {symbol_table_arg,        num_constants_arg,  external_functions_table_arg,
-                  heterogeneity_table_arg, database_table_arg, trend_component_model_table_arg,
-                  var_model_table_arg}
+                   HeterogeneityTable& heterogeneity_table_arg, DatabaseTable& database_table_arg) :
+    DataTree {symbol_table_arg,        num_constants_arg,  external_functions_table_arg,
+              heterogeneity_table_arg, database_table_arg, true}
 {
 }
 
-Epilogue::Epilogue(const Epilogue& m) : DynamicModel {m}
+Epilogue::Epilogue(const Epilogue& m) : DataTree {m}
 {
   for (const auto& it : m.dynamic_def_table)
     dynamic_def_table.emplace_back(it.first, it.second->clone(*this));
@@ -393,7 +390,7 @@ Epilogue::Epilogue(const Epilogue& m) : DynamicModel {m}
 Epilogue&
 Epilogue::operator=(const Epilogue& m)
 {
-  DynamicModel::operator=(m);
+  DataTree::operator=(m);
 
   dynamic_def_table.clear();
   for (const auto& it : m.dynamic_def_table)
@@ -444,7 +441,7 @@ Epilogue::toStatic()
 
 void
 Epilogue::detrend(const map<int, expr_t>& trend_symbols_map,
-                  const nonstationary_symbols_map_t& nonstationary_symbols_map)
+                  const ModelTree::nonstationary_symbols_map_t& nonstationary_symbols_map)
 {
   for (const auto& [symb_id, deflator] : ranges::reverse_view(nonstationary_symbols_map))
     for (auto& [symb_id, expr] : dynamic_def_table)
@@ -593,13 +590,6 @@ Epilogue::writeOutput(ostream& output) const
   for (auto symb_id : endogs)
     symbol_list.push_back(symbol_table.getName(symb_id));
   SymbolList {move(symbol_list)}.writeOutput("M_.epilogue_var_list_", output);
-}
-
-void
-Epilogue::computingPassBlock([[maybe_unused]] const eval_context_t& eval_context,
-                             [[maybe_unused]] bool no_tmp_terms)
-{
-  // Disable block decomposition on epilogue blocks
 }
 
 void

@@ -74,6 +74,9 @@ public:
   string user_set_add_flags, user_set_subst_flags, user_set_add_libs, user_set_subst_libs,
       user_set_compiler;
 
+  //! for all trends; the boolean is true if this is a log-trend, false otherwise
+  using nonstationary_symbols_map_t = map<int, pair<bool, expr_t>>;
+
 protected:
   /*
    * ************** BEGIN **************
@@ -165,9 +168,6 @@ protected:
 
   //! Trend variables and their growth factors
   map<int, expr_t> trend_symbols_map;
-
-  //! for all trends; the boolean is true if this is a log-trend, false otherwise
-  using nonstationary_symbols_map_t = map<int, pair<bool, expr_t>>;
 
   //! Nonstationary variables and their deflators
   nonstationary_symbols_map_t nonstationary_symbols_map;

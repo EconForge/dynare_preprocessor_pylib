@@ -127,7 +127,7 @@ public:
   [[nodiscard]] set<int> getUsedParameters() const;
 };
 
-class Epilogue : public DynamicModel
+class Epilogue : public DataTree
 {
 private:
   //! Associates a symbol ID (the variable assigned in a given statement) to an expression (its
@@ -137,9 +137,7 @@ private:
 public:
   Epilogue(SymbolTable& symbol_table_arg, NumericalConstants& num_constants_arg,
            ExternalFunctionsTable& external_functions_table_arg,
-           HeterogeneityTable& heterogeneity_table_arg, DatabaseTable& database_table_arg,
-           TrendComponentModelTable& trend_component_model_table_arg,
-           VarModelTable& var_model_table_arg);
+           HeterogeneityTable& heterogeneity_table_arg, DatabaseTable& database_table_arg);
 
   Epilogue(const Epilogue& m);
   Epilogue& operator=(const Epilogue& m);
@@ -155,7 +153,7 @@ public:
 
   //! Deal with trend variables in the epilogue block
   void detrend(const map<int, expr_t>& trend_symbols_map,
-               const nonstationary_symbols_map_t& nonstationary_symbols_map);
+               const ModelTree::nonstationary_symbols_map_t& nonstationary_symbols_map);
 
   //! Write the steady state file
   void writeEpilogueFile(const string& basename) const;
@@ -163,18 +161,10 @@ public:
   //! Write Output
   void writeOutput(ostream& output) const;
 
-protected:
-  string
-  modelClassName() const override
-  {
-    return "epilogue";
-  }
-
 private:
   //! Helper for public writeEpilogueFile
   void writeStaticEpilogueFile(const string& basename) const;
   void writeDynamicEpilogueFile(const string& basename) const;
-  void computingPassBlock(const eval_context_t& eval_context, bool no_tmp_terms) override;
 };
 
 #endif

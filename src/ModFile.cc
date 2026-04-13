@@ -53,9 +53,8 @@ ModFile::ModFile(WarningConsolidation& warnings_arg) :
     orig_ramsey_dynamic_model {symbol_table,        num_constants,  external_functions_table,
                                heterogeneity_table, database_table, trend_component_model_table,
                                var_model_table},
-    epilogue {symbol_table,        num_constants,  external_functions_table,
-              heterogeneity_table, database_table, trend_component_model_table,
-              var_model_table},
+    epilogue {symbol_table, num_constants, external_functions_table, heterogeneity_table,
+              database_table},
     static_model {symbol_table, num_constants, external_functions_table, heterogeneity_table,
                   database_table},
     steady_state_model {symbol_table,        num_constants,  external_functions_table,
@@ -1112,12 +1111,6 @@ ModFile::computingPass(bool no_tmp_terms, OutputType output, int params_derivs_o
 
   for (auto& statement : statements)
     statement->computingPass(mod_file_struct);
-
-  // Compute epilogue derivatives (but silence standard output)
-  streambuf* oldcout = cout.rdbuf();
-  cout.rdbuf(nullptr);
-  epilogue.computingPass(2, 0, global_eval_context, true, false, false);
-  cout.rdbuf(oldcout);
 }
 
 void
