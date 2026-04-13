@@ -428,6 +428,11 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
       if (type == SymbolType::modelLocalVariable)
         error("Model local variable " + mod_file->symbol_table.getName(symb_id)
               + " cannot be used in 'planner_objective'.");
+
+      if (type == SymbolType::heterogeneousEndogenous || type == SymbolType::heterogeneousExogenous
+          || type == SymbolType::heterogeneousParameter)
+        error("Symbol '" + mod_file->symbol_table.getName(symb_id)
+              + "' cannot be used in 'planner_objective', because it is heterogeneous.");
     }
 
   if (is_parsing_occbin_constraints())
@@ -443,6 +448,33 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
       if (type == SymbolType::exogenous || type == SymbolType::exogenousDet)
         error("Exogenous variable " + mod_file->symbol_table.getName(symb_id)
               + " cannot be used in 'occbin_constraints'.");
+
+      if (type == SymbolType::heterogeneousEndogenous || type == SymbolType::heterogeneousExogenous
+          || type == SymbolType::heterogeneousParameter)
+        error("Symbol '" + mod_file->symbol_table.getName(symb_id)
+              + "' cannot be used in 'occbin_constraints', because it is heterogeneous.");
+    }
+
+  if (is_parsing_epilogue())
+    {
+      if (type == SymbolType::exogenous)
+        error("Symbol '" + mod_file->symbol_table.getName(symb_id)
+              + "' cannot be used inside the epilogue block, because it is an exogenous variable.");
+      if (type == SymbolType::exogenousDet)
+        error("Symbol '" + mod_file->symbol_table.getName(symb_id)
+              + "' cannot be used inside the epilogue block, because it is an exogenous "
+                "deterministic variable.");
+
+      if (type == SymbolType::heterogeneousEndogenous || type == SymbolType::heterogeneousExogenous
+          || type == SymbolType::heterogeneousParameter)
+        error("Symbol '" + mod_file->symbol_table.getName(symb_id)
+              + "' cannot be used in epilogue block, because it is heterogeneous.");
+    }
+  else
+    {
+      if (type == SymbolType::epilogue)
+        error("Symbol '" + mod_file->symbol_table.getName(symb_id)
+              + "' cannot be used outside the epilogue block.");
     }
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous
@@ -480,6 +512,19 @@ ParsingDriver::add_expression_variable(const string& name)
       if (type == SymbolType::externalFunction)
         error("Symbol '" + name
               + "' is the name of a MATLAB/Octave function, and cannot be used as a variable.");
+
+      if (type == SymbolType::heterogeneousEndogenous || type == SymbolType::heterogeneousExogenous
+          || type == SymbolType::heterogeneousParameter)
+        error("Symbol '" + name
+              + "' cannot be used outside model declaration, because it is heterogeneous.");
+
+      if (type == SymbolType::epilogue)
+        error("Symbol '" + name + "' cannot be used outside the epilogue block.");
+
+      if (type == SymbolType::excludedVariable)
+        error("Variable '" + name
+              + "' can no longer be used since it has been excluded by a previous 'model_remove' "
+                "or 'var_remove' statement");
     }
 
   int symb_id = mod_file->symbol_table.getID(name);
