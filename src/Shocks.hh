@@ -395,8 +395,11 @@ public:
     period_t first, last;
   };
 
-  // Maps a symbol ID to a list of periods/value pairs
-  using exo_paths_t = map<int, vector<pair<period_range_t, expr_t>>>;
+  /* The pair is (symbol ID, list of periods/value pairs).
+     We do not use a std::map because the order of declaration matters for self.EXOGENOUS.
+     Also, enforcing the uniqueness of a definition for a given exogenous is complicated,
+     because it would have to be done accross several shock_paths blocks. */
+  using exo_paths_t = vector<pair<int, vector<pair<period_range_t, expr_t>>>>;
 
   ShockPathsStatement(variant<int, string> learnt_in_period_arg, bool overwrite_arg,
                       exo_paths_t exo_paths_arg,

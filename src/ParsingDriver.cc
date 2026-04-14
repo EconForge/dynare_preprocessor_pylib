@@ -1369,9 +1369,6 @@ ParsingDriver::add_shock_paths_exo_elem(const string& var,
 
   int symb_id = mod_file->symbol_table.getID(var);
 
-  if (shock_paths_exo.contains(symb_id))
-    error("shock_paths: variable " + var + " declared twice");
-
   if (periods.size() != values.size())
     error("shock_paths: variable " + var
           + ": number of periods is different from number of shock values");
@@ -1390,7 +1387,7 @@ ParsingDriver::add_shock_paths_exo_elem(const string& var,
       v.emplace_back(periods[i], values[i]);
     }
 
-  shock_paths_exo[symb_id] = v;
+  shock_paths_exo.emplace_back(symb_id, move(v));
 }
 
 void
