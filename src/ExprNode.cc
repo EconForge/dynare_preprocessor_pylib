@@ -10083,7 +10083,7 @@ NamespaceQualifiedVariableNode::NamespaceQualifiedVariableNode(
   if (Namespace == self || Namespace == prev || Namespace == learnt_in)
     assert(get_type() == SymbolType::exogenous);
   if (Namespace == self)
-    assert(lag < 0);
+    assert(lag <= 0);
 }
 
 string

@@ -544,8 +544,8 @@ ParsingDriver::add_self_variable(const string& name, expr_t lag)
   try
     {
       auto ilag = lag->matchIntegerConstant();
-      if (ilag >= 0)
-        error("The syntax self." + name + " must be used with a lag; a lead is not accepted");
+      if (ilag > 0)
+        error("The syntax self." + name + " cannot be used with a lead");
       return data_tree->AddNamespaceQualifiedVariable(
           NamespaceQualifiedVariableNode::NamespaceType::self, symb_id, ilag);
     }

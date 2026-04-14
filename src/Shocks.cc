@@ -1397,17 +1397,16 @@ ShockPathsStatement::checkPass(ModFileStructure& mod_file_struct,
         value->collectSelfVariables(self_vars);
         for (const auto& [symb_id2, lag] : self_vars)
           {
-            if (symb_id != symb_id2)
+            if (symb_id == symb_id2 && lag == 0)
               {
                 cerr << "ERROR: in the definition of '" << symbol_table.getName(symb_id)
-                     << "' in a 'shock_paths' block, referencing another variable using 'self."
-                     << symbol_table.getName(symb_id2);
-                if (lag != 0)
-                  cerr << "(" << lag << ")";
-                cerr << "' is not allowed" << endl;
+                     << "' in a 'shock_paths' block, the use of 'self."
+                     << symbol_table.getName(symb_id)
+                     << "' without a lag is not allowed, since it is a circular reference" << '\n';
                 exit(EXIT_FAILURE);
               }
-            assert(lag < 0); // Already checked in ParsingDriver::add_self_variable()
+            assert(lag <= 0); // Already checked in ParsingDriver::add_self_variable()
+            // NB: the restriction on lag is needed
           }
       }
 }
