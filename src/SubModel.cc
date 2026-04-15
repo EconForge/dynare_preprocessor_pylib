@@ -297,11 +297,11 @@ TrendComponentModelTable::writeOutput(const string& basename, ostream& output) c
       for (int i {1}; const auto& it : rhs.at(name))
         {
           output << "M_.trend_component." << name << ".rhs.vars_at_eq{" << i << "}.var = [";
-          for (auto [var, lag] : it)
+          for (const auto& [var, lag] : it)
             output << symbol_table.getTypeSpecificID(var) + 1 << " ";
           output << "];" << '\n'
                  << "M_.trend_component." << name << ".rhs.vars_at_eq{" << i << "}.lag = [";
-          for (auto [var, lag] : it)
+          for (const auto& [var, lag] : it)
             output << lag << " ";
           output << "];" << '\n';
 
@@ -333,7 +333,7 @@ TrendComponentModelTable::writeOutput(const string& basename, ostream& output) c
                    << nontarget_lhs_vec.size() << ", " << getMaxLag(name) << ");" << '\n';
       for (const auto& [key, expr] : AR.at(name))
         {
-          auto [eqn, lag, lhs_symb_id] = key;
+          const auto& [eqn, lag, lhs_symb_id] = key;
           int colidx = static_cast<int>(ranges::distance(
               nontarget_lhs_vec.begin(), ranges::find(nontarget_lhs_vec, lhs_symb_id)));
           ar_ec_output << "    AR(" << eqn + 1 << ", " << colidx + 1 << ", " << lag << ") = ";
@@ -347,7 +347,7 @@ TrendComponentModelTable::writeOutput(const string& basename, ostream& output) c
                    << nontarget_lhs_vec.size() << ");" << '\n';
       for (const auto& [key, expr] : A0.at(name))
         {
-          auto [eqn, colidx] = key;
+          const auto& [eqn, colidx] = key;
           ar_ec_output << "    A0(" << eqn + 1 << ", " << colidx + 1 << ") = ";
           expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << '\n';
@@ -359,7 +359,7 @@ TrendComponentModelTable::writeOutput(const string& basename, ostream& output) c
                    << target_lhs_vec.size() << ");" << '\n';
       for (const auto& [key, expr] : A0star.at(name))
         {
-          auto [eqn, colidx] = key;
+          const auto& [eqn, colidx] = key;
           ar_ec_output << "    A0star(" << eqn + 1 << ", " << colidx + 1 << ") = ";
           expr->writeOutput(ar_ec_output, ExprNodeOutputType::matlabDynamicModel);
           ar_ec_output << ";" << '\n';
@@ -467,10 +467,10 @@ VarModelTable::writeOutput(const string& basename, ostream& output) const
       for (int i {1}; const auto& it : rhs.at(name))
         {
           output << "M_.var." << name << ".rhs.vars_at_eq{" << i << "}.var = [";
-          for (auto [var, lag] : it)
+          for (const auto& [var, lag] : it)
             output << symbol_table.getTypeSpecificID(var) + 1 << " ";
           output << "];" << '\n' << "M_.var." << name << ".rhs.vars_at_eq{" << i << "}.lag = [";
-          for (auto [var, lag] : it)
+          for (const auto& [var, lag] : it)
             output << lag << " ";
           output << "];" << '\n';
 
@@ -483,7 +483,7 @@ VarModelTable::writeOutput(const string& basename, ostream& output) const
                 << ");" << '\n';
       for (const auto& [key, expr] : AR.at(name))
         {
-          auto [eqn, lag, lhs_symb_id] = key;
+          const auto& [eqn, lag, lhs_symb_id] = key;
           int colidx
               = static_cast<int>(ranges::distance(lhs.begin(), ranges::find(lhs, lhs_symb_id)));
           ar_output << "    ar(" << eqn + 1 << "," << colidx + 1 << "," << lag << ") = ";
@@ -493,7 +493,7 @@ VarModelTable::writeOutput(const string& basename, ostream& output) const
       ar_output << "    if nargout>1" << '\n' << "        a0 = eye(" << lhs.size() << ");" << '\n';
       for (const auto& [key, expr] : A0.at(name))
         {
-          auto [eqn, lhs_symb_id] = key;
+          const auto& [eqn, lhs_symb_id] = key;
           int colidx
               = static_cast<int>(ranges::distance(lhs.begin(), ranges::find(lhs, lhs_symb_id)));
           if (eqn != colidx)
@@ -513,7 +513,7 @@ VarModelTable::writeOutput(const string& basename, ostream& output) const
                 << "        end" << '\n'
                 << "        if nargout>2" << '\n'
                 << "            constants = zeros(" << lhs.size() << ",1);" << '\n';
-      for (auto [eqn, expr] : constants.at(name))
+      for (const auto& [eqn, expr] : constants.at(name))
         {
           ar_output << "            constants(" << eqn + 1 << ") = ";
           expr->writeOutput(ar_output, ExprNodeOutputType::matlabDynamicModel);
@@ -1280,7 +1280,7 @@ PacModelTable::transformPass(const lag_equivalence_table_t& unary_ops_nodes,
             }
 
           // Associate the coefficients of the linear combination with the right components
-          for (auto [var, coeff] : terms)
+          for (const auto& [var, coeff] : terms)
             if (auto it = ranges::find_if(
                     components,
                     [&](const auto& v) { return get<0>(v) == dynamic_model.AddVariable(var); });
@@ -1421,7 +1421,7 @@ PacModelTable::writeOutput(ostream& output) const
 {
   // Helper to print the “growth_info” structure (linear decomposition of growth)
   auto growth_info_helper = [&](const string& fieldname, const growth_info_t& gi) {
-    for (int i {1}; auto [growth_symb_id, growth_lag, param_id, constant] : gi)
+    for (int i {1}; const auto& [growth_symb_id, growth_lag, param_id, constant] : gi)
       {
         string structname = fieldname + "(" + to_string(i++) + ").";
         if (growth_symb_id)

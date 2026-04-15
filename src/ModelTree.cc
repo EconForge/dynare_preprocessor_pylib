@@ -448,7 +448,7 @@ ModelTree::computePrologueAndEpilogue()
     {
       set<pair<int, int>> endos_and_lags;
       equations[i]->collectEndogenous(endos_and_lags);
-      for (auto [endo, lag] : endos_and_lags)
+      for (const auto& [endo, lag] : endos_and_lags)
         if (!time_recursive_block_decomposition || lag == 0)
           IM[i * n + endo2eq[endo]] = true;
     }
@@ -585,7 +585,7 @@ ModelTree::computeDynamicStructureOfBlock(int blk)
       /* Compute max lags/leads and per-variable structure for endos belonging
          to this block */
       e->collectEndogenous(endos_and_lags);
-      for (auto [endo, lag] : endos_and_lags)
+      for (const auto& [endo, lag] : endos_and_lags)
         if (endo2block[endo] == blk)
           {
             blocks[blk].max_endo_lag = max(blocks[blk].max_endo_lag, -lag);
@@ -639,7 +639,7 @@ ModelTree::getVariableLeadLagByBlock() const
     {
       set<pair<int, int>> endos_and_lags;
       equations[eq]->collectEndogenous(endos_and_lags);
-      for (auto [endo, lag] : endos_and_lags)
+      for (const auto& [endo, lag] : endos_and_lags)
         if (endo2block[endo] == eq2block[eq])
           {
             variable_lag_lead[endo].first = max(variable_lag_lead[endo].first, -lag);
@@ -665,7 +665,7 @@ ModelTree::computeBlockDecomposition(int prologue, int epilogue)
   VariableDependencyGraph G(nb_simvars);
   for (const auto& [key, value] : computeSymbolicJacobian(time_recursive_block_decomposition))
     {
-      auto [eq, endo] = key;
+      const auto& [eq, endo] = key;
       if (eq_idx_orig2block[eq] >= prologue && eq_idx_orig2block[eq] < nb_var - epilogue
           && endo_idx_orig2block[endo] >= prologue && endo_idx_orig2block[endo] < nb_var - epilogue
           && eq != endo2eq[endo])

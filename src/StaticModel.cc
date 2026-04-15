@@ -381,7 +381,7 @@ StaticModel::writeBlockDriverOutput(ostream& output) const
         row_incidence.emplace(eq, var);
       }
   output << "M_.block_structure_stat.incidence.sparse_IM = [" << '\n';
-  for (auto [eq, var] : row_incidence)
+  for (const auto& [eq, var] : row_incidence)
     output << " " << eq + 1 << " " << var + 1 << ";" << '\n';
   output << "];" << '\n'
          << "M_.block_structure_stat.tmp_nbr = " << blocks_temporary_terms_idxs.size() << ";"

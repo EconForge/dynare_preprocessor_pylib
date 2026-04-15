@@ -235,7 +235,7 @@ HeterogeneousModel::transformPass()
        * `complementarity_conditions` vector, which may invalidate the reference to its element. We
        * take a copy instead for safety.
        */
-      auto [symb_id, lb, ub] = *complementarity_conditions[i];
+      const auto& [symb_id, lb, ub] = *complementarity_conditions[i];
 
       VariableNode* var = getVariable(symb_id);
       if (lb)
@@ -347,7 +347,7 @@ HeterogeneousModel::computeHetAuxTopologicalLevels()
       aux_equations[i]->arg2->collectDynamicVariables(SymbolType::heterogeneousEndogenous,
                                                       het_endos);
 
-      for (auto [symb_id, lag] : het_endos)
+      for (const auto& [symb_id, lag] : het_endos)
         {
           if (lag != 1 && lag != -1)
             continue; // Only interested in (+1) or (-1) timing

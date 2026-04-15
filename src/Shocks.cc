@@ -250,7 +250,7 @@ ShocksStatement::writeJsonOutput(ostream& output) const
     {
       if (exchange(printed_something, true))
         output << ", ";
-      auto [id1, id2, id3] = ids;
+      const auto& [id1, id2, id3] = ids;
       output << "{"
              << R"("name": ")" << symbol_table.getName(id1) << R"(", )"
              << R"("name2": ")" << symbol_table.getName(id2) << R"(", )"
@@ -358,7 +358,7 @@ ShocksStatement::writeCovarAndCorrShocks(ostream& output) const
 void
 ShocksStatement::writeSkewShock(ostream& output, const pair<tuple<int, int, int>, expr_t>& it) const
 {
-  auto [id1, id2, id3] = it.first;
+  const auto& [id1, id2, id3] = it.first;
 
   // All three must be exogenous (already checked in checkPass)
   int tsid1 = symbol_table.getTypeSpecificID(id1) + 1;
@@ -398,7 +398,7 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
   /* Error out if variables are not of the right type. This must be done here
      and not at parsing time (see #448).
      Also Determine if there is a calibrated measurement error */
-  for (auto [id, val] : var_shocks)
+  for (const auto& [id, val] : var_shocks)
     {
       if (symbol_table.getType(id) != SymbolType::exogenous && !symbol_table.isObservedVariable(id))
         {
@@ -410,7 +410,7 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
         }
     }
 
-  for (auto [id, val] : std_shocks)
+  for (const auto& [id, val] : std_shocks)
     {
       if (symbol_table.getType(id) != SymbolType::exogenous && !symbol_table.isObservedVariable(id))
         {
@@ -460,7 +460,7 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
 
   for (const auto& [ids, val] : skew_shocks)
     {
-      auto [symb_id1, symb_id2, symb_id3] = ids;
+      const auto& [symb_id1, symb_id2, symb_id3] = ids;
 
       if (!(symbol_table.getType(symb_id1) == SymbolType::exogenous
             && symbol_table.getType(symb_id2) == SymbolType::exogenous
@@ -478,9 +478,9 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
   mod_file_struct.calibrated_measurement_errors |= has_calibrated_measurement_errors();
 
   // Fill in mod_file_struct.parameters_with_shocks_values (related to #469)
-  for (auto [id, val] : var_shocks)
+  for (const auto& [id, val] : var_shocks)
     val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
-  for (auto [id, val] : std_shocks)
+  for (const auto& [id, val] : std_shocks)
     val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
   for (const auto& [ids, val] : covar_shocks)
     val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
@@ -493,11 +493,11 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
 bool
 ShocksStatement::has_calibrated_measurement_errors() const
 {
-  for (auto [id, val] : var_shocks)
+  for (const auto& [id, val] : var_shocks)
     if (symbol_table.isObservedVariable(id))
       return true;
 
-  for (auto [id, val] : std_shocks)
+  for (const auto& [id, val] : std_shocks)
     if (symbol_table.isObservedVariable(id))
       return true;
 
@@ -869,7 +869,7 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
 {
   /* Error out if variables are not of the right type. This must be done here
      and not at parsing time (see #448). */
-  for (auto [id, val] : var_shocks)
+  for (const auto& [id, val] : var_shocks)
     if (symbol_table.getType(id) != SymbolType::heterogeneousExogenous)
       {
         cerr << "shocks: setting a variance on '" << symbol_table.getName(id)
@@ -877,7 +877,7 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
         exit(EXIT_FAILURE);
       }
 
-  for (auto [id, val] : std_shocks)
+  for (const auto& [id, val] : std_shocks)
     if (symbol_table.getType(id) != SymbolType::heterogeneousExogenous)
       {
         cerr << "shocks: setting a standard error on '" << symbol_table.getName(id)
@@ -918,9 +918,9 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
     }
 
   // Fill in mod_file_struct.parameters_with_shocks_values (related to #469)
-  for (auto [id, val] : var_shocks)
+  for (const auto& [id, val] : var_shocks)
     val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
-  for (auto [id, val] : std_shocks)
+  for (const auto& [id, val] : std_shocks)
     val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
   for (const auto& [ids, val] : covar_shocks)
     val->collectVariables(SymbolType::parameter, mod_file_struct.parameters_within_shocks_values);
@@ -942,7 +942,7 @@ ConditionalForecastPathsStatement::computePathLength(
   for (const auto& [ignore, elems] : paths)
     for (auto& [period_range, value] : elems)
       {
-        auto [period1, period2] = get<pair<int, int>>(period_range);
+        const auto& [period1, period2] = get<pair<int, int>>(period_range);
         // Period1 < Period2, as enforced in ParsingDriver::add_period()
         length = max(length, period2);
       }
@@ -967,7 +967,7 @@ ConditionalForecastPathsStatement::writeOutput(ostream& output,
                << symbol_table.getTypeSpecificID(id) + 1 << "];" << '\n';
       for (const auto& [period_range, value] : elems)
         {
-          auto [period1, period2] = get<pair<int, int>>(period_range);
+          const auto& [period1, period2] = get<pair<int, int>>(period_range);
           output << "constrained_paths_(" << k << "," << period1 << ":" << period2 << ")=";
           value->writeOutput(output);
           output << ";" << '\n';

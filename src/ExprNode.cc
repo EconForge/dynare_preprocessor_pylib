@@ -6214,7 +6214,7 @@ BinaryOpNode::getPacNonOptimizingPart(int optim_share_symb_id) const
 
   // Search for a factor of the form 1-optim_share
   expr_t one_minus_optim_share = nullptr;
-  for (auto [factor, exponent] : factors)
+  for (const auto& [factor, exponent] : factors)
     {
       auto bopn = dynamic_cast<BinaryOpNode*>(factor);
       if (exponent != 1 || !bopn || bopn->op_code != BinaryOpcode::minus)
@@ -6233,7 +6233,7 @@ BinaryOpNode::getPacNonOptimizingPart(int optim_share_symb_id) const
 
   // Construct the product formed by the other factors and return it
   expr_t non_optim_part = datatree.One;
-  for (auto [factor, exponent] : factors)
+  for (const auto& [factor, exponent] : factors)
     if (factor != one_minus_optim_share)
       {
         if (exponent == 1)
@@ -9815,7 +9815,7 @@ ExprNode::matchLinearCombinationOfVariables() const
 
   vector<tuple<int, int, optional<int>, double>> result;
 
-  for (auto [term, sign] : terms)
+  for (const auto& [term, sign] : terms)
     {
       auto [variable_id, lag, param_id, constant]
           = term->matchVariableTimesConstantTimesParam(true);
@@ -9833,7 +9833,7 @@ ExprNode::matchLinearCombinationOfVariablesPlusConstant() const
 
   vector<tuple<optional<int>, int, optional<int>, double>> result;
 
-  for (auto [term, sign] : terms)
+  for (const auto& [term, sign] : terms)
     {
       auto m = term->matchVariableTimesConstantTimesParam(false);
       get<3>(m) *= sign;
@@ -9957,7 +9957,7 @@ ExprNode::matchLinearCombinationOfEndogenousWithConstant() const
 
   vector<pair<int, expr_t>> endo_terms;
   expr_t intercept = datatree.Zero;
-  for (auto [term, sign] : all_terms)
+  for (const auto& [term, sign] : all_terms)
     if (term->isConstant())
       {
         if (sign == -1)

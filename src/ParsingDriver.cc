@@ -985,7 +985,7 @@ void
 ParsingDriver::end_endval(bool all_values_required)
 {
   InitOrEndValStatement::init_values_t end_values_new;
-  for (auto [type, symb_id, value] : end_values)
+  for (const auto& [type, symb_id, value] : end_values)
     switch (type)
       {
       case EndValLearntInStatement::LearntEndValType::level:
@@ -1019,7 +1019,7 @@ ParsingDriver::end_endval_learnt_in(variant<int, string> learnt_in_period)
           return;
         }
     }
-  for (auto [type, symb_id, value] : end_values)
+  for (const auto& [type, symb_id, value] : end_values)
     if (mod_file->symbol_table.getType(symb_id) != SymbolType::exogenous)
       error("endval(learnt_in=...): " + mod_file->symbol_table.getName(symb_id)
             + " is not an exogenous variable");

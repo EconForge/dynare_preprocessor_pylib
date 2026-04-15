@@ -88,7 +88,7 @@ InitOrEndValStatement::InitOrEndValStatement(init_values_t init_values_arg,
 void
 InitOrEndValStatement::fillEvalContext(eval_context_t& eval_context) const
 {
-  for (auto [symb_id, value] : init_values)
+  for (const auto& [symb_id, value] : init_values)
     try
       {
         eval_context[symb_id] = value->eval(eval_context);
@@ -116,7 +116,7 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
       exit(EXIT_FAILURE);
     }
 
-  for (auto [symb_id, value] : init_values)
+  for (const auto& [symb_id, value] : init_values)
     unused.erase(symb_id);
 
   return unused;
@@ -125,7 +125,7 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
 void
 InitOrEndValStatement::writeInitValues(ostream& output) const
 {
-  for (auto [symb_id, value] : init_values)
+  for (const auto& [symb_id, value] : init_values)
     {
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
         continue;
@@ -328,7 +328,7 @@ EndValLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
                                      [[maybe_unused]] bool minimal_workspace) const
 {
   output << "M_.learnt_endval = [ M_.learnt_endval;" << '\n';
-  for (auto [type, symb_id, value] : learnt_end_values)
+  for (const auto& [type, symb_id, value] : learnt_end_values)
     {
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
         continue;
@@ -441,7 +441,7 @@ HistValStatement::writeOutput(ostream& output, [[maybe_unused]] const string& ba
 
   for (const auto& [key, value] : hist_values)
     {
-      auto [symb_id, lag] = key;
+      const auto& [symb_id, lag] = key;
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
         continue;
 
@@ -573,7 +573,7 @@ HomotopySetupStatement::writeOutput(ostream& output, [[maybe_unused]] const stri
          << ';' << '\n'
          << "options_.homotopy_values = zeros(0, 4);" << '\n';
 
-  for (auto [symb_id, expression1, expression2] : homotopy_values)
+  for (const auto& [symb_id, expression1, expression2] : homotopy_values)
     {
       const SymbolType type = symbol_table.getType(symb_id);
       const int tsid = symbol_table.getTypeSpecificID(symb_id) + 1;

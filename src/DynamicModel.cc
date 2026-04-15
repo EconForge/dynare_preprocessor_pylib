@@ -632,7 +632,7 @@ DynamicModel::writeBlockDriverOutput(ostream& output) const
       vector<int> bytecode_jacob_cols_to_sparse(legacy_blocks_jacob_cols_endo[blk].size());
       for (auto& [key, index] : legacy_blocks_jacob_cols_endo[blk])
         {
-          auto [var, lag] {key};
+          const auto& [var, lag] {key};
           if (var >= blocks[blk].getRecursiveSize() // NB: this check can be removed once Jacobian
                                                     // no longer contains columns for derivatives
                                                     // w.r.t. recursive variables
@@ -673,7 +673,7 @@ DynamicModel::writeBlockDriverOutput(ostream& output) const
              << ";" << '\n'
              << "M_.block_structure.incidence(" << max_endo_lag + lag + 1 << ").sparse_IM = ["
              << '\n';
-      for (auto [eq, var] : eq_var_set)
+      for (const auto& [eq, var] : eq_var_set)
         output << " " << eq + 1 << " " << var + 1 << ";" << '\n';
       output << "];" << '\n';
     }
@@ -819,7 +819,7 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
       int symb_id = symbol_table.getID(SymbolType::endogenous, i);
       if (auto it = nonstationary_symbols_map.find(symb_id); it != nonstationary_symbols_map.end())
         {
-          auto [is_log, deflator] = it->second;
+          const auto& [is_log, deflator] = it->second;
           output << "M_.endo_trends(" << i + 1 << ")." << (is_log ? "log_deflator" : "deflator")
                  << " = '";
           deflator->writeJsonOutput(output, {}, {});
@@ -1118,7 +1118,7 @@ DynamicModel::getVARDerivIDs(int lhs_symb_id, int lead_lag) const
   // Then go through auxiliary variables
   for (auto& [key, deriv_id2] : deriv_id_table)
     {
-      auto [symb_id2, lead_lag2] = key;
+      const auto& [symb_id2, lead_lag2] = key;
       const AuxVarInfo* avi;
       try
         {
@@ -1225,7 +1225,7 @@ DynamicModel::fillVarModelTableMatrices()
                   model_name)[i]; // All the (transformed) endogenous on RHS, as computed by
                                   // updateVarAndTrendModel()
               rhs->collectDynamicVariables(SymbolType::exogenous, rhs_vars); // Add exos
-              for (auto [symb_id, lag] : rhs_vars)
+              for (const auto& [symb_id, lag] : rhs_vars)
                 subst_table[AddVariable(symb_id, lag)] = Zero;
               expr_t c = rhs->replaceVarsInEquation(subst_table);
               if (c != Zero)
@@ -1662,7 +1662,7 @@ DynamicModel::getPacTargetSymbId(const string& pac_model_name) const
 
         vector<pair<expr_t, int>> terms;
         mce->decomposeAdditiveTerms(terms);
-        for (auto [term, sign] : terms)
+        for (const auto& [term, sign] : terms)
           try
             {
               auto [param_id, target_id]
@@ -2389,7 +2389,7 @@ DynamicModel::computeChainRuleJacobian()
       unordered_map<expr_t, map<int, expr_t>> chain_rule_deriv_cache;
       for (const auto& [indices, derivType] : determineBlockDerivativesType(blk))
         {
-          auto [lag, eq, var] = indices;
+          const auto& [lag, eq, var] = indices;
           int eq_orig = getBlockEquationID(blk, eq), var_orig = getBlockVariableID(blk, var);
           int deriv_id = getDerivID(symbol_table.getID(SymbolType::endogenous, var_orig), lag);
           expr_t d {nullptr};
@@ -2461,7 +2461,7 @@ DynamicModel::computeLegacyBlockJacobianCols()
   // Compute Jacobian column indices
   legacy_blocks_jacob_cols_endo.resize(nb_blocks);
   for (size_t blk {0}; blk < nb_blocks; blk++)
-    for (int index {0}; auto [lag, var] : dynamic_endo[blk])
+    for (int index {0}; const auto& [lag, var] : dynamic_endo[blk])
       legacy_blocks_jacob_cols_endo[blk][{var, lag}] = index++;
 }
 
