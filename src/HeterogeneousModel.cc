@@ -375,15 +375,9 @@ HeterogeneousModel::computeHetAuxTopologicalLevels()
             continue; // Already assigned
 
           // Check if all dependencies are at level < current_level
-          bool ready = true;
-          for (int dep : deps[i])
-            if (levels[dep] < 0 || levels[dep] >= current_level)
-              {
-                ready = false;
-                break;
-              }
-
-          if (ready)
+          if (ranges::all_of(deps[i], [&](int dep) {
+                return levels[dep] >= 0 && levels[dep] < current_level;
+              }))
             {
               levels[i] = current_level;
               // Get the het endo type-specific ID for this aux var (1-based for MATLAB)
