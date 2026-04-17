@@ -1184,25 +1184,24 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
     mOutputFile << "clearvars -global" << '\n'
                 << "clear_persistent_variables(fileparts(which('dynare')), false)" << '\n';
   else if (clear_global)
-    mOutputFile << "clearvars -global M_ options_ oo_ estim_params_ bayestopt_ dataset_ "
+    mOutputFile << "clearvars -global M_ options_ oo_ estim_params_ dataset_ "
                    "dataset_info estimation_info;"
                 << '\n';
 
   if (!notime)
     mOutputFile << "tic0 = tic;" << '\n';
 
-  mOutputFile
-      << "% Define global variables." << '\n'
-      << "global M_ options_ oo_ estim_params_ bayestopt_ dataset_ dataset_info estimation_info"
-      << '\n'
-      << "options_ = [];" << '\n'
-      << "M_.fname = '" << basename << "';" << '\n'
-      << "M_.dynare_version = '" << PACKAGE_VERSION << "';" << '\n'
-      << "oo_.dynare_version = '" << PACKAGE_VERSION << "';" << '\n'
-      << "options_.dynare_version = '" << PACKAGE_VERSION << "';" << '\n'
-      << "%" << '\n'
-      << "% Some global variables initialization" << '\n'
-      << "%" << '\n';
+  mOutputFile << "% Define global variables." << '\n'
+              << "global M_ options_ oo_ estim_params_ dataset_ dataset_info estimation_info"
+              << '\n'
+              << "options_ = [];" << '\n'
+              << "M_.fname = '" << basename << "';" << '\n'
+              << "M_.dynare_version = '" << PACKAGE_VERSION << "';" << '\n'
+              << "oo_.dynare_version = '" << PACKAGE_VERSION << "';" << '\n'
+              << "options_.dynare_version = '" << PACKAGE_VERSION << "';" << '\n'
+              << "%" << '\n'
+              << "% Some global variables initialization" << '\n'
+              << "%" << '\n';
   if (!onlymodel)
     config.writeHooks(mOutputFile);
   mOutputFile << "global_initialization;" << '\n';
@@ -1403,10 +1402,6 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
                   << "if exist('estim_params_', 'var') == 1" << '\n'
                   << "  save([M_.dname filesep 'Output' filesep '" << basename
                   << "_results.mat'], 'estim_params_', '-append');" << '\n'
-                  << "end" << '\n'
-                  << "if exist('bayestopt_', 'var') == 1" << '\n'
-                  << "  save([M_.dname filesep 'Output' filesep '" << basename
-                  << "_results.mat'], 'bayestopt_', '-append');" << '\n'
                   << "end" << '\n'
                   << "if exist('dataset_', 'var') == 1" << '\n'
                   << "  save([M_.dname filesep 'Output' filesep '" << basename

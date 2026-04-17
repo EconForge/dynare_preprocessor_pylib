@@ -359,7 +359,7 @@ PriorPosteriorFunctionStatement::writeOutput(ostream& output,
 
   output << "oo_ = execute_prior_posterior_function("
          << "'" << options_list.get<OptionsList::StringVal>("function") << "', "
-         << "M_, options_, oo_, estim_params_, bayestopt_, dataset_, dataset_info, "
+         << "M_, options_, oo_, estim_params_, dataset_, dataset_info, "
          << "'" << type << "');" << '\n';
 }
 
@@ -1076,7 +1076,7 @@ SensitivityStatement::writeOutput(ostream& output, [[maybe_unused]] const string
   if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("graph_format"))
     opt->writeOutput("options_.graph_format", output);
 
-  output << "gsa.run(M_,oo_,options_,bayestopt_,estim_params_,options_gsa);" << '\n';
+  output << "gsa.run(M_,oo_,options_, estim_params_,options_gsa);" << '\n';
 }
 
 void
@@ -2985,7 +2985,7 @@ IdentificationStatement::writeOutput(ostream& output, [[maybe_unused]] const str
   if (auto opt = options_list.get_if<OptionsList::SymbolListVal>("graph_format"))
     opt->writeOutput("options_.graph_format", output);
 
-  output << "identification.run(M_,oo_,options_,bayestopt_,estim_params_,"
+  output << "identification.run(M_, oo_, options_, estim_params_, "
          << "options_ident);" << '\n';
 }
 
@@ -3122,8 +3122,7 @@ ShockDecompositionStatement::writeOutput(ostream& output, [[maybe_unused]] const
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "oo_ = shock_decomposition(M_,oo_,options_,var_list_,bayestopt_,estim_params_);"
-         << '\n';
+  output << "oo_ = shock_decomposition(M_, oo_, options_, var_list_, estim_params_);" << '\n';
 }
 
 void
@@ -3177,9 +3176,8 @@ RealtimeShockDecompositionStatement::writeOutput(ostream& output,
 {
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output
-      << "oo_ = realtime_shock_decomposition(M_,oo_,options_,var_list_,bayestopt_,estim_params_);"
-      << '\n';
+  output << "oo_ = realtime_shock_decomposition(M_, oo_, options_, var_list_, estim_params_);"
+         << '\n';
 }
 
 void
@@ -3285,7 +3283,7 @@ InitialConditionDecompositionStatement::writeOutput(ostream& output,
   output << "options_ = set_default_initial_condition_decomposition_options(options_);" << '\n';
   options_list.writeOutput(output);
   symbol_list.writeOutput("var_list_", output);
-  output << "oo_ = initial_condition_decomposition(M_, oo_, options_, var_list_, bayestopt_, "
+  output << "oo_ = initial_condition_decomposition(M_, oo_, options_, var_list_, "
             "estim_params_);"
          << '\n';
 }
@@ -3376,7 +3374,7 @@ ConditionalForecastStatement::writeOutput(ostream& output, [[maybe_unused]] cons
 {
   options_list.writeOutput(output, "options_cond_fcst_");
   output << "oo_.conditional_forecast=conditional_forecasts.run(M_,options_,"
-         << "oo_,bayestopt_,estim_params_,constrained_paths_, constrained_vars_,"
+         << "oo_, estim_params_, constrained_paths_, constrained_vars_, "
          << "options_cond_fcst_);" << '\n';
 }
 
@@ -5034,8 +5032,8 @@ CalibSmootherStatement::writeOutput(ostream& output, [[maybe_unused]] const stri
   symbol_list.writeOutput("var_list_", output);
   output << "options_.smoother = true;" << '\n'
          << "options_.order = 1;" << '\n'
-         << "[oo_, M_, options_, bayestopt_] = evaluate_smoother(options_.parameter_set, "
-            "var_list_, M_, oo_, options_, bayestopt_, estim_params_);"
+         << "[oo_, M_, options_] = evaluate_smoother(options_.parameter_set, "
+            "var_list_, M_, oo_, options_, estim_params_);"
          << '\n';
 }
 
@@ -5233,7 +5231,7 @@ MethodOfMomentsStatement::writeOutput(ostream& output, [[maybe_unused]] const st
 {
   options_list.writeOutput(output, "options_mom_");
 
-  output << "[oo_, options_mom_, M_] = mom.run(bayestopt_, options_, oo_, estim_params_, M_, "
+  output << "[oo_, options_mom_, M_] = mom.run(options_, oo_, estim_params_, M_, "
             "options_mom_);"
          << '\n';
 }
