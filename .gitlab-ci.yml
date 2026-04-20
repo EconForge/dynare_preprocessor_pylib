@@ -42,25 +42,14 @@ build_windows_x86_64:
     paths:
       - build/src/dynare-preprocessor.exe
 
-build_macos_x86_64:
-  stage: build
-  tags:
-    - macOS
-  script:
-    - arch -x86_64 meson setup --buildtype=release -Db_lto=true --native-file scripts/homebrew-native-x86_64.ini build
-    - arch -x86_64 meson compile -C build -v
-  artifacts:
-    paths:
-      - build/src/dynare-preprocessor
-
-build_macos_arm64:
+build_macos:
   stage: build
   tags:
     - macOS
   script:
     - export PATH="/opt/homebrew/bin:$PATH"
-    - arch -arm64 meson setup --buildtype=release -Db_lto=true --native-file scripts/homebrew-native-arm64.ini build
-    - arch -arm64 meson compile -C build -v
+    - meson setup --buildtype=release -Db_lto=true --native-file scripts/homebrew-native.ini build
+    - meson compile -C build -v
   artifacts:
     paths:
       - build/src/dynare-preprocessor
