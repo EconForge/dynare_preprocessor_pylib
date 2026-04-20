@@ -1636,11 +1636,17 @@ string
 ModelTree::matlab_arch(const string& mexext)
 {
   if (mexext == "mexglx")
-    return "glnx86";
+    {
+      cerr << "MATLAB for 32-bit Linux is not supported" << '\n';
+      exit(EXIT_FAILURE);
+    }
   else if (mexext == "mexa64")
     return "glnxa64";
   if (mexext == "mexw32")
-    return "win32";
+    {
+      cerr << "MATLAB for 32-bit Windows is not supported" << '\n';
+      exit(EXIT_FAILURE);
+    }
   else if (mexext == "mexw64")
     return "win64";
   else if (mexext == "mexmaci")
