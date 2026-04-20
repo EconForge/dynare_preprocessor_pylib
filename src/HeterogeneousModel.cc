@@ -66,6 +66,24 @@ HeterogeneousModel::getUsedParameters() const
   return used;
 }
 
+set<int>
+HeterogeneousModel::getUsedAggregateEndogenous() const
+{
+  set<int> used;
+  for (auto* equation : equations)
+    equation->collectVariables(SymbolType::endogenous, used);
+  return used;
+}
+
+set<int>
+HeterogeneousModel::getUsedAggregateExogenous() const
+{
+  set<int> used;
+  for (auto* equation : equations)
+    equation->collectVariables(SymbolType::exogenous, used);
+  return used;
+}
+
 void
 HeterogeneousModel::computeChainRuleJacobian()
 {
