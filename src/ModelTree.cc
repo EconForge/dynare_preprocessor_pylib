@@ -1649,13 +1649,11 @@ ModelTree::matlab_arch(const string& mexext)
     }
   else if (mexext == "mexw64")
     return "win64";
-  else if (mexext == "mexmaci")
+  else if (mexext == "mexmaci" || mexext == "mexmaci64")
     {
-      cerr << "32-bit MATLAB not supported on macOS" << '\n';
+      cerr << "MATLAB for macOS Intel is not supported" << '\n';
       exit(EXIT_FAILURE);
     }
-  else if (mexext == "mexmaci64")
-    return "maci64";
   else if (mexext == "mexmaca64")
     return "maca64";
   else
@@ -1672,18 +1670,12 @@ pair<filesystem::path, bool>
 ModelTree::findCompilerOnMacos(const string& mexext)
 {
   /* Try to find gcc, otherwise use Apple’s clang compiler.
-     Homebrew binaries are located in /usr/local/bin/ on x86_64 systems and in
-     /opt/homebrew/bin/ on arm64 systems.
-     Apple’s clang is located both in /usr/bin/gcc and /usr/bin/clang, it
-     automatically selects x86_64 or arm64 depending on the compile-time
-     environment. */
+     Homebrew binaries are located in /opt/homebrew/bin/.
+     Apple’s clang is located both in /usr/bin/gcc and /usr/bin/clang. */
   const string macos_gcc_version {"15"};
 
-  if (filesystem::path global_gcc_path {"/usr/local/bin/gcc-" + macos_gcc_version};
-      exists(global_gcc_path) && mexext == "mexmaci64")
-    return {global_gcc_path, false};
-  else if (filesystem::path global_gcc_path {"/opt/homebrew/bin/gcc-" + macos_gcc_version};
-           exists(global_gcc_path) && mexext == "mexmaca64")
+  if (filesystem::path global_gcc_path {"/opt/homebrew/bin/gcc-" + macos_gcc_version};
+      exists(global_gcc_path) && mexext == "mexmaca64")
     return {global_gcc_path, false};
   else if (filesystem::path global_clang_path {"/usr/bin/clang"}; exists(global_clang_path))
     return {global_clang_path, true};
@@ -1691,12 +1683,8 @@ ModelTree::findCompilerOnMacos(const string& mexext)
     {
       cerr << "ERROR: You must install gcc@" << macos_gcc_version
            << " on your system before using the `use_dll` option of Dynare. "
-           << "You should install Homebrew";
-      if (mexext == "mexmaca64")
-        cerr << " for arm64";
-      else if (mexext == "mexmaci64")
-        cerr << " for x86_64";
-      cerr << " and run `brew install gcc@" << macos_gcc_version << "` in a terminal." << endl;
+           << "You should install Homebrew and run `brew install gcc@" << macos_gcc_version
+           << "` in a terminal." << endl;
       exit(EXIT_FAILURE);
     }
 }
@@ -1755,7 +1743,7 @@ ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_b
       else if (mexext == "mexw64") // Windows
         flags << " -static-libgcc -shared";
 #ifdef __APPLE__
-      else if (mexext == "mexmaci64" || mexext == "mexmaca64")
+      else if (mexext == "mexmaca64")
         {
           tie(compiler, is_clang) = findCompilerOnMacos(mexext);
           flags << " -fno-common -Wl,-twolevel_namespace -undefined error -bundle";
