@@ -412,19 +412,16 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       warnings << "WARNING: Parameter(s) " << unused_params << " not used in the model" << '\n';
     }
 
-  // Check if some exogenous is not used in the model block, Issue #841
-  set<int> unusedExo0 = dynamic_model.findUnusedExogenous();
-  set<int> unusedExo;
-  ranges::set_difference(unusedExo0, mod_file_struct.pac_params,
-                         inserter(unusedExo, unusedExo.begin()));
-  // Exclude exogenous used in heterogeneous model blocks
+  // Check if some exogenous are not used in the model block, issue dynare#841
+  set<int> unusedExo0;
+  ranges::set_difference(dynamic_model.findUnusedExogenous(), mod_file_struct.pac_params,
+                         inserter(unusedExo0, unusedExo0.begin()));
+  // Do not consider aggregate variables used in heterogeneous blocks, see #145
   set<int> usedAggregateExo;
   for (const auto& hm : heterogeneous_models)
     usedAggregateExo.merge(hm.getUsedAggregateExogenous());
-  set<int> filteredUnusedExo;
-  ranges::set_difference(unusedExo, usedAggregateExo,
-                         inserter(filteredUnusedExo, filteredUnusedExo.end()));
-  unusedExo = move(filteredUnusedExo);
+  set<int> unusedExo;
+  ranges::set_difference(unusedExo0, usedAggregateExo, inserter(unusedExo, unusedExo.end()));
   if (unusedExo.size() > 0)
     {
       string unused_exos;
@@ -586,16 +583,14 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
   dynamic_model.substituteModelLocalVariables();
 
   // Check that all declared endogenous are used in equations
-  set<int> unusedEndogs = dynamic_model.findUnusedEndogenous();
-  // Exclude endogenous used in heterogeneous model blocks
+  // Do not consider aggregate endogenous used in heterogeneous model blocks
   set<int> usedAggregateEndogs;
   for (const auto& hm : heterogeneous_models)
     usedAggregateEndogs.merge(hm.getUsedAggregateEndogenous());
-  set<int> filteredUnusedEndogs;
-  ranges::set_difference(unusedEndogs, usedAggregateEndogs,
-                         inserter(filteredUnusedEndogs, filteredUnusedEndogs.end()));
-  unusedEndogs = move(filteredUnusedEndogs);
-  bool unusedEndogsIsErr = !nostrict && !mod_file_struct.bvar_present && unusedEndogs.size();
+  set<int> unusedEndogs;
+  ranges::set_difference(dynamic_model.findUnusedEndogenous(), usedAggregateEndogs,
+                         inserter(unusedEndogs, unusedEndogs.end()));
+  bool unusedEndogsIsErr = !nostrict && !mod_file_struct.bvar_present && !unusedEndogs.empty();
   for (int unusedEndog : unusedEndogs)
     if (nostrict)
       {
