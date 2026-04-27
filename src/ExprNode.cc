@@ -2226,7 +2226,7 @@ VariableNode::differentiateForwardVars(const vector<string>& subset, subst_table
     {
     case SymbolType::endogenous:
       assert(lag <= 1);
-      if (lag <= 0 || (subset.size() > 0 && ranges::find(subset, getName()) == subset.end()))
+      if (lag <= 0 || (!subset.empty() && ranges::find(subset, getName()) == subset.end()))
         return const_cast<VariableNode*>(this);
       else
         {
