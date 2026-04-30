@@ -1046,8 +1046,9 @@ PerfectForesightControlledPathsStatement::writeOutput(ostream& output,
 void
 PerfectForesightControlledPathsStatement::writeJsonOutput(ostream& output) const
 {
-  output << R"({"statementName": "perfect_foresight_controlled_paths")"
-         << R"(, "paths": [)";
+  output << R"({"statementName": "perfect_foresight_controlled_paths", "learnt_in": )";
+  visit([&](const auto& p) { print_json_learnt_in(output, p); }, learnt_in_period);
+  output << R"(, "paths": [)";
   for (bool printed_something {false};
        const auto& [exogenize_id, constraints, endogenize_id] : paths)
     {
