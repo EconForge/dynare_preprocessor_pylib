@@ -3639,7 +3639,9 @@ plot_conditional_forecast : PLOT_CONDITIONAL_FORECAST symbol_list ';'
                           ;
 
 conditional_forecast_paths : CONDITIONAL_FORECAST_PATHS ';' conditional_forecast_paths_list END ';'
-                             { driver.conditional_forecast_paths($3); }
+                             { driver.conditional_forecast_paths(false, $3); }
+                           | CONDITIONAL_FORECAST_PATHS '(' OVERWRITE ')' ';' conditional_forecast_paths_list END ';'
+                             { driver.conditional_forecast_paths(true, $6); }
                            ;
 
 conditional_forecast_paths_list : conditional_forecast_paths_elem

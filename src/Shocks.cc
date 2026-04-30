@@ -929,8 +929,8 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
 }
 
 ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(
-    paths_t paths_arg, const SymbolTable& symbol_table_arg) :
-    paths {move(paths_arg)}, symbol_table {symbol_table_arg}
+    bool overwrite_arg, paths_t paths_arg, const SymbolTable& symbol_table_arg) :
+    overwrite {overwrite_arg}, paths {move(paths_arg)}, symbol_table {symbol_table_arg}
 {
 }
 
@@ -939,7 +939,11 @@ ConditionalForecastPathsStatement::writeOutput(ostream& output,
                                                [[maybe_unused]] const string& basename,
                                                [[maybe_unused]] bool minimal_workspace) const
 {
-  output << "M_.conditional_forecast_paths = [" << '\n';
+  // Always overwrite if old syntax is used, for backward compatibility
+  if (overwrite || ranges::any_of(paths, [](const auto& p) { return !get<2>(p).has_value(); }))
+    output << "M_.conditional_forecast_paths = [" << '\n';
+  else
+    output << "M_.conditional_forecast_paths = [ M_.conditional_forecast_paths;" << '\n';
   for (const auto& [exogenize_id, constraints, endogenize_id] : paths)
     for (const auto& [period_range, value] : constraints)
       {
@@ -961,7 +965,8 @@ ConditionalForecastPathsStatement::writeOutput(ostream& output,
 void
 ConditionalForecastPathsStatement::writeJsonOutput(ostream& output) const
 {
-  output << R"({"statementName": "conditional_forecast_paths", "paths": [)";
+  output << R"({"statementName": "conditional_forecast_paths", "overwrite": )" << boolalpha
+         << overwrite << R"(, "paths": [)";
   for (bool printed_something {false};
        const auto& [exogenize_id, constraints, endogenize_id] : paths)
     {

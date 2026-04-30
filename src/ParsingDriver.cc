@@ -3017,8 +3017,8 @@ ParsingDriver::plot_conditional_forecast(const optional<string>& periods,
 
 void
 ParsingDriver::conditional_forecast_paths(
-    const vector<tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>,
-                       string>>& paths)
+    bool overwrite, const vector<tuple<string, vector<AbstractShocksStatement::period_range_t>,
+                                       vector<expr_t>, string>>& paths)
 {
   if (!ranges::all_of(paths, [](const auto& it) { return get<3>(it).empty(); })
       && !ranges::all_of(paths, [](const auto& it) { return !get<3>(it).empty(); }))
@@ -3044,8 +3044,8 @@ ParsingDriver::conditional_forecast_paths(
 
       paths_transformed.emplace_back(exogenize_id, move(v), endogenize_id);
     }
-  mod_file->addStatement(make_unique<ConditionalForecastPathsStatement>(move(paths_transformed),
-                                                                        mod_file->symbol_table));
+  mod_file->addStatement(make_unique<ConditionalForecastPathsStatement>(
+      overwrite, move(paths_transformed), mod_file->symbol_table));
 }
 
 void

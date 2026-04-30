@@ -786,8 +786,8 @@ public:
   void conditional_forecast();
   //! Conditional forecast paths block
   void conditional_forecast_paths(
-      const vector<tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>,
-                         string>>& paths);
+      bool overwrite, const vector<tuple<string, vector<AbstractShocksStatement::period_range_t>,
+                                         vector<expr_t>, string>>& paths);
   //! Plot conditional forecast statement
   void plot_conditional_forecast(const optional<string>& periods, vector<string> symbol_list);
   //! Smoother on calibrated models

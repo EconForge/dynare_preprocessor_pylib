@@ -217,11 +217,13 @@ public:
       tuple<int, vector<pair<AbstractShocksStatement::period_range_t, expr_t>>, optional<int>>>;
 
 private:
+  const bool overwrite;
   const paths_t paths;
   const SymbolTable& symbol_table;
 
 public:
-  ConditionalForecastPathsStatement(paths_t paths_arg, const SymbolTable& symbol_table_arg);
+  ConditionalForecastPathsStatement(bool overwrite_arg, paths_t paths_arg,
+                                    const SymbolTable& symbol_table_arg);
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
 };
