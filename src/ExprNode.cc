@@ -8316,7 +8316,7 @@ FirstDerivExternalFunctionNode::writeJsonOutput(ostream& output,
   try
     {
       // Compute the TEF index first, so that nothing is written to output if an exception is thrown
-      int tef_idx {[&]() {
+      int tef_idx {[&] {
         if (first_deriv_symb_id == symb_id
             || first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
           return getIndxInTefTerms(symb_id, tef_terms);

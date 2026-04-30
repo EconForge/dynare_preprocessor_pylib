@@ -616,7 +616,7 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs, bool 
     for (auto& tag : tags)
       var_tcm_eqtags.insert(tag);
 
-  set<int> unary_ops_eqs {[&]() {
+  set<int> unary_ops_eqs {[&] {
     try
       {
         return dynamic_model.getEquationNumbersFromNames(var_tcm_eqtags);

@@ -612,7 +612,7 @@ ParsingDriver::add_database_variable(const string& database_name, const string& 
     error("The syntax " + database_name + "." + symbol_name
           + " is not accepted in an 'endogenize' stanza of a 'shock_paths' block");
 
-  int symb_id {[&]() {
+  int symb_id {[&] {
     try
       {
         return mod_file->symbol_table.getID(symbol_name);
@@ -623,7 +623,7 @@ ParsingDriver::add_database_variable(const string& database_name, const string& 
       }
   }()};
 
-  int database_id {[&]() {
+  int database_id {[&] {
     try
       {
         return mod_file->database_table.getID(database_name);
@@ -3926,7 +3926,7 @@ void
 ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
                                                           const string& eqname)
 {
-  int symb_id {[&]() {
+  int symb_id {[&] {
     try
       {
         return mod_file->symbol_table.getID(symbol);
@@ -3949,7 +3949,7 @@ ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
 
   /* Retrieve the equation corresponding to the given name.
      static-only equations have priority over dynamic ones. */
-  BinaryOpNode* eq_dynamic {[&]() {
+  BinaryOpNode* eq_dynamic {[&] {
     try
       {
         // First try static-only equations
@@ -3987,7 +3987,7 @@ ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
     }
 
   // Convert the equation to a static form
-  BinaryOpNode* eq_static {[&]() {
+  BinaryOpNode* eq_static {[&] {
     try
       {
         return dynamic_cast<BinaryOpNode*>(eq_dynamic->toStatic(mod_file->steady_state_model));
@@ -4000,7 +4000,7 @@ ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
   }()};
 
   // Solve for the symbol definition by normalizing the equation
-  expr_t value {[&]() {
+  expr_t value {[&] {
     try
       {
         BinaryOpNode* normalized_eq = eq_static->normalizeEquation(symb_id, 0);
