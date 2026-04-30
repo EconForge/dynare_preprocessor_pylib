@@ -929,24 +929,9 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
 }
 
 ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(
-    AbstractShocksStatement::det_shocks_t paths_arg, const SymbolTable& symbol_table_arg) :
-    paths {move(paths_arg)}, symbol_table {symbol_table_arg}, path_length {computePathLength(paths)}
+    paths_t paths_arg, const SymbolTable& symbol_table_arg) :
+    paths {move(paths_arg)}, symbol_table {symbol_table_arg}
 {
-}
-
-int
-ConditionalForecastPathsStatement::computePathLength(
-    const AbstractShocksStatement::det_shocks_t& paths)
-{
-  int length {0};
-  for (const auto& [ignore, elems] : paths)
-    for (auto& [period_range, value] : elems)
-      {
-        const auto& [period1, period2] = get<pair<int, int>>(period_range);
-        // Period1 < Period2, as enforced in ParsingDriver::add_period()
-        length = max(length, period2);
-      }
-  return length;
 }
 
 void
@@ -954,40 +939,37 @@ ConditionalForecastPathsStatement::writeOutput(ostream& output,
                                                [[maybe_unused]] const string& basename,
                                                [[maybe_unused]] bool minimal_workspace) const
 {
-  assert(path_length > 0);
-  output << "constrained_vars_ = [];" << '\n'
-         << "constrained_paths_ = NaN(" << paths.size() << ", " << path_length << ");" << '\n';
-
-  for (int k {1}; const auto& [id, elems] : paths)
-    {
-      if (k == 1)
-        output << "constrained_vars_ = " << symbol_table.getTypeSpecificID(id) + 1 << ";" << '\n';
-      else
-        output << "constrained_vars_ = [constrained_vars_; "
-               << symbol_table.getTypeSpecificID(id) + 1 << "];" << '\n';
-      for (const auto& [period_range, value] : elems)
-        {
-          const auto& [period1, period2] = get<pair<int, int>>(period_range);
-          output << "constrained_paths_(" << k << "," << period1 << ":" << period2 << ")=";
-          value->writeOutput(output);
-          output << ";" << '\n';
-        }
-      k++;
-    }
+  output << "M_.conditional_forecast_paths = [" << '\n';
+  for (const auto& [exogenize_id, constraints, endogenize_id] : paths)
+    for (const auto& [period_range, value] : constraints)
+      {
+        output << "struct('exogenize_id'," << symbol_table.getTypeSpecificID(exogenize_id) + 1
+               << ",'periods',";
+        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+        output << ",'value',";
+        value->writeOutput(output);
+        output << ",'endogenize_id',";
+        if (endogenize_id)
+          output << symbol_table.getTypeSpecificID(*endogenize_id) + 1;
+        else
+          output << "[]";
+        output << ");" << '\n';
+      }
+  output << "];" << '\n';
 }
 
 void
 ConditionalForecastPathsStatement::writeJsonOutput(ostream& output) const
 {
-  output << R"({"statementName": "conditional_forecast_paths")"
-         << R"(, "paths": [)";
-  for (bool printed_something {false}; const auto& [id, elems] : paths)
+  output << R"({"statementName": "conditional_forecast_paths", "paths": [)";
+  for (bool printed_something {false};
+       const auto& [exogenize_id, constraints, endogenize_id] : paths)
     {
       if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"var": ")" << symbol_table.getName(id) << R"(", )"
+      output << R"({"exogenize": ")" << symbol_table.getName(exogenize_id) << R"(", )"
              << R"("values": [)";
-      for (bool printed_something2 {false}; const auto& [period_range, value] : elems)
+      for (bool printed_something2 {false}; const auto& [period_range, value] : constraints)
         {
           if (exchange(printed_something2, true))
             output << ", ";
@@ -997,7 +979,12 @@ ConditionalForecastPathsStatement::writeJsonOutput(ostream& output) const
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
         }
-      output << "]}";
+      output << R"(], "endogenize": ")";
+      if (endogenize_id)
+        output << symbol_table.getName(*endogenize_id);
+      else
+        output << "null";
+      output << R"("})";
     }
   output << "]}";
 }

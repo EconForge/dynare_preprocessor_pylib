@@ -290,8 +290,8 @@ CHECK_JACOBIAN_SINGULARITY
 %type <tuple<string, string, string>> matched_irfs_weights_elem_var_varexo
 %type <pair<tuple<string, string, string, string, string, string>, expr_t>> matched_irfs_weights_elem
 %type <map<tuple<string, string, string, string, string, string>, expr_t>> matched_irfs_weights_list
-%type <tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>, string>> perfect_foresight_controlled_paths_elem
-%type <vector<tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>, string>>> perfect_foresight_controlled_paths_list
+%type <tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>, string>> perfect_foresight_controlled_paths_elem conditional_forecast_paths_elem
+%type <vector<tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>, string>>> perfect_foresight_controlled_paths_list conditional_forecast_paths_list
 %type <pair<string, string>> o_ext_func_name o_ext_func_nargs o_first_deriv_provided o_second_deriv_provided external_function_options
 %type <map<string, string>> external_function_options_list
 %%
@@ -3638,19 +3638,36 @@ plot_conditional_forecast : PLOT_CONDITIONAL_FORECAST symbol_list ';'
                             { driver.plot_conditional_forecast($5, $7); }
                           ;
 
-conditional_forecast_paths : CONDITIONAL_FORECAST_PATHS ';' conditional_forecast_paths_shock_list END ';'
-                             { driver.conditional_forecast_paths(); }
+conditional_forecast_paths : CONDITIONAL_FORECAST_PATHS ';' conditional_forecast_paths_list END ';'
+                             { driver.conditional_forecast_paths($3); }
                            ;
 
-conditional_forecast_paths_shock_list : conditional_forecast_paths_shock_elem
-                                      | conditional_forecast_paths_shock_list conditional_forecast_paths_shock_elem
-                                      ;
+conditional_forecast_paths_list : conditional_forecast_paths_elem
+                                  { $$ = { $1 }; }
+                                | conditional_forecast_paths_list conditional_forecast_paths_elem
+                                  {
+                                    $$ = $1;
+                                    $$.push_back($2);
+                                  }
+                                ;
 
-conditional_forecast_paths_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
-                                        { driver.add_det_shock(
-                                              $2, $5, $8,
-                                              ParsingDriver::DetShockType::conditional_forecast); }
-                                      ;
+conditional_forecast_paths_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list';'
+                                  {
+                                    driver.check_symbol_is_endogenous($2);
+                                    if ($5.size() != $8.size())
+                                      driver.error("The number of periods is different from the number of values");
+                                    $$ = { $2, $5, $8, "" };
+                                    driver.warning("Using the 'var' keyword inside 'conditional_forecast_paths' is deprecated. Use 'exogenize' instead.");
+                                  }
+                                | EXOGENIZE symbol ';' PERIODS period_list ';' VALUES expression_list ';' ENDOGENIZE symbol ';'
+                                  {
+                                    driver.check_symbol_is_endogenous($2);
+                                    driver.check_symbol_is_exogenous($11, false);
+                                    if ($5.size() != $8.size())
+                                      driver.error("The number of periods is different from the number of values");
+                                    $$ = { $2, $5, $8, $11 };
+                                  }
+                                ;
 
 steady_state_model : STEADY_STATE_MODEL ';' { driver.begin_steady_state_model(); }
                      steady_state_equation_list END ';' { driver.reset_data_tree(); }
