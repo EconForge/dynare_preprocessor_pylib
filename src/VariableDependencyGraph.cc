@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009-2023 Dynare Team
+ * Copyright © 2009-2026 Dynare Team
  *
  * This file is part of Dynare.
  *
@@ -301,9 +301,9 @@ VariableDependencyGraph::minimalSetOfFeedbackVertices() const
         {
           /* If nothing has been done in the five previous rule then cut the
              vertex with the maximum in_degree+out_degree */
-          int max_degree = 0, num = 0;
+          int max_degree = 0;
           vertex_iterator max_degree_index;
-          for (auto [it, it_end] = vertices(G); it != it_end; ++it, num++)
+          for (auto [it, it_end] = vertices(G); it != it_end; ++it)
             if (static_cast<int>(in_degree(*it, G) + out_degree(*it, G)) > max_degree)
               {
                 max_degree = in_degree(*it, G) + out_degree(*it, G);
