@@ -1293,7 +1293,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::juliaTimeDataFrame:
           juliaTimeDataFrameHelper();
           break;
-        case ExprNodeOutputType::epilogueFile:
+        case ExprNodeOutputType::matlabDseriesInsideFrom:
           output << "ds." << getName();
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
@@ -1350,7 +1350,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::juliaTimeDataFrame:
           juliaTimeDataFrameHelper();
           break;
-        case ExprNodeOutputType::epilogueFile:
+        case ExprNodeOutputType::matlabDseriesInsideFrom:
           output << "ds." << getName();
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
@@ -1405,7 +1405,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::juliaTimeDataFrame:
           juliaTimeDataFrameHelper();
           break;
-        case ExprNodeOutputType::epilogueFile:
+        case ExprNodeOutputType::matlabDseriesInsideFrom:
           output << "ds." << getName();
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
           if (lag != 0)
@@ -1418,7 +1418,7 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         }
       break;
     case SymbolType::epilogue:
-      if (output_type == ExprNodeOutputType::epilogueFile)
+      if (output_type == ExprNodeOutputType::matlabDseriesInsideFrom)
         {
           output << "ds." << getName();
           output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
@@ -8112,7 +8112,7 @@ ExternalFunctionNode::writeOutput(ostream& output, ExprNodeOutputType output_typ
   if (output_type == ExprNodeOutputType::matlabOutsideModel
       || output_type == ExprNodeOutputType::steadyStateFile
       || output_type == ExprNodeOutputType::juliaSteadyStateFile
-      || output_type == ExprNodeOutputType::epilogueFile
+      || output_type == ExprNodeOutputType::matlabDseriesInsideFrom
       || output_type == ExprNodeOutputType::occbinDifferenceFile || isLatexOutput(output_type))
     {
       string name

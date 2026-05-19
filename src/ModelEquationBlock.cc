@@ -559,7 +559,7 @@ Epilogue::writeDynamicEpilogueFile(const string& basename) const
       output << "}) + " << max_lag << ";" << '\n'
              << "    from simul_begin_date to simul_end_date do "
              << "ds." << symbol_table.getName(symb_id) << "(t) = ";
-      expr->writeOutput(output, ExprNodeOutputType::epilogueFile, temporary_terms,
+      expr->writeOutput(output, ExprNodeOutputType::matlabDseriesInsideFrom, temporary_terms,
                         temporary_terms_idxs, tef_terms);
       output << ";" << '\n' << "catch" << '\n' << "end" << '\n';
     }

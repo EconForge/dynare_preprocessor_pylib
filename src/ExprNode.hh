@@ -106,8 +106,8 @@ enum class ExprNodeOutputType
   steadyStateFile,                  // MATLAB/Octave code, in the generated steadystate file
   juliaSteadyStateFile,             // Julia code, in the generated steadystate file
   matlabDseries,                    // MATLAB/Octave code for dseries
+  matlabDseriesInsideFrom,          // MATLAB/Octave code for dseries, inside a “from” syntax
   juliaTimeDataFrame,               // Julia code for TimeDataFrame objects
-  epilogueFile,                     // MATLAB/Octave code, in the generated epilogue file
   occbinDifferenceFile,             // MATLAB/Octave code, in the generated occbin_difference file
   pythonStaticModel,                // Python code, static model
   pythonDynamicModel,               // Python code, dynamic model
@@ -134,7 +134,7 @@ isMatlabOutput(ExprNodeOutputType output_type)
          || output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator
          || output_type == ExprNodeOutputType::steadyStateFile
          || output_type == ExprNodeOutputType::matlabDseries
-         || output_type == ExprNodeOutputType::epilogueFile
+         || output_type == ExprNodeOutputType::matlabDseriesInsideFrom
          || output_type == ExprNodeOutputType::occbinDifferenceFile;
 }
 
