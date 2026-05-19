@@ -140,6 +140,10 @@ SymbolTable::freeze() noexcept(false)
           tsi = het_param_ids.at(heterogeneity_dimensions.at(i)).size();
           het_param_ids.at(heterogeneity_dimensions.at(i)).push_back(i);
           break;
+        case SymbolType::epilogue:
+          tsi = epilogue_ids.size();
+          epilogue_ids.push_back(i);
+          break;
         default:
           continue;
         }
@@ -389,10 +393,21 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
       output << "M_.param_names_long = {};" << '\n';
     }
 
+  if (epilogue_ids.size() > 0)
+    {
+      output << "M_.epilogue_names = cell(" << epilogue_nbr() << ", 1);" << '\n';
+      for (int id = 0; id < static_cast<int>(epilogue_ids.size()); id++)
+        output << "M_.epilogue_names{" << id + 1 << "} = '" << getName(epilogue_ids[id]) << "';"
+               << '\n';
+    }
+  else
+    output << "M_.epilogue_names = {};" << '\n';
+
   output << "M_.exo_det_nbr = " << exo_det_nbr() << ";" << '\n'
          << "M_.exo_nbr = " << exo_nbr() << ";" << '\n'
          << "M_.endo_nbr = " << endo_nbr() << ";" << '\n'
-         << "M_.param_nbr = " << param_nbr() << ";" << '\n';
+         << "M_.param_nbr = " << param_nbr() << ";" << '\n'
+         << "M_.epilogue_nbr = " << epilogue_nbr() << ";" << '\n';
 
   // Write the auxiliary variable table
   output << "M_.orig_endo_nbr = " << orig_endo_nbr() << ";" << '\n';

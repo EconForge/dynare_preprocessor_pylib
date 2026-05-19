@@ -160,6 +160,8 @@ private:
   /* Maps type specific IDs of heterogeneous parameters to symbol IDs (outer vector is for
      heterogeneity dimensions) */
   vector<vector<int>> het_param_ids;
+  // Maps type-specific IDs of epilogue variables to symbol IDs
+  vector<int> epilogue_ids;
 
   //! Information about auxiliary variables
   vector<AuxVarInfo> aux_vars;
@@ -462,6 +464,8 @@ public:
   [[nodiscard]] inline int het_exo_nbr(int het_dim) const noexcept(false);
   //! Get number of heterogeneous parameters along a given dimension
   [[nodiscard]] inline int het_param_nbr(int het_dim) const noexcept(false);
+  //! Get number of epilogue variables
+  [[nodiscard]] inline int epilogue_nbr() const noexcept(false);
   //! Returns the greatest symbol ID (the smallest is zero)
   [[nodiscard]] inline int maxID() const;
   //! Get number of user-declared endogenous variables (without the auxiliary variables)
@@ -678,6 +682,15 @@ SymbolTable::het_param_nbr(int het_dim) const noexcept(false)
     throw NotYetFrozenException();
 
   return het_param_ids.at(het_dim).size();
+}
+
+inline int
+SymbolTable::epilogue_nbr() const noexcept(false)
+{
+  if (!frozen)
+    throw NotYetFrozenException();
+
+  return epilogue_ids.size();
 }
 
 inline int

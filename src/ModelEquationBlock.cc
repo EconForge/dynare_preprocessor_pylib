@@ -572,14 +572,9 @@ Epilogue::writeOutput(ostream& output) const
 {
   if (dynamic_def_table.empty())
     {
-      output << "M_.epilogue_names = {};" << '\n' << "M_.epilogue_var_list_ = {};" << '\n';
+      output << "M_.epilogue_var_list_ = {};" << '\n';
       return;
     }
-
-  output << "M_.epilogue_names = cell(" << dynamic_def_table.size() << ",1);" << '\n';
-  for (int idx {1}; const auto& [symb_id, expr] : dynamic_def_table)
-    output << "M_.epilogue_names{" << idx++ << "} = '" << symbol_table.getName(symb_id) << "';"
-           << '\n';
 
   set<int> endogs;
   for (const auto& [symb_id, expr] : dynamic_def_table)
