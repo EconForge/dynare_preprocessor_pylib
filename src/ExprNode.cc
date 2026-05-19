@@ -1426,10 +1426,10 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
             output << lag;
           output << RIGHT_ARRAY_SUBSCRIPT(output_type);
         }
-      else if (output_type == ExprNodeOutputType::matlabDseries
-               || output_type == ExprNodeOutputType::juliaTimeDataFrame)
-        // Only writing dseries for epilogue_static, hence no need to check lag
-        output << "ds." << getName();
+      else if (output_type == ExprNodeOutputType::matlabStaticModel)
+        output << "epilogue" << LEFT_ARRAY_SUBSCRIPT(output_type)
+               << getTypeSpecificID() + ARRAY_SUBSCRIPT_OFFSET(output_type)
+               << RIGHT_ARRAY_SUBSCRIPT(output_type);
       else
         {
           cerr << "VariableNode::writeOutput: Impossible case" << '\n';
