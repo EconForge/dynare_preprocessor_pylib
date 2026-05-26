@@ -457,9 +457,6 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
 
   if (is_parsing_epilogue())
     {
-      if (type == SymbolType::exogenous)
-        error("Symbol '" + mod_file->symbol_table.getName(symb_id)
-              + "' cannot be used inside the epilogue block, because it is an exogenous variable.");
       if (type == SymbolType::exogenousDet)
         error("Symbol '" + mod_file->symbol_table.getName(symb_id)
               + "' cannot be used inside the epilogue block, because it is an exogenous "
