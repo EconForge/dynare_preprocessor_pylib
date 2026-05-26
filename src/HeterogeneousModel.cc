@@ -253,7 +253,7 @@ HeterogeneousModel::transformPass()
        * `complementarity_conditions` vector, which may invalidate the reference to its element. We
        * take a copy instead for safety.
        */
-      const auto& [symb_id, lb, ub] = *complementarity_conditions[i];
+      auto [symb_id, lb, ub] = *complementarity_conditions[i];
 
       VariableNode* var = getVariable(symb_id);
       if (lb)
