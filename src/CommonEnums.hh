@@ -82,7 +82,7 @@ to_string(SymbolType type)
     case statementDeclaredVariable:
       return "statementDeclaredVariable";
     case logTrend:
-      return "logTrend:";
+      return "logTrend";
     case unusedEndogenous:
       return "unusedEndogenous";
     case databaseVariable:
