@@ -166,7 +166,7 @@ str_tolower(string s)
 %token VALUES SCALES VAR VAREXO VAREXO_DET VARIABLE VAROBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL WRITE_LATEX_STEADY_STATE_MODEL
 %token XLS_SHEET XLS_RANGE LMMCP BANDPASS_FILTER COLORMAP VAR_MODEL PAC_MODEL QOQ YOY AOA PAC_EXPECTATION TREND_COMPONENT_MODEL
-%token DATABASE SHOCK_PATHS
+%token DATABASE SHOCK_PATHS CHECK_TOL
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
 %left PLUS MINUS
@@ -3630,6 +3630,7 @@ conditional_forecast_option : o_periods
                             | o_conditional_forecast_conf_sig
                             | o_controlled_varexo
                             | o_parameter_set
+                            | o_check_tol
                             ;
 
 plot_conditional_forecast : PLOT_CONDITIONAL_FORECAST symbol_list ';'
@@ -4330,7 +4331,8 @@ o_subsample_name : symbol EQUAL date_expr ':' date_expr
                  ;
 o_bvar_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("bvar.conf_sig", $3); };
 o_forecasts_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("forecasts.conf_sig", $3); };
-o_conditional_forecast_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("conditional_forecast.conf_sig", $3); };
+o_conditional_forecast_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("conf_sig", $3); };
+o_check_tol : CHECK_TOL EQUAL non_negative_number {driver.option_num("check_tol", $3); };
 o_mh_conf_sig : MH_CONF_SIG EQUAL non_negative_number { driver.option_num("mh_conf_sig", $3); };
 o_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("mh_replic", $3); };
 o_posterior_max_subsample_draws : POSTERIOR_MAX_SUBSAMPLE_DRAWS EQUAL INT_NUMBER { driver.option_num("posterior_max_subsample_draws", $3); };
