@@ -3639,9 +3639,6 @@ ParsingDriver::add_erfc(expr_t arg1)
 expr_t
 ParsingDriver::add_steady_state(expr_t arg1)
 {
-  if (is_parsing_epilogue())
-    error("The STEADY_STATE() operator is forbidden in epilogue block");
-
   // Forbid exogenous variables, see dynare#825
   if (arg1->hasExogenous())
     error("Exogenous variables are not allowed in the context of the STEADY_STATE() operator.");

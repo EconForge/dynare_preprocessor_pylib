@@ -1430,6 +1430,10 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         output << "epilogue" << LEFT_ARRAY_SUBSCRIPT(output_type)
                << getTypeSpecificID() + ARRAY_SUBSCRIPT_OFFSET(output_type)
                << RIGHT_ARRAY_SUBSCRIPT(output_type);
+      else if (output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator)
+        output << "epilogue_steady_state" << LEFT_ARRAY_SUBSCRIPT(output_type)
+               << getTypeSpecificID() + ARRAY_SUBSCRIPT_OFFSET(output_type)
+               << RIGHT_ARRAY_SUBSCRIPT(output_type);
       else
         {
           cerr << "VariableNode::writeOutput: Impossible case" << '\n';
@@ -3230,6 +3234,7 @@ UnaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
 
         case ExprNodeOutputType::matlabDynamicModel:
         case ExprNodeOutputType::occbinDifferenceFile:
+        case ExprNodeOutputType::matlabDseriesInsideFrom:
           new_output_type = ExprNodeOutputType::matlabDynamicSteadyStateOperator;
           break;
         case ExprNodeOutputType::latexDynamicModel:
