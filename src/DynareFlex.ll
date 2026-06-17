@@ -334,6 +334,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>print   		{return token::PRINT;}
 <DYNARE_STATEMENT>noprint   		{return token::NOPRINT;}
 <DYNARE_STATEMENT>conf_sig  		{return token::CONF_SIG;}
+<DYNARE_STATEMENT>check_tol             {return token::CHECK_TOL;}
 <DYNARE_STATEMENT>mh_conf_sig  		{return token::MH_CONF_SIG;}
 <DYNARE_STATEMENT>mh_replic 		{return token::MH_REPLIC;}
 <DYNARE_STATEMENT>mh_drop   		{return token::MH_DROP;}

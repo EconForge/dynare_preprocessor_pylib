@@ -1263,6 +1263,7 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
               << "M_.heteroskedastic_shocks.Hscale_orig = struct([]);" << '\n'
               << "M_.matched_irfs = {};" << '\n'
               << "M_.matched_irfs_weights = {};" << '\n'
+              << "M_.conditional_forecast_paths = struct([]);" << '\n'
               << "M_.perfect_foresight_controlled_paths = struct([]);" << '\n'
               << "M_.filter_tunes = struct([]);" << '\n';
 

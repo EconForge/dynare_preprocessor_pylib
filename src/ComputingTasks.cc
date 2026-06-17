@@ -3374,8 +3374,7 @@ ConditionalForecastStatement::writeOutput(ostream& output, [[maybe_unused]] cons
 {
   options_list.writeOutput(output, "options_cond_fcst_");
   output << "oo_.conditional_forecast=conditional_forecasts.run(M_,options_,"
-         << "oo_, estim_params_, constrained_paths_, constrained_vars_, "
-         << "options_cond_fcst_);" << '\n';
+         << "oo_, estim_params_, options_cond_fcst_);" << '\n';
 }
 
 void

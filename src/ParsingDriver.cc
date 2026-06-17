@@ -1313,9 +1313,6 @@ ParsingDriver::add_det_shock(const string& var,
 {
   switch (type)
     {
-    case DetShockType::conditional_forecast:
-      check_symbol_is_endogenous(var);
-      break;
     case DetShockType::standard:
       // Allow exo_det, for stochastic context
       check_symbol_is_exogenous(var, true);
@@ -1330,10 +1327,10 @@ ParsingDriver::add_det_shock(const string& var,
 
   if (det_shocks.contains(symb_id) || learnt_shocks_add.contains(symb_id)
       || learnt_shocks_multiply.contains(symb_id))
-    error("shocks/conditional_forecast_paths: variable " + var + " declared twice");
+    error("shocks: variable " + var + " declared twice");
 
   if (periods.size() != values.size())
-    error("shocks/conditional_forecast_paths: variable " + var
+    error("shocks: variable " + var
           + ": number of periods is different from number of shock values");
 
   vector<pair<AbstractShocksStatement::period_range_t, expr_t>> v;
@@ -1345,7 +1342,6 @@ ParsingDriver::add_det_shock(const string& var,
   switch (type)
     {
     case DetShockType::standard:
-    case DetShockType::conditional_forecast:
       det_shocks[symb_id] = v;
       break;
     case DetShockType::add:
@@ -3020,20 +3016,36 @@ ParsingDriver::plot_conditional_forecast(const optional<string>& periods,
 }
 
 void
-ParsingDriver::conditional_forecast_paths()
+ParsingDriver::conditional_forecast_paths(
+    bool overwrite, const vector<tuple<string, vector<AbstractShocksStatement::period_range_t>,
+                                       vector<expr_t>, string>>& paths)
 {
-  if (ranges::any_of(views::values(det_shocks), [](auto& v) {
-        return ranges::any_of(views::keys(v),
-                              [](auto& p) { return !holds_alternative<pair<int, int>>(p); });
-      }))
-    error("conditional_forecast_paths: dates are not allowed in the 'periods' keyword");
-  mod_file->addStatement(
-      make_unique<ConditionalForecastPathsStatement>(move(det_shocks), mod_file->symbol_table));
-  det_shocks.clear();
-  if (!learnt_shocks_add.empty())
-    error("conditional_forecast_paths: 'add' keyword not allowed");
-  if (!learnt_shocks_multiply.empty())
-    error("conditional_forecast_paths: 'multiply' keyword not allowed");
+  if (!ranges::all_of(paths, [](const auto& it) { return get<3>(it).empty(); })
+      && !ranges::all_of(paths, [](const auto& it) { return !get<3>(it).empty(); }))
+    error("It is not possible to mix the legacy syntax (with the 'var' keyword) and the new syntax "
+          "(with the 'exogenize' keyword) in the same 'conditional_forecast_paths' statement.");
+
+  ConditionalForecastPathsStatement::paths_t paths_transformed;
+  for (const auto& [exogenize, periods, values, endogenize] : paths)
+    {
+      int exogenize_id = mod_file->symbol_table.getID(exogenize);
+      optional<int> endogenize_id {[&]() -> optional<int> {
+        if (endogenize.empty())
+          return nullopt;
+        else
+          return mod_file->symbol_table.getID(endogenize);
+      }()};
+
+      vector<pair<AbstractShocksStatement::period_range_t, expr_t>> v;
+
+      v.reserve(periods.size());
+      for (size_t i = 0; i < periods.size(); i++)
+        v.emplace_back(periods[i], values[i]);
+
+      paths_transformed.emplace_back(exogenize_id, move(v), endogenize_id);
+    }
+  mod_file->addStatement(make_unique<ConditionalForecastPathsStatement>(
+      overwrite, move(paths_transformed), mod_file->symbol_table));
 }
 
 void

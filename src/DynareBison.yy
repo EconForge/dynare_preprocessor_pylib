@@ -166,7 +166,7 @@ str_tolower(string s)
 %token VALUES SCALES VAR VAREXO VAREXO_DET VARIABLE VAROBS PREDETERMINED_VARIABLES VAR_EXPECTATION VAR_EXPECTATION_MODEL PLOT_SHOCK_DECOMPOSITION MODEL_LOCAL_VARIABLE
 %token WRITE_LATEX_DYNAMIC_MODEL WRITE_LATEX_STATIC_MODEL WRITE_LATEX_ORIGINAL_MODEL WRITE_LATEX_STEADY_STATE_MODEL
 %token XLS_SHEET XLS_RANGE LMMCP BANDPASS_FILTER COLORMAP VAR_MODEL PAC_MODEL QOQ YOY AOA PAC_EXPECTATION TREND_COMPONENT_MODEL
-%token DATABASE SHOCK_PATHS
+%token DATABASE SHOCK_PATHS CHECK_TOL
 %left EQUAL_EQUAL EXCLAMATION_EQUAL
 %left LESS GREATER LESS_EQUAL GREATER_EQUAL
 %left PLUS MINUS
@@ -290,8 +290,8 @@ CHECK_JACOBIAN_SINGULARITY
 %type <tuple<string, string, string>> matched_irfs_weights_elem_var_varexo
 %type <pair<tuple<string, string, string, string, string, string>, expr_t>> matched_irfs_weights_elem
 %type <map<tuple<string, string, string, string, string, string>, expr_t>> matched_irfs_weights_list
-%type <tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>, string>> perfect_foresight_controlled_paths_elem
-%type <vector<tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>, string>>> perfect_foresight_controlled_paths_list
+%type <tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>, string>> perfect_foresight_controlled_paths_elem conditional_forecast_paths_elem
+%type <vector<tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>, string>>> perfect_foresight_controlled_paths_list conditional_forecast_paths_list
 %type <pair<string, string>> o_ext_func_name o_ext_func_nargs o_first_deriv_provided o_second_deriv_provided external_function_options
 %type <map<string, string>> external_function_options_list
 %%
@@ -3630,6 +3630,7 @@ conditional_forecast_option : o_periods
                             | o_conditional_forecast_conf_sig
                             | o_controlled_varexo
                             | o_parameter_set
+                            | o_check_tol
                             ;
 
 plot_conditional_forecast : PLOT_CONDITIONAL_FORECAST symbol_list ';'
@@ -3638,19 +3639,38 @@ plot_conditional_forecast : PLOT_CONDITIONAL_FORECAST symbol_list ';'
                             { driver.plot_conditional_forecast($5, $7); }
                           ;
 
-conditional_forecast_paths : CONDITIONAL_FORECAST_PATHS ';' conditional_forecast_paths_shock_list END ';'
-                             { driver.conditional_forecast_paths(); }
+conditional_forecast_paths : CONDITIONAL_FORECAST_PATHS ';' conditional_forecast_paths_list END ';'
+                             { driver.conditional_forecast_paths(false, $3); }
+                           | CONDITIONAL_FORECAST_PATHS '(' OVERWRITE ')' ';' conditional_forecast_paths_list END ';'
+                             { driver.conditional_forecast_paths(true, $6); }
                            ;
 
-conditional_forecast_paths_shock_list : conditional_forecast_paths_shock_elem
-                                      | conditional_forecast_paths_shock_list conditional_forecast_paths_shock_elem
-                                      ;
+conditional_forecast_paths_list : conditional_forecast_paths_elem
+                                  { $$ = { $1 }; }
+                                | conditional_forecast_paths_list conditional_forecast_paths_elem
+                                  {
+                                    $$ = $1;
+                                    $$.push_back($2);
+                                  }
+                                ;
 
-conditional_forecast_paths_shock_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list ';'
-                                        { driver.add_det_shock(
-                                              $2, $5, $8,
-                                              ParsingDriver::DetShockType::conditional_forecast); }
-                                      ;
+conditional_forecast_paths_elem : VAR symbol ';' PERIODS period_list ';' VALUES value_list';'
+                                  {
+                                    driver.check_symbol_is_endogenous($2);
+                                    if ($5.size() != $8.size())
+                                      driver.error("The number of periods is different from the number of values");
+                                    $$ = { $2, $5, $8, "" };
+                                    driver.warning("Using the 'var' keyword inside 'conditional_forecast_paths' is deprecated. Use 'exogenize' instead.");
+                                  }
+                                | EXOGENIZE symbol ';' PERIODS period_list ';' VALUES expression_list ';' ENDOGENIZE symbol ';'
+                                  {
+                                    driver.check_symbol_is_endogenous($2);
+                                    driver.check_symbol_is_exogenous($11, false);
+                                    if ($5.size() != $8.size())
+                                      driver.error("The number of periods is different from the number of values");
+                                    $$ = { $2, $5, $8, $11 };
+                                  }
+                                ;
 
 steady_state_model : STEADY_STATE_MODEL ';' { driver.begin_steady_state_model(); }
                      steady_state_equation_list END ';' { driver.reset_data_tree(); }
@@ -4311,7 +4331,8 @@ o_subsample_name : symbol EQUAL date_expr ':' date_expr
                  ;
 o_bvar_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("bvar.conf_sig", $3); };
 o_forecasts_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("forecasts.conf_sig", $3); };
-o_conditional_forecast_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("conditional_forecast.conf_sig", $3); };
+o_conditional_forecast_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("conf_sig", $3); };
+o_check_tol : CHECK_TOL EQUAL non_negative_number {driver.option_num("check_tol", $3); };
 o_mh_conf_sig : MH_CONF_SIG EQUAL non_negative_number { driver.option_num("mh_conf_sig", $3); };
 o_mh_replic : MH_REPLIC EQUAL INT_NUMBER { driver.option_num("mh_replic", $3); };
 o_posterior_max_subsample_draws : POSTERIOR_MAX_SUBSAMPLE_DRAWS EQUAL INT_NUMBER { driver.option_num("posterior_max_subsample_draws", $3); };

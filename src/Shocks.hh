@@ -209,17 +209,23 @@ public:
 
 class ConditionalForecastPathsStatement : public Statement
 {
+public:
+  // (exogenize_id, vector of (period range, value), endogenize_id)
+  // endogenize_id is nullopt when the legacy syntax is used (with the “var” keyword and without
+  // the “endogenize” keyword)
+  using paths_t = vector<
+      tuple<int, vector<pair<AbstractShocksStatement::period_range_t, expr_t>>, optional<int>>>;
+
 private:
-  const AbstractShocksStatement::det_shocks_t paths;
+  const bool overwrite;
+  const paths_t paths;
   const SymbolTable& symbol_table;
-  const int path_length;
 
 public:
-  ConditionalForecastPathsStatement(AbstractShocksStatement::det_shocks_t paths_arg,
+  ConditionalForecastPathsStatement(bool overwrite_arg, paths_t paths_arg,
                                     const SymbolTable& symbol_table_arg);
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
-  static int computePathLength(const AbstractShocksStatement::det_shocks_t& paths);
 };
 
 class PerfectForesightControlledPathsStatement : public Statement
