@@ -4093,10 +4093,10 @@ filter_tunes_list : filter_tunes_elem
                   ;
 
 filter_tunes_elem : VAR symbol ';' PERIODS period_list ';' VALUES expression_list ';'
-                    { driver.add_filter_tunes_elem($2, move($5), $8, {}); }
+                    { driver.add_filter_tunes_elem($2, $5, $8, {}); }
                   | VAR symbol ';' PERIODS period_list ';' VALUES expression_list ';'
                     STDERR expression_list ';'
-                    { driver.add_filter_tunes_elem($2, move($5), $8, move($11)); }
+                    { driver.add_filter_tunes_elem($2, $5, $8, $11); }
                   ;
 
 o_solve_algo : SOLVE_ALGO EQUAL INT_NUMBER { driver.option_num("solve_algo", $3); };
