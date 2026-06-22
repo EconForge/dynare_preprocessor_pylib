@@ -1592,9 +1592,8 @@ ParsingDriver::combine_lag_and_restriction(const string& lag)
 {
   int current_lag = stoi(lag);
 
-  for (const auto& it : svar_ident_restrictions)
-    if (it.lag == current_lag)
-      error("lag " + lag + " used more than once.");
+  if (ranges::any_of(svar_ident_restrictions, [=](auto& it) { return it.lag == current_lag; }))
+    error("lag " + lag + " used more than once.");
 
   for (const auto& it : svar_equation_restrictions)
     for (auto it1 : it.second)
@@ -1633,9 +1632,8 @@ ParsingDriver::add_restriction_in_equation(const string& equation,
       check_symbol_existence(name);
       int symb_id = mod_file->symbol_table.getID(name);
 
-      for (const auto& viit : svar_restriction_symbols)
-        if (symb_id == viit)
-          error(name + " restriction added twice.");
+      if (ranges::any_of(svar_restriction_symbols, [=](int it) { return it == symb_id; }))
+        error(name + " restriction added twice.");
 
       svar_restriction_symbols.push_back(symb_id);
     }
@@ -2615,9 +2613,8 @@ ParsingDriver::heterogeneity_simulate(vector<string> symbol_list)
 void
 ParsingDriver::add_mc_filename(string filename, string prior)
 {
-  for (auto& it : filename_list)
-    if (it.first == filename)
-      error("model_comparison: filename " + filename + " declared twice");
+  if (ranges::any_of(filename_list, [&](auto& it) { return it.first == filename; }))
+    error("model_comparison: filename " + filename + " declared twice");
   filename_list.emplace_back(move(filename), move(prior));
 }
 
@@ -2928,10 +2925,10 @@ ParsingDriver::svar()
       error("A 'chain' option must be passed to the 'svar' statement.");
     }
 
-  if (options_list.contains("ms.equations"))
-    for (int viit : options_list.get<vector<int>>("ms.equations"))
-      if (viit <= 0)
-        error("The value(s) passed to the 'equations' option must be greater than zero.");
+  if (options_list.contains("ms.equations")
+      && ranges::any_of(options_list.get<vector<int>>("ms.equations"),
+                        [](int it) { return it <= 0; }))
+    error("The value(s) passed to the 'equations' option must be greater than zero.");
 
   mod_file->addStatement(make_unique<SvarStatement>(move(options_list)));
   options_list.clear();
