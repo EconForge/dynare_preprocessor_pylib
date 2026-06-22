@@ -18,6 +18,7 @@
  */
 
 #include "Statement.hh"
+#include "Utils.hh"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <boost/xpressive/xpressive.hpp>
@@ -69,42 +70,8 @@ NativeStatement::writeJsonOutput(ostream& output) const
   output << R"({"statementName": "native")"
          << R"(, "string": ")";
 
-  // A similar code is in VerbatimStatement::writeJsonOutput()
   for (auto ch : native_statement)
-    switch (ch)
-      {
-      case '\b':
-        output << R"(\b)";
-        break;
-
-      case '\f':
-        output << R"(\f)";
-        break;
-
-      case '\n':
-        output << R"(\n)";
-        break;
-
-      case '\r':
-        output << R"(\r)";
-        break;
-
-      case '\t':
-        output << R"(\t)";
-        break;
-
-      case '"':
-        output << R"(\")";
-        break;
-
-      case '\\':
-        output << R"(\\)";
-        break;
-
-      default:
-        output << ch;
-        break;
-      }
+    json_output_with_escape(ch, output);
 
   output << R"("})";
 }
@@ -127,42 +94,8 @@ VerbatimStatement::writeJsonOutput(ostream& output) const
   output << R"({"statementName": "verbatim")"
          << R"(, "string": ")";
 
-  // A similar code is in NativeStatement::writeJsonOutput()
   for (auto ch : verbatim_statement)
-    switch (ch)
-      {
-      case '\b':
-        output << R"(\b)";
-        break;
-
-      case '\f':
-        output << R"(\f)";
-        break;
-
-      case '\n':
-        output << R"(\n)";
-        break;
-
-      case '\r':
-        output << R"(\r)";
-        break;
-
-      case '\t':
-        output << R"(\t)";
-        break;
-
-      case '"':
-        output << R"(\")";
-        break;
-
-      case '\\':
-        output << R"(\\)";
-        break;
-
-      default:
-        output << ch;
-        break;
-      }
+    json_output_with_escape(ch, output);
 
   output << R"("})";
 }

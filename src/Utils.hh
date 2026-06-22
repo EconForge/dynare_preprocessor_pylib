@@ -51,4 +51,7 @@ filesystem::path packageDir(const string_view& package);
    Works even if the argument does not exist or is not a directory. */
 void remove_directory_with_matlab_lock(const filesystem::path& dir);
 
+// Prints character to output stream, with proper JSON escaping for special characters
+void json_output_with_escape(char c, ostream& output);
+
 #endif

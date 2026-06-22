@@ -112,3 +112,42 @@ remove_directory_with_matlab_lock(const filesystem::path& dir)
   rename(dir, tmp);
   remove_all(tmp);
 }
+
+void
+json_output_with_escape(char c, ostream& output)
+{
+  switch (c)
+    {
+    case '\b':
+      output << R"(\b)";
+      break;
+
+    case '\f':
+      output << R"(\f)";
+      break;
+
+    case '\n':
+      output << R"(\n)";
+      break;
+
+    case '\r':
+      output << R"(\r)";
+      break;
+
+    case '\t':
+      output << R"(\t)";
+      break;
+
+    case '"':
+      output << R"(\")";
+      break;
+
+    case '\\':
+      output << R"(\\)";
+      break;
+
+    default:
+      output << c;
+      break;
+    }
+}
