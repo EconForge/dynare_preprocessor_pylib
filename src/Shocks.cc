@@ -1181,26 +1181,22 @@ ShockGroupsStatement::writeOutput(ostream& output, [[maybe_unused]] const string
   int i = 1;
   for (auto it = shock_groups.begin(); it != shock_groups.end(); ++it)
     {
-      bool unique_label {true};
-      for (auto it1 = it + 1; it1 != shock_groups.end(); ++it1)
-        if (it->name == it1->name)
-          {
-            unique_label = false;
-            cerr << "Warning: shock group label '" << it->name << "' has been reused. "
-                 << "Only using the last definition." << '\n';
-            break;
-          }
-
-      if (unique_label)
+      if (ranges::find_if(it + 1, shock_groups.end(),
+                          [&](const auto& sg) { return sg.name == it->name; })
+          != shock_groups.end())
         {
-          output << "M_.shock_groups." << name << ".group" << i << ".label = '" << it->name << "';"
-                 << '\n'
-                 << "M_.shock_groups." << name << ".group" << i << ".shocks = {";
-          for (const auto& it1 : it->list)
-            output << " '" << it1 << "'";
-          output << "};" << '\n';
-          i++;
+          cerr << "Warning: shock group label '" << it->name << "' has been reused. "
+               << "Only using the last definition." << '\n';
+          continue;
         }
+
+      output << "M_.shock_groups." << name << ".group" << i << ".label = '" << it->name << "';"
+             << '\n'
+             << "M_.shock_groups." << name << ".group" << i << ".shocks = {";
+      for (const auto& sg : it->list)
+        output << " '" << sg << "'";
+      output << "};" << '\n';
+      i++;
     }
 }
 
@@ -1210,30 +1206,22 @@ ShockGroupsStatement::writeJsonOutput(ostream& output) const
   output << R"({"statementName": "shock_groups", "name": ")" << name << R"(", "groups": [)";
   bool printed_something {false};
   for (auto it = shock_groups.begin(); it != shock_groups.end(); ++it)
-    {
-      bool unique_label {true};
-      for (auto it1 = it + 1; it1 != shock_groups.end(); ++it1)
-        if (it->name == it1->name)
+    if (ranges::find_if(it + 1, shock_groups.end(),
+                        [&](const auto& sg) { return sg.name == it->name; })
+        == shock_groups.end()) // Only use last definition if there is a duplicate label
+      {
+        if (exchange(printed_something, true))
+          output << ", ";
+        output << R"({"group_name": ")" << it->name << R"(",)"
+               << R"("shocks": [)";
+        for (bool printed_something2 {false}; const auto& it1 : it->list)
           {
-            unique_label = false;
-            break;
+            if (exchange(printed_something2, true))
+              output << ", ";
+            output << R"(")" << it1 << R"(")";
           }
-
-      if (unique_label)
-        {
-          if (exchange(printed_something, true))
-            output << ", ";
-          output << R"({"group_name": ")" << it->name << R"(",)"
-                 << R"("shocks": [)";
-          for (bool printed_something2 {false}; const auto& it1 : it->list)
-            {
-              if (exchange(printed_something2, true))
-                output << ", ";
-              output << R"(")" << it1 << R"(")";
-            }
-          output << "]}";
-        }
-    }
+        output << "]}";
+      }
   output << "]}";
 }
 
