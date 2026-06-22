@@ -3284,15 +3284,16 @@ ParsingDriver::change_type(SymbolType new_type, const vector<string>& symbol_lis
 {
   for (auto& it : symbol_list)
     {
-      int id;
-      try
-        {
-          id = mod_file->symbol_table.getID(it);
-        }
-      catch (SymbolTable::UnknownSymbolNameException& e)
-        {
-          error("Unknown variable " + it);
-        }
+      int id {[&] {
+        try
+          {
+            return mod_file->symbol_table.getID(it);
+          }
+        catch (SymbolTable::UnknownSymbolNameException& e)
+          {
+            error("Unknown variable " + it);
+          }
+      }()};
 
       // Check if symbol already used in a VariableNode
       if (mod_file->expressions_tree.isSymbolUsed(id) || mod_file->dynamic_model.isSymbolUsed(id))
@@ -3882,16 +3883,17 @@ ParsingDriver::begin_steady_state_model()
 void
 ParsingDriver::add_steady_state_model_equal(const string& varname, expr_t expr)
 {
-  int id;
-  try
-    {
-      id = mod_file->symbol_table.getID(varname);
-    }
-  catch (SymbolTable::UnknownSymbolNameException& e)
-    {
-      // Unknown symbol, declare it as a ModFileLocalVariable
-      id = mod_file->symbol_table.addSymbol(varname, SymbolType::modFileLocalVariable);
-    }
+  int id {[&] {
+    try
+      {
+        return mod_file->symbol_table.getID(varname);
+      }
+    catch (SymbolTable::UnknownSymbolNameException& e)
+      {
+        // Unknown symbol, declare it as a ModFileLocalVariable
+        return mod_file->symbol_table.addSymbol(varname, SymbolType::modFileLocalVariable);
+      }
+  }()};
 
   if (SymbolType type = mod_file->symbol_table.getType(id);
       type != SymbolType::endogenous && type != SymbolType::modFileLocalVariable
@@ -3908,16 +3910,18 @@ ParsingDriver::add_steady_state_model_equal_multiple(const vector<string>& symbo
 
   for (const auto& symb : symbol_list)
     {
-      int id;
-      try
-        {
-          id = mod_file->symbol_table.getID(symb);
-        }
-      catch (SymbolTable::UnknownSymbolNameException& e)
-        {
-          // Unknown symbol, declare it as a ModFileLocalVariable
-          id = mod_file->symbol_table.addSymbol(symb, SymbolType::modFileLocalVariable);
-        }
+      int id {[&] {
+        try
+          {
+            return mod_file->symbol_table.getID(symb);
+          }
+        catch (SymbolTable::UnknownSymbolNameException& e)
+          {
+            // Unknown symbol, declare it as a ModFileLocalVariable
+            return mod_file->symbol_table.addSymbol(symb, SymbolType::modFileLocalVariable);
+          }
+      }()};
+
       if (SymbolType type = mod_file->symbol_table.getType(id);
           type != SymbolType::endogenous && type != SymbolType::modFileLocalVariable
           && type != SymbolType::parameter)
