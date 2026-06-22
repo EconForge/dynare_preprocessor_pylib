@@ -1020,7 +1020,7 @@ public:
   void end_shock_paths(bool overwrite);
 
   void add_filter_tunes_elem(const string& name,
-                             vector<AbstractShocksStatement::period_range_t>&& periods,
+                             vector<AbstractShocksStatement::period_range_t> periods,
                              const vector<expr_t>& values, const vector<expr_t>& stderrs);
   void end_filter_tunes();
 

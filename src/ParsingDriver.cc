@@ -4612,7 +4612,7 @@ ParsingDriver::end_shock_paths(bool overwrite)
 
 void
 ParsingDriver::add_filter_tunes_elem(const string& name,
-                                     vector<AbstractShocksStatement::period_range_t>&& periods,
+                                     vector<AbstractShocksStatement::period_range_t> periods,
                                      const vector<expr_t>& values, const vector<expr_t>& stderrs)
 {
   check_symbol_is_endogenous(name);
