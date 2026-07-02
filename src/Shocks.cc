@@ -995,8 +995,9 @@ ConditionalForecastPathsStatement::writeJsonOutput(ostream& output) const
 }
 
 PerfectForesightControlledPathsStatement::PerfectForesightControlledPathsStatement(
-    paths_t paths_arg, variant<int, string> learnt_in_period_arg,
+    bool overwrite_arg, paths_t paths_arg, variant<int, string> learnt_in_period_arg,
     const SymbolTable& symbol_table_arg) :
+    overwrite {overwrite_arg},
     paths {move(paths_arg)},
     learnt_in_period {move(learnt_in_period_arg)},
     symbol_table {symbol_table_arg}
@@ -1017,6 +1018,22 @@ PerfectForesightControlledPathsStatement::writeOutput(ostream& output,
                                                       [[maybe_unused]] const string& basename,
                                                       [[maybe_unused]] bool minimal_workspace) const
 {
+  if (overwrite)
+    {
+      output << "if ~isempty(M_.perfect_foresight_controlled_paths)" << '\n'
+             << "  M_.perfect_foresight_controlled_paths = "
+                "M_.perfect_foresight_controlled_paths(cellfun(@(x) ~isa(x, '";
+      if (holds_alternative<int>(learnt_in_period))
+        output << "numeric";
+      else
+        output << "dates";
+      output << "') || x ~= ";
+      /* NB: date expression not parenthesized since it can only contain a + operator, which has
+         higher precedence than ~= and || */
+      visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
+      output << ", {M_.perfect_foresight_controlled_paths.learnt_in}));" << '\n' << "end" << '\n';
+    }
+
   output << "M_.perfect_foresight_controlled_paths = [ M_.perfect_foresight_controlled_paths;"
          << '\n';
   for (const auto& [exogenize_id, constraints, endogenize_id] : paths)
@@ -1040,7 +1057,7 @@ PerfectForesightControlledPathsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "perfect_foresight_controlled_paths", "learnt_in": )";
   visit([&](const auto& p) { print_json_learnt_in(output, p); }, learnt_in_period);
-  output << R"(, "paths": [)";
+  output << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "paths": [)";
   for (bool printed_something {false};
        const auto& [exogenize_id, constraints, endogenize_id] : paths)
     {

@@ -282,8 +282,8 @@ CHECK_JACOBIAN_SINGULARITY
 %type <PacTargetKind> pac_target_kind
 %type <vector<tuple<string, string, vector<pair<string, string>>>>> symbol_list_with_tex_and_partition
 %type <variant<int, string>> integer_or_date
-%type <map<string, variant<bool, variant<int, string>>>> mshocks_options_list shock_paths_options_list
-%type <pair<string, variant<bool, variant<int, string>>>> mshocks_option shock_paths_option
+%type <map<string, variant<bool, variant<int, string>>>> mshocks_options_list shock_paths_options_list perfect_foresight_controlled_paths_options_list
+%type <pair<string, variant<bool, variant<int, string>>>> mshocks_option shock_paths_option perfect_foresight_controlled_paths_option
 %type <pair<vector<expr_t>, vector<expr_t>>> matched_irfs_elem_values_weights
 %type <pair<pair<string, string>, vector<tuple<int, int, expr_t, expr_t>>>> matched_irfs_elem
 %type <map<pair<string, string>, vector<tuple<int, int, expr_t, expr_t>>>> matched_irfs_list
@@ -1805,10 +1805,35 @@ perfect_foresight_with_expectation_errors_solver_options : o_pfwee_constant_simu
                                                          ;
 
 perfect_foresight_controlled_paths : PERFECT_FORESIGHT_CONTROLLED_PATHS ';' perfect_foresight_controlled_paths_list END ';'
-                                     { driver.perfect_foresight_controlled_paths($3, 1); }
-| PERFECT_FORESIGHT_CONTROLLED_PATHS '(' LEARNT_IN EQUAL integer_or_date ')' ';' perfect_foresight_controlled_paths_list END ';'
-                                     { driver.perfect_foresight_controlled_paths($8, $5); }
+                                     { driver.perfect_foresight_controlled_paths(false, $3, 1); }
+                                   | PERFECT_FORESIGHT_CONTROLLED_PATHS '(' perfect_foresight_controlled_paths_options_list ')' ';' perfect_foresight_controlled_paths_list END ';'
+                                     {
+                                       variant<int, string> learnt_in_period = 1;
+                                       bool overwrite = false;
+                                       if (auto it = $3.find("learnt_in"); it != $3.end())
+                                         learnt_in_period = get<variant<int, string>>(it->second);
+                                       if (auto it = $3.find("overwrite"); it != $3.end())
+                                         overwrite = get<bool>(it->second);
+                                       driver.perfect_foresight_controlled_paths(overwrite, $6, learnt_in_period);
+                                     }
                                    ;
+
+perfect_foresight_controlled_paths_options_list : perfect_foresight_controlled_paths_option
+                                                  { $$ = {$1}; }
+                                                | perfect_foresight_controlled_paths_options_list COMMA perfect_foresight_controlled_paths_option
+                                                  {
+                                                    $$ = $1;
+                                                    auto [it, success] = $$.insert($3);
+                                                    if (!success)
+                                                      driver.error("The '" + $3.first + "' option is declared multiple times");
+                                                  }
+                                                ;
+
+perfect_foresight_controlled_paths_option : OVERWRITE
+                                            { $$ = {"overwrite", true}; }
+                                          | LEARNT_IN EQUAL integer_or_date
+                                            { $$ = {"learnt_in", $3}; }
+                                          ;
 
 perfect_foresight_controlled_paths_list : perfect_foresight_controlled_paths_list perfect_foresight_controlled_paths_elem
                                           {

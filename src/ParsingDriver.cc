@@ -4169,6 +4169,7 @@ ParsingDriver::perfect_foresight_with_expectation_errors_solver()
 
 void
 ParsingDriver::perfect_foresight_controlled_paths(
+    bool overwrite,
     const vector<tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>,
                        string>>& paths,
     variant<int, string> learnt_in_period)
@@ -4192,7 +4193,7 @@ ParsingDriver::perfect_foresight_controlled_paths(
       paths_transformed.emplace_back(exogenize_id, move(v), endogenize_id);
     }
   mod_file->addStatement(make_unique<PerfectForesightControlledPathsStatement>(
-      move(paths_transformed), move(learnt_in_period), mod_file->symbol_table));
+      overwrite, move(paths_transformed), move(learnt_in_period), mod_file->symbol_table));
 }
 
 void

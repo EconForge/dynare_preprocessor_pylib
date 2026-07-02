@@ -975,6 +975,7 @@ public:
   void perfect_foresight_with_expectation_errors_setup();
   void perfect_foresight_with_expectation_errors_solver();
   void perfect_foresight_controlled_paths(
+      bool overwrite,
       const vector<tuple<string, vector<AbstractShocksStatement::period_range_t>, vector<expr_t>,
                          string>>& paths,
       variant<int, string> learnt_in_period);

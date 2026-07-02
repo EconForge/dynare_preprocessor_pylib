@@ -236,12 +236,13 @@ public:
       = vector<tuple<int, vector<pair<AbstractShocksStatement::period_range_t, expr_t>>, int>>;
 
 private:
+  const bool overwrite;
   const paths_t paths;
   const variant<int, string> learnt_in_period;
   const SymbolTable& symbol_table;
 
 public:
-  PerfectForesightControlledPathsStatement(paths_t paths_arg,
+  PerfectForesightControlledPathsStatement(bool overwrite_arg, paths_t paths_arg,
                                            variant<int, string> learnt_in_period_arg,
                                            const SymbolTable& symbol_table_arg);
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
