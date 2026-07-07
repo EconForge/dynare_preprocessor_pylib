@@ -1672,7 +1672,7 @@ ModelTree::findCompilerOnMacos(const string& mexext)
   /* Try to find gcc, otherwise use Apple’s clang compiler.
      Homebrew binaries are located in /opt/homebrew/bin/.
      Apple’s clang is located both in /usr/bin/gcc and /usr/bin/clang. */
-  const string macos_gcc_version {"15"};
+  const string macos_gcc_version {"16"};
 
   if (filesystem::path global_gcc_path {"/opt/homebrew/bin/gcc-" + macos_gcc_version};
       exists(global_gcc_path) && mexext == "mexmaca64")
