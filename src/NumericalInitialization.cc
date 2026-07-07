@@ -426,7 +426,7 @@ HistValStatement::writeOutput(ostream& output, [[maybe_unused]] const string& ba
   output << "%" << '\n'
          << "% HISTVAL instructions" << '\n'
          << "%" << '\n'
-         << "M_.histval_dseries = dseries(zeros(M_.orig_maximum_lag_with_diffs_expanded, "
+         << "histval_dseries = dseries(zeros(M_.orig_maximum_lag_with_diffs_expanded, "
             "M_.orig_endo_nbr"
          << (symbol_table.AuxVarsSize() > 0 ? "+sum([M_.aux_vars.type]==6)" : "")
          << (symbol_table.exo_nbr() > 0 ? "+M_.exo_nbr" : "")
@@ -445,29 +445,29 @@ HistValStatement::writeOutput(ostream& output, [[maybe_unused]] const string& ba
       if (symbol_table.getType(symb_id) == SymbolType::unusedEndogenous) // See #82
         continue;
 
-      output << "M_.histval_dseries{'" << symbol_table.getName(symb_id) << "'}(dates('" << lag
+      output << "histval_dseries{'" << symbol_table.getName(symb_id) << "'}(dates('" << lag
              << "Y'))=";
       value->writeOutput(output);
       output << ";" << '\n';
     }
 
   output << "if exist(['+' M_.fname '/dynamic_set_auxiliary_series.m'])" << '\n'
-         << "  eval(['M_.histval_dseries = ' M_.fname "
-            "'.dynamic_set_auxiliary_series(M_.histval_dseries, M_.params);']);"
+         << "  eval(['histval_dseries = ' M_.fname "
+            "'.dynamic_set_auxiliary_series(histval_dseries, M_.params);']);"
          << '\n'
          << "end" << '\n'
-         << "M_.endo_histval = M_.histval_dseries{M_.endo_names{:}}(dates(sprintf('%dY', "
+         << "oo_.histval.endo = histval_dseries{M_.endo_names{:}}(dates(sprintf('%dY', "
             "1-M_.maximum_lag)):dates('0Y')).data';"
          << '\n'
-         << "M_.endo_histval(isnan(M_.endo_histval)) = 0;"
+         << "oo_.histval.endo(isnan(oo_.histval.endo)) = 0;"
          << '\n'; // Ensure that lead aux variables do not have a NaN
 
   if (symbol_table.exo_nbr() > 0)
-    output << "M_.exo_histval = M_.histval_dseries{M_.exo_names{:}}(dates(sprintf('%dY', "
+    output << "oo_.histval.exo = histval_dseries{M_.exo_names{:}}(dates(sprintf('%dY', "
               "1-M_.maximum_lag)):dates('0Y')).data';"
            << '\n';
   if (symbol_table.exo_det_nbr() > 0)
-    output << "M_.exo_det_histval = M_.histval_dseries{M_.exo_det_names{:}}(dates(sprintf('%dY', "
+    output << "oo_.histval.exo_det = histval_dseries{M_.exo_det_names{:}}(dates(sprintf('%dY', "
               "1-M_.maximum_lag)):dates('0Y')).data';"
            << '\n';
 }
@@ -536,9 +536,7 @@ HistvalFileStatement::writeOutput(ostream& output, [[maybe_unused]] const string
          << "%" << '\n'
          << "options_.histval_file = true;" << '\n';
   options_list.writeOutput(output, "options_histvalf");
-  output
-      << "[M_.endo_histval, M_.exo_histval, M_.exo_det_histval] = histvalf(M_, options_histvalf);"
-      << '\n';
+  output << "oo_.histval = histvalf(M_, options_histvalf);" << '\n';
 }
 
 void
