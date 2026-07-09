@@ -874,27 +874,41 @@ initval_list : initval_list initval_elem
 
 initval_elem : symbol EQUAL expression ';' { driver.init_val($1, $3); };
 
-histval_file : HISTVAL_FILE '(' h_options_list ')' ';'
+histval_file : HISTVAL_FILE '(' histval_file_options_list ')' ';'
               { driver.histval_file(); };
 
-initval_file : INITVAL_FILE '(' h_options_list ')' ';'
+histval_file_options_list : histval_file_options_list COMMA histval_file_option
+                          | histval_file_option
+                          ;
+
+histval_file_option : o_filename
+                    | o_datafile
+                    | o_first_obs
+                    | o_data_first_obs
+                    | o_first_simulation_period
+                    | o_last_obs
+                    | o_data_last_obs
+                    | o_series
+                    ;
+
+initval_file : INITVAL_FILE '(' initval_file_options_list ')' ';'
               { driver.initval_file(); };
 
-h_options_list: h_options_list COMMA h_options
-               | h_options
-               ;
+initval_file_options_list : initval_file_options_list COMMA initval_file_option
+                          | initval_file_option
+                          ;
 
-h_options: o_filename
-          | o_datafile
-          | o_first_obs
-          | o_data_first_obs
-          | o_first_simulation_period
-          | o_last_simulation_period
-          | o_last_obs
-          | o_data_last_obs
-          | o_nobs
-          | o_series
-          ;
+initval_file_option : o_filename
+                    | o_datafile
+                    | o_first_obs
+                    | o_data_first_obs
+                    | o_first_simulation_period
+                    | o_last_obs
+                    | o_last_simulation_period
+                    | o_data_last_obs
+                    | o_nobs
+                    | o_series
+                    ;
 
 integer_or_date : INT_NUMBER
                   { $$.emplace<int>(stoi($1)); }
