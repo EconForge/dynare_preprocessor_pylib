@@ -1976,6 +1976,10 @@ ModelTree::writeJsonSparseIndicesHelper(ostream& output) const
     }
 }
 
+/*
+ Writes per-block sparse Jacobian structure for M_.block_structure(.block).g1_sparse_*.
+ The arrays are CSC indices (rowval/colval/colptr) for the block Jacobian.
+*/
 template<bool dynamic>
 void
 ModelTree::writeBlockDriverSparseIndicesHelper(ostream& output) const

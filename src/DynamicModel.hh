@@ -163,7 +163,22 @@ private:
   //! Writes the code of the model in virtual machine bytecode
   void writeDynamicBytecode(const string& basename) const;
 
-  // Write the block structure of the model in the driver file
+  /* Write the block structure of the model in the driver file
+   M_.block_structure: dynamic block decomposition metadata for MATLAB/Octave.
+   Fields written below:
+   - time_recursive: whether decomposition is time-recursive
+   - block(i).Simulation_Type: solver strategy enum (see Sym_type in model_info.m)
+   - block(i).endo_nbr: block size (number of endogenous variables/equations)
+   - block(i).mfs: minimal feedback set size
+   - block(i).equation: original equation indices in this block (1-based)
+   - block(i).variable: original endogenous indices in this block (1-based)
+   - block(i).is_linear: block linearity flag
+   - block(i).bytecode_jacob_cols_to_sparse: mapping from bytecode Jacobian columns
+   - block(i).g1_sparse_*: per-block sparse Jacobian structure (CSC)
+   - variable_reordered / equation_reordered: block-ordered indices (1-based)
+   - incidence(k).lead_lag / incidence(k).sparse_IM: sparse incidence by lead/lag
+   - dyn_tmp_nbr: number of temporary terms used in block evaluation
+   */
   void writeBlockDriverOutput(ostream& output) const;
 
   // Used by determineBlockDerivativesType()

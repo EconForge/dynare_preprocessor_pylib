@@ -108,7 +108,19 @@ private:
     return var - blocks[blk].getRecursiveSize();
   }
 
-  // Write the block structure of the model in the driver file
+  /* Write the block structure of the model in the driver file
+   M_.block_structure_stat: static block decomposition metadata for MATLAB/Octave.
+   Fields written below:
+   - block(i).Simulation_Type: solver strategy enum (see Sym_type in model_info.m)
+   - block(i).endo_nbr: block size (number of endogenous variables/equations)
+   - block(i).mfs: minimal feedback set size
+   - block(i).equation: original equation indices in this block (1-based)
+   - block(i).variable: original endogenous indices in this block (1-based)
+   - variable_reordered / equation_reordered: block-ordered indices (1-based)
+   - incidence.sparse_IM: sparse incidence (eq,var) for static model
+   - tmp_nbr: number of temporary terms used in block evaluation
+   - block(i).g1_sparse_*: per-block sparse Jacobian structure (CSC)
+   */
   void writeBlockDriverOutput(ostream& output) const;
 
   // Helper for writing ramsey_multipliers_derivatives
