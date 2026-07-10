@@ -692,7 +692,7 @@ public:
   void add_generate_irfs_exog_element(string exo, const string& value);
   //! Forecast Statement
   void forecast(vector<string> symbol_list);
-  void set_trends();
+  void set_trends(optional<variant<int, string>> observation_trend_base_period = nullopt);
   void set_deterministic_trends();
   void set_trend_element(const string& arg1, expr_t arg2);
   //! filter_initial_state block

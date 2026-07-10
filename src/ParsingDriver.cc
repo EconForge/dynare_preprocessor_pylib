@@ -2428,10 +2428,10 @@ ParsingDriver::add_varobs(const string& name)
 }
 
 void
-ParsingDriver::set_trends()
+ParsingDriver::set_trends(optional<variant<int, string>> observation_trend_base_period)
 {
-  mod_file->addStatement(
-      make_unique<ObservationTrendsStatement>(move(trend_elements), mod_file->symbol_table));
+  mod_file->addStatement(make_unique<ObservationTrendsStatement>(
+      move(observation_trend_base_period), move(trend_elements), mod_file->symbol_table));
   trend_elements.clear();
 }
 

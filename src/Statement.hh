@@ -30,10 +30,6 @@
 #include "SymbolList.hh"
 #include "WarningConsolidation.hh"
 
-// Helper constant for visitors
-template<class>
-inline constexpr bool always_false_v {false};
-
 struct ModFileStructure
 {
   //! Whether check is present

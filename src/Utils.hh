@@ -21,9 +21,11 @@
 #define UTILS_HH
 
 #include <filesystem>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 using namespace std;
@@ -53,5 +55,15 @@ void remove_directory_with_matlab_lock(const filesystem::path& dir);
 
 // Prints character to output stream, with proper JSON escaping for special characters
 void json_output_with_escape(char c, ostream& output);
+
+// Helper constant for visitors
+// NB: will no longer be needed with C++23, which accepts static_assert(false, …)
+template<class T>
+inline constexpr bool always_false_v {false};
+
+// Prints period (represented as either integer or date object) in MATLAB/Octave output format
+void print_matlab_period(ostream& output, const variant<int, string>& v);
+// Prints period (represented as either integer or date object) in JSON output format
+void print_json_period(ostream& output, const variant<int, string>& v);
 
 #endif

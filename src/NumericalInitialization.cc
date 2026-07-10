@@ -24,6 +24,7 @@
 #include <utility>
 
 #include "NumericalInitialization.hh"
+#include "Utils.hh"
 
 InitParamStatement::InitParamStatement(int symb_id_arg, const expr_t param_value_arg,
                                        const SymbolTable& symbol_table_arg) :

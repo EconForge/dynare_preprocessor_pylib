@@ -29,6 +29,7 @@ using namespace std;
 #include "ComputingTasks.hh"
 #include "ParsingDriver.hh"
 #include "Statement.hh"
+#include "Utils.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -1928,9 +1929,12 @@ DeterministicTrendsStatement::writeJsonOutput(ostream& output) const
          << "}";
 }
 
-ObservationTrendsStatement::ObservationTrendsStatement(trend_elements_t trend_elements_arg,
-                                                       const SymbolTable& symbol_table_arg) :
-    trend_elements {move(trend_elements_arg)}, symbol_table {symbol_table_arg}
+ObservationTrendsStatement::ObservationTrendsStatement(
+    optional<observation_trend_base_period_t> observation_trend_base_period_arg,
+    trend_elements_t trend_elements_arg, const SymbolTable& symbol_table_arg) :
+    observation_trend_base_period {move(observation_trend_base_period_arg)},
+    trend_elements {move(trend_elements_arg)},
+    symbol_table {symbol_table_arg}
 {
 }
 
@@ -1951,6 +1955,12 @@ void
 ObservationTrendsStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                         [[maybe_unused]] bool minimal_workspace) const
 {
+  if (observation_trend_base_period)
+    {
+      output << "options_.observation_trend_base_period = ";
+      print_matlab_period(output, *observation_trend_base_period);
+      output << ";" << '\n';
+    }
   output << "options_.trend_coeff = {};" << '\n';
   for (const auto& [symb_id, val] : trend_elements)
     {
@@ -1964,8 +1974,14 @@ ObservationTrendsStatement::writeOutput(ostream& output, [[maybe_unused]] const 
 void
 ObservationTrendsStatement::writeJsonOutput(ostream& output) const
 {
-  output << R"({"statementName": "observation_trends", )"
-         << R"("trends" : {)";
+  output << R"({"statementName": "observation_trends")";
+  if (observation_trend_base_period)
+    {
+      output << R"(, "options": {"observation_trend_base_period": )";
+      print_json_period(output, *observation_trend_base_period);
+      output << '}';
+    }
+  output << R"(, "trends" : {)";
   for (bool printed_something {false}; const auto& [symb_id, val] : trend_elements)
     {
       if (exchange(printed_something, true))

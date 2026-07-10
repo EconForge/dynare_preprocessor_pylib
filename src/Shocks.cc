@@ -48,17 +48,6 @@ static auto print_json_period_range = []<class T>(ostream& output, const T& arg)
     static_assert(always_false_v<T>, "Non-exhaustive visitor!");
 };
 
-static auto print_matlab_learnt_in = [](ostream& output, const auto& p) { output << p; };
-
-static auto print_json_learnt_in = []<class T>(ostream& output, const T& p) {
-  if constexpr (is_same_v<T, int>)
-    output << p;
-  else if constexpr (is_same_v<T, string>)
-    output << '"' << p << '"';
-  else
-    static_assert(always_false_v<T>, "Non-exhaustive visitor!");
-};
-
 AbstractShocksStatement::AbstractShocksStatement(bool overwrite_arg, ShockType type_arg,
                                                  det_shocks_t det_shocks_arg,
                                                  const SymbolTable& symbol_table_arg) :
@@ -672,7 +661,7 @@ ShocksLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
       output << "') || x ~= ";
       /* NB: date expression not parenthesized since it can only contain a + operator, which has
          higher precedence than ~= and || */
-      visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
+      print_matlab_period(output, learnt_in_period);
       output << ", {M_.learnt_shocks.learnt_in}));" << '\n' << "end" << '\n';
     }
 
@@ -681,7 +670,7 @@ ShocksLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
     for (const auto& [type, period_range, value] : shock_vec)
       {
         output << "struct('learnt_in',";
-        visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
+        print_matlab_period(output, learnt_in_period);
         output << ",'exo_id'," << symbol_table.getTypeSpecificID(id) + 1 << ",'periods',";
         visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
         output << ",'type','" << typeToString(type) << "'"
@@ -697,7 +686,7 @@ ShocksLearntInStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "shocks")"
          << R"(, "learnt_in": )";
-  visit([&](const auto& p) { print_json_learnt_in(output, p); }, learnt_in_period);
+  print_json_period(output, learnt_in_period);
   output << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "learnt_shocks": [)";
   for (bool printed_something {false}; const auto& [id, shock_vec] : learnt_shocks)
     {
@@ -1037,7 +1026,7 @@ PerfectForesightControlledPathsStatement::writeOutput(ostream& output,
       output << "') || x ~= ";
       /* NB: date expression not parenthesized since it can only contain a + operator, which has
          higher precedence than ~= and || */
-      visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
+      print_matlab_period(output, learnt_in_period);
       output << ", {M_.perfect_foresight_controlled_paths.learnt_in}));" << '\n' << "end" << '\n';
     }
 
@@ -1053,7 +1042,7 @@ PerfectForesightControlledPathsStatement::writeOutput(ostream& output,
         value->writeOutput(output);
         output << ",'endogenize_id'," << symbol_table.getTypeSpecificID(endogenize_id) + 1
                << ",'learnt_in',";
-        visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
+        print_matlab_period(output, learnt_in_period);
         output << ");" << '\n';
       }
   output << "];" << '\n';
@@ -1063,7 +1052,7 @@ void
 PerfectForesightControlledPathsStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "perfect_foresight_controlled_paths", "learnt_in": )";
-  visit([&](const auto& p) { print_json_learnt_in(output, p); }, learnt_in_period);
+  print_json_period(output, learnt_in_period);
   output << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "paths": [)";
   for (bool printed_something {false};
        const auto& [exogenize_id, constraints, endogenize_id] : paths)
@@ -1431,7 +1420,7 @@ ShockPathsStatement::writeOutput(ostream& output, const string& basename,
       output << "') || x ~= ";
       /* NB: date expression not parenthesized since it can only contain a + operator, which has
          higher precedence than ~= and || */
-      visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
+      print_matlab_period(output, learnt_in_period);
       output << ", {M_.shock_paths.learnt_in}));" << '\n' << "end" << '\n';
     }
 
@@ -1466,7 +1455,7 @@ ShockPathsStatement::writeOutput(ostream& output, const string& basename,
   })};
 
   output << "M_.shock_paths = [M_.shock_paths; struct('learnt_in', ";
-  visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
+  print_matlab_period(output, learnt_in_period);
   output << ", 'evaluation_function', '" << basename << "." << evaluationFunctionName()
          << "', 'contains_date', " << boolalpha << contains_date << ", 'contains_endval', "
          << contains_endval << ")];" << '\n';
@@ -1492,7 +1481,7 @@ ShockPathsStatement::writeOutput(ostream& output, const string& basename,
       output << "') || x ~= ";
       /* NB: date expression not parenthesized since it can only contain a + operator, which has
          higher precedence than ~= and || */
-      visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
+      print_matlab_period(output, learnt_in_period);
       output << ", {M_.perfect_foresight_controlled_paths.learnt_in}));" << '\n' << "end" << '\n';
     }
   output << "M_.perfect_foresight_controlled_paths = [ M_.perfect_foresight_controlled_paths;"
@@ -1507,7 +1496,7 @@ ShockPathsStatement::writeOutput(ostream& output, const string& basename,
         value->writeOutput(output);
         output << ",'endogenize_id'," << symbol_table.getTypeSpecificID(endogenize_id) + 1
                << ",'learnt_in',";
-        visit([&](const auto& p) { print_matlab_learnt_in(output, p); }, learnt_in_period);
+        print_matlab_period(output, learnt_in_period);
         output << ");" << '\n';
       }
   output << "];" << '\n';
@@ -1527,7 +1516,7 @@ ShockPathsStatement::writeJsonOutput(ostream& output) const
 
   output << R"({"statementName": "shock_paths")"
          << R"(, "learnt_in": )";
-  visit([&](const auto& p) { print_json_learnt_in(output, p); }, learnt_in_period);
+  print_json_period(output, learnt_in_period);
   output << R"(, "overwrite": )" << boolalpha << overwrite << R"(, "exo_paths": [)";
   for (bool printed_something {false}; const auto& [id, shock_vec] : exo_paths)
     {

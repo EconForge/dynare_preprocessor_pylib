@@ -323,14 +323,17 @@ class ObservationTrendsStatement : public Statement
 {
 public:
   using trend_elements_t = map<int, expr_t>;
+  using observation_trend_base_period_t = variant<int, string>;
 
 private:
+  const optional<observation_trend_base_period_t> observation_trend_base_period;
   const trend_elements_t trend_elements;
   const SymbolTable& symbol_table;
 
 public:
-  ObservationTrendsStatement(trend_elements_t trend_elements_arg,
-                             const SymbolTable& symbol_table_arg);
+  ObservationTrendsStatement(
+      optional<observation_trend_base_period_t> observation_trend_base_period_arg,
+      trend_elements_t trend_elements_arg, const SymbolTable& symbol_table_arg);
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
   void writeJsonOutput(ostream& output) const override;
