@@ -865,7 +865,7 @@ NumConstNode::substitutePacTargetNonstationary([[maybe_unused]] const string& na
 }
 
 expr_t
-NumConstNode::differentiateForwardVars([[maybe_unused]] const vector<string>& subset,
+NumConstNode::differentiateForwardVars([[maybe_unused]] const vector<int>& subset,
                                        [[maybe_unused]] subst_table_t& subst_table,
                                        [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
 {
@@ -2223,14 +2223,14 @@ VariableNode::substituteExpectation(subst_table_t& subst_table, vector<BinaryOpN
 }
 
 expr_t
-VariableNode::differentiateForwardVars(const vector<string>& subset, subst_table_t& subst_table,
+VariableNode::differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
                                        vector<BinaryOpNode*>& neweqs) const
 {
   switch (get_type())
     {
     case SymbolType::endogenous:
       assert(lag <= 1);
-      if (lag <= 0 || (!subset.empty() && ranges::find(subset, getName()) == subset.end()))
+      if (lag <= 0 || (!subset.empty() && ranges::find(subset, symb_id) == subset.end()))
         return const_cast<VariableNode*>(this);
       else
         {
@@ -4269,7 +4269,7 @@ UnaryOpNode::substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNo
 }
 
 expr_t
-UnaryOpNode::differentiateForwardVars(const vector<string>& subset, subst_table_t& subst_table,
+UnaryOpNode::differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
                                       vector<BinaryOpNode*>& neweqs) const
 {
   return recurseTransform(&ExprNode::differentiateForwardVars, subset, subst_table, neweqs);
@@ -5949,7 +5949,7 @@ BinaryOpNode::substitutePacTargetNonstationary(const string& name, expr_t subexp
 }
 
 expr_t
-BinaryOpNode::differentiateForwardVars(const vector<string>& subset, subst_table_t& subst_table,
+BinaryOpNode::differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
                                        vector<BinaryOpNode*>& neweqs) const
 {
   return recurseTransform(&ExprNode::differentiateForwardVars, subset, subst_table, neweqs);
@@ -7255,7 +7255,7 @@ TrinaryOpNode::substitutePacTargetNonstationary(const string& name, expr_t subex
 }
 
 expr_t
-TrinaryOpNode::differentiateForwardVars(const vector<string>& subset, subst_table_t& subst_table,
+TrinaryOpNode::differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
                                         vector<BinaryOpNode*>& neweqs) const
 {
   return recurseTransform(&ExprNode::differentiateForwardVars, subset, subst_table, neweqs);
@@ -7723,7 +7723,7 @@ AbstractExternalFunctionNode::substitutePacTargetNonstationary(const string& nam
 }
 
 expr_t
-AbstractExternalFunctionNode::differentiateForwardVars(const vector<string>& subset,
+AbstractExternalFunctionNode::differentiateForwardVars(const vector<int>& subset,
                                                        subst_table_t& subst_table,
                                                        vector<BinaryOpNode*>& neweqs) const
 {
@@ -9333,7 +9333,7 @@ SubModelNode::replaceVarsInEquation([[maybe_unused]] map<VariableNode*, NumConst
 }
 
 expr_t
-SubModelNode::differentiateForwardVars([[maybe_unused]] const vector<string>& subset,
+SubModelNode::differentiateForwardVars([[maybe_unused]] const vector<int>& subset,
                                        [[maybe_unused]] subst_table_t& subst_table,
                                        [[maybe_unused]] vector<BinaryOpNode*>& neweqs) const
 {

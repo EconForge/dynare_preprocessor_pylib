@@ -368,7 +368,7 @@ public:
   //! the differentiate_forward_vars option is enabled (for all vars)
   void differentiate_forward_vars_all();
   //! the differentiate_forward_vars option is enabled (for a subset of vars)
-  void differentiate_forward_vars_some(vector<string> symbol_list);
+  void differentiate_forward_vars_some(const vector<string>& symbol_list);
   //! cutoff option of model block
   void cutoff(const string& value);
   //! mfs option of model block

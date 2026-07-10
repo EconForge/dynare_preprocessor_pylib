@@ -225,7 +225,7 @@ private:
     forward vars)
   */
   void substituteLeadLagInternal(AuxVarType type, bool deterministic_model,
-                                 const vector<string>& subset);
+                                 const vector<int>& subset = {});
 
   //! Help computeXrefs to compute the reverse references (i.e. param->eqs, endo->eqs, etc)
   void computeRevXref(map<pair<int, int>, set<int>>& xrefset, const set<pair<int, int>>& eiref,
@@ -703,7 +703,7 @@ public:
   //! Transforms the model by creating aux vars for the diff of forward vars
   /*! If subset is empty, does the transformation for all fwrd vars; otherwise
     restrict it to the vars in subset */
-  void differentiateForwardVars(const vector<string>& subset);
+  void differentiateForwardVars(const vector<int>& subset);
 
   //! Fills eval context with values of model local variables and auxiliary variables
   void fillEvalContext(eval_context_t& eval_context) const;

@@ -2985,30 +2985,30 @@ DynamicModel::writeLatexOriginalFile(const string& basename, bool write_equation
 void
 DynamicModel::substituteEndoLeadGreaterThanTwo(bool deterministic_model)
 {
-  substituteLeadLagInternal(AuxVarType::endoLead, deterministic_model, {});
+  substituteLeadLagInternal(AuxVarType::endoLead, deterministic_model);
 }
 
 void
 DynamicModel::substituteEndoLagGreaterThanTwo(bool deterministic_model)
 {
-  substituteLeadLagInternal(AuxVarType::endoLag, deterministic_model, {});
+  substituteLeadLagInternal(AuxVarType::endoLag, deterministic_model);
 }
 
 void
 DynamicModel::substituteExoLead(bool deterministic_model)
 {
-  substituteLeadLagInternal(AuxVarType::exoLead, deterministic_model, {});
+  substituteLeadLagInternal(AuxVarType::exoLead, deterministic_model);
 }
 
 void
 DynamicModel::substituteExoLag(bool deterministic_model)
 {
-  substituteLeadLagInternal(AuxVarType::exoLag, deterministic_model, {});
+  substituteLeadLagInternal(AuxVarType::exoLag, deterministic_model);
 }
 
 void
 DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_model,
-                                        const vector<string>& subset)
+                                        const vector<int>& subset)
 {
   ExprNode::subst_table_t subst_table;
   vector<BinaryOpNode*> neweqs;
@@ -3454,7 +3454,7 @@ DynamicModel::removeTrendVariableFromEquations()
 }
 
 void
-DynamicModel::differentiateForwardVars(const vector<string>& subset)
+DynamicModel::differentiateForwardVars(const vector<int>& subset)
 {
   substituteLeadLagInternal(AuxVarType::diffForward, true, subset);
 }

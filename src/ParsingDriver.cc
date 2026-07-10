@@ -905,12 +905,15 @@ ParsingDriver::differentiate_forward_vars_all()
 }
 
 void
-ParsingDriver::differentiate_forward_vars_some(vector<string> symbol_list)
+ParsingDriver::differentiate_forward_vars_some(const vector<string>& symbol_list)
 {
   mod_file->differentiate_forward_vars = true;
-  mod_file->differentiate_forward_vars_subset = move(symbol_list);
-  for (auto& it : mod_file->differentiate_forward_vars_subset)
-    check_symbol_is_endogenous(it);
+  mod_file->differentiate_forward_vars_subset.clear();
+  for (auto& name : symbol_list)
+    {
+      check_symbol_is_endogenous(name);
+      mod_file->differentiate_forward_vars_subset.push_back(mod_file->symbol_table.getID(name));
+    }
 }
 
 void

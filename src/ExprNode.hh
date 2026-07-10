@@ -765,7 +765,7 @@ public:
     \param[out] neweqs Equations to be added to the model to match the creation of auxiliary
     variables.
   */
-  virtual expr_t differentiateForwardVars(const vector<string>& subset, subst_table_t& subst_table,
+  virtual expr_t differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
                                           vector<BinaryOpNode*>& neweqs) const
       = 0;
 
@@ -1098,7 +1098,7 @@ public:
   expr_t substitutePacExpectation(const string& name, expr_t subexpr) override;
   expr_t substitutePacTargetNonstationary(const string& name, expr_t subexpr) override;
   [[nodiscard]] expr_t decreaseLeadsLagsPredeterminedVariables() const override;
-  expr_t differentiateForwardVars(const vector<string>& subset, subst_table_t& subst_table,
+  expr_t differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
                                   vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] bool isNumConstNodeEqualTo(double value) const override;
   [[nodiscard]] int countDiffs() const override;
@@ -1212,7 +1212,7 @@ public:
   expr_t substitutePacExpectation(const string& name, expr_t subexpr) override;
   expr_t substitutePacTargetNonstationary(const string& name, expr_t subexpr) override;
   [[nodiscard]] expr_t decreaseLeadsLagsPredeterminedVariables() const override;
-  expr_t differentiateForwardVars(const vector<string>& subset, subst_table_t& subst_table,
+  expr_t differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
                                   vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] bool isNumConstNodeEqualTo(double value) const override;
   [[nodiscard]] int countDiffs() const override;
@@ -1367,7 +1367,7 @@ public:
   expr_t substitutePacExpectation(const string& name, expr_t subexpr) override;
   expr_t substitutePacTargetNonstationary(const string& name, expr_t subexpr) override;
   [[nodiscard]] expr_t decreaseLeadsLagsPredeterminedVariables() const override;
-  expr_t differentiateForwardVars(const vector<string>& subset, subst_table_t& subst_table,
+  expr_t differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
                                   vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] bool isNumConstNodeEqualTo(double value) const override;
   [[nodiscard]] int countDiffs() const override;
@@ -1531,7 +1531,7 @@ public:
   expr_t substitutePacExpectation(const string& name, expr_t subexpr) override;
   expr_t substitutePacTargetNonstationary(const string& name, expr_t subexpr) override;
   [[nodiscard]] expr_t decreaseLeadsLagsPredeterminedVariables() const override;
-  expr_t differentiateForwardVars(const vector<string>& subset, subst_table_t& subst_table,
+  expr_t differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
                                   vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] bool isNumConstNodeEqualTo(double value) const override;
   [[nodiscard]] int countDiffs() const override;
@@ -1730,7 +1730,7 @@ public:
   expr_t substitutePacExpectation(const string& name, expr_t subexpr) override;
   expr_t substitutePacTargetNonstationary(const string& name, expr_t subexpr) override;
   [[nodiscard]] expr_t decreaseLeadsLagsPredeterminedVariables() const override;
-  expr_t differentiateForwardVars(const vector<string>& subset, subst_table_t& subst_table,
+  expr_t differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
                                   vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] bool isNumConstNodeEqualTo(double value) const override;
   [[nodiscard]] int countDiffs() const override;
@@ -1909,7 +1909,7 @@ public:
                                                   DataTree& alt_datatree) const
       = 0;
   [[nodiscard]] expr_t decreaseLeadsLagsPredeterminedVariables() const override;
-  expr_t differentiateForwardVars(const vector<string>& subset, subst_table_t& subst_table,
+  expr_t differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
                                   vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] bool isNumConstNodeEqualTo(double value) const override;
   [[nodiscard]] int countDiffs() const override;
@@ -2135,7 +2135,7 @@ public:
   expr_t replaceVarsInEquation(map<VariableNode*, NumConstNode*>& table) const override;
   [[nodiscard]] bool containsDate() const override;
   [[nodiscard]] bool isParamTimesEndogExpr() const override;
-  expr_t differentiateForwardVars(const vector<string>& subset, subst_table_t& subst_table,
+  expr_t differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
                                   vector<BinaryOpNode*>& neweqs) const override;
   [[nodiscard]] expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   [[nodiscard]] expr_t replaceTrendVar() const override;
