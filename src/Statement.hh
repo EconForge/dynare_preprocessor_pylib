@@ -192,6 +192,8 @@ struct ModFileStructure
   bool shock_paths_learnt_in_present {false};
   // Whether an occbin_constraints block appears
   bool occbin_constraints_present {false};
+  // Whether a conditional_forecast_paths block appears
+  bool conditional_forecast_paths_present {false};
 
   // Returns true if we are in a stochastic context
   [[nodiscard]] bool

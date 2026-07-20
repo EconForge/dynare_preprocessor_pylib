@@ -935,6 +935,13 @@ ConditionalForecastPathsStatement::ConditionalForecastPathsStatement(
 }
 
 void
+ConditionalForecastPathsStatement::checkPass(ModFileStructure& mod_file_struct,
+                                             [[maybe_unused]] WarningConsolidation& warnings)
+{
+  mod_file_struct.conditional_forecast_paths_present = true;
+}
+
+void
 ConditionalForecastPathsStatement::writeOutput(ostream& output,
                                                [[maybe_unused]] const string& basename,
                                                [[maybe_unused]] bool minimal_workspace) const

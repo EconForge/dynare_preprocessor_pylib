@@ -3366,6 +3366,13 @@ ConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure& mod_f
       cerr << "ERROR: You must pass the `parameter_set` option to conditional_forecast" << '\n';
       exit(EXIT_FAILURE);
     }
+  if (options_list.contains("datafile") && mod_file_struct.conditional_forecast_paths_present)
+    {
+      cerr << "ERROR: conditional_forecast: cannot use datafile option when a "
+              "conditional_forecast_paths block is present"
+           << '\n';
+      exit(EXIT_FAILURE);
+    }
 }
 
 void

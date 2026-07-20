@@ -3670,6 +3670,7 @@ conditional_forecast_option : o_periods
                             | o_controlled_varexo
                             | o_parameter_set
                             | o_check_tol
+                            | o_datafile
                             ;
 
 plot_conditional_forecast : PLOT_CONDITIONAL_FORECAST symbol_list ';'
