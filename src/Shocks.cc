@@ -28,25 +28,37 @@
 #include "Shocks.hh"
 #include "Utils.hh"
 
-static auto print_matlab_period_range = []<class T>(ostream& output, const T& arg) {
-  if constexpr (is_same_v<T, pair<int, int>>)
-    output << arg.first << ":" << arg.second;
-  else if constexpr (is_same_v<T, pair<string, string>>)
-    output << "(" << arg.first << "):(" << arg.second << ")";
-  else
-    static_assert(always_false_v<T>, "Non-exhaustive visitor!");
-};
+static void
+print_matlab_period_range(ostream& output, const AbstractShocksStatement::period_range_t& v)
+{
+  visit(
+      [&]<class T>(const T& arg) {
+        if constexpr (is_same_v<T, pair<int, int>>)
+          output << arg.first << ":" << arg.second;
+        else if constexpr (is_same_v<T, pair<string, string>>)
+          output << "(" << arg.first << "):(" << arg.second << ")";
+        else
+          static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+      },
+      v);
+}
 
-static auto print_json_period_range = []<class T>(ostream& output, const T& arg) {
-  if constexpr (is_same_v<T, pair<int, int>>)
-    output << R"("period1": )" << arg.first << ", "
-           << R"("period2": )" << arg.second;
-  else if constexpr (is_same_v<T, pair<string, string>>)
-    output << R"("period1": ")" << arg.first << R"(", )"
-           << R"("period2": ")" << arg.second << '"';
-  else
-    static_assert(always_false_v<T>, "Non-exhaustive visitor!");
-};
+static void
+print_json_period_range(ostream& output, const AbstractShocksStatement::period_range_t& v)
+{
+  visit(
+      [&]<class T>(const T& arg) {
+        if constexpr (is_same_v<T, pair<int, int>>)
+          output << R"("period1": )" << arg.first << ", "
+                 << R"("period2": )" << arg.second;
+        else if constexpr (is_same_v<T, pair<string, string>>)
+          output << R"("period1": ")" << arg.first << R"(", )"
+                 << R"("period2": ")" << arg.second << '"';
+        else
+          static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+      },
+      v);
+}
 
 AbstractShocksStatement::AbstractShocksStatement(bool overwrite_arg, ShockType type_arg,
                                                  det_shocks_t det_shocks_arg,
@@ -72,7 +84,7 @@ AbstractShocksStatement::writeDetShocks(ostream& output) const
         output << "struct('exo_det'," << boolalpha << exo_det << ",'exo_id',"
                << symbol_table.getTypeSpecificID(id) + 1 << ",'type','" << typeToString(type) << "'"
                << ",'periods',";
-        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+        print_matlab_period_range(output, period_range);
         output << ",'value',";
         value->writeOutput(output);
         output << ");" << '\n';
@@ -95,7 +107,7 @@ AbstractShocksStatement::writeJsonDetShocks(ostream& output) const
           if (exchange(printed_something2, true))
             output << ", ";
           output << "{";
-          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+          print_json_period_range(output, period_range);
           output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
@@ -672,7 +684,7 @@ ShocksLearntInStatement::writeOutput(ostream& output, [[maybe_unused]] const str
         output << "struct('learnt_in',";
         print_matlab_period(output, learnt_in_period);
         output << ",'exo_id'," << symbol_table.getTypeSpecificID(id) + 1 << ",'periods',";
-        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+        print_matlab_period_range(output, period_range);
         output << ",'type','" << typeToString(type) << "'"
                << ",'value',";
         value->writeOutput(output);
@@ -699,7 +711,7 @@ ShocksLearntInStatement::writeJsonOutput(ostream& output) const
           if (exchange(printed_something2, true))
             output << ", ";
           output << "{";
-          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+          print_json_period_range(output, period_range);
           output << R"(, "type": ")" << typeToString(type) << R"(", )"
                  << R"("value": ")";
           value->writeJsonOutput(output, {}, {});
@@ -945,7 +957,7 @@ ConditionalForecastPathsStatement::writeOutput(ostream& output,
       {
         output << "struct('exogenize_id'," << symbol_table.getTypeSpecificID(exogenize_id) + 1
                << ",'periods',";
-        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+        print_matlab_period_range(output, period_range);
         output << ",'value',";
         value->writeOutput(output);
         output << ",'endogenize_id',";
@@ -975,7 +987,7 @@ ConditionalForecastPathsStatement::writeJsonOutput(ostream& output) const
           if (exchange(printed_something2, true))
             output << ", ";
           output << "{";
-          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+          print_json_period_range(output, period_range);
           output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
@@ -1037,7 +1049,7 @@ PerfectForesightControlledPathsStatement::writeOutput(ostream& output,
       {
         output << "struct('exogenize_id'," << symbol_table.getTypeSpecificID(exogenize_id) + 1
                << ",'periods',";
-        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+        print_matlab_period_range(output, period_range);
         output << ",'value',";
         value->writeOutput(output);
         output << ",'endogenize_id'," << symbol_table.getTypeSpecificID(endogenize_id) + 1
@@ -1066,7 +1078,7 @@ PerfectForesightControlledPathsStatement::writeJsonOutput(ostream& output) const
           if (exchange(printed_something2, true))
             output << ", ";
           output << "{";
-          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+          print_json_period_range(output, period_range);
           output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
@@ -1320,7 +1332,7 @@ HeteroskedasticShocksStatement::writeOutput(ostream& output,
               {
                 output << "struct('" << (matrix == "Q"s ? "exo" : "endo") << "_id', " << tsid + 1
                        << ",'periods',";
-                visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+                print_matlab_period_range(output, period_range);
                 output << ",'" << type << "',";
                 value->writeOutput(output);
                 output << ");" << '\n';
@@ -1352,7 +1364,7 @@ HeteroskedasticShocksStatement::writeJsonOutput(ostream& output) const
               if (exchange(printed_something2, true))
                 output << ", ";
               output << "{";
-              visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+              print_json_period_range(output, period_range);
               output << R"(, "value": ")";
               value->writeJsonOutput(output, {}, {});
               output << R"("})";
@@ -1491,7 +1503,7 @@ ShockPathsStatement::writeOutput(ostream& output, const string& basename,
       {
         output << "struct('exogenize_id'," << symbol_table.getTypeSpecificID(exogenize_id) + 1
                << ",'periods',";
-        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+        print_matlab_period_range(output, period_range);
         output << ",'value',";
         value->writeOutput(output);
         output << ",'endogenize_id'," << symbol_table.getTypeSpecificID(endogenize_id) + 1
@@ -1551,7 +1563,7 @@ ShockPathsStatement::writeJsonOutput(ostream& output) const
           if (exchange(printed_something2, true))
             output << ", ";
           output << "{";
-          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+          print_json_period_range(output, period_range);
           output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"("})";
@@ -1656,7 +1668,7 @@ FilterTunesStatement::writeOutput(ostream& output, [[maybe_unused]] const string
     for (const auto& [period_range, value, std_err] : tunes_vec)
       {
         output << "struct('endo_id'," << symbol_table.getTypeSpecificID(id) + 1 << ",'periods',";
-        visit([&](const auto& p) { print_matlab_period_range(output, p); }, period_range);
+        print_matlab_period_range(output, period_range);
         output << ",'value',";
         value->writeOutput(output);
         output << ",'stderr',";
@@ -1681,7 +1693,7 @@ FilterTunesStatement::writeJsonOutput(ostream& output) const
           if (exchange(printed_something2, true))
             output << ", ";
           output << "{";
-          visit([&](const auto& p) { print_json_period_range(output, p); }, period_range);
+          print_json_period_range(output, period_range);
           output << R"(, "value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"(", "stderr": ")";
