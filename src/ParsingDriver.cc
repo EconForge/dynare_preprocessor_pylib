@@ -812,7 +812,7 @@ ParsingDriver::hist_val(const string& name, const string& lag, expr_t rhs)
   pair key {symb_id, ilag};
 
   if (hist_values.contains(key))
-    error("hist_val: ({}, {}) declared twice", name, lag);
+    error("histval: {}({}) declared twice", name, lag);
 
   hist_values[move(key)] = rhs;
 }
@@ -992,12 +992,12 @@ ParsingDriver::end_endval(bool all_values_required)
         end_values_new.emplace_back(symb_id, value);
         break;
       case EndValLearntInStatement::LearntEndValType::add:
-        error("endval: '{} += ...' line not allowed unless 'learnt_in' option with value >1 is "
-              "passed",
+        error("endval: '{} += ...' line not allowed unless 'learnt_in' option with value >1 or "
+              "date is passed",
               mod_file->symbol_table.getName(symb_id));
       case EndValLearntInStatement::LearntEndValType::multiply:
-        error("endval: '{} *= ...' line not allowed unless 'learnt_in' option with value >1 is "
-              "passed",
+        error("endval: '{} *= ...' line not allowed unless 'learnt_in' option with value >1 or "
+              "date is passed",
               mod_file->symbol_table.getName(symb_id));
       }
 
