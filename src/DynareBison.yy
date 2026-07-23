@@ -728,7 +728,7 @@ expression : '(' expression ')'
                          $$ = driver.add_database_variable(namespace_name, symbol_name);
                      }
                    else
-                     driver.error("Namespace-qualified symbol " + $1 + " not allowed in this context");
+                     driver.error("Namespace-qualified symbol {} not allowed in this context", $1);
                  }
                else
                  $$ = driver.add_expression_variable($1);
@@ -818,7 +818,7 @@ expression : '(' expression ')'
                     driver.database_exists(namespace_name)))
                  {
                    if ($3.size() != 1)
-                     driver.error("The parenthesis after " + $1 + " should only include a lag, since it references a variable inside a namespace");
+                     driver.error("The parenthesis after {} should only include a lag, since it references a variable inside a namespace", $1);
 
                    auto symbol_name = $1.substr(pos + 1);
                    if (namespace_name == "self")
@@ -1022,7 +1022,7 @@ occbin_constraints_regime_options_list : occbin_constraints_regime_option
                                            $$ = $1;
                                            auto [it, success] = $$.insert($2);
                                            if (!success)
-                                             driver.error("The '" + $2.first + "' clause is declared multiple times");
+                                             driver.error("The '{}' clause is declared multiple times", $2.first);
                                          }
                                        ;
 
@@ -1143,7 +1143,7 @@ tag_pair_list : tag_pair_list COMMA tag_pair
                   $$ = $1;
                   auto [it, success] = $$.emplace($3);
                   if (!success)
-                    driver.error("Tag '" + $3.first + "' cannot be used twice for the same equation");
+                    driver.error("Tag '{}' cannot be used twice for the same equation", $3.first);
                 }
               | tag_pair
                 { $$ = {$1}; }
@@ -1498,7 +1498,7 @@ mshocks_options_list : mshocks_option
                          $$ = $1;
                          auto [it, success] = $$.insert($2);
                          if (!success)
-                           driver.error("The '" + $2.first + "' option is declared multiple times");
+                           driver.error("The '{}' option is declared multiple times", $2.first);
                        }
                      ;
 
@@ -1608,7 +1608,7 @@ shock_paths_options_list : shock_paths_option
                              $$ = $1;
                              auto [it, success] = $$.insert($2);
                              if (!success)
-                               driver.error("The '" + $2.first + "' option is declared multiple times");
+                               driver.error("The '{}' option is declared multiple times", $2.first);
                            }
                          ;
 
@@ -1840,7 +1840,7 @@ perfect_foresight_controlled_paths_options_list : perfect_foresight_controlled_p
                                                     $$ = $1;
                                                     auto [it, success] = $$.insert($3);
                                                     if (!success)
-                                                      driver.error("The '" + $3.first + "' option is declared multiple times");
+                                                      driver.error("The '{}' option is declared multiple times", $3.first);
                                                   }
                                                 ;
 
@@ -4026,7 +4026,7 @@ matched_irfs_list : matched_irfs_elem
                       $$ = $1;
                       auto [it, success] = $$.insert($2);
                       if (!success)
-                        driver.error("matched_irfs: the pair endogenous " + $2.first.first + " with exogenous " + $2.first.second + " appears two times");
+                        driver.error("matched_irfs: the pair endogenous {} with exogenous {} appears two times", $2.first.first, $2.first.second);
                     }
                   ;
 
@@ -4097,10 +4097,9 @@ matched_irfs_weights_list : matched_irfs_weights_elem
                               $$ = $1;
                               auto [it, success] = $$.insert($2);
                               if (!success)
-                                driver.error("matched_irfs: the tuple (" + get<0>($2.first)
-                                             + "(" + get<1>($2.first) + ")," + get<2>($2.first)
-                                             + "," + get<3>($2.first) + "(" + get<4>($2.first) + "),"
-                                             + get<5>($2.first) + ") appears two times");
+                                driver.error("matched_irfs: the tuple ({}({}),{},{}({}),{}) appears two times",
+                                             get<0>($2.first), get<1>($2.first), get<2>($2.first),
+                                             get<3>($2.first), get<4>($2.first), get<5>($2.first));
                             }
                           ;
 
@@ -4481,7 +4480,7 @@ o_estimation_use_pct: USE_PCT {
   | USE_PCT EQUAL vec_str {
       for (const auto& s : $3)
         if (ranges::find(driver.use_pct_estimation_known_fields, s) == driver.use_pct_estimation_known_fields.end())
-          driver.error("use_pct: unknown sub-field '" + s + "'");
+          driver.error("use_pct: unknown sub-field '{}'", s);
       for (const auto& field : driver.use_pct_estimation_known_fields)
         driver.option_num("parallel_info.use_pct.estimation."s + field,
                           ranges::find($3, field) != $3.end() ? "true" : "false");

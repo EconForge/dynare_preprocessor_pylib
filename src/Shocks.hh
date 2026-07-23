@@ -21,6 +21,7 @@
 #define SHOCKS_HH
 
 #include <cassert>
+#include <format>
 #include <map>
 #include <string>
 #include <variant>
@@ -191,7 +192,7 @@ private:
   [[nodiscard]] string
   sigmaeName() const
   {
-    return "M_.heterogeneity("s + to_string(heterogeneity_dimension + 1) + ").Sigma_e"s;
+    return format("M_.heterogeneity({}).Sigma_e", heterogeneity_dimension + 1);
   }
 
 public:
@@ -428,7 +429,7 @@ private:
   [[nodiscard]] string
   evaluationFunctionName() const
   {
-    return "shock_paths_" + to_string(index);
+    return format("shock_paths_{}", index);
   }
   void writeEvaluationFunctionFile(const string& basename) const;
 };

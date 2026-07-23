@@ -10104,10 +10104,9 @@ NamespaceQualifiedVariableNode::getNamespace() const
     case prev:
       return "prev";
     case learnt_in:
-      return "learnt_in("
-             + (holds_alternative<int>(learnt_in_period) ? to_string(get<int>(learnt_in_period))
-                                                         : get<string>(learnt_in_period))
-             + ")";
+      return format("learnt_in({})", holds_alternative<int>(learnt_in_period)
+                                         ? to_string(get<int>(learnt_in_period))
+                                         : get<string>(learnt_in_period));
     case database:
       return datatree.database_table.getName(database_id);
     }

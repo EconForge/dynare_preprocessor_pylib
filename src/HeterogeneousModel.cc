@@ -18,6 +18,7 @@
  */
 
 #include <cstdlib>
+#include <format>
 #include <fstream>
 #include <iostream>
 
@@ -604,7 +605,7 @@ HeterogeneousModel::writeSetHetAuxiliaryVariablesFile(const string& basename) co
 
   string filename {
       (packageDir(basename)
-       / ("dynamic_het" + to_string(heterogeneity_dimension + 1) + "_set_auxiliary_variables.m"))
+       / format("dynamic_het{}_set_auxiliary_variables.m", heterogeneity_dimension + 1))
           .string()};
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
@@ -775,8 +776,8 @@ HeterogeneousModel::writeDriverOutput(ostream& output) const
   for (const auto& it : temporary_terms_derivatives)
     output << it.size() << "; ";
   output << "];" << '\n';
-  writeDriverSparseIndicesHelper(
-      "heterogeneity("s + to_string(heterogeneity_dimension + 1) + ").dynamic", output);
+  writeDriverSparseIndicesHelper(format("heterogeneity({}).dynamic", heterogeneity_dimension + 1),
+                                 output);
   output << "M_.heterogeneity(" << heterogeneity_dimension + 1
          << ").dynamic_mcp_equations_reordering = [";
   for (auto i : mcp_equations_reordering)
@@ -807,6 +808,6 @@ HeterogeneousModel::writeDriverOutput(ostream& output) const
     }
   output << "};" << '\n';
 
-  equation_tags.writeOutput(output, "M_.heterogeneity(" + to_string(heterogeneity_dimension + 1)
-                                        + ").equations_tags");
+  equation_tags.writeOutput(
+      output, format("M_.heterogeneity({}).equations_tags", heterogeneity_dimension + 1));
 }

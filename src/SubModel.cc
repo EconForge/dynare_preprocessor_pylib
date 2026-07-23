@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <format>
 #include <numeric>
 
 #include "DynamicModel.hh"
@@ -901,8 +902,8 @@ VarExpectationModelTable::transformPass(ExprNode::subst_table_t& diff_subst_tabl
       for (int lag = 0; lag < max_lag; lag++)
         for (auto variable : lhs)
           {
-            string param_name = "var_expectation_model_" + name + '_'
-                                + symbol_table.getName(variable) + '_' + to_string(lag);
+            string param_name = format("var_expectation_model_{}_{}_{}", name,
+                                       symbol_table.getName(variable), lag);
             int new_param_id = symbol_table.addSymbol(param_name, SymbolType::parameter);
             aux_param_symb_ids[name].push_back(new_param_id);
 
@@ -1423,7 +1424,7 @@ PacModelTable::writeOutput(ostream& output) const
   auto growth_info_helper = [&](const string& fieldname, const growth_info_t& gi) {
     for (int i {1}; const auto& [growth_symb_id, growth_lag, param_id, constant] : gi)
       {
-        string structname = fieldname + "(" + to_string(i++) + ").";
+        string structname = format("{}({}).", fieldname, i++);
         if (growth_symb_id)
           {
             string var_field = "endo_id";
@@ -1680,7 +1681,7 @@ PacModelTable::writeOutput(ostream& output) const
          auto& [component, growth_component, auxname, kind, coeff, growth_neutrality_param,
                 h_indices, original_growth_component, growth_component_info] : get<2>(val))
       {
-        string fieldname = "M_.pac." + name + ".components(" + to_string(component_idx) + ")";
+        string fieldname = format("M_.pac.{}.components({})", name, component_idx);
         output << fieldname << ".aux_id = " << symbol_table.getTypeSpecificID(auxname) + 1 << ";"
                << '\n'
                << fieldname

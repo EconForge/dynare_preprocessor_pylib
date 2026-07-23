@@ -22,6 +22,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <numeric>
@@ -810,7 +811,7 @@ DynamicModel::writeDriverOutput(ostream& output, bool compute_xrefs) const
   output << "M_.params = "
          << "NaN(" << symbol_table.param_nbr() << ", 1);" << '\n';
 
-  string empty_cell = "cell(" + to_string(symbol_table.endo_nbr()) + ", 1)";
+  string empty_cell = format("cell({}, 1)", symbol_table.endo_nbr());
   output << "M_.endo_trends = struct('deflator', " << empty_cell << ", 'log_deflator', "
          << empty_cell << ", 'growth_factor', " << empty_cell << ", 'log_growth_factor', "
          << empty_cell << ");" << '\n';
@@ -1711,7 +1712,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(
   expr_t beta = AddVariable(discount_symb_id);
   for (int i = 1; i <= pac_eq_max_lag + 1; i++)
     {
-      string param_name = "mce_alpha_" + name + "_" + to_string(i);
+      string param_name = format("mce_alpha_{}_{}", name, i);
       try
         {
           int alpha_i_symb_id = symbol_table.addSymbol(param_name, SymbolType::parameter);
@@ -1776,7 +1777,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(
       for (int j = k + 1; j <= pac_eq_max_lag + 1; j++)
         {
           int alpha_j_symb_id = -1;
-          string param_name = "mce_alpha_" + name + "_" + to_string(j);
+          string param_name = format("mce_alpha_{}_{}", name, j);
           try
             {
               alpha_j_symb_id = symbol_table.getID(param_name);
@@ -1838,7 +1839,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
   expr_t beta = AddVariable(discount_symb_id);
   for (int i = 1; i <= pac_eq_max_lag + 1; i++)
     {
-      string param_name = "mce_alpha_" + name + "_" + to_string(i);
+      string param_name = format("mce_alpha_{}_{}", name, i);
       try
         {
           int alpha_i_symb_id = symbol_table.addSymbol(param_name, SymbolType::parameter);
@@ -1881,7 +1882,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
       for (int i = 1; i <= pac_eq_max_lag + 1; i++)
         {
           int alpha_i_symb_id = -1;
-          string param_name = "mce_alpha_" + name + "_" + to_string(i);
+          string param_name = format("mce_alpha_{}_{}", name, i);
           try
             {
               alpha_i_symb_id = symbol_table.getID(param_name);
@@ -1940,7 +1941,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
               for (int j = k + 1; j <= pac_eq_max_lag + 1; j++)
                 {
                   int alpha_j_symb_id = -1;
-                  string param_name = "mce_alpha_" + name + "_" + to_string(j);
+                  string param_name = format("mce_alpha_{}_{}", name, j);
                   try
                     {
                       alpha_j_symb_id = symbol_table.getID(param_name);
@@ -1980,7 +1981,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
 
       // If needed, add the growth neutrality correction for this component
       expr_t growth_correction_term = Zero;
-      string name_component = name + "_component" + to_string(component_idx);
+      string name_component = format("{}_component{}", name, component_idx);
       if (growth)
         {
           growth_neutrality_param
@@ -2037,8 +2038,8 @@ DynamicModel::computePacBackwardExpectationSubstitution(
   for (int i = 1; i < max_lag + 1; i++)
     for (auto lhsit : lhs)
       {
-        int new_param_symb_id = create_aux_param("h_" + name + "_var_" + symbol_table.getName(lhsit)
-                                                 + "_lag_" + to_string(i));
+        int new_param_symb_id
+            = create_aux_param(format("h_{}_var_{}_lag_{}", name, symbol_table.getName(lhsit), i));
         pac_aux_param_symb_ids[name].push_back(new_param_symb_id);
         subExpr
             = AddPlus(subExpr, AddTimes(AddVariable(new_param_symb_id), AddVariable(lhsit, -i)));
@@ -2082,7 +2083,7 @@ DynamicModel::computePacBackwardExpectationSubstitutionWithComponents(
        auto& [component, growth, auxname, kind, coeff, growth_neutrality_param, h_indices,
               original_growth, growth_info] : pac_target_components)
     {
-      string name_component = name + "_component" + to_string(component_idx);
+      string name_component = format("{}_component{}", name, component_idx);
 
       // Create the linear combination of the variables from the auxiliary model
       expr_t auxdef = Zero;
@@ -2097,9 +2098,8 @@ DynamicModel::computePacBackwardExpectationSubstitutionWithComponents(
       for (int i = 1; i < max_lag + 1; i++)
         for (auto lhsit : lhs)
           {
-            int new_param_symb_id
-                = create_aux_param("h_" + name_component + "_var_" + symbol_table.getName(lhsit)
-                                   + "_lag_" + to_string(i));
+            int new_param_symb_id = create_aux_param(
+                format("h_{}_var_{}_lag_{}", name_component, symbol_table.getName(lhsit), i));
             h_indices.push_back(new_param_symb_id);
             auxdef
                 = AddPlus(auxdef, AddTimes(AddVariable(new_param_symb_id), AddVariable(lhsit, -i)));
@@ -3892,6 +3892,24 @@ DynamicModel::simplifyEquations()
 {
   size_t last_subst_table_size = 0;
   map<VariableNode*, NumConstNode*> subst_table;
+
+  auto error_message_helper = [&](const string& msg, const DataTree::DivisionByZeroException& e) {
+    cerr << "ERROR: " << msg;
+    if (!subst_table.empty())
+      {
+        cerr << "; substitutions: ";
+        for (bool first {true}; const auto& [var, val] : subst_table)
+          {
+            if (!exchange(first, false))
+              cerr << ", ";
+            cerr << var->toString() << " -> " << val->toString();
+          }
+      }
+    if (!e.message.empty())
+      cerr << "; detail: " << e.message;
+    cerr << '\n';
+  };
+
   // Equations with a complementarity condition are excluded, see dynare#1697
   findConstantEquationsWithoutComplementarityCondition(subst_table);
   while (subst_table.size() != last_subst_table_size)
@@ -3904,21 +3922,10 @@ DynamicModel::simplifyEquations()
           }
         catch (const DataTree::DivisionByZeroException& e)
           {
-            string msg {"Division by zero when substituting constants into model-local variable '"s
-                        + symbol_table.getName(id) + "' defined as " + definition->toString()};
-            if (!subst_table.empty())
-              {
-                msg += "; substitutions: ";
-                for (bool first {true}; const auto& [var, val] : subst_table)
-                  {
-                    if (!exchange(first, false))
-                      msg += ", ";
-                    msg += var->toString() + " -> " + val->toString();
-                  }
-              }
-            if (!e.message.empty())
-              msg += "; detail: " + e.message;
-            cerr << "ERROR: " << msg << '\n';
+            error_message_helper(format("Division by zero when substituting constants into "
+                                        "model-local variable '{}' defined as {}",
+                                        symbol_table.getName(id), definition->toString()),
+                                 e);
             exit(EXIT_FAILURE);
           }
       for (size_t eq {0}; eq < equations.size(); eq++)
@@ -3929,23 +3936,11 @@ DynamicModel::simplifyEquations()
           }
         catch (const DataTree::DivisionByZeroException& e)
           {
-            string msg {"Division by zero when substituting constants in equation "s
-                        + to_string(eq + 1)};
+            string msg {
+                format("Division by zero when substituting constants in equation {}", eq + 1)};
             if (auto name = equation_tags.getTagValueByEqnAndKey(static_cast<int>(eq), "name"))
-              msg += " ['" + *name + "']";
-            if (!subst_table.empty())
-              {
-                msg += "; substitutions: ";
-                for (bool first {true}; const auto& [var, val] : subst_table)
-                  {
-                    if (!exchange(first, false))
-                      msg += ", ";
-                    msg += var->toString() + " -> " + val->toString();
-                  }
-              }
-            if (!e.message.empty())
-              msg += "; detail: " + e.message;
-            cerr << "ERROR: " << msg << '\n';
+              msg += format(" ['{}']", *name);
+            error_message_helper(msg, e);
             exit(EXIT_FAILURE);
           }
       for (size_t eq {0}; eq < static_only_equations.size(); eq++)
@@ -3956,21 +3951,10 @@ DynamicModel::simplifyEquations()
           }
         catch (const DataTree::DivisionByZeroException& e)
           {
-            string msg {"Division by zero when substituting constants in [static] equation "s
-                        + to_string(eq + 1)};
-            if (!subst_table.empty())
-              {
-                msg += "; substitutions: ";
-                for (bool first {true}; const auto& [var, val] : subst_table)
-                  {
-                    if (!exchange(first, false))
-                      msg += ", ";
-                    msg += var->toString() + " -> " + val->toString();
-                  }
-              }
-            if (!e.message.empty())
-              msg += "; detail: " + e.message;
-            cerr << "ERROR: " << msg << '\n';
+            error_message_helper(
+                format("Division by zero when substituting constants in [static] equation {}",
+                       eq + 1),
+                e);
             exit(EXIT_FAILURE);
           }
       subst_table.clear();

@@ -25,6 +25,7 @@
 #include <condition_variable>
 #include <deque>
 #include <filesystem>
+#include <format>
 #include <map>
 #include <mutex>
 #include <optional>
@@ -1636,7 +1637,7 @@ ModelTree::writeJsonComputingPassOutputHelper(bool writeDetails) const
       string matrix_name {i == 1   ? "jacobian"
                           : i == 2 ? "hessian"
                           : i == 3 ? "third_derivative"
-                                   : to_string(i) + "th_derivative"};
+                                   : format("{}th_derivative", i)};
       writeJsonTemporaryTerms(temporary_terms_derivatives[i], temp_term_union, d_output[i],
                               tef_terms, matrix_name);
       temp_term_union.insert(temporary_terms_derivatives[i].begin(),
@@ -1986,8 +1987,8 @@ ModelTree::writeBlockDriverSparseIndicesHelper(ostream& output) const
 {
   for (int blk {0}; blk < static_cast<int>(blocks.size()); blk++)
     {
-      const string struct_name {"M_.block_structure"s + (dynamic ? "" : "_stat") + ".block("
-                                + to_string(blk + 1) + ")."};
+      const string struct_name {
+          format("M_.block_structure{}.block({}).", dynamic ? ""s : "_stat"s, blk + 1)};
 
       // Write indices for the sparse Jacobian (both naive and CSC storage)
       output << struct_name << "g1_sparse_rowval = int32([";
@@ -2118,7 +2119,7 @@ ModelTree::writeModelJuliaFiles(const string& basename) const
              << "    return nothing" << endl
              << "end" << endl
              << endl;
-      writeToFileIfModified(output, julia_dir / (prefix + "G" + to_string(i) + "TT!.jl"));
+      writeToFileIfModified(output, julia_dir / format("{}G{}TT!.jl", prefix, i));
       ttlen += temporary_terms_derivatives[i].size();
 
       // G<i>!
@@ -2137,7 +2138,7 @@ ModelTree::writeModelJuliaFiles(const string& basename) const
              << "    return nothing" << endl
              << "end" << endl
              << endl;
-      writeToFileIfModified(output, julia_dir / (prefix + "G" + to_string(i) + "!.jl"));
+      writeToFileIfModified(output, julia_dir / format("{}G{}!.jl", prefix, i));
     }
 }
 
@@ -2153,7 +2154,7 @@ ModelTree::writeModelMFiles(const string& basename,
   const filesystem::path m_dir {packageDir(basename)};
   const string prefix {
       (dynamic ? "dynamic_"s : "static_"s)
-      + (heterogeneous_dimension ? "het"s + to_string(*heterogeneous_dimension + 1) + "_"s : ""s)};
+      + (heterogeneous_dimension ? format("het{}_", *heterogeneous_dimension + 1) : ""s)};
   const string full_prefix {basename + "." + prefix};
   const string extra_args {(dynamic ? ", steady_state"s : ""s)
                            + (heterogeneous_dimension
@@ -2243,7 +2244,7 @@ ModelTree::writeModelMFiles(const string& basename,
     {
       ttlen += temporary_terms_derivatives[i].size();
 
-      open_file(m_dir / (prefix + "g" + to_string(i) + "_tt.m"));
+      open_file(m_dir / format("{}g{}_tt.m", prefix, i));
       output << "function [T_order, T] = " << prefix << "g" << i << "_tt(y, x, params" << extra_args
              << ", T_order, T)" << '\n'
              << "if T_order >= " << i << '\n'
@@ -2258,7 +2259,7 @@ ModelTree::writeModelMFiles(const string& basename,
              << tt_output[i].str() << "end" << endl;
       output.close();
 
-      open_file(m_dir / (prefix + "g" + to_string(i) + ".m"));
+      open_file(m_dir / format("{}g{}.m", prefix, i));
       output << "function [g" << i << "_v, T_order, T] = " << prefix << "g" << i << "(y, x, params"
              << extra_args << ", T_order, T)" << '\n'
              << "if nargin < " << 5 + nextra_args << '\n'
@@ -2424,7 +2425,7 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
 
   for (int i {0}; i <= computed_derivs_order; i++)
     {
-      const string funcname {prefix + (i == 0 ? "resid" : "g" + to_string(i))};
+      const string funcname {prefix + (i == 0 ? "resid" : format("g{}", i))};
       ttlen += temporary_terms_derivatives[i].size();
 
       const string prototype_tt {
@@ -2456,7 +2457,7 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
           "void " + funcname
           + "(const double *restrict y, const double *restrict x, const double *restrict params"
           + extra_argin + ", const double *restrict T, double *restrict "
-          + (i == 0 ? "residual" : "g" + to_string(i) + "_v") + ")"};
+          + (i == 0 ? "residual"s : format("g{}_v", i)) + ")"};
 
       const filesystem::path header_main {model_src_dir / (funcname + ".h")};
       open_file(header_main);
@@ -2486,8 +2487,8 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
              << R"(#include "mex.h")" << '\n'
              << R"(#include ")" << funcname << R"(.h")" << '\n';
       for (int j {0}; j <= i; j++)
-        output << R"(#include ")" << prefix << (j == 0 ? "resid" : "g" + to_string(j))
-               << R"(_tt.h")" << '\n';
+        output << R"(#include ")" << prefix << (j == 0 ? "resid"s : format("g{}", j)) << R"(_tt.h")"
+               << '\n';
       output << '\n'
              << "#define max(a, b) ((a > b) ? (a) : (b))" << '\n'
              << '\n'
@@ -2557,7 +2558,7 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
       else
         output << "  plhs[0] = mxCreateDoubleMatrix("
                << (i == 0 ? equations.size() : derivatives[i].size()) << ", 1, mxREAL);" << '\n';
-      output << "  " << prefix << (i == 0 ? "resid" : "g" + to_string(i)) << "(y, x, params"
+      output << "  " << prefix << (i == 0 ? "resid"s : format("g{}", i)) << "(y, x, params"
              << extra_argout << ", T, mxGetDoubles(plhs[0]));" << '\n'
              << "  if (nlhs == 3)" << '\n'
              << "    {" << '\n'
@@ -2828,7 +2829,7 @@ ModelTree::writeComplementarityConditionsFile(const string& basename,
 {
   const string funcname {
       (dynamic ? "dynamic"s : "static"s)
-      + (heterogeneous_dimension ? "_het"s + to_string(*heterogeneous_dimension + 1) : ""s)
+      + (heterogeneous_dimension ? format("_het{}", *heterogeneous_dimension + 1) : ""s)
       + "_complementarity_conditions"};
   const filesystem::path filename {packageDir(basename) / (funcname + ".m")};
   /* Can’t use matlabOutsideModel for output type, since it uses M_.

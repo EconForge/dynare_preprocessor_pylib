@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <format>
 #include <iostream>
 #include <sstream>
 #pragma GCC diagnostic push
@@ -511,7 +512,7 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
   };
   for (int het_dim {0}; het_dim < heterogeneity_table.size(); het_dim++)
     {
-      const string basefield {"M_.heterogeneity(" + to_string(het_dim + 1) + ")."};
+      const string basefield {format("M_.heterogeneity({}).", het_dim + 1)};
 
       output << basefield << "endo_nbr = " << het_endo_nbr(het_dim) << ";" << '\n';
       print_symb_names(basefield + "endo_names", het_endo_ids.at(het_dim));
@@ -543,7 +544,7 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
 int
 SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) noexcept(false)
 {
-  string varname {(endo ? "AUX_ENDO_LEAD_" : "AUX_EXO_LEAD_") + to_string(index)};
+  string varname {format("AUX_{}_LEAD_{}", endo ? "ENDO" : "EXO", index)};
   int symb_id;
   try
     {
@@ -566,8 +567,7 @@ int
 SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_lead_lag,
                                         expr_t expr_arg) noexcept(false)
 {
-  string varname {(endo ? "AUX_ENDO_LAG_" : "AUX_EXO_LAG_") + to_string(orig_symb_id) + "_"
-                  + to_string(-orig_lead_lag)};
+  string varname {format("AUX_{}_LAG_{}_{}", endo ? "ENDO" : "EXO", orig_symb_id, -orig_lead_lag)};
   int symb_id;
   try
     {
@@ -616,8 +616,8 @@ int
 SymbolTable::addExpectationAuxiliaryVar(int information_set, int index,
                                         expr_t expr_arg) noexcept(false)
 {
-  string varname {"AUX_EXPECT_"s + (information_set < 0 ? "LAG" : "LEAD") + "_"
-                  + to_string(abs(information_set)) + "_" + to_string(index)};
+  string varname {format("AUX_EXPECT_{}_{}_{}", information_set < 0 ? "LAG"s : "LEAD"s,
+                         abs(information_set), index)};
   int symb_id;
   try
     {
@@ -665,7 +665,7 @@ int
 SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id,
                                     int orig_lag) noexcept(false)
 {
-  string varname {"AUX_DIFF_LAG_" + to_string(index)};
+  string varname {format("AUX_DIFF_LAG_{}", index)};
   int symb_id;
   try
     {
@@ -687,7 +687,7 @@ int
 SymbolTable::addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id,
                                      int orig_lead) noexcept(false)
 {
-  string varname {"AUX_DIFF_LEAD_" + to_string(index)};
+  string varname {format("AUX_DIFF_LEAD_{}", index)};
   int symb_id;
   try
     {
@@ -709,7 +709,7 @@ int
 SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, const optional<int>& orig_symb_id,
                                  const optional<int>& orig_lag) noexcept(false)
 {
-  string varname {"AUX_DIFF_" + to_string(index)};
+  string varname {format("AUX_DIFF_{}", index)};
   int symb_id;
   try
     {
@@ -732,7 +732,7 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
                                     const optional<int>& orig_symb_id,
                                     const optional<int>& orig_lag) noexcept(false)
 {
-  string varname {"AUX_UOP_" + to_string(index)};
+  string varname {format("AUX_UOP_{}", index)};
   int symb_id;
   try
     {
@@ -776,7 +776,7 @@ int
 SymbolTable::addHeterogeneousEndoLeadAuxiliaryVar(int het_dim, int index,
                                                   expr_t expr_arg) noexcept(false)
 {
-  string varname {"AUX_HET_ENDO_LEAD_" + to_string(index)};
+  string varname {format("AUX_HET_ENDO_LEAD_{}", index)};
   int symb_id;
   try
     {
@@ -797,7 +797,7 @@ SymbolTable::addHeterogeneousEndoLeadAuxiliaryVar(int het_dim, int index,
 int
 SymbolTable::addMultiplierAuxiliaryVar(int index) noexcept(false)
 {
-  string varname {"MULT_" + to_string(index + 1)};
+  string varname {format("MULT_{}", index + 1)};
   int symb_id;
   try
     {
@@ -818,7 +818,7 @@ int
 SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, int orig_lead_lag,
                                         expr_t expr_arg) noexcept(false)
 {
-  string varname {"AUX_DIFF_FWRD_" + to_string(orig_symb_id + 1)};
+  string varname {format("AUX_DIFF_FWRD_{}", orig_symb_id + 1)};
   int symb_id;
   try
     {

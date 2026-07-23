@@ -20,6 +20,7 @@
 #include "Directives.hh"
 #include "Driver.hh"
 
+#include <format>
 #include <fstream>
 #include <utility>
 
@@ -227,11 +228,11 @@ For::interpret(ostream& output, Environment& env, vector<filesystem::path>& path
             {
               TuplePtr mtp = dynamic_pointer_cast<Tuple>(btp);
               if (index_vec.size() != mtp->size())
-                error(StackTrace("@#for",
-                                 "Encountered tuple of size " + to_string(mtp->size())
-                                     + " but only have " + to_string(index_vec.size())
-                                     + " index variables",
-                                 location));
+                error(StackTrace(
+                    "@#for",
+                    format("Encountered tuple of size {} but only have {} index variables",
+                           mtp->size(), index_vec.size()),
+                    location));
               else
                 for (size_t j = 0; j < index_vec.size(); j++)
                   env.define(index_vec.at(j), mtp->at(j));

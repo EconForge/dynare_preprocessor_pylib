@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <format>
 #include <ranges>
 
 #include "Environment.hh"
@@ -150,7 +151,7 @@ Environment::print(ostream& output, const vector<string>& vars, int line, bool s
 void
 Environment::printVariable(ostream& output, const string& name, int line, bool save) const
 {
-  output << (save ? "options_.macrovars_line_" + to_string(line) + "." : "  ") << name << " = ";
+  output << (save ? format("options_.macrovars_line_{}.", line) : "  ") << name << " = ";
   getVariable(name)->eval(const_cast<Environment&>(*this))->print(output, save);
   if (save)
     output << ";";
@@ -161,7 +162,7 @@ void
 Environment::printFunction(ostream& output, const string& name, int line, bool save) const
 {
   auto [func_signature, func_body] = getFunction(name);
-  output << (save ? "options_.macrovars_line_" + to_string(line) + ".function." : "  ");
+  output << (save ? format("options_.macrovars_line_{}.function.", line) : "  ");
   if (save)
     {
       func_signature->printName(output);

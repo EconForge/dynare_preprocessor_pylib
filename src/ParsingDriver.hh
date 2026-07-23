@@ -25,11 +25,13 @@
 #endif
 
 #include <array>
+#include <format>
 #include <istream>
 #include <optional>
 #include <stack>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -346,8 +348,24 @@ public:
   [[noreturn]] void error(const Dynare::parser::location_type& l, const string& m);
   //! Error handler using saved location
   [[noreturn]] void error(const string& m);
+  /* Error handler using saved location and formatting.
+     NB: the format string needs to be known at compile-time. */
+  template<typename... Args>
+  [[noreturn]] void
+  error(const format_string<Args...>& fmt, Args&&... args)
+  {
+    error(format(fmt, forward<Args>(args)...));
+  }
   //! Warning handler using saved location
   void warning(const string& m);
+  /* Warning handler using saved location and formatting.
+     NB: the format string needs to be known at compile-time. */
+  template<typename... Args>
+  void
+  warning(const format_string<Args...>& fmt, Args&&... args)
+  {
+    warning(format(fmt, forward<Args>(args)...));
+  }
 
   //! Error handler with explicit location (used in model block, accumulating error messages to be
   //! printed later)

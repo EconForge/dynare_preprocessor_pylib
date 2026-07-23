@@ -55,9 +55,9 @@ void
 ParsingDriver::check_symbol_existence(const string& name)
 {
   if (!mod_file->symbol_table.exists(name))
-    error("Unknown symbol: " + name
-          + ".\nIf referenced from the 'initval', 'endval', 'histval', or 'shocks' block, you can "
-            "pass the 'nostrict' option to dynare to have this line ignored.");
+    error("Unknown symbol: {}.\nIf referenced from the 'initval', 'endval', 'histval', or 'shocks' "
+          "block, you can pass the 'nostrict' option to dynare to have this line ignored.",
+          name);
 }
 
 void
@@ -66,7 +66,7 @@ ParsingDriver::check_symbol_is_parameter(const string& name)
   check_symbol_existence(name);
   int symb_id = mod_file->symbol_table.getID(name);
   if (mod_file->symbol_table.getType(symb_id) != SymbolType::parameter)
-    error(name + " is not a parameter");
+    error("{} is not a parameter", name);
 }
 
 void
@@ -149,11 +149,11 @@ ParsingDriver::declare_symbol(const string& name, SymbolType type, const string&
     {
       if (e.same_type)
         {
-          warning("Symbol " + name + " declared twice.");
+          warning("Symbol {} declared twice.", name);
           symb_id = mod_file->symbol_table.getID(name);
         }
       else
-        error("Symbol " + name + " declared twice with different types!");
+        error("Symbol {} declared twice with different types!", name);
     }
   return symb_id;
 }
@@ -180,7 +180,7 @@ ParsingDriver::var(const vector<tuple<string, string, vector<pair<string, string
             }
           catch (HeterogeneityTable::UnknownDimensionNameException&)
             {
-              error("Unknown heterogeneity dimension: " + *heterogeneity_dimension);
+              error("Unknown heterogeneity dimension: {}", *heterogeneity_dimension);
             }
         else
           return declare_endogenous(name, tex_name, partition);
@@ -212,7 +212,7 @@ ParsingDriver::varexo(
         }
       catch (HeterogeneityTable::UnknownDimensionNameException&)
         {
-          error("Unknown heterogeneity dimension: " + *heterogeneity_dimension);
+          error("Unknown heterogeneity dimension: {}", *heterogeneity_dimension);
         }
     else
       declare_exogenous(name, tex_name, partition);
@@ -251,7 +251,7 @@ ParsingDriver::parameters(
           }
         catch (HeterogeneityTable::UnknownDimensionNameException&)
           {
-            error("Unknown heterogeneity dimension: " + *heterogeneity_dimension);
+            error("Unknown heterogeneity dimension: {}", *heterogeneity_dimension);
           }
       else
         declare_parameter(name, tex_name, partition);
@@ -262,8 +262,9 @@ void
 ParsingDriver::declare_statement_local_variable(const string& name)
 {
   if (mod_file->symbol_table.exists(name))
-    error("Symbol " + name + " cannot be assigned within a statement "
-          + "while being assigned elsewhere in the modfile");
+    error("Symbol {} cannot be assigned within a statement while being assigned elsewhere in the "
+          "modfile",
+          name);
   declare_symbol(name, SymbolType::statementDeclaredVariable, "", {}, {});
 }
 
@@ -301,7 +302,7 @@ ParsingDriver::end_trend_var(bool log_trend, expr_t growth_factor,
     }
   catch (DataTree::TrendException& e)
     {
-      error("Trend variable " + e.name + " was declared twice.");
+      error("Trend variable {} was declared twice.", e.name);
     }
   declared_trend_vars.clear();
   reset_data_tree();
@@ -345,14 +346,14 @@ ParsingDriver::add_model_variable(const string& name)
     {
       symb_id = mod_file->symbol_table.getID(name);
       if (mod_file->symbol_table.getType(symb_id) == SymbolType::excludedVariable)
-        error("Variable '" + name
-              + "' can no longer be used since it has been excluded by a previous 'model_remove' "
-                "or 'var_remove' statement");
+        error("Variable '{}' can no longer be used since it has been excluded by a previous "
+              "'model_remove' or 'var_remove' statement",
+              name);
     }
   catch (SymbolTable::UnknownSymbolNameException& e)
     {
       if (is_parsing_epilogue())
-        error("Variable " + name + " used in the epilogue block but was not declared.");
+        error("Variable {} used in the epilogue block but was not declared.", name);
 
       /* Declare variable as exogenous to continue parsing. Processing will end
          at end of model block (or planner_objective statement) if nostrict
@@ -407,18 +408,18 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
   SymbolType type = mod_file->symbol_table.getType(symb_id);
 
   if (type == SymbolType::modFileLocalVariable)
-    error("Variable " + mod_file->symbol_table.getName(symb_id)
-          + " not allowed inside model declaration. Its scope is only outside model.");
+    error("Variable {} not allowed inside model declaration. Its scope is only outside model.",
+          mod_file->symbol_table.getName(symb_id));
 
   if (type == SymbolType::externalFunction)
-    error("Symbol " + mod_file->symbol_table.getName(symb_id)
-          + " is a function name external to Dynare. It cannot be used like a variable without "
-            "input argument inside model.");
+    error("Symbol {} is a function name external to Dynare. It cannot be used like a variable "
+          "without input argument inside model.",
+          mod_file->symbol_table.getName(symb_id));
 
   // See dynare#1765
   if (type == SymbolType::exogenousDet && lag != 0)
-    error("Exogenous deterministic variable " + mod_file->symbol_table.getName(symb_id)
-          + " cannot be given a lead or a lag.");
+    error("Exogenous deterministic variable {} cannot be given a lead or a lag.",
+          mod_file->symbol_table.getName(symb_id));
 
   if (is_parsing_planner_objective())
     {
@@ -426,13 +427,13 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
         error("Leads and lags on variables are forbidden in 'planner_objective'.");
 
       if (type == SymbolType::modelLocalVariable)
-        error("Model local variable " + mod_file->symbol_table.getName(symb_id)
-              + " cannot be used in 'planner_objective'.");
+        error("Model local variable {} cannot be used in 'planner_objective'.",
+              mod_file->symbol_table.getName(symb_id));
 
       if (type == SymbolType::heterogeneousEndogenous || type == SymbolType::heterogeneousExogenous
           || type == SymbolType::heterogeneousParameter)
-        error("Symbol '" + mod_file->symbol_table.getName(symb_id)
-              + "' cannot be used in 'planner_objective', because it is heterogeneous.");
+        error("Symbol '{}' cannot be used in 'planner_objective', because it is heterogeneous.",
+              mod_file->symbol_table.getName(symb_id));
     }
 
   if (is_parsing_occbin_constraints())
@@ -442,36 +443,36 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
               "can achieve the same effect by introducing an auxiliary variable in the model.");
 
       if (type == SymbolType::modelLocalVariable)
-        error("Model local variable " + mod_file->symbol_table.getName(symb_id)
-              + " cannot be used in 'occbin_constraints'.");
+        error("Model local variable {} cannot be used in 'occbin_constraints'.",
+              mod_file->symbol_table.getName(symb_id));
 
       if (type == SymbolType::exogenous || type == SymbolType::exogenousDet)
-        error("Exogenous variable " + mod_file->symbol_table.getName(symb_id)
-              + " cannot be used in 'occbin_constraints'.");
+        error("Exogenous variable {} cannot be used in 'occbin_constraints'.",
+              mod_file->symbol_table.getName(symb_id));
 
       if (type == SymbolType::heterogeneousEndogenous || type == SymbolType::heterogeneousExogenous
           || type == SymbolType::heterogeneousParameter)
-        error("Symbol '" + mod_file->symbol_table.getName(symb_id)
-              + "' cannot be used in 'occbin_constraints', because it is heterogeneous.");
+        error("Symbol '{}' cannot be used in 'occbin_constraints', because it is heterogeneous.",
+              mod_file->symbol_table.getName(symb_id));
     }
 
   if (is_parsing_epilogue())
     {
       if (type == SymbolType::exogenousDet)
-        error("Symbol '" + mod_file->symbol_table.getName(symb_id)
-              + "' cannot be used inside the epilogue block, because it is an exogenous "
-                "deterministic variable.");
+        error("Symbol '{}' cannot be used inside the epilogue block, because it is an exogenous "
+              "deterministic variable.",
+              mod_file->symbol_table.getName(symb_id));
 
       if (type == SymbolType::heterogeneousEndogenous || type == SymbolType::heterogeneousExogenous
           || type == SymbolType::heterogeneousParameter)
-        error("Symbol '" + mod_file->symbol_table.getName(symb_id)
-              + "' cannot be used in epilogue block, because it is heterogeneous.");
+        error("Symbol '{}' cannot be used in epilogue block, because it is heterogeneous.",
+              mod_file->symbol_table.getName(symb_id));
     }
   else
     {
       if (type == SymbolType::epilogue)
-        error("Symbol '" + mod_file->symbol_table.getName(symb_id)
-              + "' cannot be used outside the epilogue block.");
+        error("Symbol '{}' cannot be used outside the epilogue block.",
+              mod_file->symbol_table.getName(symb_id));
     }
 
   // It makes sense to allow a lead/lag on parameters: during steady state calibration, endogenous
@@ -499,29 +500,30 @@ ParsingDriver::add_expression_variable(const string& name)
   else
     {
       if (type == SymbolType::modelLocalVariable)
-        error("Variable " + name
-              + " not allowed outside model declaration. Its scope is only inside model.");
+        error("Variable {} not allowed outside model declaration. Its scope is only inside model.",
+              name);
 
       if (type == SymbolType::trend || type == SymbolType::logTrend)
-        error("Variable " + name
-              + " not allowed outside model declaration, because it is a trend variable.");
+        error("Variable {} not allowed outside model declaration, because it is a trend variable.",
+              name);
 
       if (type == SymbolType::externalFunction)
-        error("Symbol '" + name
-              + "' is the name of a MATLAB/Octave function, and cannot be used as a variable.");
+        error("Symbol '{}' is the name of a MATLAB/Octave function, and cannot be used as a "
+              "variable.",
+              name);
 
       if (type == SymbolType::heterogeneousEndogenous || type == SymbolType::heterogeneousExogenous
           || type == SymbolType::heterogeneousParameter)
-        error("Symbol '" + name
-              + "' cannot be used outside model declaration, because it is heterogeneous.");
+        error("Symbol '{}' cannot be used outside model declaration, because it is heterogeneous.",
+              name);
 
       if (type == SymbolType::epilogue)
-        error("Symbol '" + name + "' cannot be used outside the epilogue block.");
+        error("Symbol '{}' cannot be used outside the epilogue block.", name);
 
       if (type == SymbolType::excludedVariable)
-        error("Variable '" + name
-              + "' can no longer be used since it has been excluded by a previous 'model_remove' "
-                "or 'var_remove' statement");
+        error("Variable '{}' can no longer be used since it has been excluded by a previous "
+              "'model_remove' or 'var_remove' statement",
+              name);
     }
 
   int symb_id = mod_file->symbol_table.getID(name);
@@ -535,22 +537,22 @@ ParsingDriver::add_self_variable(const string& name, expr_t lag)
   int symb_id {mod_file->symbol_table.getID(name)};
 
   if (is_parsing_shock_paths_controlled)
-    error("The syntax self." + name
-          + " is not accepted in an 'endogenize' stanza of a 'shock_paths' block");
+    error("The syntax self.{} is not accepted in an 'endogenize' stanza of a 'shock_paths' block",
+          name);
 
   try
     {
       auto ilag = lag->matchIntegerConstant();
       if (ilag > 0)
-        error("The syntax self." + name + " cannot be used with a lead");
+        error("The syntax self.{} cannot be used with a lead", name);
       return data_tree->AddNamespaceQualifiedVariable(
           NamespaceQualifiedVariableNode::NamespaceType::self, symb_id, ilag);
     }
   catch (ExprNode::MatchFailureException&)
     {
-      error("Symbol self." + name
-            + " is being treated as if it were a function (i.e., passed an argument that is "
-              "not an integer).");
+      error("Symbol self.{} is being treated as if it were a function (i.e., passed an argument "
+            "that is not an integer).",
+            name);
     }
 }
 
@@ -576,12 +578,12 @@ ParsingDriver::add_prev_variable(const string& name, expr_t lag)
      preprocessor level when learnt_in at the block level is an integer */
   if (is_parsing_shock_paths() && holds_alternative<int>(shock_paths_learnt_in_period)
       && get<int>(shock_paths_learnt_in_period) == 1)
-    error("The syntax prev." + name
-          + " is not accepted in a 'shock_paths' block without the 'learnt_in' option or in a "
-            "'shock_paths(learnt_in=1)' block");
+    error("The syntax prev.{} is not accepted in a 'shock_paths' block without the 'learnt_in' "
+          "option or in a 'shock_paths(learnt_in=1)' block",
+          name);
   if (is_parsing_shock_paths_controlled)
-    error("The syntax prev." + name
-          + " is not accepted in an 'endogenize' stanza of a 'shock_paths' block");
+    error("The syntax prev.{} is not accepted in an 'endogenize' stanza of a 'shock_paths' block",
+          name);
 
   if (!lag)
     return data_tree->AddNamespaceQualifiedVariable(
@@ -595,9 +597,9 @@ ParsingDriver::add_prev_variable(const string& name, expr_t lag)
       }
     catch (ExprNode::MatchFailureException&)
       {
-        error("Symbol prev." + name
-              + " is being treated as if it were a function (i.e., passed an argument that is "
-                "not an integer).");
+        error("Symbol prev.{} is being treated as if it were a function (i.e., passed an argument "
+              "that is not an integer).",
+              name);
       }
 }
 
@@ -606,8 +608,8 @@ ParsingDriver::add_database_variable(const string& database_name, const string& 
                                      expr_t lag)
 {
   if (is_parsing_shock_paths_controlled)
-    error("The syntax " + database_name + "." + symbol_name
-          + " is not accepted in an 'endogenize' stanza of a 'shock_paths' block");
+    error("The syntax {}.{} is not accepted in an 'endogenize' stanza of a 'shock_paths' block",
+          database_name, symbol_name);
 
   int symb_id {[&] {
     try
@@ -627,8 +629,8 @@ ParsingDriver::add_database_variable(const string& database_name, const string& 
       }
     catch (DatabaseTable::UnknownDatabaseNameException&)
       {
-        error("Unknown database: " + database_name
-              + ". You may want to declare it via the 'database' command.");
+        error("Unknown database: {}. You may want to declare it via the 'database' command.",
+              database_name);
       }
   }()};
 
@@ -644,9 +646,9 @@ ParsingDriver::add_database_variable(const string& database_name, const string& 
       }
     catch (ExprNode::MatchFailureException&)
       {
-        error("Symbol " + database_name + "." + symbol_name
-              + " is being treated as if it were a function (i.e., passed an argument that is "
-                "not an integer).");
+        error("Symbol {}.{} is being treated as if it were a function (i.e., passed an argument "
+              "that is not an integer).",
+              database_name, symbol_name);
       }
 }
 
@@ -658,24 +660,23 @@ ParsingDriver::add_learnt_in_variable(const variant<int, string>& learnt_in_peri
   int symb_id {mod_file->symbol_table.getID(name)};
 
   if (holds_alternative<int>(learnt_in_period) && get<int>(learnt_in_period) < 1)
-    error("The syntax learnt_in(" + to_string(get<int>(learnt_in_period)) + ")." + name
-          + " is not accepted");
+    error("The syntax learnt_in({}).{} is not accepted", get<int>(learnt_in_period), name);
 
   /* Check consistency of learnt_in information between block and variable; only possible at the
      preprocessor level when both are integers */
   if (is_parsing_shock_paths() && holds_alternative<int>(shock_paths_learnt_in_period)
       && holds_alternative<int>(learnt_in_period)
       && get<int>(shock_paths_learnt_in_period) <= get<int>(learnt_in_period))
-    error("The syntax learnt_in(" + to_string(get<int>(learnt_in_period)) + ")." + name
-          + " is not accepted in a 'shock_paths' block without the 'learnt_in' option or in a "
-            "'shock_paths(learnt_in="
-          + to_string(get<int>(shock_paths_learnt_in_period)) + ")' block");
+    error("The syntax learnt_in({}).{} is not accepted in a 'shock_paths' block without the "
+          "'learnt_in' option or in a 'shock_paths(learnt_in={})' block",
+          get<int>(learnt_in_period), name, get<int>(shock_paths_learnt_in_period));
 
   if (is_parsing_shock_paths_controlled)
-    error("The syntax learnt_in("
-          + (holds_alternative<int>(learnt_in_period) ? to_string(get<int>(learnt_in_period))
-                                                      : get<string>(learnt_in_period))
-          + ")." + name + " is not accepted in an 'endogenize' stanza of a 'shock_paths' block");
+    error("The syntax learnt_in({}).{} is not accepted in an 'endogenize' stanza of a "
+          "'shock_paths' block",
+          holds_alternative<int>(learnt_in_period) ? to_string(get<int>(learnt_in_period))
+                                                   : get<string>(learnt_in_period),
+          name);
 
   if (!lag)
     return data_tree->AddNamespaceQualifiedVariable(
@@ -689,12 +690,11 @@ ParsingDriver::add_learnt_in_variable(const variant<int, string>& learnt_in_peri
       }
     catch (ExprNode::MatchFailureException&)
       {
-        error("Symbol learnt_in("
-              + (holds_alternative<int>(learnt_in_period) ? to_string(get<int>(learnt_in_period))
-                                                          : get<string>(learnt_in_period))
-              + ")." + name
-              + " is being treated as if it were a function (i.e., passed an argument that is "
-                "not an integer).");
+        error("Symbol learnt_in({}).{} is being treated as if it were a function (i.e., passed an "
+              "argument that is not an integer).",
+              holds_alternative<int>(learnt_in_period) ? to_string(get<int>(learnt_in_period))
+                                                       : get<string>(learnt_in_period),
+              name);
       }
 }
 
@@ -720,7 +720,7 @@ ParsingDriver::end_nonstationary_var(
     }
   catch (DataTree::TrendException& e)
     {
-      error("Variable " + e.name + " was listed more than once as following a trend.");
+      error("Variable {} was listed more than once as following a trend.", e.name);
     }
 
   set<int> r;
@@ -762,7 +762,7 @@ ParsingDriver::init_val(const string& name, expr_t rhs)
 {
   if (nostrict && !mod_file->symbol_table.exists(name))
     {
-      warning("discarding '" + name + "' as it was not recognized in the initval statement");
+      warning("discarding '{}' as it was not recognized in the initval statement", name);
       return;
     }
 
@@ -784,7 +784,7 @@ ParsingDriver::end_val(EndValLearntInStatement::LearntEndValType type, const str
 {
   if (nostrict && !mod_file->symbol_table.exists(name))
     {
-      warning("discarding '" + name + "' as it was not recognized in the endval statement");
+      warning("discarding '{}' as it was not recognized in the endval statement", name);
       return;
     }
 
@@ -798,7 +798,7 @@ ParsingDriver::hist_val(const string& name, const string& lag, expr_t rhs)
 {
   if (nostrict && !mod_file->symbol_table.exists(name))
     {
-      warning("discarding '" + name + "' as it was not recognized in the histval block");
+      warning("discarding '{}' as it was not recognized in the histval block", name);
       return;
     }
 
@@ -807,12 +807,12 @@ ParsingDriver::hist_val(const string& name, const string& lag, expr_t rhs)
 
   int ilag = stoi(lag);
   if (ilag > 0)
-    error("histval: the lag on " + name + " should be less than or equal to 0");
+    error("histval: the lag on {} should be less than or equal to 0", name);
 
   pair key {symb_id, ilag};
 
   if (hist_values.contains(key))
-    error("hist_val: (" + name + ", " + lag + ") declared twice");
+    error("hist_val: ({}, {}) declared twice", name, lag);
 
   hist_values[move(key)] = rhs;
 }
@@ -826,7 +826,7 @@ ParsingDriver::homotopy_val(const string& name, expr_t val1, expr_t val2)
 
   if (type != SymbolType::parameter && type != SymbolType::exogenous
       && type != SymbolType::exogenousDet)
-    error("homotopy_val: " + name + " should be a parameter or exogenous variable");
+    error("homotopy_val: {} should be a parameter or exogenous variable", name);
 
   homotopy_values.emplace_back(symb_id, val1, val2);
 }
@@ -847,8 +847,8 @@ ParsingDriver::add_generate_irfs_element(string name)
 {
   for (const auto& it : generate_irf_names)
     if (it == name)
-      error("Names in the generate_irfs block must be unique but you entered '" + name
-            + "' more than once.");
+      error("Names in the generate_irfs block must be unique but you entered '{}' more than once.",
+            name);
 
   generate_irf_names.push_back(move(name));
   generate_irf_elements.push_back(generate_irf_exos);
@@ -861,7 +861,7 @@ ParsingDriver::add_generate_irfs_exog_element(string exo, const string& value)
 {
   check_symbol_is_exogenous(exo, false);
   if (generate_irf_exos.contains(exo))
-    error("You have set the exogenous variable " + exo + " twice.");
+    error("You have set the exogenous variable {} twice.", exo);
 
   generate_irf_exos[move(exo)] = stod(value);
 }
@@ -992,11 +992,13 @@ ParsingDriver::end_endval(bool all_values_required)
         end_values_new.emplace_back(symb_id, value);
         break;
       case EndValLearntInStatement::LearntEndValType::add:
-        error("endval: '" + mod_file->symbol_table.getName(symb_id)
-              + " += ...' line not allowed unless 'learnt_in' option with value >1 is passed");
+        error("endval: '{} += ...' line not allowed unless 'learnt_in' option with value >1 is "
+              "passed",
+              mod_file->symbol_table.getName(symb_id));
       case EndValLearntInStatement::LearntEndValType::multiply:
-        error("endval: '" + mod_file->symbol_table.getName(symb_id)
-              + " *= ...' line not allowed unless 'learnt_in' option with value >1 is passed");
+        error("endval: '{} *= ...' line not allowed unless 'learnt_in' option with value >1 is "
+              "passed",
+              mod_file->symbol_table.getName(symb_id));
       }
 
   mod_file->addStatement(make_unique<EndValStatement>(move(end_values_new), mod_file->symbol_table,
@@ -1011,8 +1013,7 @@ ParsingDriver::end_endval_learnt_in(variant<int, string> learnt_in_period)
     {
       int learnt_in_period_int = get<int>(learnt_in_period);
       if (learnt_in_period_int < 1)
-        error("endval: value '" + to_string(learnt_in_period_int)
-              + "' is not allowed for 'learnt_in' option");
+        error("endval: value '{}' is not allowed for 'learnt_in' option", learnt_in_period_int);
       if (learnt_in_period_int == 1)
         {
           end_endval(false);
@@ -1021,8 +1022,8 @@ ParsingDriver::end_endval_learnt_in(variant<int, string> learnt_in_period)
     }
   for (const auto& [type, symb_id, value] : end_values)
     if (mod_file->symbol_table.getType(symb_id) != SymbolType::exogenous)
-      error("endval(learnt_in=...): " + mod_file->symbol_table.getName(symb_id)
-            + " is not an exogenous variable");
+      error("endval(learnt_in=...): {} is not an exogenous variable",
+            mod_file->symbol_table.getName(symb_id));
   mod_file->addStatement(make_unique<EndValLearntInStatement>(
       move(learnt_in_period), move(end_values), mod_file->symbol_table));
   end_values.clear();
@@ -1084,7 +1085,7 @@ ParsingDriver::begin_heterogeneous_model(const string& heterogeneity_dimension)
       }
     catch (HeterogeneityTable::UnknownDimensionNameException&)
       {
-        error("Unknown heterogeneity dimension: " + heterogeneity_dimension);
+        error("Unknown heterogeneity dimension: {}", heterogeneity_dimension);
       }
   }()};
   set_current_data_tree(&mod_file->heterogeneous_models.at(het_dim_id));
@@ -1143,7 +1144,7 @@ ParsingDriver::end_heterogeneous_shocks(const string& heterogeneity_dimension, b
       }
     catch (HeterogeneityTable::UnknownDimensionNameException&)
       {
-        error("Unknown heterogeneity dimension: " + heterogeneity_dimension);
+        error("Unknown heterogeneity dimension: {}", heterogeneity_dimension);
       }
   }()};
   mod_file->addStatement(make_unique<HeterogeneousShocksStatement>(
@@ -1191,8 +1192,7 @@ ParsingDriver::end_shocks_learnt_in(variant<int, string> learnt_in_period, bool 
     {
       int learnt_in_period_int = get<int>(learnt_in_period);
       if (learnt_in_period_int < 1)
-        error("shocks: value '" + to_string(learnt_in_period_int)
-              + "' is not allowed for 'learnt_in' option");
+        error("shocks: value '{}' is not allowed for 'learnt_in' option", learnt_in_period_int);
       if (learnt_in_period_int == 1)
         {
           end_shocks(overwrite);
@@ -1204,10 +1204,9 @@ ParsingDriver::end_shocks_learnt_in(variant<int, string> learnt_in_period, bool 
             if (holds_alternative<pair<int, int>>(period_range))
               if (int period1 = get<pair<int, int>>(period_range).first;
                   period1 < learnt_in_period_int)
-                error("shocks: for variable " + mod_file->symbol_table.getName(symb_id)
-                      + ", shock period (" + to_string(period1)
-                      + ") is earlier than the period in which the shock is learnt ("
-                      + to_string(learnt_in_period_int) + ")");
+                error("shocks: for variable {}, shock period ({}) is earlier than the period in "
+                      "which the shock is learnt ({})",
+                      mod_file->symbol_table.getName(symb_id), period1, learnt_in_period_int);
     }
 
   // Aggregate the three types of shocks
@@ -1255,8 +1254,7 @@ ParsingDriver::end_mshocks_learnt_in(variant<int, string> learnt_in_period, bool
     {
       int learnt_in_period_int = get<int>(learnt_in_period);
       if (learnt_in_period_int < 1)
-        error("mshocks: value '" + to_string(learnt_in_period_int)
-              + "' is not allowed for 'learnt_in' option");
+        error("mshocks: value '{}' is not allowed for 'learnt_in' option", learnt_in_period_int);
       if (learnt_in_period_int == 1)
         {
           end_mshocks(overwrite, relative_to_initval);
@@ -1267,10 +1265,9 @@ ParsingDriver::end_mshocks_learnt_in(variant<int, string> learnt_in_period, bool
           if (holds_alternative<pair<int, int>>(period_range))
             if (int period1 = get<pair<int, int>>(period_range).first;
                 period1 < learnt_in_period_int)
-              error("mshocks: for variable " + mod_file->symbol_table.getName(symb_id)
-                    + ", shock period (" + to_string(period1)
-                    + ") is earlier than the period in which the shock is learnt ("
-                    + to_string(learnt_in_period_int) + ")");
+              error("mshocks: for variable {}, shock period ({}) is earlier than the period in "
+                    "which the shock is learnt ({})",
+                    mod_file->symbol_table.getName(symb_id), period1, learnt_in_period_int);
     }
 
   ShocksLearntInStatement::learnt_shocks_t learnt_shocks;
@@ -1330,11 +1327,10 @@ ParsingDriver::add_det_shock(const string& var,
 
   if (det_shocks.contains(symb_id) || learnt_shocks_add.contains(symb_id)
       || learnt_shocks_multiply.contains(symb_id))
-    error("shocks: variable " + var + " declared twice");
+    error("shocks: variable {} declared twice", var);
 
   if (periods.size() != values.size())
-    error("shocks: variable " + var
-          + ": number of periods is different from number of shock values");
+    error("shocks: variable {}: number of periods is different from number of shock values", var);
 
   vector<pair<AbstractShocksStatement::period_range_t, expr_t>> v;
 
@@ -1366,8 +1362,8 @@ ParsingDriver::add_shock_paths_exo_elem(const string& var,
   int symb_id = mod_file->symbol_table.getID(var);
 
   if (periods.size() != values.size())
-    error("shock_paths: variable " + var
-          + ": number of periods is different from number of shock values");
+    error("shock_paths: variable {}: number of periods is different from number of shock values",
+          var);
 
   vector<pair<ShockPathsStatement::period_range_t, expr_t>> v;
 
@@ -1377,8 +1373,8 @@ ParsingDriver::add_shock_paths_exo_elem(const string& var,
          level when the period is an integer (not date or “end”) and with lags (not leads) */
       if (auto p = periods[i].get_first();
           holds_alternative<int>(p) && get<int>(p) <= values[i]->maxLag())
-        error("shock_paths: a lag of " + to_string(values[i]->maxLag())
-              + " is not allowed at period " + to_string(get<int>(p)));
+        error("shock_paths: a lag of {} is not allowed at period {}", values[i]->maxLag(),
+              get<int>(p));
 
       v.emplace_back(periods[i], values[i]);
     }
@@ -1395,8 +1391,9 @@ ParsingDriver::add_heteroskedastic_shock(
   int symb_id = mod_file->symbol_table.getID(var);
 
   if (periods.size() != values.size())
-    error("heteroskedastic_shocks: variable " + var
-          + ": number of periods is different from number of shock values");
+    error("heteroskedastic_shocks: variable {}: number of periods is different from number of "
+          "shock values",
+          var);
 
   vector<pair<AbstractShocksStatement::period_range_t, expr_t>> v;
   v.reserve(periods.size());
@@ -1408,7 +1405,7 @@ ParsingDriver::add_heteroskedastic_shock(
       // For exogenous variables: Q_scale
       if ((!scales && heteroskedastic_shocks_exo_values.contains(symb_id))
           || (scales && heteroskedastic_shocks_exo_scales.contains(symb_id)))
-        error("heteroskedastic_shocks: variable " + var + " declared twice");
+        error("heteroskedastic_shocks: variable {} declared twice", var);
       if (scales)
         heteroskedastic_shocks_exo_scales[symb_id] = v;
       else
@@ -1419,7 +1416,7 @@ ParsingDriver::add_heteroskedastic_shock(
       // For endogenous variables: H_scale
       if ((!scales && heteroskedastic_shocks_endo_values.contains(symb_id))
           || (scales && heteroskedastic_shocks_endo_scales.contains(symb_id)))
-        error("heteroskedastic_shocks: variable " + var + " declared twice");
+        error("heteroskedastic_shocks: variable {} declared twice", var);
       if (scales)
         heteroskedastic_shocks_endo_scales[symb_id] = v;
       else
@@ -1432,8 +1429,9 @@ ParsingDriver::add_stderr_shock(const string& var, expr_t value)
 {
   if (nostrict && !mod_file->symbol_table.exists(var))
     {
-      warning("discarding shocks block declaration of the standard error of '" + var
-              + "' as it was not declared");
+      warning("discarding shocks block declaration of the standard error of '{}' as it was not "
+              "declared",
+              var);
       return;
     }
 
@@ -1441,7 +1439,7 @@ ParsingDriver::add_stderr_shock(const string& var, expr_t value)
   int symb_id = mod_file->symbol_table.getID(var);
 
   if (var_shocks.contains(symb_id) || std_shocks.contains(symb_id))
-    error("shocks: variance or stderr of shock on " + var + " declared twice");
+    error("shocks: variance or stderr of shock on {} declared twice", var);
 
   std_shocks[symb_id] = value;
 }
@@ -1451,8 +1449,8 @@ ParsingDriver::add_var_shock(const string& var, expr_t value)
 {
   if (nostrict && !mod_file->symbol_table.exists(var))
     {
-      warning("discarding shocks block declaration of the variance of '" + var
-              + "' as it was not declared");
+      warning("discarding shocks block declaration of the variance of '{}' as it was not declared",
+              var);
       return;
     }
 
@@ -1460,7 +1458,7 @@ ParsingDriver::add_var_shock(const string& var, expr_t value)
   int symb_id = mod_file->symbol_table.getID(var);
 
   if (var_shocks.contains(symb_id) || std_shocks.contains(symb_id))
-    error("shocks: variance or stderr of shock on " + var + " declared twice");
+    error("shocks: variance or stderr of shock on {} declared twice", var);
 
   var_shocks[symb_id] = value;
 }
@@ -1470,8 +1468,9 @@ ParsingDriver::add_covar_shock(const string& var1, const string& var2, expr_t va
 {
   if (nostrict && (!mod_file->symbol_table.exists(var1) || !mod_file->symbol_table.exists(var2)))
     {
-      warning("discarding shocks block declaration of the covariance of '" + var1 + "' and '" + var2
-              + "' as at least one was not declared");
+      warning("discarding shocks block declaration of the covariance of '{}' and '{}' as at least "
+              "one was not declared",
+              var1, var2);
       return;
     }
 
@@ -1484,8 +1483,8 @@ ParsingDriver::add_covar_shock(const string& var1, const string& var2, expr_t va
 
   if (covar_shocks.contains(key) || covar_shocks.contains(key_inv) || corr_shocks.contains(key)
       || corr_shocks.contains(key_inv))
-    error("shocks: covariance or correlation shock on variable pair (" + var1 + ", " + var2
-          + ") declared twice");
+    error("shocks: covariance or correlation shock on variable pair ({}, {}) declared twice", var1,
+          var2);
 
   covar_shocks[key] = value;
 }
@@ -1495,8 +1494,9 @@ ParsingDriver::add_correl_shock(const string& var1, const string& var2, expr_t v
 {
   if (nostrict && (!mod_file->symbol_table.exists(var1) || !mod_file->symbol_table.exists(var2)))
     {
-      warning("discarding shocks block declaration of the correlation of '" + var1 + "' and '"
-              + var2 + "' as at least one was not declared");
+      warning("discarding shocks block declaration of the correlation of '{}' and '{}' as at least "
+              "one was not declared",
+              var1, var2);
       return;
     }
 
@@ -1509,8 +1509,8 @@ ParsingDriver::add_correl_shock(const string& var1, const string& var2, expr_t v
 
   if (covar_shocks.contains(key) || covar_shocks.contains(key_inv) || corr_shocks.contains(key)
       || corr_shocks.contains(key_inv))
-    error("shocks: covariance or correlation shock on variable pair (" + var1 + ", " + var2
-          + ") declared twice");
+    error("shocks: covariance or correlation shock on variable pair ({}, {}) declared twice", var1,
+          var2);
 
   corr_shocks[key] = value;
 }
@@ -1521,8 +1521,8 @@ ParsingDriver::add_skew_single_shock(const string& var, expr_t value)
   // Single shock skewness: store as (i, i, i)
   if (nostrict && !mod_file->symbol_table.exists(var))
     {
-      warning("discarding shocks block declaration of the skewness of '" + var
-              + "' as it was not declared");
+      warning("discarding shocks block declaration of the skewness of '{}' as it was not declared",
+              var);
       return;
     }
 
@@ -1532,7 +1532,7 @@ ParsingDriver::add_skew_single_shock(const string& var, expr_t value)
   tuple key {symb_id, symb_id, symb_id};
 
   if (skew_shocks.contains(key))
-    error("shocks: skewness of " + var + " declared twice");
+    error("shocks: skewness of {} declared twice", var);
 
   skew_shocks[key] = value;
 }
@@ -1546,8 +1546,9 @@ ParsingDriver::add_skew_triple_shock(const string& var1, const string& var2, con
       && (!mod_file->symbol_table.exists(var1) || !mod_file->symbol_table.exists(var2)
           || !mod_file->symbol_table.exists(var3)))
     {
-      warning("discarding shocks block declaration of the co-skewness of ('" + var1 + "', '" + var2
-              + "', '" + var3 + "') as at least one was not declared");
+      warning("discarding shocks block declaration of the co-skewness of ('{}', '{}', '{}') as at "
+              "least one was not declared",
+              var1, var2, var3);
       return;
     }
 
@@ -1565,7 +1566,7 @@ ParsingDriver::add_skew_triple_shock(const string& var1, const string& var2, con
       || skew_shocks.contains({symb_id2, symb_id3, symb_id1})
       || skew_shocks.contains({symb_id3, symb_id1, symb_id2})
       || skew_shocks.contains({symb_id3, symb_id2, symb_id1}))
-    error("shocks: co-skewness of (" + var1 + ", " + var2 + ", " + var3 + ") declared twice");
+    error("shocks: co-skewness of ({}, {}, {}) declared twice", var1, var2, var3);
 
   skew_shocks[{symb_id1, symb_id2, symb_id3}] = value;
 }
@@ -1596,7 +1597,7 @@ ParsingDriver::combine_lag_and_restriction(const string& lag)
   int current_lag = stoi(lag);
 
   if (ranges::any_of(svar_ident_restrictions, [=](auto& it) { return it.lag == current_lag; }))
-    error("lag " + lag + " used more than once.");
+    error("lag {} used more than once.", lag);
 
   for (const auto& it : svar_equation_restrictions)
     for (auto it1 : it.second)
@@ -1627,7 +1628,7 @@ ParsingDriver::add_restriction_in_equation(const string& equation,
     error("equation numbers must be greater than or equal to 1.");
 
   if (svar_equation_restrictions.contains(eqn))
-    error("equation number " + equation + " referenced more than once under a single lag.");
+    error("equation number {} referenced more than once under a single lag.", equation);
 
   vector<int> svar_restriction_symbols;
   for (auto& name : symbol_list)
@@ -1636,7 +1637,7 @@ ParsingDriver::add_restriction_in_equation(const string& equation,
       int symb_id = mod_file->symbol_table.getID(name);
 
       if (ranges::any_of(svar_restriction_symbols, [=](int it) { return it == symb_id; }))
-        error(name + " restriction added twice.");
+        error("{} restriction added twice.", name);
 
       svar_restriction_symbols.push_back(symb_id);
     }
@@ -1789,7 +1790,7 @@ void
 ParsingDriver::option_num(string name_option, string opt1, string opt2)
 {
   if (options_list.contains(name_option))
-    error("option " + name_option + " declared twice");
+    error("option {} declared twice", name_option);
 
   options_list.set(move(name_option), pair {move(opt1), move(opt2)});
 }
@@ -1798,7 +1799,7 @@ void
 ParsingDriver::option_num(string name_option, string opt)
 {
   if (options_list.contains(name_option))
-    error("option " + name_option + " declared twice");
+    error("option {} declared twice", name_option);
 
   options_list.set(move(name_option), OptionsList::NumVal {move(opt)});
 }
@@ -1807,7 +1808,7 @@ void
 ParsingDriver::option_str(string name_option, string opt)
 {
   if (options_list.contains(name_option))
-    error("option " + name_option + " declared twice");
+    error("option {} declared twice", name_option);
 
   options_list.set(move(name_option), OptionsList::StringVal {move(opt)});
 }
@@ -1816,7 +1817,7 @@ void
 ParsingDriver::option_date(string name_option, string opt)
 {
   if (options_list.contains(name_option))
-    error("option " + name_option + " declared twice");
+    error("option {} declared twice", name_option);
 
   options_list.set(move(name_option), OptionsList::DateVal {move(opt)});
 }
@@ -1825,23 +1826,23 @@ void
 ParsingDriver::option_symbol_list(string name_option, vector<string> symbol_list)
 {
   if (options_list.contains(name_option))
-    error("option " + name_option + " declared twice");
+    error("option {} declared twice", name_option);
 
   if (name_option == "irf_shocks")
     for (auto& shock : symbol_list)
       {
         if (!mod_file->symbol_table.exists(shock))
-          error("Unknown symbol: " + shock);
+          error("Unknown symbol: {}", shock);
         if (mod_file->symbol_table.getType(shock) != SymbolType::exogenous)
-          error("Variables passed to irf_shocks must be exogenous. Caused by: " + shock);
+          error("Variables passed to irf_shocks must be exogenous. Caused by: {}", shock);
       }
 
   if (name_option == "ms.parameters")
     for (auto& it : symbol_list)
       if (mod_file->symbol_table.getType(it) != SymbolType::parameter)
         error("Variables passed to the parameters option of the markov_switching statement must be "
-              "parameters. Caused by: "
-              + it);
+              "parameters. Caused by: {}",
+              it);
 
   options_list.set(move(name_option), OptionsList::SymbolListVal {move(symbol_list)});
 }
@@ -1850,10 +1851,10 @@ void
 ParsingDriver::option_vec_int(string name_option, vector<int> opt)
 {
   if (options_list.contains(name_option))
-    error("option " + name_option + " declared twice");
+    error("option {} declared twice", name_option);
 
   if (opt.empty())
-    error("option " + name_option + " was passed an empty vector.");
+    error("option {} was passed an empty vector.", name_option);
 
   options_list.set(move(name_option), move(opt));
 }
@@ -1862,10 +1863,10 @@ void
 ParsingDriver::option_vec_str(string name_option, vector<string> opt)
 {
   if (options_list.contains(name_option))
-    error("option " + name_option + " declared twice");
+    error("option {} declared twice", name_option);
 
   if (opt.empty())
-    error("option " + name_option + " was passed an empty vector.");
+    error("option {} was passed an empty vector.", name_option);
 
   options_list.set(move(name_option), OptionsList::VecStrVal {move(opt)});
 }
@@ -1874,10 +1875,10 @@ void
 ParsingDriver::option_vec_cellstr(string name_option, vector<string> opt)
 {
   if (options_list.contains(name_option))
-    error("option " + name_option + " declared twice");
+    error("option {} declared twice", name_option);
 
   if (opt.empty())
-    error("option " + name_option + " was passed an empty vector.");
+    error("option {} was passed an empty vector.", name_option);
 
   options_list.set(move(name_option), OptionsList::VecCellStrVal {move(opt)});
 }
@@ -1886,7 +1887,7 @@ void
 ParsingDriver::option_str_or_int_list(string name_option, vector<string> opt)
 {
   if (options_list.contains(name_option))
-    error("option " + name_option + " declared twice");
+    error("option {} declared twice", name_option);
 
   if (opt.empty())
     return;
@@ -1898,10 +1899,10 @@ void
 ParsingDriver::option_vec_value(string name_option, vector<string> opt)
 {
   if (options_list.contains(name_option))
-    error("option " + name_option + " declared twice");
+    error("option {} declared twice", name_option);
 
   if (opt.empty())
-    error("option " + name_option + " was passed an empty vector.");
+    error("option {} was passed an empty vector.", name_option);
 
   options_list.set(move(name_option), OptionsList::VecValueVal {move(opt)});
 }
@@ -1910,10 +1911,10 @@ void
 ParsingDriver::option_vec_of_vec_value(string name_option, vector<vector<string>> opt)
 {
   if (options_list.contains(name_option))
-    error("option " + name_option + " declared twice");
+    error("option {} declared twice", name_option);
 
   if (opt.empty())
-    error("option " + name_option + " was passed an empty vector.");
+    error("option {} was passed an empty vector.", name_option);
 
   options_list.set(move(name_option), move(opt));
 }
@@ -1959,7 +1960,7 @@ ParsingDriver::trend_component_model()
       string name {e.name.substr(16)};
       if (name == "name")
         name = "model_name";
-      error("You must pass the '" + name + "' option to the 'trend_component_model' statement.");
+      error("You must pass the '{}' option to the 'trend_component_model' statement.", name);
     }
 
   options_list.clear();
@@ -1979,7 +1980,7 @@ ParsingDriver::var_model()
     }
   catch (OptionsList::UnknownOptionException& e)
     {
-      error("You must pass the '" + e.name.substr(4) + "' option to the 'var_model' statement.");
+      error("You must pass the '{}' option to the 'var_model' statement.", e.name.substr(4));
     }
   options_list.clear();
 }
@@ -2018,7 +2019,7 @@ ParsingDriver::add_estimated_params_element()
         {
         case 1:
           if (type != SymbolType::endogenous && type != SymbolType::exogenous)
-            error(estim_params.name + " must be an endogenous or an exogenous variable");
+            error("{} must be an endogenous or an exogenous variable", estim_params.name);
           break;
         case 2:
           check_symbol_is_parameter(estim_params.name);
@@ -2027,8 +2028,8 @@ ParsingDriver::add_estimated_params_element()
           check_symbol_existence(estim_params.name2);
           SymbolType type2 = mod_file->symbol_table.getType(estim_params.name2);
           if ((type != SymbolType::endogenous && type != SymbolType::exogenous) || type != type2)
-            error(estim_params.name + " and " + estim_params.name2
-                  + " must either be both endogenous variables or both exogenous");
+            error("{} and {} must either be both endogenous variables or both exogenous",
+                  estim_params.name, estim_params.name2);
           break;
         }
     }
@@ -2074,7 +2075,7 @@ ParsingDriver::add_osr_params_element()
   check_symbol_existence(osr_params.name);
   SymbolType type = mod_file->symbol_table.getType(osr_params.name);
   if (type != SymbolType::parameter)
-    error(osr_params.name + " must be a parameter to be used in the osr_bounds block");
+    error("{} must be a parameter to be used in the osr_bounds block", osr_params.name);
   osr_params_list.push_back(osr_params);
   osr_params.init(*data_tree);
 }
@@ -2128,7 +2129,7 @@ ParsingDriver::copy_subsamples(string to_name1, string to_name2, string from_nam
       string err {from_name1};
       if (!from_name2.empty())
         err.append(",").append(from_name2);
-      error(err + " does not have an associated subsample statement.");
+      error("{} does not have an associated subsample statement.", err);
     }
 
   mod_file->addStatement(make_unique<SubsamplesEqualStatement>(to_name1, to_name2, from_name1,
@@ -2144,14 +2145,14 @@ ParsingDriver::check_symbol_is_statement_variable(const string& name)
   check_symbol_existence(name);
   int symb_id = mod_file->symbol_table.getID(name);
   if (mod_file->symbol_table.getType(symb_id) != SymbolType::statementDeclaredVariable)
-    error(name + " is not a variable assigned in a statement");
+    error("{} is not a variable assigned in a statement", name);
 }
 
 void
 ParsingDriver::set_subsample_name_equal_to_date_range(string name, string date1, string date2)
 {
   if (subsample_declaration_map.contains(name))
-    error("Symbol " + name + " may only be assigned once in a SUBSAMPLE statement");
+    error("Symbol {} may only be assigned once in a SUBSAMPLE statement", name);
   subsample_declaration_map[move(name)] = {move(date1), move(date2)};
 }
 
@@ -2184,14 +2185,14 @@ ParsingDriver::check_subsample_declaration_exists(const string& name1, const str
           string err {name1};
           if (!name2.empty())
             err.append(",").append(name2);
-          error("A subsample statement has not been issued for " + err);
+          error("A subsample statement has not been issued for {}", err);
         }
     }
 
   auto tmp_map = it->second;
   if (!tmp_map.contains(subsample_name))
-    error("The subsample name " + subsample_name
-          + " was not previously declared in a subsample statement.");
+    error("The subsample name {} was not previously declared in a subsample statement.",
+          subsample_name);
 }
 
 void
@@ -2310,10 +2311,10 @@ ParsingDriver::check_symbol_is_endogenous_or_exogenous(const string& name, bool 
       break;
     case SymbolType::exogenousDet:
       if (!allow_det)
-        error(name + " is an exogenous deterministic.");
+        error("{} is an exogenous deterministic.", name);
       break;
     default:
-      error(name + " is neither endogenous or exogenous.");
+      error("{} is neither endogenous or exogenous.", name);
     }
 }
 
@@ -2322,7 +2323,7 @@ ParsingDriver::check_symbol_is_endogenous(const string& name)
 {
   check_symbol_existence(name);
   if (mod_file->symbol_table.getType(name) != SymbolType::endogenous)
-    error(name + " is not endogenous.");
+    error("{} is not endogenous.", name);
 }
 
 void
@@ -2335,10 +2336,10 @@ ParsingDriver::check_symbol_is_exogenous(const string& name, bool allow_exo_det)
       break;
     case SymbolType::exogenousDet:
       if (!allow_exo_det)
-        error(name + " is an exogenous deterministic.");
+        error("{} is an exogenous deterministic.", name);
       break;
     default:
-      error(name + " is not exogenous.");
+      error("{} is not exogenous.", name);
     }
 }
 
@@ -2423,7 +2424,7 @@ ParsingDriver::add_varobs(const string& name)
     }
   catch (SymbolTable::AlreadyDeclaredAsObservedException&)
     {
-      error("varobs: '" + name + "' has already been declared as an observable");
+      error("varobs: '{}' has already been declared as an observable", name);
     }
 }
 
@@ -2449,7 +2450,7 @@ ParsingDriver::set_trend_element(const string& arg1, expr_t arg2)
   check_symbol_is_endogenous(arg1);
   int symb_id {mod_file->symbol_table.getID(arg1)};
   if (trend_elements.contains(symb_id))
-    error("observation_trends/deterministic_trends: " + arg1 + " declared twice");
+    error("observation_trends/deterministic_trends: {} declared twice", arg1);
   trend_elements.emplace(symb_id, arg2);
 }
 
@@ -2471,18 +2472,18 @@ ParsingDriver::set_filter_initial_state_element(const string& name, const string
 
   if (type != SymbolType::endogenous && type != SymbolType::exogenous
       && type != SymbolType::exogenousDet)
-    error("filter_initial_state: " + name + " should be an endogenous or exogenous variable");
+    error("filter_initial_state: {} should be an endogenous or exogenous variable", name);
 
   if ((type == SymbolType::exogenous || type == SymbolType::exogenousDet) && ilag == 0)
-    error("filter_initial_state: exogenous variable " + name + " must be provided with a lag");
+    error("filter_initial_state: exogenous variable {} must be provided with a lag", name);
 
   if (filter_initial_state_elements.contains({symb_id, ilag}))
-    error("filter_initial_state: (" + name + ", " + lag + ") declared twice");
+    error("filter_initial_state: ({}, {}) declared twice", name, lag);
 
   if (mod_file->dynamic_model.minLagForSymbol(symb_id) > ilag - 1)
-    error("filter_initial_state: variable " + name + " does not appear in the model with the lag "
-          + to_string(ilag - 1)
-          + " (see the reference manual for the timing convention in 'filter_initial_state')");
+    error("filter_initial_state: variable {} does not appear in the model with the lag {} (see the "
+          "reference manual for the timing convention in 'filter_initial_state')",
+          name, ilag - 1);
 
   filter_initial_state_elements[{symb_id, ilag}] = rhs;
 }
@@ -2492,7 +2493,7 @@ ParsingDriver::set_optim_weights(string name, expr_t value)
 {
   check_symbol_is_endogenous(name);
   if (var_weights.contains(name))
-    error("optim_weights: " + name + " declared twice");
+    error("optim_weights: {} declared twice", name);
   var_weights[move(name)] = value;
 }
 
@@ -2505,7 +2506,7 @@ ParsingDriver::set_optim_weights(const string& name1, const string& name2, expr_
   pair covar_key {name1, name2};
 
   if (covar_weights.contains(covar_key))
-    error("optim_weights: pair of variables (" + name1 + ", " + name2 + ") declared twice");
+    error("optim_weights: pair of variables ({}, {}) declared twice", name1, name2);
 
   covar_weights[covar_key] = value;
 }
@@ -2617,7 +2618,7 @@ void
 ParsingDriver::add_mc_filename(string filename, string prior)
 {
   if (ranges::any_of(filename_list, [&](auto& it) { return it.first == filename; }))
-    error("model_comparison: filename " + filename + " declared twice");
+    error("model_comparison: filename {} declared twice", filename);
   filename_list.emplace_back(move(filename), move(prior));
 }
 
@@ -2950,8 +2951,7 @@ ParsingDriver::markov_switching()
     }
   catch (OptionsList::UnknownOptionException& e)
     {
-      error("A '" + e.name.substr(3)
-            + "' option must be passed to the 'markov_switching' statement.");
+      error("A '{}' option must be passed to the 'markov_switching' statement.", e.name.substr(3));
     }
 
   mod_file->addStatement(make_unique<MarkovSwitchingStatement>(move(options_list)));
@@ -3140,8 +3140,8 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
       }
     catch (ExprNode::MatchFailureException& e)
       {
-        error("Complementarity condition has an incorrect form"s
-              + (e.message.empty() ? ""s : ": "s + e.message));
+        error("Complementarity condition has an incorrect form{}",
+              e.message.empty() ? ""s : ": "s + e.message);
       }
 
   if (eq_tags.contains("static"))
@@ -3167,15 +3167,16 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
       for (const auto& constraint : constraints_all)
         {
           if (!isSymbolIdentifier(constraint))
-            error("The string '" + constraint
-                  + "' is not a valid Occbin constraint name (contains unauthorized characters)");
+            error("The string '{}' is not a valid Occbin constraint name (contains unauthorized "
+                  "characters)",
+                  constraint);
           string param_name = buildOccbinBindParamName(constraint);
           try
             {
               if (mod_file->symbol_table.getType(param_name) != SymbolType::parameter)
-                error("The name '" + param_name
-                      + "' is already used. Please use another name for Occbin constraint '"
-                      + constraint + "'");
+                error("The name '{}' is already used. Please use another name for Occbin "
+                      "constraint '{}'",
+                      param_name, constraint);
             }
           catch (SymbolTable::UnknownSymbolNameException& e)
             {
@@ -3196,7 +3197,7 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
         }
       catch (DynamicModel::OccbinRegimeTracker::ConstraintInBothBindAndRelaxException& e)
         {
-          error("The constraint '" + e.constraint + "' is both in the 'bind' and 'relax' tags");
+          error("The constraint '{}' is both in the 'bind' and 'relax' tags", e.constraint);
         }
       catch (DynamicModel::OccbinRegimeTracker::RegimeAlreadyPresentException& e)
         {
@@ -3224,8 +3225,8 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
                 }
             }
           s << "'";
-          error("The regime corresponding to " + s.str()
-                + " has already been declared for this equation");
+          error("The regime corresponding to {} has already been declared for this equation",
+                s.str());
         }
     }
   else // General case
@@ -3264,9 +3265,9 @@ ParsingDriver::declare_and_init_model_local_variable(const string& name, expr_t 
          ModelLocalVariable */
       symb_id = mod_file->symbol_table.getID(name);
       if (mod_file->symbol_table.getType(symb_id) != SymbolType::modelLocalVariable)
-        error(name
-              + " has wrong type or was already used on the right-hand side. You cannot use it on "
-                "the left-hand side of a pound ('#') expression");
+        error("{} has wrong type or was already used on the right-hand side. You cannot use it on "
+              "the left-hand side of a pound ('#') expression",
+              name);
     }
 
   try
@@ -3275,7 +3276,7 @@ ParsingDriver::declare_and_init_model_local_variable(const string& name, expr_t 
     }
   catch (DataTree::LocalVariableException& e)
     {
-      error("Local model variable " + name + " declared twice.");
+      error("Local model variable {} declared twice.", name);
     }
 }
 
@@ -3291,14 +3292,13 @@ ParsingDriver::change_type(SymbolType new_type, const vector<string>& symbol_lis
           }
         catch (SymbolTable::UnknownSymbolNameException& e)
           {
-            error("Unknown variable " + it);
+            error("Unknown variable {}", it);
           }
       }()};
 
       // Check if symbol already used in a VariableNode
       if (mod_file->expressions_tree.isSymbolUsed(id) || mod_file->dynamic_model.isSymbolUsed(id))
-        error("You cannot modify the type of symbol " + it
-              + " after having used it in an expression");
+        error("You cannot modify the type of symbol {} after having used it in an expression", it);
 
       mod_file->symbol_table.changeType(id, new_type);
     }
@@ -3456,7 +3456,7 @@ ParsingDriver::pac_model()
     }
   catch (OptionsList::UnknownOptionException& e)
     {
-      error("You must pass the '" + e.name.substr(4) + "' option to the 'pac_model' statement.");
+      error("You must pass the '{}' option to the 'pac_model' statement.", e.name.substr(4));
     }
 
   options_list.clear();
@@ -3758,15 +3758,16 @@ ParsingDriver::add_lead_lag_var_or_external_function(const string& name, vector<
     if (mod_file->symbol_table.getType(name) != SymbolType::externalFunction)
       {
         if (!in_model_expression)
-          error("Using variable " + name + " with a lead or a lag is not allowed in this context");
+          error("Using variable {} with a lead or a lag is not allowed in this context", name);
 
         // e.g. model_var(lag) => ADD MODEL VARIABLE WITH LEAD (NumConstNode)/LAG (UnaryOpNode)
         if (undeclared_model_vars.contains(name))
           undeclared_model_variable_error("Unknown symbol: " + name, name);
 
         if (arguments.size() > 1)
-          error("Symbol " + name
-                + " is being treated as if it were a function (it is given several arguments)");
+          error(
+              "Symbol {} is being treated as if it were a function (it is given several arguments)",
+              name);
 
         try
           {
@@ -3775,9 +3776,9 @@ ParsingDriver::add_lead_lag_var_or_external_function(const string& name, vector<
           }
         catch (ExprNode::MatchFailureException&)
           {
-            error("Symbol " + name
-                  + " is being treated as if it were a function (i.e., takes an argument that is "
-                    "not an integer).");
+            error("Symbol {} is being treated as if it were a function (i.e., takes an argument "
+                  "that is not an integer).",
+                  name);
           }
       }
     else
@@ -3786,28 +3787,29 @@ ParsingDriver::add_lead_lag_var_or_external_function(const string& name, vector<
         // => check that the information matches previously declared info
         int symb_id = mod_file->symbol_table.getID(name);
         if (!mod_file->external_functions_table.exists(symb_id))
-          error("Using a derivative of an external function (" + name
-                + ") in the model block is currently not allowed.");
+          error("Using a derivative of an external function ({}) in the model block is currently "
+                "not allowed.",
+                name);
 
         if (in_model_expression)
           {
             if (mod_file->external_functions_table.getNargs(symb_id)
                 == ExternalFunctionsTable::IDNotSet)
-              error("Before using " + name
-                    + "() in the model block, you must first declare it via the "
-                      "external_function() statement");
+              error("Before using {}() in the model block, you must first declare it via the "
+                    "external_function() statement",
+                    name);
             else if (static_cast<int>(arguments.size())
                      != mod_file->external_functions_table.getNargs(symb_id))
-              error("The number of arguments passed to " + name
-                    + "() does not match those of a previous call or declaration of this "
-                      "function.");
+              error("The number of arguments passed to {}() does not match those of a previous "
+                    "call or declaration of this function.",
+                    name);
           }
       }
   else
     { /* First time encountering this external function or variable i.e., not previously declared
          or encountered */
       if (is_parsing_epilogue())
-        error("Variable " + name + " used in the epilogue block but was not declared.");
+        error("Variable {} used in the epilogue block but was not declared.", name);
 
       if (in_model_expression)
         {
@@ -3829,9 +3831,10 @@ ParsingDriver::add_lead_lag_var_or_external_function(const string& name, vector<
               {
               }
 
-          error("To use an external function (" + name
-                + ") within the model block, you must first declare it via the "
-                  "external_function() statement.");
+          error("To use an external function ({}) within the model block, you must first declare "
+                "it via the "
+                "external_function() statement.",
+                name);
         }
       int symb_id = declare_symbol(name, SymbolType::externalFunction, "", {}, {});
       ExternalFunctionsTable::external_function_options_t external_function_options;
@@ -3898,7 +3901,7 @@ ParsingDriver::add_steady_state_model_equal(const string& varname, expr_t expr)
   if (SymbolType type = mod_file->symbol_table.getType(id);
       type != SymbolType::endogenous && type != SymbolType::modFileLocalVariable
       && type != SymbolType::parameter)
-    error(varname + " has incorrect type");
+    error("{} has incorrect type", varname);
 
   mod_file->steady_state_model.addDefinition(id, expr, location.begin.line);
 }
@@ -3925,7 +3928,7 @@ ParsingDriver::add_steady_state_model_equal_multiple(const vector<string>& symbo
       if (SymbolType type = mod_file->symbol_table.getType(id);
           type != SymbolType::endogenous && type != SymbolType::modFileLocalVariable
           && type != SymbolType::parameter)
-        error(symb + " has incorrect type");
+        error("{} has incorrect type", symb);
       ids.push_back(id);
     }
 
@@ -3943,14 +3946,14 @@ ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
       }
     catch (SymbolTable::UnknownSymbolNameException& e)
       {
-        error("Unknown symbol: " + symbol);
+        error("Unknown symbol: {}", symbol);
       }
   }()};
 
   // NB: model-local variables cannot be defined in this way (we substitute them out below)
   if (SymbolType type = mod_file->symbol_table.getType(symb_id);
       type != SymbolType::endogenous && type != SymbolType::parameter)
-    error(symbol + " has incorrect type");
+    error("{} has incorrect type", symbol);
 
   /* NB: we derive the implicit definition of the symbol from the dynamic model before any
      transformation, because otherwise it may include auxiliary variables that will complicate the
@@ -3965,7 +3968,7 @@ ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
         // First try static-only equations
         auto eqns = mod_file->dynamic_model.getStaticOnlyEquationNumbersFromNames({eqname});
         if (eqns.size() > 1)
-          error("There are several equations named '" + eqname + "' and marked [static]");
+          error("There are several equations named '{}' and marked [static]", eqname);
         return mod_file->dynamic_model.getStaticOnlyEquation(*eqns.begin());
       }
     catch (ModelTree::UnknownEquationNameException&)
@@ -3975,12 +3978,12 @@ ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
           {
             auto eqns = mod_file->dynamic_model.getEquationNumbersFromNames({eqname});
             if (eqns.size() > 1)
-              error("There are several equations named '" + eqname + "'");
+              error("There are several equations named '{}'", eqname);
             return mod_file->dynamic_model.getEquation(*eqns.begin());
           }
         catch (ModelTree::UnknownEquationNameException&)
           {
-            error("There is no equation named '" + eqname + "'");
+            error("There is no equation named '{}'", eqname);
           }
       }
   }()};
@@ -3992,8 +3995,8 @@ ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
     }
   catch (DataTree::UnknownLocalVariableException& e)
     {
-      error("Model-local variable '" + mod_file->symbol_table.getName(e.id)
-            + "' is not defined in equation '" + eqname + "'");
+      error("Model-local variable '{}' is not defined in equation '{}'",
+            mod_file->symbol_table.getName(e.id), eqname);
     }
 
   // Convert the equation to a static form
@@ -4004,8 +4007,8 @@ ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
       }
     catch (ExprNode::StaticConversionException& e)
       {
-        error("The equation named '" + eqname
-              + "' cannot be converted to a static expression: " + e.message);
+        error("The equation named '{}' cannot be converted to a static expression: {}", eqname,
+              e.message);
       }
   }()};
 
@@ -4018,8 +4021,8 @@ ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
       }
     catch (ExprNode::NormalizationFailed&)
       {
-        error("The equation named '" + eqname
-              + "' could not be rearranged to implicitly define symbol + '" + symbol + "'");
+        error("The equation named '{}' could not be rearranged to implicitly define symbol '{}'",
+              eqname, symbol);
       }
   }()};
 
@@ -4109,7 +4112,7 @@ ParsingDriver::add_irf_calibration_item(const string& endo, string periods, cons
   check_symbol_existence(exo);
   c.exo = mod_file->symbol_table.getID(exo);
   if (mod_file->symbol_table.getType(exo) != SymbolType::exogenous)
-    error("Variable " + endo + " is not an exogenous.");
+    error("Variable {} is not an exogenous.", endo);
 
   c.lower_bound = range.first;
   c.upper_bound = range.second;
@@ -4178,8 +4181,7 @@ ParsingDriver::perfect_foresight_controlled_paths(
     variant<int, string> learnt_in_period)
 {
   if (holds_alternative<int>(learnt_in_period) && get<int>(learnt_in_period) < 1)
-    error("Value '" + to_string(get<int>(learnt_in_period))
-          + "' is not allowed for 'learnt_in' option");
+    error("Value '{}' is not allowed for 'learnt_in' option", get<int>(learnt_in_period));
 
   PerfectForesightControlledPathsStatement::paths_t paths_transformed;
   for (const auto& [exogenize, periods, values, endogenize] : paths)
@@ -4261,12 +4263,12 @@ ParsingDriver::end_ramsey_constraints(const vector<expr_t>& constraints)
         auto [it, success]
             = mod_file->ramsey_constraints.try_emplace(symb_id, lower_bound, upper_bound);
         if (!success)
-          error("The ramsey_constraints block contains two constraints for variable "
-                + mod_file->symbol_table.getName(symb_id));
+          error("The ramsey_constraints block contains two constraints for variable {}",
+                mod_file->symbol_table.getName(symb_id));
       }
     catch (ExprNode::MatchFailureException& e)
       {
-        error("Ramsey constraint has an incorrect form: " + e.message);
+        error("Ramsey constraint has an incorrect form: {}", e.message);
       }
 
   reset_data_tree();
@@ -4279,7 +4281,7 @@ ParsingDriver::add_shock_group_element(string name)
   int symb_id = mod_file->symbol_table.getID(name);
 
   if (mod_file->symbol_table.getType(symb_id) != SymbolType::exogenous)
-    error("shock_groups: " + name + " should be an exogenous variable");
+    error("shock_groups: {} should be an exogenous variable", name);
 
   shock_group.push_back(move(name));
 }
@@ -4309,11 +4311,11 @@ ParsingDriver::add_init2shocks(const string& endo_name, const string& exo_name)
   check_symbol_existence(exo_name);
   int symb_id_endo = mod_file->symbol_table.getID(endo_name);
   if (mod_file->symbol_table.getType(symb_id_endo) != SymbolType::endogenous)
-    error("init2shocks: " + endo_name + " should be an endogenous variable");
+    error("init2shocks: {} should be an endogenous variable", endo_name);
 
   int symb_id_exo = mod_file->symbol_table.getID(exo_name);
   if (mod_file->symbol_table.getType(symb_id_exo) != SymbolType::exogenous)
-    error("init2shocks: " + exo_name + " should be an exogenous variable");
+    error("init2shocks: {} should be an exogenous variable", exo_name);
 
   init2shocks.emplace_back(symb_id_endo, symb_id_exo);
 }
@@ -4370,7 +4372,7 @@ ParsingDriver::var_expectation_model()
     }
   catch (OptionsList::UnknownOptionException& e)
     {
-      error("You must pass the '" + e.name + "' option to the 'var_expectation_model' statement.");
+      error("You must pass the '{}' option to the 'var_expectation_model' statement.", e.name);
     }
 
   options_list.clear();
@@ -4397,7 +4399,7 @@ ParsingDriver::end_matched_moments(const vector<expr_t>& moments)
       }
     catch (ExprNode::MatchFailureException& e)
       {
-        error("Matched moment expression has incorrect format: " + e.message);
+        error("Matched moment expression has incorrect format: {}", e.message);
       }
   mod_file->addStatement(
       make_unique<MatchedMomentsStatement>(mod_file->symbol_table, move(parsed_moments)));
@@ -4427,9 +4429,9 @@ ParsingDriver::end_occbin_constraints(
     {
       string param_name = buildOccbinBindParamName(name);
       if (!mod_file->symbol_table.exists(param_name))
-        error("No equation has been declared for constraint '" + name + "'");
+        error("No equation has been declared for constraint '{}'", name);
       if (!bind)
-        error("The 'bind' expression is missing in constraint '" + name + "'");
+        error("The 'bind' expression is missing in constraint '{}'", name);
     }
 
   mod_file->addStatement(
@@ -4562,7 +4564,7 @@ ParsingDriver::heterogeneity_dimension(const vector<string>& dims)
           }
         catch (HeterogeneityTable::AlreadyDeclaredDimensionException&)
           {
-            error("Heterogeneity dimension '" + dim + "' already declared");
+            error("Heterogeneity dimension '{}' already declared", dim);
           }
       }()};
 
@@ -4583,7 +4585,7 @@ ParsingDriver::database(const vector<string>& names)
       }
     catch (DatabaseTable::AlreadyDeclaredDatabaseException&)
       {
-        error("Database '" + name + "' already declared");
+        error("Database '{}' already declared", name);
       }
 }
 
@@ -4599,8 +4601,7 @@ ParsingDriver::begin_shock_paths(const variant<int, string>& learnt_in_period)
   set_current_data_tree(&mod_file->shock_paths_tree);
 
   if (holds_alternative<int>(learnt_in_period) && get<int>(learnt_in_period) < 1)
-    error("Value '" + to_string(get<int>(learnt_in_period))
-          + "' is not allowed for 'learnt_in' option");
+    error("Value '{}' is not allowed for 'learnt_in' option", get<int>(learnt_in_period));
   shock_paths_learnt_in_period = learnt_in_period;
 }
 
@@ -4623,13 +4624,13 @@ ParsingDriver::add_filter_tunes_elem(const string& name,
   check_symbol_is_endogenous(name);
 
   if (periods.size() != values.size())
-    error("filter_tunes: variable " + name
-          + ": number of periods is different from number of shock values");
+    error("filter_tunes: variable {}: number of periods is different from number of shock values",
+          name);
 
   if (stderrs.size() > 1 && stderrs.size() != periods.size())
-    error("filter_tunes: variable " + name
-          + ": heteroskedastic measurement errors but number of measurement errors is different "
-            "from number of periods");
+    error("filter_tunes: variable {}: heteroskedastic measurement errors but number of measurement "
+          "errors is different from number of periods",
+          name);
 
   auto& v = tunes[mod_file->symbol_table.getID(name)];
 

@@ -34,6 +34,7 @@
 #endif
 
 #include <algorithm>
+#include <format>
 #include <numeric>
 #include <regex>
 #include <utility>
@@ -1173,7 +1174,7 @@ ModelTree::fixNestedParenthesis(ostringstream& output, map<string, string>& tmp_
                           = str1.substr(open_paren_idx, match_paren_idx - open_paren_idx + 1);
                       if (auto it = tmp_paren_vars.find(val); it == tmp_paren_vars.end())
                         {
-                          varname = "paren32_tmp_var_" + to_string(i1++);
+                          varname = format("paren32_tmp_var_{}", i1++);
                           repstr += varname + " = " + val + ";\n";
                           tmp_paren_vars[val] = varname;
                         }
@@ -1186,7 +1187,7 @@ ModelTree::fixNestedParenthesis(ostringstream& output, map<string, string>& tmp_
             }
           if (auto it = tmp_paren_vars.find(str1); it == tmp_paren_vars.end())
             {
-              varname = "paren32_tmp_var_" + to_string(i1++);
+              varname = format("paren32_tmp_var_{}", i1++);
               repstr += varname + " = " + str1 + ";\n";
             }
           else
