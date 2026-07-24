@@ -36,8 +36,6 @@
 #include "DynamicModel.hh"
 #include "ParsingDriver.hh"
 
-using namespace std::string_literals;
-
 void
 DynamicModel::copyHelper(const DynamicModel& m)
 {
@@ -2649,7 +2647,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel& planner_objective,
             {
               orig_endo_nbr++;
               neweqs_lineno.emplace_back(nullopt);
-              if (string eqname {"Ramsey FOC w.r.t. "s + symbol_table.getName(symb_id)};
+              if (string eqname {format("Ramsey FOC w.r.t. {}", symbol_table.getName(symb_id))};
                   !equation_tags.exists("name", eqname))
                 neweqs_tags.emplace(neweqs.size() - 1, map<string, string> {{"name", eqname}});
 

@@ -21,14 +21,13 @@
 #include <cassert>
 #include <cstdlib>
 #include <filesystem>
+#include <format>
 #include <iostream>
 #include <iterator>
 #include <ranges>
 #include <string>
 
 #include "DataTree.hh"
-
-using namespace std::string_literals;
 
 bool DataTree::no_commutativity = false;
 
@@ -328,11 +327,10 @@ DataTree::AddDivide(expr_t iArg1, expr_t iArg2) noexcept(false)
 
   // This test should be before the next two, otherwise 0/0 won't be rejected
   if (iArg2 == Zero)
-    {
-      throw DivisionByZeroException(
-          "Division by zero when forming ("s + iArg1->toString() + ")/(" + iArg2->toString()
-          + "); denominator simplified to 0 (possibly after substituting a variable set to 0).");
-    }
+    throw DivisionByZeroException {
+        format("Division by zero when forming ({})/({}); denominator simplified to 0 (possibly "
+               "after substituting a variable set to 0).",
+               iArg1->toString(), iArg2->toString())};
 
   if (iArg1 == Zero)
     return Zero;
