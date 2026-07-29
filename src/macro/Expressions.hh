@@ -23,9 +23,9 @@
 #include "Environment.hh"
 #include "ForwardDeclarationsAndEnums.hh"
 #include "ParserLocation.hh"
+#include "Utils.hh"
 
 #include <cmath>
-#include <iomanip>
 #include <sstream>
 #include <vector>
 
@@ -561,9 +561,7 @@ public:
   string
   to_string() const noexcept override
   {
-    ostringstream strs;
-    strs << setprecision(15) << value;
-    return strs.str();
+    return double_to_string_lossless(value);
   }
   void
   print(ostream& output, [[maybe_unused]] bool matlab_output = false) const noexcept override

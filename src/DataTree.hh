@@ -21,10 +21,8 @@
 #define DATA_TREE_HH
 
 #include <cmath>
-#include <iomanip>
 #include <map>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -36,6 +34,7 @@
 #include "NumericalConstants.hh"
 #include "SubModel.hh"
 #include "SymbolTable.hh"
+#include "Utils.hh"
 
 using namespace std;
 
@@ -122,8 +121,6 @@ protected:
   vector<int> local_variables_vector;
 
 private:
-  constexpr static int constants_precision {16};
-
   //! The list of nodes
   vector<unique_ptr<ExprNode>> node_list;
 
@@ -397,10 +394,8 @@ DataTree::AddPossiblyNegativeConstant(double v)
       v = -v;
       neg = true;
     }
-  ostringstream ost;
-  ost << setprecision(constants_precision) << v;
 
-  expr_t cnode = AddNonNegativeConstant(ost.str());
+  expr_t cnode = AddNonNegativeConstant(double_to_string_lossless(v));
 
   if (neg)
     return AddUMinus(cnode);

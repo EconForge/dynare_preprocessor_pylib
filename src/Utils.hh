@@ -21,7 +21,9 @@
 #define UTILS_HH
 
 #include <filesystem>
+#include <format>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -65,5 +67,16 @@ inline constexpr bool always_false_v {false};
 void print_matlab_period(ostream& output, const variant<int, string>& v);
 // Prints period (represented as either integer or date object) in JSON output format
 void print_json_period(ostream& output, const variant<int, string>& v);
+
+/* Returns a double floating point as a string in a lossless fashion (i.e. parsing the generated
+   string should give back the same double float).
+   This relies on the fact that the “g” format specifier prints as many significant digits as the
+   required precision, and std::numeric_limits<double>::max_digits10 is precisely defined as the
+   number of significant decimal digits that guarantee a lossless output. */
+inline string
+double_to_string_lossless(double v)
+{
+  return format("{:.{}g}", v, numeric_limits<double>::max_digits10);
+}
 
 #endif
