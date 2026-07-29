@@ -21,7 +21,6 @@
 #define MOD_FILE_HH
 
 #include <cstddef>
-#include <ctime>
 #include <filesystem>
 #include <iostream>
 #include <ostream>
