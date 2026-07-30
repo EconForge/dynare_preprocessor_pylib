@@ -224,8 +224,6 @@ private:
   void writePythonModelInterfaceFile(const filesystem::path& python_dir, bool use_jax,
                                      bool use_numba) const;
   void writePythonTypeStubs(const string& basename) const;
-
-  void computeChecksum();
 };
 
 #endif
