@@ -544,9 +544,6 @@ Epilogue::writeDynamicEpilogueFile(const string& basename) const
          << '\n'
          << "simul_end_date = lastdate(ds);" << '\n';
 
-  deriv_node_temp_terms_t tef_terms;
-  temporary_terms_t temporary_terms;
-  temporary_terms_idxs_t temporary_terms_idxs;
   for (const auto& [symb_id, expr] : dynamic_def_table)
     {
       /* We compute the beginning date in “simul_begin_date” using per-variable maximum lags. For
@@ -574,8 +571,7 @@ variables that depend on another variable that has some NaNs at the beginning. *
       output << ");" << '\n'
              << "    from simul_begin_date to simul_end_date do ds."
              << symbol_table.getName(symb_id) << "(t) = ";
-      expr->writeOutput(output, ExprNodeOutputType::matlabDseriesInsideFrom, temporary_terms,
-                        temporary_terms_idxs, tef_terms);
+      expr->writeOutput(output, ExprNodeOutputType::matlabDseriesInsideFrom);
       output << ";" << '\n' << "catch" << '\n' << "end" << '\n';
     }
   output << "end" << '\n';
