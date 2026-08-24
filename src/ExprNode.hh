@@ -338,6 +338,10 @@ protected:
                                                 set<expr_t>& contain_var) const
       = 0;
 
+  // Internal helper for maxLagWithDiffsExpandedPerVariable()
+  virtual void maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result, int diff_level) const
+      = 0;
+
 public:
   ExprNode(DataTree& datatree_arg, int idx_arg);
   virtual ~ExprNode() = default;
@@ -611,6 +615,13 @@ public:
      except that it treats diff() differently. For e.g., on diff(diff(x(-1))), maxLag() returns 1
      while maxLagWithDiffsExpanded() returns 3. */
   [[nodiscard]] virtual int maxLagWithDiffsExpanded() const = 0;
+
+  /* Same as maxLagWithDiffsExpanded(), but returns the information per variable, in a map symb_id →
+     max_lag
+  NB: the only difference with maxLagWithDiffsExpanded() concerns var_expectation, pac_expectation,
+     pac_target_nonstationary, for which we don’t have a variable to which to assign the lag (those
+     nodes are just ignored by the present method). */
+  [[nodiscard]] map<int, int> maxLagWithDiffsExpandedPerVariable() const;
 
   [[nodiscard]] virtual expr_t undiff() const = 0;
 
@@ -1067,6 +1078,8 @@ public:
   [[nodiscard]] int maxLead() const override;
   [[nodiscard]] int maxLag() const override;
   [[nodiscard]] int maxLagWithDiffsExpanded() const override;
+  void maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result,
+                                                int diff_level) const override;
   [[nodiscard]] int VarMaxLag(const set<expr_t>& lhs_lag_equiv) const override;
   [[nodiscard]] expr_t undiff() const override;
   [[nodiscard]] expr_t decreaseLeadsLags(int n) const override;
@@ -1181,6 +1194,8 @@ public:
   [[nodiscard]] int maxLead() const override;
   [[nodiscard]] int maxLag() const override;
   [[nodiscard]] int maxLagWithDiffsExpanded() const override;
+  void maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result,
+                                                int diff_level) const override;
   [[nodiscard]] int VarMaxLag(const set<expr_t>& lhs_lag_equiv) const override;
   [[nodiscard]] expr_t undiff() const override;
   [[nodiscard]] expr_t decreaseLeadsLags(int n) const override;
@@ -1332,6 +1347,8 @@ public:
   [[nodiscard]] int maxLead() const override;
   [[nodiscard]] int maxLag() const override;
   [[nodiscard]] int maxLagWithDiffsExpanded() const override;
+  void maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result,
+                                                int diff_level) const override;
   [[nodiscard]] int VarMaxLag(const set<expr_t>& lhs_lag_equiv) const override;
   [[nodiscard]] expr_t undiff() const override;
   [[nodiscard]] expr_t decreaseLeadsLags(int n) const override;
@@ -1494,6 +1511,8 @@ public:
   [[nodiscard]] int maxLead() const override;
   [[nodiscard]] int maxLag() const override;
   [[nodiscard]] int maxLagWithDiffsExpanded() const override;
+  void maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result,
+                                                int diff_level) const override;
   [[nodiscard]] int VarMaxLag(const set<expr_t>& lhs_lag_equiv) const override;
   [[nodiscard]] expr_t undiff() const override;
   [[nodiscard]] expr_t decreaseLeadsLags(int n) const override;
@@ -1695,6 +1714,8 @@ public:
   [[nodiscard]] int maxLead() const override;
   [[nodiscard]] int maxLag() const override;
   [[nodiscard]] int maxLagWithDiffsExpanded() const override;
+  void maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result,
+                                                int diff_level) const override;
   [[nodiscard]] int VarMaxLag(const set<expr_t>& lhs_lag_equiv) const override;
   [[nodiscard]] expr_t undiff() const override;
   [[nodiscard]] expr_t decreaseLeadsLags(int n) const override;
@@ -1875,6 +1896,8 @@ public:
   [[nodiscard]] int maxLead() const override;
   [[nodiscard]] int maxLag() const override;
   [[nodiscard]] int maxLagWithDiffsExpanded() const override;
+  void maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result,
+                                                int diff_level) const override;
   [[nodiscard]] int VarMaxLag(const set<expr_t>& lhs_lag_equiv) const override;
   [[nodiscard]] expr_t undiff() const override;
   [[nodiscard]] expr_t decreaseLeadsLags(int n) const override;
@@ -2091,6 +2114,8 @@ public:
   [[nodiscard]] int maxLead() const override;
   [[nodiscard]] int maxLag() const override;
   [[nodiscard]] int VarMaxLag(const set<expr_t>& lhs_lag_equiv) const override;
+  void maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result,
+                                                int diff_level) const override;
   [[nodiscard]] expr_t undiff() const override;
   [[nodiscard]] expr_t decreaseLeadsLags(int n) const override;
   [[nodiscard]] int countDiffs() const override;

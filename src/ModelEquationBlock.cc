@@ -549,11 +549,13 @@ Epilogue::writeDynamicEpilogueFile(const string& basename) const
   temporary_terms_idxs_t temporary_terms_idxs;
   for (const auto& [symb_id, expr] : dynamic_def_table)
     {
-      int max_lag = expr->maxLagWithDiffsExpanded();
-      set<int> used_symbols;
-      expr->collectVariables(SymbolType::endogenous, used_symbols);
-      expr->collectVariables(SymbolType::exogenous, used_symbols);
-      expr->collectVariables(SymbolType::epilogue, used_symbols);
+      /* We compute the beginning date in “simul_begin_date” using per-variable maximum lags. For
+example, if “x” has 2 NaNs at the beginning, and “y” has no NaN, then “x+y(-1)” can be computed from
+the 3rd period, because the lag is only applied to “y”. Also note that it is not possible to use
+firstdate(ds)+maximum_lag as the global beginning period, because this breaks autoregressive
+variables that depend on another variable that has some NaNs at the beginning. */
+
+      map<int, int> max_lag_per_variable = expr->maxLagWithDiffsExpandedPerVariable();
 
       output << '\n'
              << "if ~ds.exist('" << symbol_table.getName(symb_id) << "')" << '\n'
@@ -561,16 +563,17 @@ Epilogue::writeDynamicEpilogueFile(const string& basename) const
              << symbol_table.getName(symb_id) << "')];" << '\n'
              << "end" << '\n'
              << "try" << '\n'
-             << "    simul_begin_date = firstobservedperiod(ds{";
-      for (bool printed_something {false}; int symb_id : used_symbols)
+             << "    simul_begin_date = max(";
+      for (bool printed_something {false}; auto& [symb_id, max_lag] : max_lag_per_variable)
         {
           if (exchange(printed_something, true))
             output << ", ";
-          output << "'" << symbol_table.getName(symb_id) << "'";
+          output << "firstobservedperiod(ds{'" << symbol_table.getName(symb_id) << "'}) + "
+                 << max_lag;
         }
-      output << "}) + " << max_lag << ";" << '\n'
-             << "    from simul_begin_date to simul_end_date do "
-             << "ds." << symbol_table.getName(symb_id) << "(t) = ";
+      output << ");" << '\n'
+             << "    from simul_begin_date to simul_end_date do ds."
+             << symbol_table.getName(symb_id) << "(t) = ";
       expr->writeOutput(output, ExprNodeOutputType::matlabDseriesInsideFrom, temporary_terms,
                         temporary_terms_idxs, tef_terms);
       output << ";" << '\n' << "catch" << '\n' << "end" << '\n';

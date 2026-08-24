@@ -523,6 +523,14 @@ ExprNode::matchIntegerConstant() const
   throw MatchFailureException {"Unsupported expression"};
 }
 
+map<int, int>
+ExprNode::maxLagWithDiffsExpandedPerVariable() const
+{
+  map<int, int> result;
+  maxLagWithDiffsExpandedPerVariableHelper(result, 0);
+  return result;
+}
+
 NumConstNode::NumConstNode(DataTree& datatree_arg, int idx_arg, int id_arg) :
     ExprNode {datatree_arg, idx_arg}, id {id_arg}
 {
@@ -708,6 +716,12 @@ int
 NumConstNode::maxLagWithDiffsExpanded() const
 {
   return numeric_limits<int>::min();
+}
+
+void
+NumConstNode::maxLagWithDiffsExpandedPerVariableHelper([[maybe_unused]] map<int, int>& result,
+                                                       [[maybe_unused]] int diff_level) const
+{
 }
 
 expr_t
@@ -1853,6 +1867,33 @@ VariableNode::maxLagWithDiffsExpanded() const
       return datatree.getLocalVariable(symb_id, lag)->maxLagWithDiffsExpanded();
     default:
       return 0;
+    }
+}
+
+void
+VariableNode::maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result, int diff_level) const
+{
+  int adjusted_lag = -lag + diff_level;
+  switch (get_type())
+    {
+    case SymbolType::endogenous:
+    case SymbolType::exogenous:
+    case SymbolType::exogenousDet:
+    case SymbolType::epilogue:
+    case SymbolType::databaseVariable:
+    case SymbolType::heterogeneousEndogenous:
+    case SymbolType::heterogeneousExogenous:
+      if (auto it = result.find(symb_id); it != result.end())
+        it->second = max(it->second, adjusted_lag);
+      else
+        result.emplace(symb_id, adjusted_lag);
+      break;
+    case SymbolType::modelLocalVariable:
+      datatree.getLocalVariable(symb_id, lag)
+          ->maxLagWithDiffsExpandedPerVariableHelper(result, diff_level);
+      break;
+    default:
+      break;
     }
 }
 
@@ -3793,6 +3834,13 @@ UnaryOpNode::maxLagWithDiffsExpanded() const
   return arg->maxLagWithDiffsExpanded();
 }
 
+void
+UnaryOpNode::maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result, int diff_level) const
+{
+  arg->maxLagWithDiffsExpandedPerVariableHelper(
+      result, diff_level + static_cast<int>(op_code == UnaryOpcode::diff));
+}
+
 expr_t
 UnaryOpNode::undiff() const
 {
@@ -5639,6 +5687,13 @@ BinaryOpNode::maxLagWithDiffsExpanded() const
   return max(arg1->maxLagWithDiffsExpanded(), arg2->maxLagWithDiffsExpanded());
 }
 
+void
+BinaryOpNode::maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result, int diff_level) const
+{
+  arg1->maxLagWithDiffsExpandedPerVariableHelper(result, diff_level);
+  arg2->maxLagWithDiffsExpandedPerVariableHelper(result, diff_level);
+}
+
 expr_t
 BinaryOpNode::undiff() const
 {
@@ -7057,6 +7112,14 @@ TrinaryOpNode::maxLagWithDiffsExpanded() const
               arg3->maxLagWithDiffsExpanded()});
 }
 
+void
+TrinaryOpNode::maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result, int diff_level) const
+{
+  arg1->maxLagWithDiffsExpandedPerVariableHelper(result, diff_level);
+  arg2->maxLagWithDiffsExpandedPerVariableHelper(result, diff_level);
+  arg3->maxLagWithDiffsExpandedPerVariableHelper(result, diff_level);
+}
+
 expr_t
 TrinaryOpNode::undiff() const
 {
@@ -7518,6 +7581,14 @@ int
 AbstractExternalFunctionNode::maxLagWithDiffsExpanded() const
 {
   return maxHelper(&ExprNode::maxLagWithDiffsExpanded);
+}
+
+void
+AbstractExternalFunctionNode::maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result,
+                                                                       int diff_level) const
+{
+  for (auto argument : arguments)
+    argument->maxLagWithDiffsExpandedPerVariableHelper(result, diff_level);
 }
 
 expr_t
@@ -9388,6 +9459,13 @@ bool
 SubModelNode::containsDate() const
 {
   return false;
+}
+
+void
+SubModelNode::maxLagWithDiffsExpandedPerVariableHelper([[maybe_unused]] map<int, int>& result,
+                                                       [[maybe_unused]] int diff_level) const
+{
+  // Do nothing for such nodes (we don’t know to which variable to assign the lead/lag)
 }
 
 VarExpectationNode::VarExpectationNode(DataTree& datatree_arg, int idx_arg, string model_name_arg) :
