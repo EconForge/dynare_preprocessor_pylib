@@ -72,7 +72,9 @@ void print_json_period(ostream& output, const variant<int, string>& v);
    string should give back the same double float).
    This relies on the fact that the “g” format specifier prints as many significant digits as the
    required precision, and std::numeric_limits<double>::max_digits10 is precisely defined as the
-   number of significant decimal digits that guarantee a lossless output. */
+   number of significant decimal digits that guarantee a lossless output (see also Goldberg (1991,
+   p. 219): “What Every Computer Scientist Should Know About Floating Point Arithmetic” which
+   confirms that 17 digits are needed for a double-precision float). */
 inline string
 double_to_string_lossless(double v)
 {
