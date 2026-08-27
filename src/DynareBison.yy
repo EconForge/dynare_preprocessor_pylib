@@ -106,7 +106,7 @@ str_tolower(string s)
 %token BVAR_REPLIC BYTECODE ALL_VALUES_REQUIRED PROPOSAL_DISTRIBUTION REALTIME VINTAGE
 %token CALIB_SMOOTHER CHANGE_TYPE CHECK CONDITIONAL_FORECAST CONDITIONAL_FORECAST_PATHS CONF_SIG CONSTANT CONTROLLED_VAREXO CORR SKEW CUTOFF CYCLE_REDUCTION LOGARITHMIC_REDUCTION
 %token COMMA CONSIDER_ALL_ENDOGENOUS CONSIDER_ALL_ENDOGENOUS_AND_AUXILIARY CONSIDER_ONLY_OBSERVED INITIAL_CONDITION_DECOMPOSITION
-%token DATAFILE FILE SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_CYCLE_REDUCTION_MAXITER DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
+%token DATAFILE FILE DATASERIES SERIES DOUBLING DR_CYCLE_REDUCTION_TOL DR_CYCLE_REDUCTION_MAXITER DR_LOGARITHMIC_REDUCTION_TOL DR_LOGARITHMIC_REDUCTION_MAXITER DROP DSAMPLE DYNASAVE DYNATYPE CALIBRATION DIFFERENTIATE_FORWARD_VARS
 %token END ENDVAL EQUAL ESTIMATION ESTIMATED_PARAMS ESTIMATED_PARAMS_BOUNDS ESTIMATED_PARAMS_INIT EXTENDED_PATH ENDOGENOUS_PRIOR EXPRESSION
 %token FILENAME DIRNAME FILTER_STEP_AHEAD FILTERED_VARS FIRST_OBS FIRST_SIMULATION_PERIOD LAST_SIMULATION_PERIOD LAST_OBS
 %token SET_TIME OSR_PARAMS_BOUNDS
@@ -885,10 +885,8 @@ histval_file_options_list : histval_file_options_list COMMA histval_file_option
 histval_file_option : o_filename
                     | o_datafile
                     | o_first_obs
-                    | o_data_first_obs
                     | o_first_simulation_period
                     | o_last_obs
-                    | o_data_last_obs
                     | o_series
                     ;
 
@@ -902,11 +900,9 @@ initval_file_options_list : initval_file_options_list COMMA initval_file_option
 initval_file_option : o_filename
                     | o_datafile
                     | o_first_obs
-                    | o_data_first_obs
                     | o_first_simulation_period
                     | o_last_obs
                     | o_last_simulation_period
-                    | o_data_last_obs
                     | o_nobs
                     | o_series
                     ;
@@ -2395,11 +2391,11 @@ data_options_list : data_options_list COMMA data_options
                   | data_options
                   ;
 
-data_options : o_file
-             | o_series
-             | o_data_first_obs
-             | o_data_last_obs
-             | o_data_nobs
+data_options : FILE EQUAL filename { driver.option_str("datafile", $3); }; // NB: field name in options_ does not match option name
+             | SERIES EQUAL symbol { driver.option_str("dataseries", $3); }; // NB: field name in options_ does not match option name
+             | o_first_obs
+             | o_last_obs
+             | o_nobs
              | o_xls_sheet
              | o_xls_range
              ;
@@ -2572,8 +2568,11 @@ estimation_options_list : estimation_options_list COMMA estimation_options
 estimation_options : kalman_filter_primary_options
                    | kalman_smoother_primary_options
                    | o_datafile
+                   | o_dataseries
                    | o_nobs
-                   | o_est_first_obs
+                   | o_first_obs
+                   | o_first_obs_vec
+                   | o_last_obs
                    | o_prefilter
                    | o_presample
                    | o_nograph
@@ -3751,9 +3750,11 @@ calib_smoother_option : kalman_filter_primary_options
                       | o_filtered_vars
                       | o_filter_step_ahead
                       | o_datafile
+                      | o_dataseries
                       | o_prefilter
                       | o_loglinear
                       | o_first_obs
+                      | o_last_obs
                       | o_parameter_set
                       | o_xls_sheet
                       | o_xls_range
@@ -4218,7 +4219,6 @@ o_minimal_solving_periods : MINIMAL_SOLVING_PERIODS EQUAL non_negative_number { 
 o_simul_replic : SIMUL_REPLIC EQUAL INT_NUMBER { driver.option_num("simul_replic", $3); };
 o_qz_criterium : QZ_CRITERIUM EQUAL non_negative_number { driver.option_num("qz_criterium", $3); };
 o_qz_zero_threshold : QZ_ZERO_THRESHOLD EQUAL non_negative_number { driver.option_num("qz_zero_threshold", $3); };
-o_file : FILE EQUAL filename { driver.option_str("file", $3); };
 o_pac_name : MODEL_NAME EQUAL symbol { driver.option_str("pac.model_name", $3); };
 o_pac_aux_model_name : AUXILIARY_MODEL_NAME EQUAL symbol { driver.option_str("pac.aux_model_name", $3); };
 o_pac_discount : DISCOUNT EQUAL symbol { driver.option_str("pac.discount", $3); };
@@ -4227,6 +4227,7 @@ o_pac_auxname : AUXNAME EQUAL symbol { driver.set_pac_auxname($3); };
 o_pac_kind : KIND EQUAL pac_target_kind { driver.set_pac_kind($3); };
 o_var_name : MODEL_NAME EQUAL symbol { driver.option_str("var.model_name", $3); };
 o_series : SERIES EQUAL symbol { driver.option_str("series", $3); };
+o_dataseries : DATASERIES EQUAL symbol { driver.option_str("dataseries", $3); };
 o_datafile : DATAFILE EQUAL filename { driver.option_str("datafile", $3); };
 o_filename : FILENAME EQUAL filename { driver.option_str("filename", $3); };
 o_heterogeneity_steady_state_filename : FILENAME EQUAL filename { driver.option_str("steady_state_file_name", $3); };
@@ -4269,15 +4270,11 @@ o_conditional_variance_decomposition : CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL 
                                      | CONDITIONAL_VARIANCE_DECOMPOSITION EQUAL vec_int_number
                                        { driver.option_vec_int("conditional_variance_decomposition", $3); }
                                      ;
-o_est_first_obs : FIRST_OBS EQUAL vec_int
-                  { driver.option_vec_int("first_obs", $3); }
-                | FIRST_OBS EQUAL vec_int_number
-                  { driver.option_vec_int("first_obs", $3); }
-                ;
 o_posterior_sampling_method : POSTERIOR_SAMPLING_METHOD EQUAL QUOTED_STRING
                               { driver.option_str("posterior_sampler_options.posterior_sampling_method", $3); } ;
-o_first_obs : FIRST_OBS EQUAL INT_NUMBER { driver.option_num("first_obs", $3); };
-o_data_first_obs : FIRST_OBS EQUAL date_expr { driver.option_date("first_obs", $3); } ;
+o_first_obs : FIRST_OBS EQUAL INT_NUMBER { driver.option_num("first_obs", $3); }
+            | FIRST_OBS EQUAL date_expr { driver.option_date("first_obs", $3); } ;
+o_first_obs_vec : FIRST_OBS EQUAL vec_int { driver.option_vec_int("first_obs", $3); };
 o_first_simulation_period : FIRST_SIMULATION_PERIOD EQUAL INT_NUMBER { driver.option_num("first_simulation_period", $3); }
                           | FIRST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("first_simulation_period", $3); }
                           ;
@@ -4286,9 +4283,8 @@ o_last_simulation_period : LAST_SIMULATION_PERIOD EQUAL INT_NUMBER { driver.opti
                          ;
 o_pf_first_simulation_period : FIRST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("simul.first_simulation_period", $3); };
 o_pf_last_simulation_period : LAST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("simul.last_simulation_period", $3); };
-o_last_obs : LAST_OBS EQUAL INT_NUMBER { driver.option_num("last_obs", $3); };
-o_data_last_obs : LAST_OBS EQUAL date_expr { driver.option_date("last_obs", $3); } ;
-o_data_nobs : NOBS EQUAL INT_NUMBER { driver.option_num("nobs", $3); };
+o_last_obs : LAST_OBS EQUAL INT_NUMBER { driver.option_num("last_obs", $3); }
+           | LAST_OBS EQUAL date_expr { driver.option_date("last_obs", $3); } ;
 o_shift : SHIFT EQUAL signed_number { driver.option_num("shift", $3); };
 o_shape : SHAPE EQUAL prior_distribution { driver.prior_shape = $3; };
 o_mode : MODE EQUAL signed_number { driver.option_num("mode", $3); };

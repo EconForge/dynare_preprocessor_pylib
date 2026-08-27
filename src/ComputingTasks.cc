@@ -915,10 +915,11 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
       exit(EXIT_FAILURE);
     }
 
-  if (!options_list.contains("datafile") && !mod_file_struct.estimation_data_statement_present)
+  if (!options_list.contains("datafile") && !options_list.contains("dataseries")
+      && !mod_file_struct.estimation_data_statement_present)
     {
       cerr << "ERROR: The estimation statement requires a data file to be supplied via the "
-              "datafile option."
+              "datafile or dataseries option."
            << '\n';
       exit(EXIT_FAILURE);
     }
@@ -3914,15 +3915,8 @@ EstimationDataStatement::checkPass(ModFileStructure& mod_file_struct,
 {
   mod_file_struct.estimation_data_statement_present = true;
 
-  if (auto opt = options_list.get_if<OptionsList::NumVal>("nobs"))
-    if (stoi(*opt) <= 0)
-      {
-        cerr << "ERROR: The nobs option of the data statement only accepts positive integers."
-             << '\n';
-        exit(EXIT_FAILURE);
-      }
-
-  bool has_file = options_list.contains("file"), has_series = options_list.contains("series");
+  bool has_file = options_list.contains("datafile"),
+       has_series = options_list.contains("dataseries");
   if (!has_file && !has_series)
     {
       cerr << "ERROR: The file or series option must be passed to the data statement." << '\n';
@@ -3941,7 +3935,7 @@ void
 EstimationDataStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                      [[maybe_unused]] bool minimal_workspace) const
 {
-  options_list.writeOutput(output, "options_.dataset");
+  options_list.writeOutput(output);
 }
 
 void

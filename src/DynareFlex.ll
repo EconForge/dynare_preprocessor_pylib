@@ -983,6 +983,7 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>xls_sheet {return token::XLS_SHEET;}
 <DYNARE_STATEMENT>xls_range {return token::XLS_RANGE;}
 <DYNARE_STATEMENT>series {return token::SERIES;}
+<DYNARE_STATEMENT>dataseries {return token::DATASERIES;}
 <DYNARE_STATEMENT>mh_recover {return token::MH_RECOVER;}
 <DYNARE_STATEMENT>mh_initialize_from_previous_mcmc {return token::MH_INITIALIZE_FROM_PREVIOUS_MCMC;}
 <DYNARE_STATEMENT>mh_initialize_from_previous_mcmc_directory {return token::MH_INITIALIZE_FROM_PREVIOUS_MCMC_DIRECTORY;}
