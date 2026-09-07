@@ -441,14 +441,33 @@ Epilogue::checkPass(ModFileStructure& mod_file_struct) const
 
   set<int> so_far_defined;
   for (const auto& [symb_id, expr] : dynamic_def_table)
-    if (so_far_defined.contains(symb_id))
-      {
-        cerr << "ERROR: in the 'epilogue' block, variable '" << symbol_table.getName(symb_id)
-             << "' is declared twice" << '\n';
-        exit(EXIT_FAILURE);
-      }
-    else
+    {
+      if (so_far_defined.contains(symb_id))
+        {
+          cerr << "ERROR: in the 'epilogue' block, variable '" << symbol_table.getName(symb_id)
+               << "' is declared twice" << '\n';
+          exit(EXIT_FAILURE);
+        }
+
+      /* The equations are evaluated in the order in which they are written, each one over the
+         whole sample. A reference to an epilogue variable defined later in the block is rejected
+         by the parser (the variable is declared when the left-hand side of its equation is
+         parsed), so the only remaining case is the variable being defined: its lags are available
+         (the equation is then a recursion), but its current value is not (the equation would be
+         implicit, and the generated code would silently produce NaNs). */
+      set<pair<int, int>> refs; // (symb_id, lag)
+      expr->collectDynamicVariables(SymbolType::epilogue, refs);
+      if (refs.contains({symb_id, 0}))
+        {
+          cerr << "ERROR: in the 'epilogue' block, variable '" << symbol_table.getName(symb_id)
+               << "' appears without a lag in its own definition; only lags of the variable being "
+                  "defined are allowed on the right-hand side"
+               << '\n';
+          exit(EXIT_FAILURE);
+        }
+
       so_far_defined.insert(symb_id);
+    }
 }
 
 void
