@@ -489,6 +489,10 @@ ParsingDriver::add_model_variable(int symb_id, int lag)
 
   if (is_parsing_epilogue())
     {
+      if (lag > 0)
+        error("Leads on variables are forbidden in the 'epilogue' block, whose equations are "
+              "evaluated period by period from the beginning of the sample.");
+
       if (type == SymbolType::exogenousDet)
         error("Symbol '{}' cannot be used inside the epilogue block, because it is an exogenous "
               "deterministic variable.",
