@@ -3225,7 +3225,12 @@ ParsingDriver::add_exp(expr_t arg1)
 expr_t
 ParsingDriver::add_diff(expr_t arg1)
 {
-  return data_tree->AddDiff(arg1);
+  /* In the epilogue block, the equations are simply evaluated, so there is no need for the
+     auxiliary variables that substituteDiff() creates for the model block. Expand diff(e) into
+     e - e(-1) right away, so that the epilogue tree never contains a diff node (which cannot be
+     written for MATLAB/Octave output). Nested diffs are handled by the bottom-up construction of
+     the tree. */
+  return data_tree->AddDiff(arg1, is_parsing_epilogue());
 }
 
 expr_t

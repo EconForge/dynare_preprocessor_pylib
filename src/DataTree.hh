@@ -202,8 +202,9 @@ public:
   expr_t AddPowerDeriv(expr_t iArg1, expr_t iArg2, int powerDerivOrder);
   //! Adds "E(arg1)(arg2)" to model tree
   expr_t AddExpectation(int iArg1, expr_t iArg2);
-  //! Adds "diff(arg)" to model tree
-  expr_t AddDiff(expr_t iArg1);
+  /* Adds "diff(arg)" to model tree. If expand is true, or if arg contains a lead, the operator is
+     expanded into arg-arg(-1) */
+  expr_t AddDiff(expr_t iArg1, bool expand = false);
   //! Adds "exp(arg)" to model tree
   expr_t AddExp(expr_t iArg1);
   //! Adds "log(arg)" to model tree
