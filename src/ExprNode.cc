@@ -1225,6 +1225,14 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
       }
   };
 
+  auto epilogueDynamicHelper = [&] {
+    assert(lag <= 0); // Leads are rejected by the parser in the epilogue block
+    output << Epilogue::epilogueLocalName(getName()) << "(t";
+    if (lag < 0)
+      output << lag;
+    output << ")";
+  };
+
   int i;
   switch (type)
     {
@@ -1307,12 +1315,8 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::juliaTimeDataFrame:
           juliaTimeDataFrameHelper();
           break;
-        case ExprNodeOutputType::matlabDseriesInsideFrom:
-          output << "ds." << getName();
-          output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
-          if (lag != 0)
-            output << lag;
-          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+        case ExprNodeOutputType::epilogueDynamicFile:
+          epilogueDynamicHelper();
           break;
         case ExprNodeOutputType::occbinDifferenceFile:
           output << "zdatalinear(:," << tsid + 1 << ")";
@@ -1364,12 +1368,8 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::juliaTimeDataFrame:
           juliaTimeDataFrameHelper();
           break;
-        case ExprNodeOutputType::matlabDseriesInsideFrom:
-          output << "ds." << getName();
-          output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
-          if (lag != 0)
-            output << lag;
-          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+        case ExprNodeOutputType::epilogueDynamicFile:
+          epilogueDynamicHelper();
           break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << '\n';
@@ -1419,12 +1419,8 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::juliaTimeDataFrame:
           juliaTimeDataFrameHelper();
           break;
-        case ExprNodeOutputType::matlabDseriesInsideFrom:
-          output << "ds." << getName();
-          output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
-          if (lag != 0)
-            output << lag;
-          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+        case ExprNodeOutputType::epilogueDynamicFile:
+          epilogueDynamicHelper();
           break;
         default:
           cerr << "VariableNode::writeOutput: should not reach this point" << '\n';
@@ -1432,14 +1428,8 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         }
       break;
     case SymbolType::epilogue:
-      if (output_type == ExprNodeOutputType::matlabDseriesInsideFrom)
-        {
-          output << "ds." << getName();
-          output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
-          if (lag != 0)
-            output << lag;
-          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
-        }
+      if (output_type == ExprNodeOutputType::epilogueDynamicFile)
+        epilogueDynamicHelper();
       else if (output_type == ExprNodeOutputType::matlabStaticModel)
         output << "epilogue" << LEFT_ARRAY_SUBSCRIPT(output_type)
                << getTypeSpecificID() + ARRAY_SUBSCRIPT_OFFSET(output_type)
@@ -3278,7 +3268,7 @@ UnaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
 
         case ExprNodeOutputType::matlabDynamicModel:
         case ExprNodeOutputType::occbinDifferenceFile:
-        case ExprNodeOutputType::matlabDseriesInsideFrom:
+        case ExprNodeOutputType::epilogueDynamicFile:
           new_output_type = ExprNodeOutputType::matlabDynamicSteadyStateOperator;
           break;
         case ExprNodeOutputType::latexDynamicModel:
@@ -5230,8 +5220,10 @@ BinaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case BinaryOpcode::times:
       if (isLatexOutput(output_type))
         output << R"(\, )";
-      else if (output_type == ExprNodeOutputType::occbinDifferenceFile // This file operates on
-                                                                       // vectors, see dynare#1826
+      else if (output_type == ExprNodeOutputType::occbinDifferenceFile   // This file operates on
+                                                                         // vectors, see dynare#1826
+               || output_type == ExprNodeOutputType::epilogueDynamicFile // Epilogue equations are
+                                                                         // written elementwise
                || output_type == ExprNodeOutputType::juliaTimeDataFrame)
         output << " .*";
       else
@@ -5240,8 +5232,10 @@ BinaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case BinaryOpcode::divide:
       if (!isLatexOutput(output_type))
         {
-          if (output_type == ExprNodeOutputType::occbinDifferenceFile // This file operates on
-                                                                      // vectors, see dynare#1826
+          if (output_type == ExprNodeOutputType::occbinDifferenceFile   // This file operates on
+                                                                        // vectors, see dynare#1826
+              || output_type == ExprNodeOutputType::epilogueDynamicFile // Epilogue equations are
+                                                                        // written elementwise
               || output_type == ExprNodeOutputType::juliaTimeDataFrame)
             output << " ./";
           else
@@ -5251,6 +5245,8 @@ BinaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case BinaryOpcode::power:
       if (output_type == ExprNodeOutputType::occbinDifferenceFile // This file operates on vectors,
                                                                   // see dynare#1826
+          || output_type == ExprNodeOutputType::epilogueDynamicFile // Epilogue equations are
+                                                                    // written elementwise
           || output_type == ExprNodeOutputType::juliaTimeDataFrame)
         output << " .^";
       else if (isPythonOutput(output_type))
@@ -8220,7 +8216,7 @@ ExternalFunctionNode::writeOutput(ostream& output, ExprNodeOutputType output_typ
   if (output_type == ExprNodeOutputType::matlabOutsideModel
       || output_type == ExprNodeOutputType::steadyStateFile
       || output_type == ExprNodeOutputType::juliaSteadyStateFile
-      || output_type == ExprNodeOutputType::matlabDseriesInsideFrom
+      || output_type == ExprNodeOutputType::epilogueDynamicFile
       || output_type == ExprNodeOutputType::occbinDifferenceFile || isLatexOutput(output_type))
     {
       string name
