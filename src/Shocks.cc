@@ -25,6 +25,7 @@
 #include <ranges>
 #include <utility>
 
+#include "Exceptions.hh"
 #include "Shocks.hh"
 #include "Utils.hh"
 
@@ -402,25 +403,15 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
   for (const auto& [id, val] : var_shocks)
     {
       if (symbol_table.getType(id) != SymbolType::exogenous && !symbol_table.isObservedVariable(id))
-        {
-          cerr << "shocks: setting a variance on '" << symbol_table.getName(id)
-               << "' is not allowed, because it is neither an exogenous variable nor an observed "
-                  "endogenous variable"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("shocks", "setting a variance on '" + symbol_table.getName(id)
+                                 + "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable");
     }
 
   for (const auto& [id, val] : std_shocks)
     {
       if (symbol_table.getType(id) != SymbolType::exogenous && !symbol_table.isObservedVariable(id))
-        {
-          cerr << "shocks: setting a standard error on '" << symbol_table.getName(id)
-               << "' is not allowed, because it is neither an exogenous variable nor an observed "
-                  "endogenous variable"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("shocks", "setting a standard error on '" + symbol_table.getName(id)
+                                 + "' is not allowed, because it is neither an exogenous variable nor an observed endogenous variable");
     }
 
   for (const auto& [ids, val] : covar_shocks)
@@ -431,14 +422,9 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
              && symbol_table.getType(symb_id2) == SymbolType::exogenous)
             || (symbol_table.isObservedVariable(symb_id1)
                 && symbol_table.isObservedVariable(symb_id2))))
-        {
-          cerr << "shocks: setting a covariance between '" << symbol_table.getName(symb_id1)
-               << "' and '" << symbol_table.getName(symb_id2)
-               << "'is not allowed; covariances can only be specified for exogenous or observed "
-                  "endogenous variables of same type"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("shocks", "setting a covariance between '" + symbol_table.getName(symb_id1)
+                                 + "' and '" + symbol_table.getName(symb_id2)
+                                 + "' is not allowed; covariances can only be specified for exogenous or observed endogenous variables of same type");
     }
 
   for (const auto& [ids, val] : corr_shocks)
@@ -449,14 +435,9 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
              && symbol_table.getType(symb_id2) == SymbolType::exogenous)
             || (symbol_table.isObservedVariable(symb_id1)
                 && symbol_table.isObservedVariable(symb_id2))))
-        {
-          cerr << "shocks: setting a correlation between '" << symbol_table.getName(symb_id1)
-               << "' and '" << symbol_table.getName(symb_id2)
-               << "'is not allowed; correlations can only be specified for exogenous or observed "
-                  "endogenous variables of same type"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("shocks", "setting a correlation between '" + symbol_table.getName(symb_id1)
+                                 + "' and '" + symbol_table.getName(symb_id2)
+                                 + "' is not allowed; correlations can only be specified for exogenous or observed endogenous variables of same type");
     }
 
   for (const auto& [ids, val] : skew_shocks)
@@ -466,13 +447,9 @@ ShocksStatement::checkPass(ModFileStructure& mod_file_struct,
       if (!(symbol_table.getType(symb_id1) == SymbolType::exogenous
             && symbol_table.getType(symb_id2) == SymbolType::exogenous
             && symbol_table.getType(symb_id3) == SymbolType::exogenous))
-        {
-          cerr << "shocks: setting skewness for '" << symbol_table.getName(symb_id1) << "', '"
-               << symbol_table.getName(symb_id2) << "', '" << symbol_table.getName(symb_id3)
-               << "' is not allowed; skewness can only be specified for exogenous variables"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("shocks", "setting skewness for '" + symbol_table.getName(symb_id1) + "', '"
+                                 + symbol_table.getName(symb_id2) + "', '" + symbol_table.getName(symb_id3)
+                                 + "' is not allowed; skewness can only be specified for exogenous variables");
     }
 
   // Determine if there is a calibrated measurement error
@@ -872,19 +849,13 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
      and not at parsing time (see #448). */
   for (const auto& [id, val] : var_shocks)
     if (symbol_table.getType(id) != SymbolType::heterogeneousExogenous)
-      {
-        cerr << "shocks: setting a variance on '" << symbol_table.getName(id)
-             << "' is not allowed, because it is not a heterogeneous exogenous variable" << '\n';
-        exit(EXIT_FAILURE);
-      }
+      throw StatementException("shocks", "setting a variance on '" + symbol_table.getName(id)
+                               + "' is not allowed, because it is not a heterogeneous exogenous variable");
 
   for (const auto& [id, val] : std_shocks)
     if (symbol_table.getType(id) != SymbolType::heterogeneousExogenous)
-      {
-        cerr << "shocks: setting a standard error on '" << symbol_table.getName(id)
-             << "' is not allowed, because it is not a heterogeneous exogenous variable" << '\n';
-        exit(EXIT_FAILURE);
-      }
+      throw StatementException("shocks", "setting a standard error on '" + symbol_table.getName(id)
+                               + "' is not allowed, because it is not a heterogeneous exogenous variable");
 
   for (const auto& [ids, val] : covar_shocks)
     {
@@ -892,14 +863,9 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
 
       if (!(symbol_table.getType(symb_id1) == SymbolType::heterogeneousExogenous
             && symbol_table.getType(symb_id2) == SymbolType::heterogeneousExogenous))
-        {
-          cerr << "shocks: setting a covariance between '" << symbol_table.getName(symb_id1)
-               << "' and '" << symbol_table.getName(symb_id2)
-               << "'is not allowed; covariances can only be specified for heterogeneous exogenous "
-                  "variables"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("shocks", "setting a covariance between '" + symbol_table.getName(symb_id1)
+                                 + "' and '" + symbol_table.getName(symb_id2)
+                                 + "' is not allowed; covariances can only be specified for heterogeneous exogenous variables");
     }
 
   for (const auto& [ids, val] : corr_shocks)
@@ -908,14 +874,9 @@ HeterogeneousShocksStatement::checkPass(ModFileStructure& mod_file_struct,
 
       if (!(symbol_table.getType(symb_id1) == SymbolType::heterogeneousExogenous
             && symbol_table.getType(symb_id2) == SymbolType::heterogeneousExogenous))
-        {
-          cerr << "shocks: setting a correlation between '" << symbol_table.getName(symb_id1)
-               << "' and '" << symbol_table.getName(symb_id2)
-               << "'is not allowed; covariances can only be specified for heterogeneous exogenous "
-                  "variables"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("shocks", "setting a correlation between '" + symbol_table.getName(symb_id1)
+                                 + "' and '" + symbol_table.getName(symb_id2)
+                                 + "' is not allowed; covariances can only be specified for heterogeneous exogenous variables");
     }
 
   // Fill in mod_file_struct.parameters_with_shocks_values (related to #469)
@@ -1263,12 +1224,9 @@ Init2shocksStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_stru
   for (size_t i = 0; i < init2shocks.size(); i++)
     for (size_t j = i + 1; j < init2shocks.size(); j++)
       if (init2shocks.at(i).first == init2shocks.at(j).first)
-        {
-          cerr << "Init2shocks(" << name << "): enogenous variable '"
-               << symbol_table.getName(init2shocks.at(i).first)
-               << "' appears more than once in the init2shocks statement" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("Init2shocks(" + name + ")", "enogenous variable '"
+                                 + symbol_table.getName(init2shocks.at(i).first)
+                                 + "' appears more than once in the init2shocks statement");
 }
 
 void
@@ -1404,13 +1362,10 @@ ShockPathsStatement::checkPass(ModFileStructure& mod_file_struct,
         for (const auto& [symb_id2, lag] : self_vars)
           {
             if (symb_id == symb_id2 && lag == 0)
-              {
-                cerr << "ERROR: in the definition of '" << symbol_table.getName(symb_id)
-                     << "' in a 'shock_paths' block, the use of 'self."
-                     << symbol_table.getName(symb_id)
-                     << "' without a lag is not allowed, since it is a circular reference" << '\n';
-                exit(EXIT_FAILURE);
-              }
+              throw StatementException("shock_paths", "in the definition of '" + symbol_table.getName(symb_id)
+                                       + "' in a 'shock_paths' block, the use of 'self."
+                                       + symbol_table.getName(symb_id)
+                                       + "' without a lag is not allowed, since it is a circular reference");
             assert(lag <= 0); // Already checked in ParsingDriver::add_self_variable()
             // NB: the restriction on lag is needed
           }
@@ -1579,10 +1534,7 @@ ShockPathsStatement::writeEvaluationFunctionFile(const string& basename) const
   filesystem::path filename {packageDir(basename) / (evaluationFunctionName() + ".m")};
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename.string(), "Can't open file " + filename.string() + " for writing");
 
   // M_ is there for parameters, oo_ for initval namespace
   output << "function exo_paths = " << evaluationFunctionName()
@@ -1652,11 +1604,8 @@ FilterTunesStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_stru
 {
   for (int id : views::keys(tunes))
     if (symbol_table.isObservedVariable(id))
-      {
-        cerr << "filter_tunes: variable " << symbol_table.getName(id)
-             << " is declared as an observable" << endl;
-        exit(EXIT_FAILURE);
-      }
+      throw StatementException("filter_tunes", "variable " + symbol_table.getName(id)
+                               + " is declared as an observable");
 }
 
 void

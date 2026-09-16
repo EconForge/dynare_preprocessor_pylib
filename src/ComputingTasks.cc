@@ -224,12 +224,8 @@ PerfectForesightSolverStatement::checkPass(ModFileStructure& mod_file_struct,
                                            [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (!mod_file_struct.perfect_foresight_setup_present)
-    {
-      cerr << "ERROR: A 'perfect_foresight_setup' command must come before "
-              "'perfect_foresight_solver'"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("perfect_foresight_solver",
+                             "A 'perfect_foresight_setup' command must come before 'perfect_foresight_solver'");
   mod_file_struct.perfect_foresight_solver_present = true;
 }
 
@@ -299,12 +295,8 @@ PerfectForesightWithExpectationErrorsSolverStatement::checkPass(
     ModFileStructure& mod_file_struct, [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (!mod_file_struct.perfect_foresight_with_expectation_errors_setup_present)
-    {
-      cerr << "ERROR: A 'perfect_foresight_with_expectation_errors_setup' command must come before "
-              "'perfect_foresight_with_expectation_errors_solver'"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("perfect_foresight_with_expectation_errors_solver",
+                             "A 'perfect_foresight_with_expectation_errors_setup' command must come before 'perfect_foresight_with_expectation_errors_solver'");
   mod_file_struct.perfect_foresight_with_expectation_errors_solver_present = true;
 }
 
@@ -342,12 +334,9 @@ PriorPosteriorFunctionStatement::checkPass([[maybe_unused]] ModFileStructure& mo
                                            [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (auto opt = options_list.get_if<OptionsList::StringVal>("function"); !opt || opt->empty())
-    {
-      cerr << "ERROR: both the 'prior_function' and 'posterior_function' commands require the "
-              "'function' option"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("prior_function/posterior_function",
+                             "both the 'prior_function' and 'posterior_function' commands require the 'function' option",
+                             "function");
 }
 
 void
@@ -408,11 +397,7 @@ StochSimulStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
       bandpass = options_list.contains("bandpass.indicator"),
       one_sided_hp = options_list.contains("one_sided_hp_filter");
       (hp && bandpass) || (hp && one_sided_hp) || (bandpass && one_sided_hp))
-    {
-      cerr << "ERROR: stoch_simul: can only use one of HP, one-sided HP, and bandpass filters"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("stoch_simul", "can only use one of HP, one-sided HP, and bandpass filters");
 
   try
     {
@@ -420,8 +405,7 @@ StochSimulStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: stoch_simul: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("stoch_simul", e.message);
     }
 }
 
@@ -475,8 +459,7 @@ ForecastStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: forecast: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("forecast", e.message);
     }
 }
 
@@ -577,11 +560,7 @@ RamseyPolicyStatement::checkPass(ModFileStructure& mod_file_struct, WarningConso
       bandpass = options_list.contains("bandpass.indicator"),
       one_sided_hp = options_list.contains("one_sided_hp_filter");
       (hp && bandpass) || (hp && one_sided_hp) || (bandpass && one_sided_hp))
-    {
-      cerr << "ERROR: ramsey_policy: can only use one of hp, one-sided hp, and bandpass filters"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("ramsey_policy", "can only use one of hp, one-sided hp, and bandpass filters");
 
   try
     {
@@ -589,8 +568,7 @@ RamseyPolicyStatement::checkPass(ModFileStructure& mod_file_struct, WarningConso
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: ramsey_policy: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("ramsey_policy", e.message);
     }
 }
 
@@ -669,10 +647,7 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure& mod_file_struct,
   mod_file_struct.discretionary_policy_present = true;
 
   if (!options_list.contains("instruments"))
-    {
-      cerr << "ERROR: discretionary_policy: the instruments option is required." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("discretionary_policy", "the instruments option is required.", "instruments");
 
   /* Fill in option_order of mod_file_struct
      Since discretionary policy needs one further order of derivation (for example, for 1st order
@@ -681,10 +656,7 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure& mod_file_struct,
     {
       int order = stoi(*opt);
       if (order > 1)
-        {
-          cerr << "ERROR: discretionary_policy: order > 1 is not yet implemented" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("discretionary_policy", "order > 1 is not yet implemented", "order");
       mod_file_struct.order_option = max(mod_file_struct.order_option, order + 1);
     }
 
@@ -708,8 +680,7 @@ DiscretionaryPolicyStatement::checkPass(ModFileStructure& mod_file_struct,
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: discretionary_policy: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("discretionary_policy", e.message);
     }
 }
 
@@ -903,53 +874,31 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
 
   if (options_list.contains("dsge_varlag"))
     if (mod_file_struct.dsge_var_calibrated.empty() && !mod_file_struct.dsge_var_estimated)
-      {
-        cerr << "ERROR: The estimation statement requires a dsge_var option to be passed "
-             << "if the dsge_varlag option is passed." << '\n';
-        exit(EXIT_FAILURE);
-      }
+      throw StatementException("estimation",
+                               "The estimation statement requires a dsge_var option to be passed if the dsge_varlag option is passed.");
 
   if (!mod_file_struct.dsge_var_calibrated.empty() && mod_file_struct.dsge_var_estimated)
-    {
-      cerr << "ERROR: An estimation statement cannot take more than one dsge_var option." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("estimation", "An estimation statement cannot take more than one dsge_var option.");
 
   if (!options_list.contains("datafile") && !options_list.contains("dataseries")
       && !mod_file_struct.estimation_data_statement_present)
-    {
-      cerr << "ERROR: The estimation statement requires a data file to be supplied via the "
-              "datafile or dataseries option."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("estimation",
+                             "The estimation statement requires a data file to be supplied via the datafile or dataseries option.");
 
   if (options_list.contains("mode_file") && mod_file_struct.estim_params_use_calib)
-    {
-      cerr << "ERROR: The mode_file option of the estimation statement is incompatible with the "
-              "use_calibration option of the estimated_params_init block."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("estimation",
+                             "The mode_file option of the estimation statement is incompatible with the use_calibration option of the estimated_params_init block.");
 
   if (auto opt = options_list.get_if<OptionsList::NumVal>("mh_tune_jscale.status");
       opt && *opt == "true")
     {
       if (options_list.contains("mh_jscale"))
-        {
-          cerr << "ERROR: The mh_tune_jscale and mh_jscale options of the estimation statement are "
-                  "incompatible."
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("estimation",
+                                 "The mh_tune_jscale and mh_jscale options of the estimation statement are incompatible.");
     }
   else if (options_list.contains("mh_tune_jscale.guess"))
-    {
-      cerr << "ERROR: The option mh_tune_guess in estimation statement cannot be used without "
-              "option mh_tune_jscale."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("estimation",
+                             "The option mh_tune_guess in estimation statement cannot be used without option mh_tune_jscale.");
 
   if (auto opt_filter = options_list.get_if<OptionsList::StringVal>("particle.filter_algorithm");
       opt_filter && *opt_filter == "gmf")
@@ -957,21 +906,13 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
       if (auto opt_proposal
           = options_list.get_if<OptionsList::NumVal>("particle.proposal_approximation.montecarlo");
           opt_proposal && *opt_proposal == "true")
-        {
-          cerr << "ERROR: The filter_algorithm=gmf option is incompatible with "
-                  "proposal_approximation=montecarlo in the estimation statement."
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("estimation",
+                                 "The filter_algorithm=gmf option is incompatible with proposal_approximation=montecarlo in the estimation statement.");
       if (auto opt_distribution = options_list.get_if<OptionsList::NumVal>(
               "particle.distribution_approximation.montecarlo");
           opt_distribution && *opt_distribution == "true")
-        {
-          cerr << "ERROR: The filter_algorithm=gmf option is incompatible with "
-                  "distribution_approximation=montecarlo in the estimation statement."
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("estimation",
+                                 "The filter_algorithm=gmf option is incompatible with distribution_approximation=montecarlo in the estimation statement.");
     }
 
   /* Check that we are not trying to estimate a parameter appearing in the
@@ -981,14 +922,10 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
                            mod_file_struct.parameters_in_planner_discount,
                            back_inserter(estimated_params_in_planner_discount));
   if (!estimated_params_in_planner_discount.empty())
-    {
-      cerr << "ERROR: It is not possible to estimate a parameter ("
-           << symbol_table.getName(estimated_params_in_planner_discount[0])
-           << ") that appears in the discount factor of the planner (i.e. in the "
-              "'planner_discount' option)."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("estimation",
+                             "It is not possible to estimate a parameter ("
+                             + symbol_table.getName(estimated_params_in_planner_discount[0])
+                             + ") that appears in the discount factor of the planner (i.e. in the 'planner_discount' option).");
 
   try
     {
@@ -996,8 +933,7 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: estimation: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("estimation", e.message);
     }
 }
 
@@ -1109,8 +1045,7 @@ RplotStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: rplot: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("rplot", e.message);
     }
 }
 
@@ -1184,44 +1119,29 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
           auto x = it.name < it.name2 ? pair {it.name, it.name2} : pair {it.name2, it.name};
 
           if (already_declared_corr.contains(x))
-            {
-              cerr << "ERROR: in `" << blockName() << "' block, the correlation between " << it.name
-                   << " and " << it.name2 << " is declared twice." << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw StatementException(blockName(), "the correlation between " + it.name
+                                     + " and " + it.name2 + " is declared twice.");
           else
             already_declared_corr.insert(x);
         }
       else if (it.type == 1) // stderr
         {
           if (already_declared_stderr.contains(it.name))
-            {
-              cerr << "ERROR: in `" << blockName() << "' block, the stderr of " << it.name
-                   << " is declared twice." << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw StatementException(blockName(), "the stderr of " + it.name + " is declared twice.");
           else
             already_declared_stderr.insert(it.name);
         }
       else if (it.type == 4) // skew
         {
           if (already_declared_skew.contains(it.name))
-            {
-              cerr << "ERROR: in `" << blockName() << "' block, the skewness of " << it.name
-                   << " is declared twice." << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw StatementException(blockName(), "the skewness of " + it.name + " is declared twice.");
           else
             already_declared_skew.insert(it.name);
         }
       else
         {
           if (already_declared.contains(it.name))
-            {
-              cerr << "ERROR: in `" << blockName() << "' block, the symbol " << it.name
-                   << " is declared twice." << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw StatementException(blockName(), "the symbol " + it.name + " is declared twice.");
           else
             already_declared.insert(it.name);
         }
@@ -1250,16 +1170,16 @@ AbstractEstimatedParamsStatement::commonCheckPass() const
       ranges::set_intersection(declared_params, used_params, back_inserter(intersect));
       if (!intersect.empty())
         {
-          cerr << "ERROR: in `" << blockName() << "' block, the value of estimated parameter "
-               << symbol_table.getName(intersect[0]) << " is used in the declaration for ";
+          string target;
           if (it.type == 3)
-            cerr << "correlation between " << it.name << " and " << it.name2;
+            target = "correlation between " + it.name + " and " + it.name2;
           else if (it.type == 4)
-            cerr << "skewness of " << it.name;
-          else // either a parameter, the stderr of an exo, or the measurement error of an endo
-            cerr << "symbol " << it.name;
-          cerr << ". This behaviour is undefined." << '\n';
-          exit(EXIT_FAILURE);
+            target = "skewness of " + it.name;
+          else
+            target = "symbol " + it.name;
+          throw StatementException(blockName(), "the value of estimated parameter "
+                                   + symbol_table.getName(intersect[0]) + " is used in the declaration for "
+                                   + target + ". This behaviour is undefined.");
         }
     }
 }
@@ -1290,17 +1210,13 @@ EstimatedParamsStatement::checkPass(ModFileStructure& mod_file_struct,
           try
             {
               if (symbol_table.getType(it.name) != SymbolType::exogenous)
-                {
-                  cerr << "ERROR: in `estimated_params' block, skewness can only be specified for "
-                          "exogenous variables, not for '"
-                       << it.name << "'." << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw StatementException("estimated_params",
+                                         "skewness can only be specified for exogenous variables, not for '"
+                                         + it.name + "'.");
             }
           catch (SymbolTable::UnknownSymbolNameException& e)
             {
-              cerr << "ERROR: in `estimated_params' block, unknown symbol: " << it.name << '\n';
-              exit(EXIT_FAILURE);
+              throw StatementException("estimated_params", "unknown symbol: " + it.name);
             }
         }
 
@@ -1309,12 +1225,8 @@ EstimatedParamsStatement::checkPass(ModFileStructure& mod_file_struct,
         try
           {
             if (it.mean->eval(eval_context_t()) == 0.5 && it.std->eval(eval_context_t()) == 0.5)
-              {
-                cerr << "ERROR: The prior density is not defined for the beta distribution when "
-                        "the mean = standard deviation = 0.5."
-                     << '\n';
-                exit(EXIT_FAILURE);
-              }
+              throw StatementException("estimated_params",
+                                       "The prior density is not defined for the beta distribution when the mean = standard deviation = 0.5.");
           }
         catch (ExprNode::EvalException& e)
           {
@@ -1909,8 +1821,7 @@ DeterministicTrendsStatement::writeOutput([[maybe_unused]] ostream& output,
                                           [[maybe_unused]] const string& basename,
                                           [[maybe_unused]] bool minimal_workspace) const
 {
-  cerr << "ERROR: deterministic_trends is not implemented for MATLAB/Octave" << '\n';
-  exit(EXIT_FAILURE);
+  throw StatementException("deterministic_trends", "deterministic_trends is not implemented for MATLAB/Octave");
 }
 
 void
@@ -1945,11 +1856,8 @@ ObservationTrendsStatement::checkPass([[maybe_unused]] ModFileStructure& mod_fil
 {
   for (int symb_id : views::keys(trend_elements))
     if (!symbol_table.isObservedVariable(symb_id))
-      {
-        cerr << "ERROR: variable " << symbol_table.getName(symb_id)
-             << " in observation_trends block is not an observed variable" << '\n';
-        exit(EXIT_FAILURE);
-      }
+      throw StatementException("observation_trends", "variable " + symbol_table.getName(symb_id)
+                               + " in observation_trends block is not an observed variable");
 }
 
 void
@@ -2023,10 +1931,7 @@ FilterInitialStateStatement::writeOutput(ostream& output, [[maybe_unused]] const
           catch (SymbolTable::SearchFailedException& e)
             {
               if (type == SymbolType::endogenous)
-                {
-                  cerr << "filter_initial_state: internal error, please contact the developers";
-                  exit(EXIT_FAILURE);
-                }
+                throw InternalCompilerException{"filter_initial_state: internal error, please contact the developers"};
               // We don't fail for exogenous, because they are not replaced by
               // auxiliary variables in deterministic mode.
             }
@@ -2077,8 +1982,7 @@ OsrParamsStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolid
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: osr: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("osr", e.message);
     }
 }
 
@@ -2116,11 +2020,8 @@ OsrParamsBoundsStatement::checkPass(ModFileStructure& mod_file_struct,
                                     [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (!mod_file_struct.osr_params_present)
-    {
-      cerr << "ERROR: you must have an osr_params statement before the osr_params_bounds block."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("osr_params_bounds",
+                             "you must have an osr_params statement before the osr_params_bounds block.");
 }
 
 void
@@ -2202,8 +2103,7 @@ OsrStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolidation&
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: osr: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("osr", e.message);
     }
 }
 
@@ -2342,8 +2242,7 @@ DynaSaveStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: dynasave: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("dynasave", e.message);
     }
 }
 
@@ -2387,8 +2286,7 @@ DynaTypeStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: dynatype: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("dynatype", e.message);
     }
 }
 
@@ -2472,13 +2370,11 @@ PlannerObjectiveStatement::checkPass(ModFileStructure& mod_file_struct,
 {
   assert(model_tree->equation_number() == 1);
   if (model_tree->exoPresentInEqs())
-    {
-      cerr << "ERROR: You cannot include exogenous variables (or variables of undeclared type) in "
-              "the planner objective. Please "
-           << "define an auxiliary endogenous variable like eps_aux=epsilon and use it instead "
-           << "of the varexo." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("planner_objective",
+                             "You cannot include exogenous variables (or variables of undeclared "
+                             "type) in the planner objective. Please define an auxiliary "
+                             "endogenous variable like eps_aux=epsilon and use it instead of the "
+                             "varexo.");
   mod_file_struct.planner_objective_present = true;
 }
 
@@ -2657,11 +2553,9 @@ MSSBVAREstimationStatement::checkPass(ModFileStructure& mod_file_struct,
 
   if (!options_list.contains("ms.create_init")
       && (!options_list.contains("datafile") || !options_list.contains("ms.initial_year")))
-    {
-      cerr << "ERROR: If you do not pass no_create_init to ms_estimation, "
-           << "you must pass the datafile and initial_year options." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("ms_estimation",
+                             "If you do not pass no_create_init to ms_estimation, "
+                             "you must pass the datafile and initial_year options.");
 }
 
 void
@@ -2772,11 +2666,9 @@ MSSBVARComputeProbabilitiesStatement::checkPass(ModFileStructure& mod_file_struc
 
   if (options_list.contains("ms.real_time_smoothed_probabilities")
       && options_list.contains("ms.filtered_probabilities"))
-    {
-      cerr << "ERROR: You may only pass one of real_time_smoothed "
-           << "and filtered_probabilities to ms_compute_probabilities." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("ms_compute_probabilities",
+                             "You may only pass one of real_time_smoothed "
+                             "and filtered_probabilities to ms_compute_probabilities.");
 }
 
 void
@@ -2819,11 +2711,9 @@ MSSBVARIrfStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
       filtered_probabilities_present = options_list.contains("ms.filtered_probabilities");
       (filtered_probabilities_present && regime_present)
       || (filtered_probabilities_present && regimes_present) || (regimes_present && regime_present))
-    {
-      cerr << "ERROR: You may only pass one of regime, regimes and "
-           << "filtered_probabilities to ms_irf" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("ms_irf",
+                             "You may only pass one of regime, regimes and "
+                             "filtered_probabilities to ms_irf");
 
   try
     {
@@ -2831,8 +2721,7 @@ MSSBVARIrfStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: ms_irf: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("ms_irf", e.message);
     }
 }
 
@@ -2875,10 +2764,8 @@ MSSBVARForecastStatement::checkPass(ModFileStructure& mod_file_struct,
   mod_file_struct.bvar_present = true;
 
   if (options_list.contains("ms.regimes") && options_list.contains("ms.regime"))
-    {
-      cerr << "ERROR: You may only pass one of regime and regimes to ms_forecast" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("ms_forecast",
+                             "You may only pass one of regime and regimes to ms_forecast");
 }
 
 void
@@ -2919,11 +2806,9 @@ MSSBVARVarianceDecompositionStatement::checkPass(ModFileStructure& mod_file_stru
       filtered_probabilities_present = options_list.contains("ms.filtered_probabilities");
       (filtered_probabilities_present && regime_present)
       || (filtered_probabilities_present && regimes_present) || (regimes_present && regime_present))
-    {
-      cerr << "ERROR: You may only pass one of regime, regimes and "
-           << "filtered_probabilities to ms_variance_decomposition" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("ms_variance_decomposition",
+                             "You may only pass one of regime, regimes and "
+                             "filtered_probabilities to ms_variance_decomposition");
 }
 
 void
@@ -2953,11 +2838,8 @@ IdentificationStatement::IdentificationStatement(OptionsList options_list_arg) :
 {
   if (auto opt = options_list.get_if<OptionsList::NumVal>("max_dim_cova_group");
       opt && stoi(*opt) == 0)
-    {
-      cerr << "ERROR: The max_dim_cova_group option to identification only accepts integers > 0."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("identification",
+                             "The max_dim_cova_group option to identification only accepts integers > 0.");
 }
 
 void
@@ -2970,12 +2852,8 @@ IdentificationStatement::checkPass(ModFileStructure& mod_file_struct,
     {
       int order = stoi(*opt);
       if (order < 1 || order > 3)
-        {
-          cerr << "ERROR: the order option of identification command must be between 1 and 3"
-               << '\n';
-
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("identification",
+                                 "the order option of identification command must be between 1 and 3");
       mod_file_struct.identification_order = max(mod_file_struct.identification_order, order);
     }
   else
@@ -3128,8 +3006,7 @@ ShockDecompositionStatement::checkPass(ModFileStructure& mod_file_struct,
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: shock_decomposition: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("shock_decomposition", e.message);
     }
 }
 
@@ -3181,8 +3058,7 @@ RealtimeShockDecompositionStatement::checkPass(ModFileStructure& mod_file_struct
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: realtime_shock_decomposition: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("realtime_shock_decomposition", e.message);
     }
 }
 
@@ -3232,8 +3108,7 @@ PlotShockDecompositionStatement::checkPass([[maybe_unused]] ModFileStructure& mo
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: plot_shock_decomposition: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("plot_shock_decomposition", e.message);
     }
 }
 
@@ -3287,8 +3162,7 @@ InitialConditionDecompositionStatement::checkPass(ModFileStructure& mod_file_str
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: initial_condition_decomposition: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("initial_condition_decomposition", e.message);
     }
 }
 
@@ -3338,8 +3212,7 @@ SqueezeShockDecompositionStatement::checkPass([[maybe_unused]] ModFileStructure&
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: squeeze_shock_decomposition: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("squeeze_shock_decomposition", e.message);
     }
 }
 
@@ -3379,17 +3252,11 @@ ConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure& mod_f
                                         [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (!options_list.contains("parameter_set"))
-    {
-      cerr << "ERROR: You must pass the `parameter_set` option to conditional_forecast" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("conditional_forecast",
+                             "You must pass the `parameter_set` option to conditional_forecast");
   if (options_list.contains("datafile") && mod_file_struct.conditional_forecast_paths_present)
-    {
-      cerr << "ERROR: conditional_forecast: cannot use datafile option when a "
-              "conditional_forecast_paths block is present"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("conditional_forecast",
+                             "cannot use datafile option when a conditional_forecast_paths block is present");
 }
 
 void
@@ -3430,8 +3297,7 @@ PlotConditionalForecastStatement::checkPass([[maybe_unused]] ModFileStructure& m
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: plot_conditional_forecast: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("plot_conditional_forecast", e.message);
     }
 }
 
@@ -3492,17 +3358,13 @@ SvarIdentificationStatement::checkPass(ModFileStructure& mod_file_struct,
   if (!mod_file_struct.svar_identification_present)
     mod_file_struct.svar_identification_present = true;
   else
-    {
-      cerr << "ERROR: You may only have one svar_identification block in your .mod file." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("svar_identification",
+                             "You may only have one svar_identification block in your .mod file.");
 
   if (upper_cholesky_present && lower_cholesky_present)
-    {
-      cerr << "ERROR: Within the svar_identification statement, you may only have one of "
-           << "upper_cholesky and lower_cholesky." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("svar_identification",
+                             "Within the svar_identification statement, you may only have one of "
+                             "upper_cholesky and lower_cholesky.");
 }
 
 void
@@ -3529,21 +3391,14 @@ SvarIdentificationStatement::writeOutput(ostream& output, [[maybe_unused]] const
       int k = r * n + m;
 
       if (k < 1)
-        {
-          cerr << "ERROR: lag = " << r << ", number of endogenous variables = " << n
-               << ", number of exogenous variables = " << m
-               << ". If this is not a logical error in the specification"
-               << " of the .mod file, please report it to the Dynare Team." << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("svar_identification",
+                                 "lag = " + to_string(r) + ", number of endogenous variables = "
+                                 + to_string(n) + ", number of exogenous variables = " + to_string(m)
+                                 + ". If this is not a logical error in the specification of the .mod file, please report it to the Dynare Team.");
       if (n < 1)
-        {
-          cerr
-              << "ERROR: Number of endogenous variables = " << n << "< 1. If this is not a logical "
-              << "error in the specification of the .mod file, please report it to the Dynare Team."
-              << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("svar_identification",
+                                 "Number of endogenous variables = " + to_string(n)
+                                 + " < 1. If this is not a logical error in the specification of the .mod file, please report it to the Dynare Team.");
       output << "options_.ms.Qi = cell(" << n << ",1);" << '\n'
              << "options_.ms.Ri = cell(" << n << ",1);" << '\n';
 
@@ -3557,14 +3412,10 @@ SvarIdentificationStatement::writeOutput(ostream& output, [[maybe_unused]] const
             {
               int col = (it.lag - 1) * n + it.variable + 1;
               if (col > k)
-                {
-                  cerr << "ERROR: lag =" << it.lag << ", num endog vars = " << n
-                       << "current endog var index = " << it.variable << ". Index "
-                       << "out of bounds. If the above does not represent a logical error, please "
-                          "report this to the Dynare Team."
-                       << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw StatementException("svar_identification",
+                                         "lag = " + to_string(it.lag) + ", num endog vars = " + to_string(n)
+                                         + ", current endog var index = " + to_string(it.variable)
+                                         + ". Index out of bounds. If the above does not represent a logical error, please report this to the Dynare Team.");
               output << "options_.ms.Ri{" << it.equation << "}(" << it.restriction_nbr << ", "
                      << col << ") = ";
             }
@@ -3620,47 +3471,37 @@ MarkovSwitchingStatement::MarkovSwitchingStatement(OptionsList options_list_arg)
       for (const vector<string>& restriction : *opt)
         {
           if (restriction.size() != 3)
-            {
-              cerr
-                  << "ERROR: restrictions in the subsample statement must be specified in the form "
-                  << "[current_period_regime, next_period_regime, transition_probability]" << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw StatementException("markov_switching",
+                                     "restrictions in the subsample statement must be specified in the form "
+                                     "[current_period_regime, next_period_regime, transition_probability]");
 
           try
             {
               auto from_regime = stoi(restriction[0]);
               auto to_regime = stoi(restriction[1]);
               if (from_regime > num_regimes || to_regime > num_regimes)
-                {
-                  cerr << "ERROR: the regimes specified in the restrictions option must be "
-                       << "<= the number of regimes specified in the number_of_regimes option"
-                       << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw StatementException("markov_switching",
+                                         "the regimes specified in the restrictions option must be "
+                                         "<= the number of regimes specified in the number_of_regimes option");
 
               if (restriction_map.contains({from_regime, to_regime}))
-                {
-                  cerr << "ERROR: two restrictions were given for: " << from_regime << ", "
-                       << to_regime << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw StatementException("markov_switching",
+                                         "two restrictions were given for: " + to_string(from_regime)
+                                         + ", " + to_string(to_regime));
 
               auto transition_probability = stod(restriction[2]);
               if (transition_probability > 1.0)
-                {
-                  cerr << "ERROR: the transition probability, " << transition_probability
-                       << " must be less than 1" << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw StatementException("markov_switching",
+                                         "the transition probability, " + to_string(transition_probability)
+                                         + " must be less than 1");
               restriction_map[{from_regime, to_regime}] = transition_probability;
             }
           catch (const invalid_argument&)
             {
-              cerr << "ERROR: The first two arguments for a restriction must be integers "
-                   << "specifying the regime and the last must be a floating point specifying the "
-                   << "transition probability.";
-              exit(EXIT_FAILURE);
+              throw StatementException("markov_switching",
+                                       "The first two arguments for a restriction must be integers "
+                                       "specifying the regime and the last must be a floating point specifying the "
+                                       "transition probability.");
             }
         }
     }
@@ -3672,11 +3513,9 @@ MarkovSwitchingStatement::checkPass(ModFileStructure& mod_file_struct,
 {
   int chainNumber {stoi(options_list.get<OptionsList::NumVal>("ms.chain"))};
   if (++mod_file_struct.last_markov_switching_chain != chainNumber)
-    {
-      cerr << "ERROR: The markov_switching chain option takes consecutive integers "
-           << "beginning at 1." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("markov_switching",
+                             "The markov_switching chain option takes consecutive integers "
+                             "beginning at 1.");
 
   if (options_list.contains("ms.restrictions"))
     {
@@ -3703,34 +3542,26 @@ MarkovSwitchingStatement::checkPass(ModFileStructure& mod_file_struct,
           if (all_restrictions_in_row[i])
             {
               if (row_trans_prob_sum[i] != 1.0)
-                {
-                  cerr << "ERROR: When all transitions probabilities are specified for a certain "
-                       << "regime, they must sum to 1" << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw StatementException("markov_switching",
+                                         "When all transitions probabilities are specified for a certain "
+                                         "regime, they must sum to 1");
             }
           else if (row_trans_prob_sum[i] >= 1.0)
-            {
-              cerr << "ERROR: When transition probabilites are not specified for every regime, "
-                   << "their sum must be < 1" << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw StatementException("markov_switching",
+                                     "When transition probabilites are not specified for every regime, "
+                                     "their sum must be < 1");
 
           if (all_restrictions_in_col[i])
             {
               if (col_trans_prob_sum[i] != 1.0)
-                {
-                  cerr << "ERROR: When all transitions probabilities are specified for a certain "
-                       << "regime, they must sum to 1" << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw StatementException("markov_switching",
+                                         "When all transitions probabilities are specified for a certain "
+                                         "regime, they must sum to 1");
             }
           else if (col_trans_prob_sum[i] >= 1.0)
-            {
-              cerr << "ERROR: When transition probabilites are not specified for every regime, "
-                   << "their sum must be < 1" << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw StatementException("markov_switching",
+                                     "When transition probabilites are not specified for every regime, "
+                                     "their sum must be < 1");
         }
     }
 
@@ -3766,12 +3597,8 @@ MarkovSwitchingStatement::writeOutput(ostream& output, [[maybe_unused]] const st
         return false;
       }
     else
-      {
-        cerr << "MarkovSwitchingStatement::writeOutput: incorrect value type for 'ms.duration' "
-                "option"
-             << '\n';
-        exit(EXIT_FAILURE);
-      }
+      throw StatementException("markov_switching",
+                               "incorrect value type for 'ms.duration' option");
   })};
   output << ";" << '\n';
 
@@ -3918,17 +3745,12 @@ EstimationDataStatement::checkPass(ModFileStructure& mod_file_struct,
   bool has_file = options_list.contains("datafile"),
        has_series = options_list.contains("dataseries");
   if (!has_file && !has_series)
-    {
-      cerr << "ERROR: The file or series option must be passed to the data statement." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("data",
+                             "The file or series option must be passed to the data statement.");
   if (has_file && has_series)
-    {
-      cerr << "ERROR: The file and series options cannot be used simultaneously in the data "
-              "statement."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("data",
+                             "The file and series options cannot be used simultaneously in the data "
+                             "statement.");
 }
 
 void
@@ -3999,8 +3821,7 @@ SubsamplesStatement::writeOutput(ostream& output, [[maybe_unused]] const string&
       lhs_field = "measurement_error";
       break;
     default:
-      cerr << "subsamples: invalid symbol type for " << name1 << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("subsamples", "invalid symbol type for " + name1);
     }
 
   output << "eifind = get_new_or_existing_ei_index('" << lhs_field;
@@ -4093,8 +3914,7 @@ SubsamplesEqualStatement::writeOutput(ostream& output, [[maybe_unused]] const st
       lhs_field = "measurement_error";
       break;
     default:
-      cerr << "subsamples: invalid symbol type for " << to_name1 << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("subsamples", "invalid symbol type for " + to_name1);
     }
 
   output << "eifind = get_new_or_existing_ei_index('" << lhs_field;
@@ -4151,28 +3971,20 @@ JointPriorStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struc
                                [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (joint_parameters.size() < 2)
-    {
-      cerr << "ERROR: you must pass at least two parameters to the joint prior statement" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("joint_prior",
+                             "you must pass at least two parameters to the joint prior statement");
 
   if (prior_shape == PriorDistributions::noShape)
-    {
-      cerr << "ERROR: You must pass the shape option to the prior statement." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("joint_prior",
+                             "You must pass the shape option to the prior statement.");
 
   if (!options_list.contains("mean") && !options_list.contains("mode"))
-    {
-      cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("joint_prior",
+                             "You must pass at least one of mean and mode to the prior statement.");
 
   if (auto opt = options_list.get_if<OptionsList::VecValueVal>("domain"); opt && opt->size() != 4)
-    {
-      cerr << "ERROR: You must pass exactly four values to the domain option." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("joint_prior",
+                             "You must pass exactly four values to the domain option.");
 }
 
 void
@@ -4264,10 +4076,7 @@ JointPriorStatement::writeOutputHelper(ostream& output, const string& field,
           output << "}";
         }
       else
-        {
-          cerr << "JointPriorStatement::writeOutputHelper: unhandled alternative" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("joint_prior", "unhandled alternative");
     });
   else
     output << "{}";
@@ -4321,8 +4130,7 @@ JointPriorStatement::writeJsonOutput(ostream& output) const
       output << R"("weibull")";
       break;
     case PriorDistributions::noShape:
-      cerr << "Impossible case." << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("joint_prior", "Impossible case.");
     }
   output << "}";
 }
@@ -4343,30 +4151,18 @@ BasicPriorStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struc
                                [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (prior_shape == PriorDistributions::noShape)
-    {
-      cerr << "ERROR: You must pass the shape option to the prior statement." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("prior", "You must pass the shape option to the prior statement.");
 
   if (!options_list.contains("mean") && !options_list.contains("mode"))
-    {
-      cerr << "ERROR: You must pass at least one of mean and mode to the prior statement." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("prior", "You must pass at least one of mean and mode to the prior statement.");
 
   if (bool has_stdev = options_list.contains("stdev");
       (!has_stdev && !variance) || (has_stdev && variance))
-    {
-      cerr << "ERROR: You must pass exactly one of stdev and variance to the prior statement."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("prior",
+                             "You must pass exactly one of stdev and variance to the prior statement.");
 
   if (auto opt = options_list.get_if<OptionsList::VecValueVal>("domain"); opt && opt->size() != 2)
-    {
-      cerr << "ERROR: You must pass exactly two values to the domain option." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("prior", "You must pass exactly two values to the domain option.");
 }
 
 bool
@@ -4566,12 +4362,10 @@ CorrPriorStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsolid
 {
   BasicPriorStatement::checkPass(mod_file_struct, warnings);
   if (symbol_table.getType(name) != symbol_table.getType(name1))
-    {
-      cerr << "ERROR: In the corr(A,B).prior statement, A and B must be of the same type. "
-           << "In your case, " << name << " and " << name1 << " are of different "
-           << "types." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("corr_prior",
+                             "In the corr(A,B).prior statement, A and B must be of the same type. "
+                             "In your case, " + name + " and " + name1 + " are of different "
+                             "types.");
 }
 
 void
@@ -4624,10 +4418,7 @@ PriorEqualStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struc
        && to_declaration_type != "corr")
       || (from_declaration_type != "par" && from_declaration_type != "std"
           && from_declaration_type != "corr"))
-    {
-      cerr << "Internal Dynare Error" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("prior_equal", "Internal Dynare Error");
 }
 
 void
@@ -4859,15 +4650,13 @@ CorrOptionsStatement::CorrOptionsStatement(string name_arg1, string name_arg2,
 
 void
 CorrOptionsStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
-                                [[maybe_unused]] WarningConsolidation& warnings)
+                                 [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (symbol_table.getType(name) != symbol_table.getType(name1))
-    {
-      cerr << "ERROR: In the corr(A,B).options statement, A and B must be of the same type. "
-           << "In your case, " << name << " and " << name1 << " are of different "
-           << "types." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("corr_options",
+                             "In the corr(A,B).options statement, A and B must be of the same type. "
+                             "In your case, " + name + " and " + name1 + " are of different "
+                             "types.");
 }
 
 void
@@ -4921,10 +4710,7 @@ OptionsEqualStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_str
        && to_declaration_type != "corr")
       || (from_declaration_type != "par" && from_declaration_type != "std"
           && from_declaration_type != "corr"))
-    {
-      cerr << "Internal Dynare Error" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("options_equal", "Internal Dynare Error");
 }
 
 void
@@ -5033,8 +4819,7 @@ CalibSmootherStatement::checkPass(ModFileStructure& mod_file_struct, WarningCons
     }
   catch (SymbolList::SymbolListException& e)
     {
-      cerr << "ERROR: calib_smoother: " << e.message << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("calib_smoother", e.message);
     }
 }
 
@@ -5082,10 +4867,7 @@ ExtendedPathStatement::checkPass(ModFileStructure& mod_file_struct,
   mod_file_struct.extended_path_present = true;
 
   if (!options_list.contains("periods"))
-    {
-      cerr << "ERROR: the 'periods' option of 'extended_path' is mandatory" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("extended_path", "the 'periods' option of 'extended_path' is mandatory");
 
   // Extract hybrid order if present
   if (auto opt = options_list.get_if<OptionsList::NumVal>("ep.stochastic.hybrid_order"))
@@ -5189,22 +4971,16 @@ MethodOfMomentsStatement::checkPass(ModFileStructure& mod_file_struct,
     }
 
   if (!options_list.contains("mom.mom_method"))
-    {
-      cerr << "ERROR: The 'method_of_moments' statement requires a method to be supplied via the "
-              "'mom_method' option. Possible values are 'GMM', 'SMM', or 'IRF_MATCHING'."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("method_of_moments",
+                             "The 'method_of_moments' statement requires a method to be supplied via the "
+                             "'mom_method' option. Possible values are 'GMM', 'SMM', or 'IRF_MATCHING'.");
 
   auto mom_method_value = options_list.get_if<OptionsList::StringVal>("mom.mom_method");
   if ((mom_method_value == "GMM" || mom_method_value == "SMM")
       && !options_list.contains("datafile"))
-    {
-      cerr << "ERROR: The 'method_of_moments' statement requires a data file to be supplied via "
-              "the 'datafile' option."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("method_of_moments",
+                             "The 'method_of_moments' statement requires a data file to be supplied via "
+                             "the 'datafile' option.");
 
   if (auto opt = options_list.get_if<OptionsList::StringVal>("mom.mom_method");
       opt && *opt == "GMM")
@@ -5215,30 +4991,23 @@ MethodOfMomentsStatement::checkPass(ModFileStructure& mod_file_struct,
     mod_file_struct.analytic_standard_errors_present = true;
 
   if (!mod_file_struct.GMM_present && mod_file_struct.analytic_standard_errors_present)
-    {
-      cerr << "ERROR: The analytic_standard_errors statement requires the GMM option." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("method_of_moments",
+                             "The analytic_standard_errors statement requires the GMM option.");
 
   if (auto opt = options_list.get_if<OptionsList::NumVal>("mom.analytic_jacobian");
       opt && *opt == "true")
     mod_file_struct.analytic_jacobian_present = true;
 
   if (!mod_file_struct.GMM_present && mod_file_struct.analytic_jacobian_present)
-    {
-      cerr << "ERROR: The analytic_jacobian statement requires the GMM option." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("method_of_moments",
+                             "The analytic_jacobian statement requires the GMM option.");
 
   if (bool hp = options_list.contains("hp_filter"),
       bandpass = options_list.contains("bandpass.indicator"),
       one_sided_hp = options_list.contains("one_sided_hp_filter");
       (hp && bandpass) || (hp && one_sided_hp) || (bandpass && one_sided_hp))
-    {
-      cerr << "ERROR: method_of_moments: can only use one of HP, one-sided HP, and bandpass filters"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("method_of_moments",
+                             "can only use one of HP, one-sided HP, and bandpass filters");
 }
 
 void
@@ -5403,16 +5172,11 @@ OccbinConstraintsStatement::checkPass(ModFileStructure& mod_file_struct,
                                       [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (mod_file_struct.occbin_constraints_present)
-    {
-      cerr << "ERROR: Multiple 'occbin_constraints' blocks are not allowed" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("occbin_constraints",
+                             "Multiple 'occbin_constraints' blocks are not allowed");
   if (constraints.size() > 2)
-    {
-      cerr << "ERROR: only up to two constraints are supported in 'occbin_constraints' block"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("occbin_constraints",
+                             "only up to two constraints are supported in 'occbin_constraints' block");
   mod_file_struct.occbin_constraints_present = true;
 }
 
@@ -5435,10 +5199,7 @@ OccbinConstraintsStatement::writeOutput(ostream& output, const string& basename,
   filesystem::path filename {"+" + basename + "/occbin_difference.m"};
   ofstream diff_output {filename, ios::out | ios::binary};
   if (!diff_output.is_open())
-    {
-      cerr << "Error: Can't open file " << filename.string() << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename, "writing");
   diff_output
       << "function [binding, relax, err] = occbin_difference(zdatalinear, params, steady_state)"
       << '\n';

@@ -285,8 +285,12 @@ protected:
   string message;
 
   static string
-  formatMessage(const string& stmt, const optional<string>& opt, const string& msg)
+  formatMessage(const string& stmt, const optional<string>& opt, string msg)
   {
+    if (msg.starts_with("ERROR: "))
+      msg = msg.substr(7);
+    if (!stmt.empty() && msg.starts_with(stmt + ": "))
+      msg = msg.substr(stmt.size() + 2);
     ostringstream stream;
     stream << "ERROR: ";
     if (!stmt.empty())

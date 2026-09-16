@@ -211,10 +211,7 @@ ModFile::checkPass(bool nostrict, bool stochastic)
                              "cannot mix perfect foresight context with stochastic context in the same file.");
 
   if (use_dll && bytecode)
-    {
-      cerr << "ERROR: In 'model' block, 'use_dll' option is not compatible with 'bytecode'" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("model", "In 'model' block, 'use_dll' option is not compatible with 'bytecode'");
 
   if (bytecode) // Cf. dynare#1998
     warnings << "WARNING: the 'bytecode' option is deprecated and will be removed in a future "
@@ -227,37 +224,25 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   if ((stochastic_statement_present || mod_file_struct.check_present
        || mod_file_struct.steady_present)
       && no_static)
-    {
-      cerr << "ERROR: no_static option is incompatible with stoch_simul, estimation, osr, "
-              "ramsey_policy, discretionary_policy, steady and check commands"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("model",
+                             "no_static option is incompatible with stoch_simul, estimation, osr, "
+                             "ramsey_policy, discretionary_policy, steady and check commands");
 
   if (mod_file_struct.dsge_var_estimated && !mod_file_struct.dsge_prior_weight_in_estimated_params)
-    {
-      cerr << "ERROR: When estimating a DSGE-VAR model and estimating the weight of the prior, "
-              "dsge_prior_weight must "
-           << "be referenced in the estimated_params block." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("estimation",
+                             "When estimating a DSGE-VAR model and estimating the weight of the prior, "
+                             "dsge_prior_weight must be referenced in the estimated_params block.");
 
   if (mod_file_struct.dsge_prior_weight_in_estimated_params)
     {
       if (!mod_file_struct.dsge_var_estimated && !mod_file_struct.dsge_var_calibrated.empty())
-        {
-          cerr << "ERROR: If dsge_prior_weight is in the estimated_params block, the prior weight "
-                  "cannot be calibrated "
-               << "via the dsge_var option in the estimation statement." << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("estimation",
+                                 "If dsge_prior_weight is in the estimated_params block, the prior weight "
+                                 "cannot be calibrated via the dsge_var option in the estimation statement.");
       else if (!mod_file_struct.dsge_var_estimated)
-        {
-          cerr << "ERROR: If dsge_prior_weight is in the estimated_params block, the dsge_var "
-                  "option must be passed to the estimation statement."
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("estimation",
+                                 "If dsge_prior_weight is in the estimated_params block, the dsge_var "
+                                 "option must be passed to the estimation statement.");
     }
 
   /* This check must come before checking that there are as many static-only as dynamic-only
@@ -265,21 +250,13 @@ ModFile::checkPass(bool nostrict, bool stochastic)
   dynamic_model.checkOccbinRegimes();
 
   if (dynamic_model.staticOnlyEquationsNbr() != dynamic_model.dynamicOnlyEquationsNbr())
-    {
-      cerr << "ERROR: the number of equations marked [static] must be equal to the number of "
-              "equations marked [dynamic]"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("the number of equations marked [static] must be equal to the number of "
+                                 "equations marked [dynamic]");
 
   if (dynamic_model.staticOnlyEquationsNbr() > 0
       && (mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present))
-    {
-      cerr << "ERROR: marking equations as [static] or [dynamic] is not possible with "
-              "ramsey_model, ramsey_policy or discretionary_policy"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("marking equations as [static] or [dynamic] is not possible with "
+                                 "ramsey_model, ramsey_policy or discretionary_policy");
 
   if (stochastic_statement_present
       && (dynamic_model.isUnaryOpUsed(UnaryOpcode::sign)
@@ -307,12 +284,9 @@ ModFile::checkPass(bool nostrict, bool stochastic)
           || dynamic_model.isBinaryOpUsedOnType(SymbolType::endogenous, BinaryOpcode::lessEqual)
           || dynamic_model.isBinaryOpUsedOnType(SymbolType::endogenous, BinaryOpcode::equalEqual)
           || dynamic_model.isBinaryOpUsedOnType(SymbolType::endogenous, BinaryOpcode::different)))
-    {
-      cerr << "ERROR: you have declared your model 'linear' but you are using a function "
-           << "(max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) on an "
-           << "endogenous variable." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("you have declared your model 'linear' but you are using a function "
+                                 "(max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) on an "
+                                 "endogenous variable.");
 
   if (linear && !mod_file_struct.perfect_foresight_solver_present
       && !mod_file_struct.perfect_foresight_with_expectation_errors_solver_present
@@ -326,12 +300,9 @@ ModFile::checkPass(bool nostrict, bool stochastic)
           || dynamic_model.isBinaryOpUsedOnType(SymbolType::exogenous, BinaryOpcode::lessEqual)
           || dynamic_model.isBinaryOpUsedOnType(SymbolType::exogenous, BinaryOpcode::equalEqual)
           || dynamic_model.isBinaryOpUsedOnType(SymbolType::exogenous, BinaryOpcode::different)))
-    {
-      cerr << "ERROR: you have declared your model 'linear' but you are using a function "
-           << "(max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) on an "
-           << "exogenous variable in a non-perfect-foresight context." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("you have declared your model 'linear' but you are using a function "
+                                 "(max, min, abs, sign) or an operator (<, >, <=, >=, ==, !=) on an "
+                                 "exogenous variable in a non-perfect-foresight context.");
 
   // Test if some estimated parameters are used within the values of shocks
   // statements (see issue #469)
@@ -341,17 +312,17 @@ ModFile::checkPass(bool nostrict, bool stochastic)
                            inserter(parameters_intersect, parameters_intersect.begin()));
   if (parameters_intersect.size() > 0)
     {
-      cerr << "ERROR: some estimated parameters (";
+      string params_str;
       for (bool printed_something {false}; int symb_id : parameters_intersect)
         {
           if (exchange(printed_something, true))
-            cerr << ", ";
-          cerr << symbol_table.getName(symb_id);
+            params_str += ", ";
+          params_str += symbol_table.getName(symb_id);
         }
-      cerr << ") also appear in the expressions defining the variance/covariance matrix of shocks; "
-              "this is not allowed."
-           << '\n';
-      exit(EXIT_FAILURE);
+      throw StatementException("shocks",
+                               "some estimated parameters (" + params_str
+                               + ") also appear in the expressions defining the variance/covariance matrix of shocks; "
+                                 "this is not allowed.");
     }
 
   // Check if some parameter is not used in the model block
@@ -408,127 +379,71 @@ ModFile::checkPass(bool nostrict, bool stochastic)
         warnings << "WARNING: " << unused_exos
                  << "not used in model block, removed by nostrict command-line option" << '\n';
       else
-        {
-          cerr << "ERROR: " << unused_exos
-               << "not used in model block. To bypass this error, use the `nostrict` option. This "
-                  "may lead to crashes or unexpected behavior."
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw ModelSemanticException(unused_exos
+                                     + "not used in model block. To bypass this error, use the `nostrict` option. This "
+                                       "may lead to crashes or unexpected behavior.");
     }
 
   if (!heterogeneity_table.empty())
     {
       if (block)
-        {
-          cerr << "ERROR: the 'block' option of the 'model' block is not supported for "
-                  "heterogeneous models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("model",
+                                 "the 'block' option of the 'model' block is not supported for "
+                                 "heterogeneous models");
       if (mod_file_struct.check_present)
-        {
-          cerr << "ERROR: The 'check' command is not supported for heterogeneous models" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("check",
+                                 "The 'check' command is not supported for heterogeneous models");
       if (mod_file_struct.steady_present)
-        {
-          cerr << "ERROR: The 'steady' command is not supported for heterogeneous models" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("steady",
+                                 "The 'steady' command is not supported for heterogeneous models");
       if (mod_file_struct.perfect_foresight_solver_present)
-        {
-          cerr << "ERROR: The 'perfect_foresight_solver' command is not supported for "
-                  "heterogeneous models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("perfect_foresight_solver",
+                                 "The 'perfect_foresight_solver' command is not supported for "
+                                 "heterogeneous models");
       if (mod_file_struct.perfect_foresight_with_expectation_errors_solver_present)
-        {
-          cerr << "ERROR: The 'perfect_foresight_with_expectation_errors_solver' command is not "
-                  "supported for heterogeneous models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("perfect_foresight_with_expectation_errors_solver",
+                                 "The 'perfect_foresight_with_expectation_errors_solver' command is not "
+                                 "supported for heterogeneous models");
       if (mod_file_struct.stoch_simul_present)
-        {
-          cerr << "ERROR: The 'stoch_simul' command is not supported for heterogeneous models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("stoch_simul",
+                                 "The 'stoch_simul' command is not supported for heterogeneous models");
       if (mod_file_struct.estimation_present)
-        {
-          cerr << "ERROR: The 'estimation' command is not supported for heterogeneous models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("estimation",
+                                 "The 'estimation' command is not supported for heterogeneous models");
       if (mod_file_struct.osr_present)
-        {
-          cerr << "ERROR: The 'osr' command is not supported for heterogeneous models" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("osr",
+                                 "The 'osr' command is not supported for heterogeneous models");
       if (mod_file_struct.osr_params_present)
-        {
-          cerr << "ERROR: The 'osr_params' command is not supported for heterogeneous models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("osr_params",
+                                 "The 'osr_params' command is not supported for heterogeneous models");
       if (mod_file_struct.optim_weights_present)
-        {
-          cerr << "ERROR: The 'optim_weights' block is not supported for heterogeneous models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("optim_weights",
+                                 "The 'optim_weights' block is not supported for heterogeneous models");
       if (mod_file_struct.ramsey_model_present)
-        {
-          cerr << "ERROR: The 'ramsey_model' command is not supported for heterogeneous models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("ramsey_model",
+                                 "The 'ramsey_model' command is not supported for heterogeneous models");
       if (mod_file_struct.discretionary_policy_present)
-        {
-          cerr << "ERROR: The 'discretionary_policy' command is not supported for heterogeneous "
-                  "models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("discretionary_policy",
+                                 "The 'discretionary_policy' command is not supported for heterogeneous "
+                                 "models");
       if (mod_file_struct.planner_objective_present)
-        {
-          cerr << "ERROR: The 'planner_objective' command is not supported for heterogeneous models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("planner_objective",
+                                 "The 'planner_objective' command is not supported for heterogeneous models");
       if (mod_file_struct.extended_path_present)
-        {
-          cerr << "ERROR: The 'extended_path' command is not supported for heterogeneous models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("extended_path",
+                                 "The 'extended_path' command is not supported for heterogeneous models");
       if (mod_file_struct.identification_present)
-        {
-          cerr << "ERROR: The 'identification' command is not supported for heterogeneous models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("identification",
+                                 "The 'identification' command is not supported for heterogeneous models");
       if (mod_file_struct.sensitivity_present)
-        {
-          cerr << "ERROR: The 'sensitivity' command is not supported for heterogeneous models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("sensitivity",
+                                 "The 'sensitivity' command is not supported for heterogeneous models");
       if (mod_file_struct.mom_estimation_present)
-        {
-          cerr
-              << "ERROR: The 'methods_of_moments' command is not supported for heterogeneous models"
-              << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("method_of_moments",
+                                 "The 'methods_of_moments' command is not supported for heterogeneous models");
       if (mod_file_struct.occbin_constraints_present)
-        {
-          cerr << "ERROR: The 'occbin_constraints' block is not supported for heterogeneous models"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("occbin_constraints",
+                                 "The 'occbin_constraints' block is not supported for heterogeneous models");
     }
 }
 
@@ -578,12 +493,19 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs,
         warnings << "WARNING: '" << symbol_table.getName(unusedEndog)
                  << "' not used in model block, removed by nostrict command-line option" << '\n';
       }
-    else if (unusedEndogsIsErr)
-      cerr << "Error: " << symbol_table.getName(unusedEndog) << " not used in the model block"
-           << '\n';
 
   if (unusedEndogsIsErr)
-    exit(EXIT_FAILURE);
+    {
+      string err;
+      for (bool printed_something {false}; int unusedEndog : unusedEndogs)
+        {
+          if (exchange(printed_something, true))
+            err += ", ";
+          err += symbol_table.getName(unusedEndog);
+        }
+      err += " not used in the model block";
+      throw ModelSemanticException(err);
+    }
 
   /* Get the list of equations in which to scan for and substitute unary ops:
      – equations which are part of VARs and Trend Component Models
@@ -603,9 +525,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs,
       }
     catch (ModelTree::UnknownEquationNameException& e)
       {
-        cerr << "ERROR: var_model/trend_component_model: there is no equation named " << e.name
-             << "." << '\n';
-        exit(EXIT_FAILURE);
+        throw StatementException("var_model/trend_component_model",
+                                 "there is no equation named " + e.name + ".");
       }
   }()};
   unary_ops_eqs.merge(dynamic_model.findPacExpectationEquationNumbers());
@@ -667,10 +588,8 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs,
         if (auto pos2 = dynamic_cast<PlannerObjectiveStatement*>(statement.get()); pos2)
           {
             if (pos)
-              {
-                cerr << "ERROR: there can only be one planner_objective statement" << '\n';
-                exit(EXIT_FAILURE);
-              }
+              throw StatementException("planner_objective",
+                                       "there can only be one planner_objective statement");
             else
               pos = pos2;
           }
@@ -706,17 +625,16 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs,
           inserter(unusedLagrangeMultipliers, unusedLagrangeMultipliers.begin()));
       if (!unusedLagrangeMultipliers.empty())
         {
-          cerr << "ERROR: the following Lagrange multiplier(s) do(es) not appear in first-order "
-                  "conditions: ";
+          string multipliers;
           for (bool printed_something {false}; int symb_id : unusedLagrangeMultipliers)
             {
               if (exchange(printed_something, true))
-                cerr << " ";
-              cerr << symbol_table.getName(symb_id);
+                multipliers += " ";
+              multipliers += symbol_table.getName(symb_id);
             }
-          cerr << "; most likely some constraint has been simplified out because it was trivial"
-               << '\n';
-          exit(EXIT_FAILURE);
+          throw StatementException("ramsey_model",
+                                   "the following Lagrange multiplier(s) do(es) not appear in first-order "
+                                   "conditions: " + multipliers + "; most likely some constraint has been simplified out because it was trivial");
         }
     }
 
@@ -755,9 +673,9 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs,
       }
     catch (SymbolTable::AlreadyDeclaredException& e)
       {
-        cerr << "ERROR: dsge_prior_weight should not be declared as a model variable / parameter "
-             << "when the dsge_var option is passed to the estimation statement." << '\n';
-        exit(EXIT_FAILURE);
+        throw StatementException("estimation",
+                                 "dsge_prior_weight should not be declared as a model variable / parameter "
+                                 "when the dsge_var option is passed to the estimation statement.");
       }
 
   dynamic_model.reorderAuxiliaryEquations();
@@ -828,53 +746,38 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs,
       || !mod_file_struct.perfect_foresight_with_expectation_errors_solver_present};
 
   if (mod_file_struct.shocks_learnt_in_present && should_not_have_learnt_in)
-    {
-      cerr << "ERROR: the 'shocks(learnt_in=…)' block can only be used in conjunction with the "
-              "'perfect_foresight_with_expectation_errors_setup' and "
-              "'perfect_foresight_with_expectation_errors_solver' commands."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("shocks(learnt_in=…)",
+                             "the 'shocks(learnt_in=…)' block can only be used in conjunction with the "
+                             "'perfect_foresight_with_expectation_errors_setup' and "
+                             "'perfect_foresight_with_expectation_errors_solver' commands.");
 
   if (mod_file_struct.endval_learnt_in_present && should_not_have_learnt_in)
-    {
-      cerr << "ERROR: the 'endval(learnt_in=…)' block can only be used in conjunction with the "
-              "'perfect_foresight_with_expectation_errors_setup' and "
-              "'perfect_foresight_with_expectation_errors_solver' commands."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("endval(learnt_in=…)",
+                             "the 'endval(learnt_in=…)' block can only be used in conjunction with the "
+                             "'perfect_foresight_with_expectation_errors_setup' and "
+                             "'perfect_foresight_with_expectation_errors_solver' commands.");
 
   if (mod_file_struct.perfect_foresight_controlled_paths_learnt_in_present
       && should_not_have_learnt_in)
-    {
-      cerr << "ERROR: the 'perfect_foresight_controlled_paths(learnt_in=…)' block can only be used "
-              "in conjunction with the 'perfect_foresight_with_expectation_errors_setup' and "
-              "'perfect_foresight_with_expectation_errors_solver' commands."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("perfect_foresight_controlled_paths(learnt_in=…)",
+                             "the 'perfect_foresight_controlled_paths(learnt_in=…)' block can only be used "
+                             "in conjunction with the 'perfect_foresight_with_expectation_errors_setup' and "
+                             "'perfect_foresight_with_expectation_errors_solver' commands.");
 
   if (mod_file_struct.shock_paths_learnt_in_present && should_not_have_learnt_in)
-    {
-      cerr << "ERROR: the 'shock_paths(learnt_in=…)' block can only be used in conjunction with "
-              "the 'perfect_foresight_with_expectation_errors_setup' and "
-              "'perfect_foresight_with_expectation_errors_solver' commands."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("shock_paths(learnt_in=…)",
+                             "the 'shock_paths(learnt_in=…)' block can only be used in conjunction with "
+                             "the 'perfect_foresight_with_expectation_errors_setup' and "
+                             "'perfect_foresight_with_expectation_errors_solver' commands.");
 
   if (mod_file_struct.shock_paths_number > 0
       && (mod_file_struct.shocks_present || mod_file_struct.mshocks_present
           || mod_file_struct.endval_present || mod_file_struct.shocks_learnt_in_present
           || mod_file_struct.endval_learnt_in_present
           || mod_file_struct.perfect_foresight_controlled_paths_present))
-    {
-      cerr << "ERROR: the 'shock_paths' block cannot be used in conjunction with either 'shocks', "
-              "'mshocks', 'endval' or 'perfect_foresight_controlled_paths' blocks."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("shock_paths",
+                             "the 'shock_paths' block cannot be used in conjunction with either 'shocks', "
+                             "'mshocks', 'endval' or 'perfect_foresight_controlled_paths' blocks.");
 
   if (!mod_file_struct.ramsey_model_present)
     cout << "Found " << dynamic_model.equation_number() << " equation(s)." << '\n';
@@ -890,31 +793,22 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs,
       if (mod_file_struct.bayesian_irf_present)
         {
           if (symbol_table.exo_nbr() != symbol_table.observedVariablesNbr())
-            {
-              cerr << "ERROR: When estimating a DSGE-Var and the bayesian_irf option is passed to "
-                      "the estimation "
-                   << "statement, the number of shocks must equal the number of observed variables."
-                   << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw StatementException("estimation",
+                                     "When estimating a DSGE-Var and the bayesian_irf option is passed to "
+                                     "the estimation statement, the number of shocks must equal the number of observed variables.");
         }
       else if (symbol_table.exo_nbr() < symbol_table.observedVariablesNbr())
-        {
-          cerr << "ERROR: When estimating a DSGE-Var, the number of shocks must be "
-               << "greater than or equal to the number of observed variables." << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("estimation",
+                                 "When estimating a DSGE-Var, the number of shocks must be "
+                                 "greater than or equal to the number of observed variables.");
     }
 
   for (int dim {0}; dim < heterogeneity_table.size(); dim++)
     if (heterogeneous_models.at(dim).equation_number() != symbol_table.het_endo_nbr(dim))
-      {
-        cerr << "ERROR: There are " << heterogeneous_models.at(dim).equation_number()
-             << " equations but " << symbol_table.het_endo_nbr(dim)
-             << " endogenous variables in the model for heterogeneity dimension '"
-             << heterogeneity_table.getName(dim) << "'!" << '\n';
-        exit(EXIT_FAILURE);
-      }
+      throw ModelSemanticException("There are " + to_string(heterogeneous_models.at(dim).equation_number())
+                                   + " equations but " + to_string(symbol_table.het_endo_nbr(dim))
+                                   + " endogenous variables in the model for heterogeneity dimension '"
+                                   + heterogeneity_table.getName(dim) + "'!");
 
   // Create static model
   static_model = static_cast<StaticModel>(dynamic_model);
@@ -988,23 +882,16 @@ ModFile::computingPass(bool no_tmp_terms_arg, OutputType output, int params_deri
               dynamic_model.computingPass(derivsOrder, 0, global_eval_context, no_tmp_terms, block,
                                           use_dll);
               if (mod_file_struct.extended_path_order > 0 && dynamic_model.getMaxLead() == 0)
-                {
-                  cerr
-                      << "ERROR: The 'order' option of 'extended_path' cannot have a positive "
-                         "value with a backward model. Since agents do not form expectations about "
-                         "the future, future uncertainty cannot influence their current behavior; "
-                         "a positive order would just add computational cost without changing the "
-                         "results."
-                      << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw StatementException("extended_path",
+                                         "The 'order' option of 'extended_path' cannot have a positive "
+                                         "value with a backward model. Since agents do not form expectations about "
+                                         "the future, future uncertainty cannot influence their current behavior; "
+                                         "a positive order would just add computational cost without changing the "
+                                         "results.");
               if (dynamic_model.getMaxLag() == 0)
-                {
-                  cerr << "ERROR: The 'extended_path' command cannot be used with a purely "
-                          "forward model."
-                       << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw StatementException("extended_path",
+                                         "The 'extended_path' command cannot be used with a purely "
+                                         "forward model.");
             }
           else
             {
@@ -1015,10 +902,7 @@ ModFile::computingPass(bool no_tmp_terms_arg, OutputType output, int params_deri
                   || mod_file_struct.mom_estimation_present)
                 dynamic_model.set_cutoff_to_zero();
               if (mod_file_struct.order_option < 1)
-                {
-                  cerr << "ERROR: Incorrect order option..." << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw StatementException("order", "Incorrect order option...");
               int derivsOrder
                   = max(mod_file_struct.order_option,
                         mod_file_struct.identification_order + 1); // See preprocessor#40
@@ -1095,18 +979,12 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
                       bool gui, bool notime) const
 {
   if (basename.empty())
-    {
-      cerr << "ERROR: Missing file name" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("Missing file name");
 
   auto plusfolder {packageDir(basename)};
 
   if (check_model_changes && !heterogeneity_table.empty())
-    {
-      cerr << "ERROR: the 'fast' option is not supported for heterogeneous models" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("fast", "the 'fast' option is not supported for heterogeneous models");
   size_t checksum_value = computeModelChecksum(mexext, matlabroot);
   bool hasModelChanged = !check_model_changes || !isChecksumMatching(basename, checksum_value);
   if (hasModelChanged)
@@ -1593,8 +1471,7 @@ ModFile::writeJsonOutput(const string& basename, JsonOutputPointType json,
       cout << "JSON written after Computing step." << '\n';
       break;
     case JsonOutputPointType::nojson:
-      cerr << "ModFile::writeJsonOutput: should not arrive here." << '\n';
-      exit(EXIT_FAILURE);
+      throw InternalCompilerException("ModFile::writeJsonOutput: should not arrive here.");
     }
 
   if (onlyjson)

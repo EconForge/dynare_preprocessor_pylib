@@ -23,6 +23,7 @@
 #include <sstream>
 #include <utility>
 
+#include "Exceptions.hh"
 #include "NumericalInitialization.hh"
 #include "Utils.hh"
 
@@ -112,10 +113,7 @@ InitOrEndValStatement::getUninitializedVariables(SymbolType type)
   else if (type == SymbolType::exogenous)
     unused = symbol_table.getExogenous();
   else
-    {
-      cerr << "ERROR: Shouldn't arrive here." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw InternalCompilerException{"InitOrEndValStatement::getUninitializedVariables: unexpected symbol type"};
 
   for (const auto& [symb_id, value] : init_values)
     unused.erase(symb_id);
@@ -146,12 +144,10 @@ InitOrEndValStatement::writeInitValues(ostream& output) const
           output << "oo_.exo_det_steady_state";
           break;
         case SymbolType::excludedVariable:
-          cerr << "ERROR: Variable `" << symbol_table.getName(symb_id)
-               << "` was excluded but found in an initval or endval statement" << '\n';
-          exit(EXIT_FAILURE);
+          throw StatementException("initval/endval", "Variable `" + symbol_table.getName(symb_id)
+                                   + "` was excluded but found in an initval or endval statement");
         default:
-          cerr << "Should not arrive here" << '\n';
-          exit(EXIT_FAILURE);
+          throw InternalCompilerException{"InitOrEndValStatement::writeInitValues: unexpected symbol type"};
         }
 
       output << "(" << tsid << ") = ";
@@ -188,32 +184,30 @@ InitValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
                             [[maybe_unused]] WarningConsolidation& warnings)
 {
   if (mod_file_struct.endval_present)
-    {
-      cerr << "ERROR: an 'initval' block cannot appear after an 'endval' block" << '\n'; // See #104
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("initval", "an 'initval' block cannot appear after an 'endval' block");
 
   set<int> exogs = getUninitializedVariables(SymbolType::exogenous);
   set<int> endogs = getUninitializedVariables(SymbolType::endogenous);
 
-  if (endogs.size() > 0)
-    {
-      cerr << "ERROR: You have not set the following endogenous variables in initval:";
-      for (int endog : endogs)
-        cerr << " " << symbol_table.getName(endog);
-      cerr << '\n';
-    }
-
-  if (exogs.size() > 0)
-    {
-      cerr << "ERROR: You have not set the following exogenous variables in initval:";
-      for (int exog : exogs)
-        cerr << " " << symbol_table.getName(exog);
-      cerr << '\n';
-    }
-
   if (endogs.size() > 0 || exogs.size() > 0)
-    exit(EXIT_FAILURE);
+    {
+      string msg;
+      if (endogs.size() > 0)
+        {
+          msg += "You have not set the following endogenous variables in initval:";
+          for (int endog : endogs)
+            msg += " " + symbol_table.getName(endog);
+        }
+      if (exogs.size() > 0)
+        {
+          if (!msg.empty())
+            msg += "\n";
+          msg += "You have not set the following exogenous variables in initval:";
+          for (int exog : exogs)
+            msg += " " + symbol_table.getName(exog);
+        }
+      throw StatementException("initval", msg);
+    }
 }
 
 void
@@ -250,24 +244,25 @@ EndValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
   set<int> exogs = getUninitializedVariables(SymbolType::exogenous);
   set<int> endogs = getUninitializedVariables(SymbolType::endogenous);
 
-  if (endogs.size() > 0)
-    {
-      cerr << "ERROR: You have not set the following endogenous variables in endval:";
-      for (int endog : endogs)
-        cerr << " " << symbol_table.getName(endog);
-      cerr << '\n';
-    }
-
-  if (exogs.size() > 0)
-    {
-      cerr << "ERROR: You have not set the following exogenous variables in endval:";
-      for (int exog : exogs)
-        cerr << " " << symbol_table.getName(exog);
-      cerr << '\n';
-    }
-
   if (endogs.size() > 0 || exogs.size() > 0)
-    exit(EXIT_FAILURE);
+    {
+      string msg;
+      if (endogs.size() > 0)
+        {
+          msg += "You have not set the following endogenous variables in endval:";
+          for (int endog : endogs)
+            msg += " " + symbol_table.getName(endog);
+        }
+      if (exogs.size() > 0)
+        {
+          if (!msg.empty())
+            msg += "\n";
+          msg += "You have not set the following exogenous variables in endval:";
+          for (int exog : exogs)
+            msg += " " + symbol_table.getName(exog);
+        }
+      throw StatementException("endval", msg);
+    }
 }
 
 void
@@ -399,24 +394,25 @@ HistValStatement::checkPass([[maybe_unused]] ModFileStructure& mod_file_struct,
           unused_exo.erase(symb_id);
         }
 
-      if (unused_endo.size() > 0)
-        {
-          cerr << "ERROR: You have not set the following endogenous variables in histval:";
-          for (int it : unused_endo)
-            cerr << " " << symbol_table.getName(it);
-          cerr << '\n';
-        }
-
-      if (unused_exo.size() > 0)
-        {
-          cerr << "ERROR: You have not set the following exogenous variables in endval:";
-          for (int it : unused_exo)
-            cerr << " " << symbol_table.getName(it);
-          cerr << '\n';
-        }
-
       if (unused_endo.size() > 0 || unused_exo.size() > 0)
-        exit(EXIT_FAILURE);
+        {
+          string msg;
+          if (unused_endo.size() > 0)
+            {
+              msg += "You have not set the following endogenous variables in histval:";
+              for (int it : unused_endo)
+                msg += " " + symbol_table.getName(it);
+            }
+          if (unused_exo.size() > 0)
+            {
+              if (!msg.empty())
+                msg += "\n";
+              msg += "You have not set the following exogenous variables in histval:";
+              for (int it : unused_exo)
+                msg += " " + symbol_table.getName(it);
+            }
+          throw StatementException("histval", msg);
+        }
     }
 }
 
@@ -645,10 +641,7 @@ LoadParamsAndSteadyStateStatement::LoadParamsAndSteadyStateStatement(
   ifstream f;
   f.open(filename, ios::in);
   if (f.fail())
-    {
-      cerr << "ERROR: Can't open " << filename.string() << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename.string(), "Can't open " + filename.string());
 
   while (true)
     {
@@ -693,9 +686,9 @@ LoadParamsAndSteadyStateStatement::writeOutput(ostream& output,
           output << "oo_.exo_det_steady_state";
           break;
         default:
-          cerr << "ERROR: Unsupported variable type for " << symbol_table.getName(id)
-               << " in load_params_and_steady_state" << '\n';
-          exit(EXIT_FAILURE);
+          throw StatementException("load_params_and_steady_state",
+                                   "Unsupported variable type for " + symbol_table.getName(id)
+                                   + " in load_params_and_steady_state");
         }
 
       int tsid = symbol_table.getTypeSpecificID(id) + 1;

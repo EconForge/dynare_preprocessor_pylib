@@ -291,6 +291,48 @@ end;
         self.assertEqual(loc["file"], modfile)
         self.assertEqual(loc["begin_line"], 3)
 
+    def test_shocks_invalid_variable(self):
+        """Test error in shocks block on undeclared/invalid symbol."""
+        mod = """var y;
+parameters alpha;
+model;
+y = 0;
+end;
+shocks;
+var alpha; stderr 0.1;
+end;
+"""
+        code, out, _ = self.run_mod(mod)
+        self.assertEqual(code, 1)
+        self.assertTrue("shocks" in out and ("alpha" in out or "exogenous" in out))
+
+    def test_linear_model_nonlinear_op(self):
+        """Test error when model(linear) contains a nonlinear function."""
+        mod = """var y;
+varexo e;
+model(linear);
+y = abs(y(-1)) + e;
+end;
+"""
+        code, out, _ = self.run_mod(mod)
+        self.assertEqual(code, 1)
+        self.assertIn("declared your model 'linear'", out)
+
+    def test_perfect_foresight_stochastic_conflict(self):
+        """Test error when mixing perfect foresight solver with stochastic simulation."""
+        mod = """var y;
+varexo e;
+model;
+y = e;
+end;
+perfect_foresight_setup;
+perfect_foresight_solver;
+stoch_simul;
+"""
+        code, out, _ = self.run_mod(mod)
+        self.assertEqual(code, 1)
+        self.assertIn("cannot contain both one of {perfect_foresight_solver", out)
+
 
 if __name__ == "__main__":
     unittest.main()
