@@ -19,3 +19,4 @@ cpp_compiler = meson.get_compiler('cpp')
 
 subdir('src')
 subdir('doc')
+subdir('tests')

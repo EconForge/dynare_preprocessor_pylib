@@ -73,7 +73,7 @@ else
   preprocessor_link_args = []
 endif
 
-executable('dynare-preprocessor', preprocessor_src, flex_src, flexlexer_h, bison_src,
-           include_directories : preprocessor_incdir, dependencies : boost_dep,
-           link_args : preprocessor_link_args,
-           install : true)
+dynare_preprocessor = executable('dynare-preprocessor', preprocessor_src, flex_src, flexlexer_h, bison_src,
+                                 include_directories : preprocessor_incdir, dependencies : boost_dep,
+                                 link_args : preprocessor_link_args,
+                                 install : true)
