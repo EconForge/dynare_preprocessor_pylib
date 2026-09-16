@@ -256,6 +256,41 @@ discretionary_policy;
             "discretionary_policy" in out and ("ramsey_model" in out or "instruments" in out)
         )
 
+    def test_symbol_redeclaration(self):
+        """Test semantic error on redeclaring an existing symbol."""
+        mod = """var y;
+varexo y;
+model;
+y = 0;
+end;
+"""
+        code, out, modfile = self.run_mod(mod)
+        self.assertEqual(code, 1)
+        self.assertIn("Symbol y declared twice with different types!", out)
+        loc = self.parse_error_location(out)
+        self.assertIsNotNone(loc)
+        self.assertEqual(loc["file"], modfile)
+        self.assertEqual(loc["begin_line"], 2)
+
+    def test_macro_error_directive(self):
+        """Test macro processor exception and source location reporting."""
+        mod = """@#define foo = 1
+@#if foo == 1
+@#error "Explicit macro error triggered"
+@#endif
+var y;
+model;
+y = 0;
+end;
+"""
+        code, out, modfile = self.run_mod(mod)
+        self.assertEqual(code, 1)
+        self.assertIn("Explicit macro error triggered", out)
+        loc = self.parse_error_location(out)
+        self.assertIsNotNone(loc)
+        self.assertEqual(loc["file"], modfile)
+        self.assertEqual(loc["begin_line"], 3)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -24,6 +24,7 @@
 #include "ForwardDeclarationsAndEnums.hh"
 #include "ParserLocation.hh"
 #include "Utils.hh"
+#include "Exceptions.hh"
 
 #include <cmath>
 #include <sstream>
@@ -99,11 +100,10 @@ public:
   {
     return location;
   }
-  void
-  error(const StackTrace& e) const noexcept
+  [[noreturn]] void
+  error(const StackTrace& e) const
   {
-    cerr << '\n' << "Macro-processing error: backtrace..." << '\n' << e.trace();
-    exit(EXIT_FAILURE);
+    throw MacroException(location, "backtrace:\n" + e.trace(), e.trace());
   }
   void
   warning(const StackTrace& e) const noexcept

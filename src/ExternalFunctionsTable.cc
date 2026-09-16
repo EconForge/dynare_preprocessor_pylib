@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "Exceptions.hh"
 #include "ExternalFunctionsTable.hh"
 #include "SymbolTable.hh"
 
@@ -46,39 +47,29 @@ ExternalFunctionsTable::addExternalFunction(
   // Ensure 1st & 2nd deriv option consistency
   if (external_function_options_chng.secondDerivSymbID == symb_id
       && external_function_options_chng.firstDerivSymbID != symb_id)
-    {
-      cerr << "ERROR: If the second derivative is provided by the top-level function "
-           << "the first derivative must also be provided by the same function." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("external_function",
+                             "If the second derivative is provided by the top-level function "
+                             "the first derivative must also be provided by the same function.");
 
   if ((external_function_options_chng.secondDerivSymbID != symb_id
        && external_function_options_chng.firstDerivSymbID == symb_id)
       && external_function_options_chng.secondDerivSymbID != IDNotSet)
-    {
-      cerr << "ERROR: If the first derivative is provided by the top-level function, the "
-           << "second derivative cannot be provided by any other external function." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("external_function",
+                             "If the first derivative is provided by the top-level function, the "
+                             "second derivative cannot be provided by any other external function.");
 
   if (external_function_options_chng.secondDerivSymbID != IDNotSet
       && external_function_options_chng.firstDerivSymbID == IDNotSet)
-    {
-      cerr << "ERROR: If the second derivative is provided, the first derivative must also be "
-              "provided."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("external_function",
+                             "If the second derivative is provided, the first derivative must also be provided.");
 
   if (external_function_options_chng.secondDerivSymbID
           == external_function_options_chng.firstDerivSymbID
       && external_function_options_chng.firstDerivSymbID != symb_id
       && external_function_options_chng.firstDerivSymbID != IDNotSet)
-    {
-      cerr << "ERROR: If the Jacobian and Hessian are provided by the same function, that "
-           << "function must be the top-level function." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("external_function",
+                             "If the Jacobian and Hessian are provided by the same function, that "
+                             "function must be the top-level function.");
 
   // Ensure that if we're overwriting something, we mean to do it
   if (exists(symb_id))
@@ -92,34 +83,22 @@ ExternalFunctionsTable::addExternalFunction(
                             // external_function(name=funcname)
         { // e.g. e_f(name=a,nargs=1,fd,sd) and e_f(name=a,nargs=2,fd=b,sd=c) should cause an error
           if (external_function_options_chng.nargs != getNargs(symb_id))
-            {
-              cerr << "ERROR: The number of arguments passed to the external_function() statement "
-                      "do not "
-                   << "match the number of arguments passed to a previous call or declaration of "
-                      "the top-level function."
-                   << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw StatementException("external_function",
+                                     "The number of arguments passed to the external_function() statement do not "
+                                     "match the number of arguments passed to a previous call or declaration of "
+                                     "the top-level function.");
 
           if (external_function_options_chng.firstDerivSymbID != getFirstDerivSymbID(symb_id))
-            {
-              cerr << "ERROR: The first derivative function passed to the external_function() "
-                      "statement does not "
-                   << "match the first derivative function passed to a previous call or "
-                      "declaration of the top-level function."
-                   << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw StatementException("external_function",
+                                     "The first derivative function passed to the external_function() statement does not "
+                                     "match the first derivative function passed to a previous call or declaration of "
+                                     "the top-level function.");
 
           if (external_function_options_chng.secondDerivSymbID != getSecondDerivSymbID(symb_id))
-            {
-              cerr << "ERROR: The second derivative function passed to the external_function() "
-                      "statement does not "
-                   << "match the second derivative function passed to a previous call or "
-                      "declaration of the top-level function."
-                   << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw StatementException("external_function",
+                                     "The second derivative function passed to the external_function() statement does not "
+                                     "match the second derivative function passed to a previous call or declaration of "
+                                     "the top-level function.");
         }
     }
 

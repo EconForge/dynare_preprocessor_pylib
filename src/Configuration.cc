@@ -25,6 +25,7 @@
 # include <shlobj.h>
 #endif
 
+#include "Exceptions.hh"
 #include "Configuration.hh"
 #include "Utils.hh"
 
@@ -39,8 +40,11 @@ Configuration::Path::Path(vector<string> includepath_arg)
 {
   if (includepath_arg.empty())
     {
-      cerr << "ERROR: The Path must have an Include argument." << '\n';
-      exit(EXIT_FAILURE);
+      {
+        ostringstream stream;
+        stream << "ERROR: The Path must have an Include argument.";
+        throw DynareException(stream.str());
+      }
     }
   paths["include"] = move(includepath_arg);
 }
@@ -69,16 +73,21 @@ Configuration::FollowerNode::FollowerNode(string computerName_arg, string port_a
 {
   if (computerName.empty())
     {
-      cerr << "ERROR: The node must have a ComputerName." << '\n';
-      exit(EXIT_FAILURE);
+      {
+        ostringstream stream;
+        stream << "ERROR: The node must have a ComputerName.";
+        throw DynareException(stream.str());
+      }
     }
 
   if (!operatingSystem.empty())
     if (operatingSystem != "windows" && operatingSystem != "unix")
       {
-        cerr << "ERROR: The OperatingSystem must be either 'unix' or 'windows' (Case Sensitive)."
-             << '\n';
-        exit(EXIT_FAILURE);
+        {
+        ostringstream stream;
+        stream << "ERROR: The OperatingSystem must be either 'unix' or 'windows' (Case Sensitive).";
+        throw DynareException(stream.str());
+      }
       }
 }
 
@@ -87,8 +96,11 @@ Configuration::Cluster::Cluster(member_nodes_t member_nodes_arg) :
 {
   if (member_nodes.empty())
     {
-      cerr << "ERROR: The cluster must have at least one member node." << '\n';
-      exit(EXIT_FAILURE);
+      {
+        ostringstream stream;
+        stream << "ERROR: The cluster must have at least one member node.";
+        throw DynareException(stream.str());
+      }
     }
 }
 
@@ -142,9 +154,12 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
     {
       if (parallel || parallel_test)
         {
-          cerr << "ERROR: the parallel or parallel_test option was passed but no configuration "
-               << "file was found" << '\n';
-          exit(EXIT_FAILURE);
+          {
+        ostringstream stream;
+        stream << "ERROR: the parallel or parallel_test option was passed but no configuration "
+               << "file was found";
+        throw DynareException(stream.str());
+      }
         }
       else
         return;
@@ -155,8 +170,11 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
 
   if (!configFile.is_open())
     {
-      cerr << "ERROR: Couldn't open configuration file " << config_file.string() << '\n';
-      exit(EXIT_FAILURE);
+      {
+        ostringstream stream;
+        stream << "ERROR: Couldn't open configuration file " << config_file.string();
+        throw DynareException(stream.str());
+      }
     }
 
   string name, computerName, port, userName, password, remoteDrive, remoteDirectory, programPath,
@@ -233,9 +251,11 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
           split(tokenizedLine, line, is_any_of("="));
           if (tokenizedLine.size() != 2)
             {
-              cerr << "ERROR (in config file): Options should be formatted as 'option = value'."
-                   << '\n';
-              exit(EXIT_FAILURE);
+              {
+        ostringstream stream;
+        stream << "ERROR (in config file): Options should be formatted as 'option = value'.";
+        throw DynareException(stream.str());
+      }
             }
           trim(tokenizedLine.front());
           trim(tokenizedLine.back());
@@ -246,16 +266,20 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
                 global_init_file = tokenizedLine.back();
               else
                 {
-                  cerr
-                      << "ERROR: May not have more than one GlobalInitFile option in [hooks] block."
-                      << '\n';
-                  exit(EXIT_FAILURE);
+                  {
+        ostringstream stream;
+        stream << "ERROR: May not have more than one GlobalInitFile option in [hooks] block.";
+        throw DynareException(stream.str());
+      }
                 }
             else
               {
-                cerr << "ERROR: Unrecognized option " << tokenizedLine.front()
-                     << " in [hooks] block." << '\n';
-                exit(EXIT_FAILURE);
+                {
+        ostringstream stream;
+        stream << "ERROR: Unrecognized option " << tokenizedLine.front()
+                     << " in [hooks] block.";
+        throw DynareException(stream.str());
+      }
               }
           else if (inPaths)
             if (tokenizedLine.front() == "Include")
@@ -272,15 +296,20 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
                 }
               else
                 {
-                  cerr << "ERROR: May not have more than one Include option in [paths] block."
-                       << '\n';
-                  exit(EXIT_FAILURE);
+                  {
+        ostringstream stream;
+        stream << "ERROR: May not have more than one Include option in [paths] block.";
+        throw DynareException(stream.str());
+      }
                 }
             else
               {
-                cerr << "ERROR: Unrecognized option " << tokenizedLine.front()
-                     << " in [paths] block." << '\n';
-                exit(EXIT_FAILURE);
+                {
+        ostringstream stream;
+        stream << "ERROR: Unrecognized option " << tokenizedLine.front()
+                     << " in [paths] block.";
+        throw DynareException(stream.str());
+      }
               }
           else if (tokenizedLine.front() == "Name")
             name = tokenizedLine.back();
@@ -306,17 +335,23 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
                 }
               catch (const invalid_argument&)
                 {
-                  cerr << "ERROR: Could not convert value to integer for CPUnbr." << '\n';
-                  exit(EXIT_FAILURE);
+                  {
+        ostringstream stream;
+        stream << "ERROR: Could not convert value to integer for CPUnbr.";
+        throw DynareException(stream.str());
+      }
                 }
 
               if (minCpuNbr <= 0 || maxCpuNbr <= 0)
                 {
-                  cerr << "ERROR: Syntax for the CPUnbr option is as follows:" << '\n'
+                  {
+        ostringstream stream;
+        stream << "ERROR: Syntax for the CPUnbr option is as follows:" << '\n'
                        << "       1) CPUnbr = <int>" << '\n'
                        << "    or 2) CPUnbr = [<int>:<int>]" << '\n'
-                       << "       where <int> is an Integer > 0." << '\n';
-                  exit(EXIT_FAILURE);
+                       << "       where <int> is an Integer > 0.";
+        throw DynareException(stream.str());
+      }
                 }
 
               minCpuNbr--;
@@ -355,10 +390,12 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
               singleCompThread = false;
             else
               {
-                cerr << "ERROR (in config file): The value passed to SingleCompThread may only be "
-                        "'true' or 'false'."
-                     << '\n';
-                exit(EXIT_FAILURE);
+                {
+        ostringstream stream;
+        stream << "ERROR (in config file): The value passed to SingleCompThread may only be "
+                        "'true' or 'false'.";
+        throw DynareException(stream.str());
+      }
               }
           else if (tokenizedLine.front() == "OperatingSystem")
             operatingSystem = tokenizedLine.back();
@@ -387,10 +424,12 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
                         {
                           if (member_nodes.contains(node_name))
                             {
-                              cerr << "ERROR (in config file): Node entered twice in specification "
-                                      "of cluster."
-                                   << '\n';
-                              exit(EXIT_FAILURE);
+                              {
+        ostringstream stream;
+        stream << "ERROR (in config file): Node entered twice in specification "
+                                      "of cluster.";
+        throw DynareException(stream.str());
+      }
                             }
                           else
                             member_nodes[node_name] = 1.0;
@@ -403,19 +442,23 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
                         auto weight = stod(token);
                         if (weight <= 0)
                           {
-                            cerr << "ERROR (in config file): Misspecification of weights passed to "
-                                    "Members option."
-                                 << '\n';
-                            exit(EXIT_FAILURE);
+                            {
+        ostringstream stream;
+        stream << "ERROR (in config file): Misspecification of weights passed to "
+                                    "Members option.";
+        throw DynareException(stream.str());
+      }
                           }
                         member_nodes[node_name] = weight;
                       }
                     catch (const invalid_argument&)
                       {
-                        cerr << "ERROR (in config file): Misspecification of weights passed to "
-                                "Members option."
-                             << '\n';
-                        exit(EXIT_FAILURE);
+                        {
+        ostringstream stream;
+        stream << "ERROR (in config file): Misspecification of weights passed to "
+                                "Members option.";
+        throw DynareException(stream.str());
+      }
                       }
                 }
               if (!node_name.empty())
@@ -424,18 +467,22 @@ Configuration::getConfigFileInfo(const filesystem::path& conffile_option,
                     member_nodes[node_name] = 1.0;
                   else
                     {
-                      cerr << "ERROR (in config file): Node entered twice in specification of "
-                              "cluster."
-                           << '\n';
-                      exit(EXIT_FAILURE);
+                      {
+        ostringstream stream;
+        stream << "ERROR (in config file): Node entered twice in specification of "
+                              "cluster.";
+        throw DynareException(stream.str());
+      }
                     }
                 }
             }
           else
             {
-              cerr << "ERROR (in config file): Option " << tokenizedLine.front() << " is invalid."
-                   << '\n';
-              exit(EXIT_FAILURE);
+              {
+        ostringstream stream;
+        stream << "ERROR (in config file): Option " << tokenizedLine.front() << " is invalid.";
+        throw DynareException(stream.str());
+      }
             }
         }
     }
@@ -456,8 +503,11 @@ Configuration::addPathsConfFileElement(vector<string> includepath)
 {
   if (includepath.empty())
     {
-      cerr << "ERROR: The path to be included must be passed to the Include option." << '\n';
-      exit(EXIT_FAILURE);
+      {
+        ostringstream stream;
+        stream << "ERROR: The path to be included must be passed to the Include option.";
+        throw DynareException(stream.str());
+      }
     }
   else
     paths.emplace_back(move(includepath));
@@ -478,13 +528,19 @@ Configuration::addParallelConfFileElement(bool inNode, bool inCluster,
   if (inNode)
     if (!member_nodes.empty())
       {
-        cerr << "Invalid option passed to [node]." << '\n';
-        exit(EXIT_FAILURE);
+        {
+        ostringstream stream;
+        stream << "Invalid option passed to [node].";
+        throw DynareException(stream.str());
+      }
       }
     else if (name.empty() || follower_nodes.contains(name))
       {
-        cerr << "ERROR: Every node must be assigned a unique name." << '\n';
-        exit(EXIT_FAILURE);
+        {
+        ostringstream stream;
+        stream << "ERROR: Every node must be assigned a unique name.";
+        throw DynareException(stream.str());
+      }
       }
     else
       follower_nodes.try_emplace(name, computerName, port, minCpuNbr, maxCpuNbr, userName, password,
@@ -498,13 +554,19 @@ Configuration::addParallelConfFileElement(bool inNode, bool inCluster,
           || !remoteDrive.empty() || !remoteDirectory.empty() || !programPath.empty()
           || !programConfig.empty() || !matlabOctavePath.empty() || !operatingSystem.empty())
         {
-          cerr << "Invalid option passed to [cluster]." << '\n';
-          exit(EXIT_FAILURE);
+          {
+        ostringstream stream;
+        stream << "Invalid option passed to [cluster].";
+        throw DynareException(stream.str());
+      }
         }
       else if (name.empty() || clusters.contains(name))
         {
-          cerr << "ERROR: The cluster must be assigned a unique name." << '\n';
-          exit(EXIT_FAILURE);
+          {
+        ostringstream stream;
+        stream << "ERROR: The cluster must be assigned a unique name.";
+        throw DynareException(stream.str());
+      }
         }
       else
         {
@@ -524,8 +586,11 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
   //! Check Follower Nodes
   if (follower_nodes.empty())
     {
-      cerr << "ERROR: At least one node must be defined in the config file." << '\n';
-      exit(EXIT_FAILURE);
+      {
+        ostringstream stream;
+        stream << "ERROR: At least one node must be defined in the config file.";
+        throw DynareException(stream.str());
+      }
     }
 
   for (const auto& follower_node : follower_nodes)
@@ -544,50 +609,65 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
           }
         catch (const invalid_argument&)
           {
-            cerr << "ERROR (node " << follower_node.first << "): the port must be an integer."
-                 << '\n';
-            exit(EXIT_FAILURE);
+            {
+        ostringstream stream;
+        stream << "ERROR (node " << follower_node.first << "): the port must be an integer.";
+        throw DynareException(stream.str());
+      }
           }
       if (follower_node.second.computerName == "localhost") // We are working locally
         {
           if (!follower_node.second.remoteDrive.empty())
             {
-              cerr << "ERROR (node " << follower_node.first
-                   << "): the RemoteDrive option may not be passed for a local node." << '\n';
-              exit(EXIT_FAILURE);
+              {
+        ostringstream stream;
+        stream << "ERROR (node " << follower_node.first
+                   << "): the RemoteDrive option may not be passed for a local node.";
+        throw DynareException(stream.str());
+      }
             }
           if (!follower_node.second.remoteDirectory.empty())
             {
-              cerr << "ERROR (node " << follower_node.first
-                   << "): the RemoteDirectory option may not be passed for a local node." << '\n';
-              exit(EXIT_FAILURE);
+              {
+        ostringstream stream;
+        stream << "ERROR (node " << follower_node.first
+                   << "): the RemoteDirectory option may not be passed for a local node.";
+        throw DynareException(stream.str());
+      }
             }
         }
       else
         {
           if (follower_node.second.userName.empty())
             {
-              cerr << "ERROR (node " << follower_node.first
-                   << "): the UserName option must be passed for every remote node." << '\n';
-              exit(EXIT_FAILURE);
+              {
+        ostringstream stream;
+        stream << "ERROR (node " << follower_node.first
+                   << "): the UserName option must be passed for every remote node.";
+        throw DynareException(stream.str());
+      }
             }
           if (follower_node.second.operatingSystem == "windows")
             {
               if (follower_node.second.password.empty())
                 {
-                  cerr << "ERROR (node " << follower_node.first
+                  {
+        ostringstream stream;
+        stream << "ERROR (node " << follower_node.first
                        << "): the Password option must be passed under Windows for every remote "
-                          "node."
-                       << '\n';
-                  exit(EXIT_FAILURE);
+                          "node.";
+        throw DynareException(stream.str());
+      }
                 }
               if (follower_node.second.remoteDrive.empty())
                 {
-                  cerr << "ERROR (node " << follower_node.first
+                  {
+        ostringstream stream;
+        stream << "ERROR (node " << follower_node.first
                        << "): the RemoteDrive option must be passed under Windows for every remote "
-                          "node."
-                       << '\n';
-                  exit(EXIT_FAILURE);
+                          "node.";
+        throw DynareException(stream.str());
+      }
                 }
             }
 #if defined(_WIN32) || defined(__CYGWIN32__)
@@ -595,27 +675,34 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
             {
               if (follower_node.second.password.empty())
                 {
-                  cerr << "ERROR (node " << follower_node.first
+                  {
+        ostringstream stream;
+        stream << "ERROR (node " << follower_node.first
                        << "): the Password option must be passed under Windows for every remote "
-                          "node."
-                       << endl;
-                  exit(EXIT_FAILURE);
+                          "node.";
+        throw DynareException(stream.str());
+      }
                 }
               if (follower_node.second.remoteDrive.empty())
                 {
-                  cerr << "ERROR (node " << follower_node.first
+                  {
+        ostringstream stream;
+        stream << "ERROR (node " << follower_node.first
                        << "): the RemoteDrive option must be passed under Windows for every remote "
-                          "node."
-                       << endl;
-                  exit(EXIT_FAILURE);
+                          "node.";
+        throw DynareException(stream.str());
+      }
                 }
             }
 #endif
           if (follower_node.second.remoteDirectory.empty())
             {
-              cerr << "ERROR (node " << follower_node.first
-                   << "): the RemoteDirectory must be specified for every remote node." << '\n';
-              exit(EXIT_FAILURE);
+              {
+        ostringstream stream;
+        stream << "ERROR (node " << follower_node.first
+                   << "): the RemoteDirectory must be specified for every remote node.";
+        throw DynareException(stream.str());
+      }
             }
         }
     }
@@ -623,24 +710,32 @@ Configuration::checkPass([[maybe_unused]] WarningConsolidation& warnings) const
   //! Check Clusters
   if (clusters.empty())
     {
-      cerr << "ERROR: At least one cluster must be defined in the config file." << '\n';
-      exit(EXIT_FAILURE);
+      {
+        ostringstream stream;
+        stream << "ERROR: At least one cluster must be defined in the config file.";
+        throw DynareException(stream.str());
+      }
     }
 
   if (!cluster_name.empty() && !clusters.contains(cluster_name))
     {
-      cerr << "ERROR: Cluster Name " << cluster_name << " was not found in the config file."
-           << '\n';
-      exit(EXIT_FAILURE);
+      {
+        ostringstream stream;
+        stream << "ERROR: Cluster Name " << cluster_name << " was not found in the config file.";
+        throw DynareException(stream.str());
+      }
     }
 
   for (const auto& cluster : clusters)
     for (const auto& itmn : cluster.second.member_nodes)
       if (!follower_nodes.contains(itmn.first))
         {
-          cerr << "Error: node " << itmn.first << " specified in cluster " << cluster.first
-               << " was not found" << '\n';
-          exit(EXIT_FAILURE);
+          {
+        ostringstream stream;
+        stream << "Error: node " << itmn.first << " specified in cluster " << cluster.first
+               << " was not found";
+        throw DynareException(stream.str());
+      }
         }
 }
 

@@ -219,6 +219,5 @@ TokenizerFlex::location_increment(Tokenizer::parser::location_type* yylloc, cons
 int
 TokenizerFlexLexer::yylex()
 {
-  cerr << "TokenizerFlexLexer::yylex() has been called; shouldn't arrive here." << endl;
-  exit(EXIT_FAILURE);
+  throw InternalCompilerException{"TokenizerFlexLexer::yylex() has been called; shouldn't arrive here."};
 }

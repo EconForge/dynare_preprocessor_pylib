@@ -884,8 +884,7 @@ UnaryOp::eval(Environment& env) const
     {
       throw StackTrace("unary operation", e.what(), location);
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  throw InternalCompilerException{"macro::UnaryOp::eval: unexpected control flow"};
 }
 
 BaseTypePtr
@@ -944,8 +943,7 @@ BinaryOp::eval(Environment& env) const
     {
       throw StackTrace("binary operation", e.what(), location);
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  throw InternalCompilerException{"macro::BinaryOp::eval: unexpected control flow"};
 }
 
 BaseTypePtr
@@ -970,8 +968,7 @@ TrinaryOp::eval(Environment& env) const
     {
       throw StackTrace("trinary operation", e.what(), location);
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  throw InternalCompilerException{"macro::TrinaryOp::eval: unexpected control flow"};
 }
 
 BaseTypePtr
@@ -1180,8 +1177,7 @@ UnaryOp::to_string() const noexcept
     case codes::UnaryOp::defined:
       return "defined(" + retval + ")";
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  return "";
 }
 
 string
@@ -1258,8 +1254,7 @@ TrinaryOp::to_string() const noexcept
       return "normcdf(" + arg1->to_string() + ", " + arg2->to_string() + ", " + arg3->to_string()
              + ")";
     }
-  // Suppress GCC warning
-  exit(EXIT_FAILURE);
+  return "";
 }
 
 string
@@ -1537,8 +1532,7 @@ BinaryOp::print(ostream& output, bool matlab_output) const noexcept
     case codes::BinaryOp::max:
     case codes::BinaryOp::min:
     case codes::BinaryOp::mod:
-      cerr << "macro::BinaryOp::print: Should not arrive here" << '\n';
-      exit(EXIT_FAILURE);
+      break;
     }
   arg2->print(output, matlab_output);
   output << ")";

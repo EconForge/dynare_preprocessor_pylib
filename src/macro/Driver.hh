@@ -90,7 +90,7 @@ public:
   unique_ptr<TokenizerFlex> lexer;
 
   //! Error handler
-  void error(const Tokenizer::parser::location_type& location, const string& message) const;
+  [[noreturn]] void error(const Tokenizer::parser::location_type& location, const string& message) const;
 
   [[nodiscard]] bool
   inContext() const

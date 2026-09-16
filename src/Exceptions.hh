@@ -172,6 +172,12 @@ public:
   {
   }
 
+  template <typename LocationType>
+  MacroException(const LocationType& loc, string msg, string bt = "")
+    : SourceFileException {loc, "in macro-processor: " + msg}, backtrace {move(bt)}
+  {
+  }
+
   [[nodiscard]] const string&
   getBacktrace() const noexcept
   {

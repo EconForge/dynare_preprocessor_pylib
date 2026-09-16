@@ -62,9 +62,10 @@ Driver::parse(const string& file_arg, const istream& modfile, bool debug,
     }
 }
 
+#include "Exceptions.hh"
+
 void
 Driver::error(const Tokenizer::parser::location_type& location, const string& message) const
 {
-  cerr << "ERROR in macro-processor: " << location << ": " << message << '\n';
-  exit(EXIT_FAILURE);
+  throw MacroException(location, message);
 }

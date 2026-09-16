@@ -460,31 +460,28 @@ main(int argc, char** argv)
      on Windows because the implicit conversion is only to wstring (i.e. basic_string<wchar_t>). */
   const string basename {filename.stem().string()};
 
-  // Forbid some basenames, since they will cause trouble (see preprocessor#62)
-  set<string> forbidden_basenames = {"T", "y", "x", "params", "steady_state", "it_", "true"};
-  if (forbidden_basenames.contains(basename))
-    {
-      cerr << "ERROR: Please use another name for your .mod file. The one you have chosen ("
-           << argv[1] << ") conflicts with internal Dynare names." << '\n';
-      exit(EXIT_FAILURE);
-    }
-
-  WarningConsolidation warnings(no_warn);
-
-  // Process config file
-  Configuration config {parallel, parallel_test, parallel_follower_open_mode, parallel_use_psexec,
-                        cluster_name};
-  config.getConfigFileInfo(conffile, warnings);
-  config.checkPass(warnings);
-  config.transformPass();
-
-  // If Include option was passed to the [paths] block of the config file, add
-  // it to paths before macroprocessing
-  for (const auto& it : config.getIncludePaths())
-    paths.emplace_back(it);
-
   try
     {
+      // Forbid some basenames, since they will cause trouble (see preprocessor#62)
+      set<string> forbidden_basenames = {"T", "y", "x", "params", "steady_state", "it_", "true"};
+      if (forbidden_basenames.contains(basename))
+        throw DynareException("ERROR: Please use another name for your .mod file. The one you have chosen ("
+                              + string(argv[1]) + ") conflicts with internal Dynare names.");
+
+      WarningConsolidation warnings(no_warn);
+
+      // Process config file
+      Configuration config {parallel, parallel_test, parallel_follower_open_mode, parallel_use_psexec,
+                            cluster_name};
+      config.getConfigFileInfo(conffile, warnings);
+      config.checkPass(warnings);
+      config.transformPass();
+
+      // If Include option was passed to the [paths] block of the config file, add
+      // it to paths before macroprocessing
+      for (const auto& it : config.getIncludePaths())
+        paths.emplace_back(it);
+
       /*
        * Macro-expand MOD file
        */

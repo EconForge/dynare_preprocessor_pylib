@@ -28,6 +28,7 @@
 #pragma GCC diagnostic pop
 #include <utility>
 
+#include "Exceptions.hh"
 #include "SymbolTable.hh"
 
 int
@@ -550,11 +551,10 @@ SymbolTable::addLeadAuxiliaryVarInternal(bool endo, int index, expr_t expr_arg) 
     {
       symb_id = addSymbol(varname, SymbolType::endogenous);
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("You should rename your variable called " + varname
+                                   + ", this name is internally used by Dynare");
     }
 
   aux_vars.emplace_back(symb_id, (endo ? AuxVarType::endoLead : AuxVarType::exoLead), 0, 0, 0, 0,
@@ -573,11 +573,10 @@ SymbolTable::addLagAuxiliaryVarInternal(bool endo, int orig_symb_id, int orig_le
     {
       symb_id = addSymbol(varname, SymbolType::endogenous);
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("You should rename your variable called " + varname
+                                   + ", this name is internally used by Dynare");
     }
 
   aux_vars.emplace_back(symb_id, (endo ? AuxVarType::endoLag : AuxVarType::exoLag), orig_symb_id,
@@ -623,11 +622,10 @@ SymbolTable::addExpectationAuxiliaryVar(int information_set, int index,
     {
       symb_id = addSymbol(varname, SymbolType::endogenous);
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("You should rename your variable called " + varname
+                                   + ", this name is internally used by Dynare");
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::expectation, 0, 0, 0, information_set, expr_arg, "");
@@ -647,12 +645,11 @@ SymbolTable::addLogTransformAuxiliaryVar(int orig_symb_id, int orig_lead_lag,
     {
       symb_id = addSymbol(varname, SymbolType::endogenous, texname, {}, {});
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", it conflicts with the auxiliary variable created for representing the log of "
-           << getName(orig_symb_id) << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("You should rename your variable called " + varname
+                                   + ", it conflicts with the auxiliary variable created for representing the log of "
+                                   + getName(orig_symb_id));
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::logTransform, orig_symb_id, orig_lead_lag, 0, 0,
@@ -671,11 +668,10 @@ SymbolTable::addDiffLagAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_id
     {
       symb_id = addSymbol(varname, SymbolType::endogenous);
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("You should rename your variable called " + varname
+                                   + ", this name is internally used by Dynare");
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::diffLag, orig_symb_id, orig_lag, 0, 0, expr_arg, "");
@@ -693,11 +689,10 @@ SymbolTable::addDiffLeadAuxiliaryVar(int index, expr_t expr_arg, int orig_symb_i
     {
       symb_id = addSymbol(varname, SymbolType::endogenous);
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("You should rename your variable called " + varname
+                                   + ", this name is internally used by Dynare");
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::diffLead, orig_symb_id, orig_lead, 0, 0, expr_arg, "");
@@ -715,11 +710,10 @@ SymbolTable::addDiffAuxiliaryVar(int index, expr_t expr_arg, const optional<int>
     {
       symb_id = addSymbol(varname, SymbolType::endogenous);
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("You should rename your variable called " + varname
+                                   + ", this name is internally used by Dynare");
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::diff, orig_symb_id, orig_lag, 0, 0, expr_arg, "");
@@ -738,11 +732,10 @@ SymbolTable::addUnaryOpAuxiliaryVar(int index, expr_t expr_arg, string unary_op,
     {
       symb_id = addSymbol(varname, SymbolType::endogenous);
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("You should rename your variable called " + varname
+                                   + ", this name is internally used by Dynare");
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::unaryOp, orig_symb_id, orig_lag, 0, 0, expr_arg,
@@ -760,11 +753,10 @@ SymbolTable::addHeterogeneousMultiplierAuxiliaryVar(int het_dim, int index,
     {
       symb_id = addSymbol(varname, SymbolType::heterogeneousEndogenous, "", {}, het_dim);
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("You should rename your variable called " + varname
+                                   + ", this name is internally used by Dynare");
     }
 
   het_aux_vars[het_dim].emplace_back(symb_id, AuxVarType::heterogeneousMultiplier, 0, 0, index, 0,
@@ -782,11 +774,10 @@ SymbolTable::addHeterogeneousEndoLeadAuxiliaryVar(int het_dim, int index,
     {
       symb_id = addSymbol(varname, SymbolType::heterogeneousEndogenous, "", {}, het_dim);
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("You should rename your variable called " + varname
+                                   + ", this name is internally used by Dynare");
     }
 
   het_aux_vars[het_dim].emplace_back(symb_id, AuxVarType::heterogeneousEndoLead, 0, 0, 0, 0,
@@ -803,11 +794,10 @@ SymbolTable::addMultiplierAuxiliaryVar(int index) noexcept(false)
     {
       symb_id = addSymbol(varname, SymbolType::endogenous);
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("You should rename your variable called " + varname
+                                   + ", this name is internally used by Dynare");
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::multiplier, 0, 0, index, 0, nullptr, "");
@@ -824,11 +814,10 @@ SymbolTable::addDiffForwardAuxiliaryVar(int orig_symb_id, int orig_lead_lag,
     {
       symb_id = addSymbol(varname, SymbolType::endogenous);
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: you should rename your variable called " << varname
-           << ", this name is internally used by Dynare" << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("You should rename your variable called " + varname
+                                   + ", this name is internally used by Dynare");
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::diffForward, orig_symb_id, orig_lead_lag, 0, 0,
@@ -844,13 +833,11 @@ SymbolTable::addPacExpectationAuxiliaryVar(const string& name, expr_t expr_arg)
     {
       symb_id = addSymbol(name, SymbolType::endogenous);
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: the variable/parameter '" << name
-           << "' conflicts with a variable that will be generated for a 'pac_expectation' "
-              "expression. Please rename it."
-           << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("The variable/parameter '" + name
+                                   + "' conflicts with a variable that will be generated for a 'pac_expectation' "
+                                     "expression. Please rename it.");
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::pacExpectation, 0, 0, 0, 0, expr_arg, "");
@@ -865,13 +852,11 @@ SymbolTable::addPacTargetNonstationaryAuxiliaryVar(const string& name, expr_t ex
     {
       symb_id = addSymbol(name, SymbolType::endogenous);
     }
-  catch (AlreadyDeclaredException& e)
+  catch (AlreadyDeclaredException&)
     {
-      cerr << "ERROR: the variable/parameter '" << name
-           << "' conflicts with a variable that will be generated for a 'pac_target_nonstationary' "
-              "expression. Please rename it."
-           << '\n';
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("The variable/parameter '" + name
+                                   + "' conflicts with a variable that will be generated for a 'pac_target_nonstationary' "
+                                     "expression. Please rename it.");
     }
 
   aux_vars.emplace_back(symb_id, AuxVarType::pacTargetNonstationary, 0, 0, 0, 0, expr_arg, "");
@@ -888,11 +873,9 @@ SymbolTable::addAggregationOpAuxiliaryVar(const string& name, expr_t expr_arg)
       }
     catch (AlreadyDeclaredException&)
       {
-        cerr << "ERROR: the variable/parameter '" << name
-             << "' conflicts with a variable that will be generated for an aggregation operator. "
-                "Please rename it."
-             << '\n';
-        exit(EXIT_FAILURE);
+        throw ModelSemanticException("The variable/parameter '" + name
+                                     + "' conflicts with a variable that will be generated for an aggregation operator. "
+                                       "Please rename it.");
       }
   }()};
 
