@@ -5392,9 +5392,9 @@ MatchedMomentsStatement::writeJsonOutput(ostream& output) const
 }
 
 OccbinConstraintsStatement::OccbinConstraintsStatement(
-    const DataTree& data_tree_arg,
+    unique_ptr<DataTree> data_tree_arg,
     vector<tuple<string, BinaryOpNode*, BinaryOpNode*, expr_t, expr_t>> constraints_arg) :
-    data_tree {data_tree_arg}, constraints {move(constraints_arg)}
+    data_tree {move(data_tree_arg)}, constraints {move(constraints_arg)}
 {
 }
 
@@ -5423,7 +5423,7 @@ OccbinConstraintsStatement::writeOutput(ostream& output, const string& basename,
   output << "M_.occbin.constraint_nbr = " << constraints.size() << ';' << '\n'
          << "M_.occbin.pswitch = [" << '\n';
   for (const auto& [name, bind, relax, error_bind, error_relax] : constraints)
-    output << data_tree.symbol_table.getTypeSpecificID(
+    output << data_tree->symbol_table.getTypeSpecificID(
                   ParsingDriver::buildOccbinBindParamName(name))
                   + 1
            << ' ';

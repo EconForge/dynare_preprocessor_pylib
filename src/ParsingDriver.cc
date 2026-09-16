@@ -4435,7 +4435,7 @@ ParsingDriver::end_occbin_constraints(
     }
 
   mod_file->addStatement(
-      make_unique<OccbinConstraintsStatement>(*occbin_constraints_tree, move(constraints)));
+      make_unique<OccbinConstraintsStatement>(move(occbin_constraints_tree), move(constraints)));
 
   reset_data_tree();
 }

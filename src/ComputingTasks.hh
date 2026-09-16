@@ -1282,14 +1282,14 @@ public:
 class OccbinConstraintsStatement : public Statement
 {
 private:
-  DataTree data_tree;
+  const unique_ptr<DataTree> data_tree;
 
 public:
   // The tuple is (name, bind, relax, error_bind, error_relax) (where relax and error_{bind,relax}
   // can be nullptr)
   const vector<tuple<string, BinaryOpNode*, BinaryOpNode*, expr_t, expr_t>> constraints;
   OccbinConstraintsStatement(
-      const DataTree& data_tree_arg,
+      unique_ptr<DataTree> data_tree_arg,
       vector<tuple<string, BinaryOpNode*, BinaryOpNode*, expr_t, expr_t>> constraints_arg);
   void checkPass(ModFileStructure& mod_file_struct, WarningConsolidation& warnings) override;
   void writeOutput(ostream& output, const string& basename, bool minimal_workspace) const override;
