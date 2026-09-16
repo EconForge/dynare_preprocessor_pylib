@@ -281,18 +281,23 @@ ParsingDriver::initialize_planner_discount(const string& caller)
       planner_discount = mod_file->expressions_tree.AddVariable(
           mod_file->symbol_table.getID("optimal_policy_discount_factor"));
     }
-  else if (!planner_discount)
-    planner_discount = mod_file->expressions_tree.One;
 
-  try
+  /* Whether a discount is actually required depends on whether a planner_objective statement
+     is present, which cannot be known yet at this point (it may appear later in the .mod file);
+     this is therefore checked in ModFile::checkPass(). */
+  if (planner_discount)
     {
-      mod_file->setPlannerDiscount(planner_discount);
-    }
-  catch (ModFile::PlannerDiscountModificationAttemptException& e)
-    {
-      error("{}: the 'planner_discount' option has to be the same across the .mod file (was {}, "
-            "attempt was made to change it to {})",
-            caller, e.planner_discount_old->toString(), planner_discount->toString());
+      try
+        {
+          mod_file->setPlannerDiscount(planner_discount);
+        }
+      catch (ModFile::PlannerDiscountModificationAttemptException& e)
+        {
+          error(
+              "{}: the 'planner_discount' option has to be the same across the .mod file (was {}, "
+              "attempt was made to change it to {})",
+              caller, e.planner_discount_old->toString(), planner_discount->toString());
+        }
     }
 
   planner_discount = nullptr;

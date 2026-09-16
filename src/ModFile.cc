@@ -193,6 +193,14 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
+  if (mod_file_struct.planner_objective_present && !planner_discount)
+    {
+      cerr << "ERROR: A 'planner_discount' option (or an 'optimal_policy_discount_factor' "
+              "parameter) must be specified since a planner_objective statement is present."
+           << '\n';
+      exit(EXIT_FAILURE);
+    }
+
   if (!ramsey_constraints.empty() && !mod_file_struct.ramsey_model_present)
     {
       cerr << "ERROR: A ramsey_constraints block requires the presence of a ramsey_model or "
