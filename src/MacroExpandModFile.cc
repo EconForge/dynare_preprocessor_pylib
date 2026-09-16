@@ -23,6 +23,7 @@
 #include <regex>
 #include <sstream>
 
+#include "Exceptions.hh"
 #include "macro/Driver.hh"
 
 stringstream
@@ -44,10 +45,7 @@ macroExpandModFile(const filesystem::path& filename, const istream& modfile, boo
         save_macro_file = filename.stem().string() + "_macroexp.mod";
       ofstream macro_output_file {save_macro_file};
       if (macro_output_file.fail())
-        {
-          cerr << "Cannot open " << save_macro_file.string() << " for macro output" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw FileIOException(save_macro_file, "writing");
 
       string str(macro_output.str());
       if (!line_macro)

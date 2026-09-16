@@ -29,6 +29,7 @@
 
 #include "ComputingTasks.hh"
 
+#include "Exceptions.hh"
 #include "ModFile.hh"
 #include "Shocks.hh"
 #include "Utils.hh"
@@ -136,12 +137,9 @@ ModFile::checkPass(bool nostrict, bool stochastic)
 
   if (mod_file_struct.write_latex_steady_state_model_present
       && !mod_file_struct.steady_state_model_present)
-    {
-      cerr << "ERROR: You cannot have a write_latex_steady_state_model statement without a "
-              "steady_state_model block."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("write_latex_steady_state_model",
+                             "You cannot have a write_latex_steady_state_model statement without a "
+                             "steady_state_model block.");
 
   // If order option has not been set, default to 2
   if (!mod_file_struct.order_option)
@@ -168,73 +166,49 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       && (mod_file_struct.check_present || mod_file_struct.perfect_foresight_solver_present
           || mod_file_struct.perfect_foresight_with_expectation_errors_solver_present
           || stochastic_statement_present))
-    {
-      cerr << "ERROR: At least one model equation must be declared!" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("At least one model equation must be declared!");
 
   if (mod_file_struct.ramsey_model_present && mod_file_struct.discretionary_policy_present)
-    {
-      cerr << "ERROR: You cannot use the discretionary_policy command when you use either "
-              "ramsey_model or ramsey_policy and vice versa"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("discretionary_policy",
+                             "You cannot use the discretionary_policy command when you use either "
+                             "ramsey_model or ramsey_policy and vice versa");
 
   if (((mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present)
        && !mod_file_struct.planner_objective_present)
       || (!(mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present
             || mod_file_struct.osr_present)
           && mod_file_struct.planner_objective_present))
-    {
-      cerr << "ERROR: A planner_objective statement must be used with a ramsey_model, a "
-              "ramsey_policy, osr, or a discretionary_policy statement and vice versa."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("planner_objective",
+                             "A planner_objective statement must be used with a ramsey_model, a "
+                             "ramsey_policy, osr, or a discretionary_policy statement and vice versa.");
 
   if (!ramsey_constraints.empty() && !mod_file_struct.ramsey_model_present)
-    {
-      cerr << "ERROR: A ramsey_constraints block requires the presence of a ramsey_model or "
-              "ramsey_policy statement"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("ramsey_constraints",
+                             "A ramsey_constraints block requires the presence of a ramsey_model or "
+                             "ramsey_policy statement");
 
   if (mod_file_struct.osr_present)
     {
       if (!mod_file_struct.osr_params_present)
-        {
-          cerr << "ERROR: The osr statement requires the osr_params statement." << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("osr", "The osr statement requires the osr_params statement.");
       if (!mod_file_struct.optim_weights_present && !mod_file_struct.planner_objective_present)
-        {
-          cerr << "ERROR: The osr statement requires either an optim_weights block or a "
-                  "planner_objective."
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("osr",
+                                 "The osr statement requires either an optim_weights block or a "
+                                 "planner_objective.");
       if (mod_file_struct.optim_weights_present && mod_file_struct.planner_objective_present)
-        {
-          cerr << "ERROR: The osr statement cannot have both optim_weights and a "
-                  "planner_objective; they are mutually exclusive."
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw StatementException("osr",
+                                 "The osr statement cannot have both optim_weights and a "
+                                 "planner_objective; they are mutually exclusive.");
     }
 
   if ((mod_file_struct.perfect_foresight_solver_present
        || mod_file_struct.perfect_foresight_with_expectation_errors_solver_present)
       && stochastic_statement_present)
-    {
-      cerr << "ERROR: A .mod file cannot contain both one of {perfect_foresight_solver, simul, "
-              "perfect_foresight_with_expectation_errors_solver} and one of {stoch_simul, "
-              "estimation, osr, ramsey_policy, discretionary_policy}. This is not possible: one "
-              "cannot mix perfect foresight context with stochastic context in the same file."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("model",
+                             "A .mod file cannot contain both one of {perfect_foresight_solver, simul, "
+                             "perfect_foresight_with_expectation_errors_solver} and one of {stoch_simul, "
+                             "estimation, osr, ramsey_policy, discretionary_policy}. This is not possible: one "
+                             "cannot mix perfect foresight context with stochastic context in the same file.");
 
   if (use_dll && bytecode)
     {
@@ -816,57 +790,36 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs,
   if (!(mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present)
       && !(mod_file_struct.bvar_present && dynamic_model.equation_number() == 0)
       && (dynamic_model.equation_number() != symbol_table.endo_nbr()))
-    {
-      cerr << "ERROR: There are " << dynamic_model.equation_number() << " equations but "
-           << symbol_table.endo_nbr() << " endogenous variables!" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException(format("There are {} equations but {} endogenous variables!",
+                                        dynamic_model.equation_number(),
+                                        symbol_table.endo_nbr()));
 
   if (symbol_table.exo_det_nbr() > 0
       && (mod_file_struct.perfect_foresight_solver_present
           || mod_file_struct.perfect_foresight_with_expectation_errors_solver_present))
-    {
-      cerr << "ERROR: A .mod file cannot contain both one of {perfect_foresight_solver, simul, "
-              "perfect_foresight_with_expectation_errors_solver} and varexo_det declaration (all "
-              "exogenous variables are deterministic in this case)"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("A .mod file cannot contain both one of {perfect_foresight_solver, simul, "
+                                 "perfect_foresight_with_expectation_errors_solver} and varexo_det declaration (all "
+                                 "exogenous variables are deterministic in this case)");
 
   if (mod_file_struct.ramsey_model_present && symbol_table.exo_det_nbr() > 0)
-    {
-      cerr << "ERROR: ramsey_model and ramsey_policy are incompatible with deterministic exogenous "
-              "variables"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("ramsey_model", "ramsey_model and ramsey_policy are incompatible with deterministic exogenous variables");
 
   if (mod_file_struct.identification_present && symbol_table.exo_det_nbr() > 0)
-    {
-      cerr << "ERROR: identification is incompatible with deterministic exogenous variables"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("identification", "identification is incompatible with deterministic exogenous variables");
 
   if (mod_file_struct.occbin_constraints_present
       && (mod_file_struct.osr_present || mod_file_struct.mom_estimation_present
           || mod_file_struct.ramsey_model_present || mod_file_struct.discretionary_policy_present
           || mod_file_struct.extended_path_present || mod_file_struct.identification_present
           || mod_file_struct.sensitivity_present))
-    {
-      cerr << "ERROR: the 'occbin_constraints' block is not compatible with commands other than "
-              "'estimation', 'stoch_simul', and 'calib_smoother'."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("occbin_constraints",
+                             "the 'occbin_constraints' block is not compatible with commands other than "
+                             "'estimation', 'stoch_simul', and 'calib_smoother'.");
 
   if (mod_file_struct.shocks_surprise_present && !mod_file_struct.occbin_constraints_present)
-    {
-      cerr << "ERROR: the 'shocks(surprise)' block can only be used in conjunction with the "
-              "'occbin_constraints' block."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw StatementException("shocks(surprise)",
+                             "the 'shocks(surprise)' block can only be used in conjunction with the "
+                             "'occbin_constraints' block.");
 
   bool should_not_have_learnt_in {
       mod_file_struct.perfect_foresight_setup_present
@@ -1176,10 +1129,7 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
   filesystem::path fname {plusfolder / "driver.m"};
   ofstream mOutputFile {fname, ios::out | ios::binary};
   if (!mOutputFile.is_open())
-    {
-      cerr << "ERROR: Can't open file " << fname.string() << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(fname, "writing");
 
   mOutputFile << "%" << '\n'
               << "% Status : main Dynare file" << '\n'
@@ -1551,10 +1501,7 @@ ModFile::isChecksumMatching(const string& basename, size_t checksum) const
 
   checksum_file.open(filename, ios::out | ios::binary);
   if (!checksum_file.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename.string() << endl;
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename, "writing");
   checksum_file << checksum;
   checksum_file.close();
   return false;
@@ -1778,19 +1725,13 @@ ModFile::writeJsonOutputParsingCheck(const string& basename, JsonFileOutputType 
   else
     {
       if (!basename.size())
-        {
-          cerr << "ERROR: Missing file name" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw DynareException("ERROR: Missing file name");
 
       filesystem::create_directories(basename + "/model/json");
       const filesystem::path fname {basename + "/model/json/modfile.json"};
       ofstream jsonOutputFile {fname, ios::out | ios::binary};
       if (!jsonOutputFile.is_open())
-        {
-          cerr << "ERROR: Can't open file " << fname.string() << " for writing" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw FileIOException(fname, "writing");
 
       jsonOutputFile << output.str();
       jsonOutputFile.close();
@@ -1802,16 +1743,10 @@ ModFile::writeJsonOutputParsingCheck(const string& basename, JsonFileOutputType 
               const filesystem::path fname {basename + "/model/json/modfile-original.json"};
               jsonOutputFile.open(fname, ios::out | ios::binary);
               if (!jsonOutputFile.is_open())
-                {
-                  cerr << "ERROR: Can't open file " << fname.string() << " for writing" << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw FileIOException(fname, "writing");
             }
           else
-            {
-              cerr << "ERROR: Missing file name" << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw DynareException("ERROR: Missing file name");
 
           jsonOutputFile << original_model_output.str();
           jsonOutputFile.close();
@@ -1823,16 +1758,10 @@ ModFile::writeJsonOutputParsingCheck(const string& basename, JsonFileOutputType 
               const filesystem::path fname {basename + "/model/json/steady_state_model.json"};
               jsonOutputFile.open(fname, ios::out | ios::binary);
               if (!jsonOutputFile.is_open())
-                {
-                  cerr << "ERROR: Can't open file " << fname.string() << " for writing" << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw FileIOException(fname, "writing");
             }
           else
-            {
-              cerr << "ERROR: Missing file name" << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw DynareException("ERROR: Missing file name");
 
           jsonOutputFile << steady_state_model_output.str();
           jsonOutputFile.close();
@@ -1845,10 +1774,7 @@ ModFile::writeJsonComputingPassOutput(const string& basename, JsonFileOutputType
                                       bool jsonderivsimple) const
 {
   if (basename.empty() && json_output_mode != JsonFileOutputType::standardout)
-    {
-      cerr << "ERROR: Missing file name" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw DynareException("ERROR: Missing file name");
 
   ostringstream tmp_out, static_output, dynamic_output, static_paramsd_output,
       dynamic_paramsd_output;
@@ -1902,10 +1828,7 @@ ModFile::writeJsonFileHelper(const filesystem::path& fname, ostringstream& outpu
 {
   ofstream jsonOutput {fname, ios::out | ios::binary};
   if (!jsonOutput.is_open())
-    {
-      cerr << "ERROR: Can't open file " << fname.string() << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(fname, "writing");
   jsonOutput << output.str();
   jsonOutput.close();
 }
@@ -1926,11 +1849,7 @@ ModFile::writePythonDriverFile(const string& basename, bool use_jax, bool use_nu
 
   ofstream file(python_dir / "driver.py", ios::out | ios::binary);
   if (!file.is_open())
-    {
-      cerr << "ERROR: Can't open file " << (python_dir / "driver.py").string() << " for writing"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(python_dir / "driver.py", "writing");
   file << output.str();
   file.close();
 }
@@ -1964,11 +1883,7 @@ ModFile::writePythonInitFile(const filesystem::path& python_dir) const
 
   ofstream file(python_dir / "__init__.py", ios::out | ios::binary);
   if (!file.is_open())
-    {
-      cerr << "ERROR: Can't open file " << (python_dir / "__init__.py").string() << " for writing"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(python_dir / "__init__.py", "writing");
   file << output.str();
   file.close();
 }
@@ -2041,11 +1956,7 @@ ModFile::writePythonModelInterfaceFile(const filesystem::path& python_dir, bool 
 
   ofstream file(python_dir / "model.py", ios::out | ios::binary);
   if (!file.is_open())
-    {
-      cerr << "ERROR: Can't open file " << (python_dir / "model.py").string() << " for writing"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(python_dir / "model.py", "writing");
   file << output.str();
   file.close();
 }
@@ -2072,11 +1983,7 @@ ModFile::writePythonTypeStubs(const string& basename) const
 
   ofstream file(python_dir / "driver.pyi", ios::out | ios::binary);
   if (!file.is_open())
-    {
-      cerr << "ERROR: Can't open file " << (python_dir / "driver.pyi").string() << " for writing"
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(python_dir / "driver.pyi", "writing");
   file << output.str();
   file.close();
 }

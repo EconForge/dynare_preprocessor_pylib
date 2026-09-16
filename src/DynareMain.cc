@@ -32,6 +32,7 @@
 #include <unistd.h>
 
 #include "Configuration.hh"
+#include "Exceptions.hh"
 #include "ExtendedPreprocessorTypes.hh"
 #include "ModFile.hh"
 #include "ParsingDriver.hh"
@@ -482,91 +483,95 @@ main(int argc, char** argv)
   for (const auto& it : config.getIncludePaths())
     paths.emplace_back(it);
 
-  /*
-   * Macro-expand MOD file
-   */
-  stringstream macro_output
-      = macroExpandModFile(filename, modfile, debug, save_macro, move(save_macro_file), line_macro,
-                           defines, move(paths));
-
-  if (only_macro)
-    return EXIT_SUCCESS;
-
-  if (!exclude_eqs.empty() && !include_eqs.empty())
+  try
     {
-      cerr << "You may only pass one of `include_eqs` and `exclude_eqs`" << '\n';
-      exit(EXIT_FAILURE);
+      /*
+       * Macro-expand MOD file
+       */
+      stringstream macro_output
+          = macroExpandModFile(filename, modfile, debug, save_macro, move(save_macro_file), line_macro,
+                               defines, move(paths));
+
+      if (only_macro)
+        return EXIT_SUCCESS;
+
+      if (!exclude_eqs.empty() && !include_eqs.empty())
+        throw DynareException("ERROR: You may only pass one of `include_eqs` and `exclude_eqs`");
+
+      /*
+       * Process Macro-expanded MOD file
+       */
+      ParsingDriver p(warnings, nostrict);
+
+      filesystem::remove_all(basename + "/model/json");
+
+      // Do parsing and construct internal representation of mod file
+      unique_ptr<ModFile> mod_file = p.parse(macro_output, debug);
+
+      // Handle use_dll option specified on the command line
+      if (use_dll)
+        mod_file->use_dll = true;
+
+      if (mod_file->use_dll && language == LanguageOutputType::julia)
+        throw DynareException("ERROR: `use_dll` option is not compatible with Julia");
+
+      if (mod_file->use_dll && language == LanguageOutputType::python)
+        throw DynareException("ERROR: `use_dll` option is not compatible with Python");
+
+      if (mod_file->use_dll)
+        ModelTree::initializeMEXCompilationWorkers(max(jthread::hardware_concurrency(), 1U), dynareroot,
+                                                   mexext);
+
+      if (json == JsonOutputPointType::parsing)
+        mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
+
+      // Run checking pass
+      mod_file->checkPass(nostrict, stochastic);
+      if (json == JsonOutputPointType::checkpass)
+        mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
+
+      // Perform transformations on the model (creation of auxiliary vars and equations)
+      mod_file->transformPass(nostrict, stochastic,
+                              compute_xrefs || json == JsonOutputPointType::transformpass,
+                              transform_unary_ops, exclude_eqs, include_eqs);
+      if (json == JsonOutputPointType::transformpass)
+        mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
+
+      // Evaluate parameters initialization, initval, endval and pounds
+      mod_file->evalAllExpressions(warn_uninit);
+
+      // Do computations
+      mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order);
+      if (json == JsonOutputPointType::computingpass)
+        mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, jsonderivsimple);
+
+      // Write output files
+      if (language == LanguageOutputType::julia)
+        mod_file->writeJuliaOutput(basename);
+      else if (language == LanguageOutputType::python)
+        mod_file->writePythonOutput(basename, use_jax, use_numba);
+      else
+        mod_file->writeMOutput(basename, clear_all, clear_global, no_warn, console, nograph,
+                               nointeractive, config, check_model_changes, minimal_workspace,
+                               compute_xrefs, mexext, matlabroot, onlymodel, gui, notime);
+
+      /* Ensures that workers are not destroyed before they finish compiling.
+         Also ensures that the preprocessor final message is printed after the end of
+         compilation (and is not printed in case of compilation failure). */
+      if (mod_file->use_dll)
+        ModelTree::waitForMEXCompilationWorkers();
+
+      cout << "Preprocessing completed." << '\n';
+      return EXIT_SUCCESS;
     }
-
-  /*
-   * Process Macro-expanded MOD file
-   */
-  ParsingDriver p(warnings, nostrict);
-
-  filesystem::remove_all(basename + "/model/json");
-
-  // Do parsing and construct internal representation of mod file
-  unique_ptr<ModFile> mod_file = p.parse(macro_output, debug);
-
-  // Handle use_dll option specified on the command line
-  if (use_dll)
-    mod_file->use_dll = true;
-
-  if (mod_file->use_dll && language == LanguageOutputType::julia)
+  catch (const DynareException& e)
     {
-      cerr << "ERROR: `use_dll` option is not compatible with Julia" << '\n';
-      exit(EXIT_FAILURE);
+      cerr << e.what() << '\n';
+      return EXIT_FAILURE;
     }
-
-  if (mod_file->use_dll && language == LanguageOutputType::python)
+  catch (const exception& e)
     {
-      cerr << "ERROR: `use_dll` option is not compatible with Python" << '\n';
-      exit(EXIT_FAILURE);
+      cerr << "ERROR: " << e.what() << '\n';
+      return EXIT_FAILURE;
     }
-
-  if (mod_file->use_dll)
-    ModelTree::initializeMEXCompilationWorkers(max(jthread::hardware_concurrency(), 1U), dynareroot,
-                                               mexext);
-
-  if (json == JsonOutputPointType::parsing)
-    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
-
-  // Run checking pass
-  mod_file->checkPass(nostrict, stochastic);
-  if (json == JsonOutputPointType::checkpass)
-    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
-
-  // Perform transformations on the model (creation of auxiliary vars and equations)
-  mod_file->transformPass(nostrict, stochastic,
-                          compute_xrefs || json == JsonOutputPointType::transformpass,
-                          transform_unary_ops, exclude_eqs, include_eqs);
-  if (json == JsonOutputPointType::transformpass)
-    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
-
-  // Evaluate parameters initialization, initval, endval and pounds
-  mod_file->evalAllExpressions(warn_uninit);
-
-  // Do computations
-  mod_file->computingPass(no_tmp_terms, output_mode, params_derivs_order);
-  if (json == JsonOutputPointType::computingpass)
-    mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson, jsonderivsimple);
-
-  // Write output files
-  if (language == LanguageOutputType::julia)
-    mod_file->writeJuliaOutput(basename);
-  else if (language == LanguageOutputType::python)
-    mod_file->writePythonOutput(basename, use_jax, use_numba);
-  else
-    mod_file->writeMOutput(basename, clear_all, clear_global, no_warn, console, nograph,
-                           nointeractive, config, check_model_changes, minimal_workspace,
-                           compute_xrefs, mexext, matlabroot, onlymodel, gui, notime);
-
-  /* Ensures that workers are not destroyed before they finish compiling.
-     Also ensures that the preprocessor final message is printed after the end of
-     compilation (and is not printed in case of compilation failure). */
-  if (mod_file->use_dll)
-    ModelTree::waitForMEXCompilationWorkers();
-
-  cout << "Preprocessing completed." << '\n';
-  return EXIT_SUCCESS;
 }

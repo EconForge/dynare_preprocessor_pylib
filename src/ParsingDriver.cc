@@ -106,8 +106,7 @@ ParsingDriver::parse(istream& in, bool debug)
 void
 ParsingDriver::error(const Dynare::parser::location_type& l, const string& m)
 {
-  cerr << "ERROR: " << l << ": " << m << '\n';
-  exit(EXIT_FAILURE);
+  throw ParserException(l, m);
 }
 
 void
@@ -1095,6 +1094,7 @@ void
 ParsingDriver::end_model()
 {
   bool exit_after_write = false;
+  ostringstream errs;
 
   if (undeclared_model_variable_errors.size() > 0)
     for (auto& it : undeclared_model_variable_errors)
@@ -1104,13 +1104,21 @@ ParsingDriver::end_model()
         else
           {
             exit_after_write = true;
-            cerr << it.second << '\n';
+            errs << it.second << '\n';
           }
       }
+
+  auto undeclared_saved = move(undeclared_model_variable_errors);
   undeclared_model_variable_errors.clear();
 
   if (exit_after_write)
-    exit(EXIT_FAILURE);
+    {
+      reset_data_tree();
+      string msg = errs.str();
+      if (!msg.empty() && msg.back() == '\n')
+        msg.pop_back();
+      throw ParserException(move(undeclared_saved), msg);
+    }
 
   reset_data_tree();
 }
@@ -2651,6 +2659,7 @@ ParsingDriver::end_planner_objective(expr_t expr)
 
   // Handle undeclared variables (see #81)
   bool exit_after_write = false;
+  ostringstream errs;
   if (undeclared_model_variable_errors.size() > 0)
     for (auto& it : undeclared_model_variable_errors)
       {
@@ -2659,12 +2668,19 @@ ParsingDriver::end_planner_objective(expr_t expr)
         else
           {
             exit_after_write = true;
-            cerr << it.second << '\n';
+            errs << it.second << '\n';
           }
       }
+  auto undeclared_saved = move(undeclared_model_variable_errors);
   undeclared_model_variable_errors.clear();
   if (exit_after_write)
-    exit(EXIT_FAILURE);
+    {
+      reset_data_tree();
+      string msg = errs.str();
+      if (!msg.empty() && msg.back() == '\n')
+        msg.pop_back();
+      throw ParserException(move(undeclared_saved), msg);
+    }
 
   reset_data_tree();
 }
@@ -3725,10 +3741,7 @@ ParsingDriver::external_function(const map<string, string>& options)
     else if (key == "nargs")
       external_function_options.nargs = stoi(value);
     else
-      {
-        std::cerr << "ParsingDriver::external_function_option(): unexpected error" << '\n';
-        exit(EXIT_FAILURE);
-      }
+      throw InternalCompilerException("ParsingDriver::external_function_option(): unexpected error");
 
   if (!external_function_id)
     error("The 'name' option must be passed to external_function().");

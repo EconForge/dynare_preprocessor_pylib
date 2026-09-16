@@ -37,6 +37,7 @@
 
 #include "ModFile.hh"
 #include "SymbolList.hh"
+#include "Exceptions.hh"
 
 #include "DynareBison.hh"
 #include "ExprNode.hh"
