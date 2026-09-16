@@ -114,354 +114,351 @@ main(int argc, char** argv)
       usage();
     }
 
-  const filesystem::path filename {argv[1]};
-  ifstream modfile(filename, ios::binary);
-  if (modfile.fail())
-    {
-      cerr << "ERROR: Could not open file: " << filename.string() << '\n';
-      exit(EXIT_FAILURE);
-    }
-
-  // Create options list, using first line of mod-file and command line
-  vector<string> options = parse_options_line(modfile);
-  for (int arg = 2; arg < argc; arg++)
-    options.emplace_back(argv[arg]);
-
-  // Parse options
-  bool notime = false;
-  bool clear_all = true;
-  bool clear_global = false;
-  bool save_macro = false;
-  filesystem::path save_macro_file;
-  bool debug = false;
-  bool no_tmp_terms = false;
-  bool only_macro = false;
-  bool line_macro = false;
-  bool no_warn = false;
-  int params_derivs_order = 2;
-  bool warn_uninit = false;
-  bool console = false;
-  bool nograph = false;
-  bool nointeractive = false;
-  filesystem::path conffile;
-  bool parallel = false;
-  string cluster_name;
-  bool parallel_follower_open_mode
-      = false; // Must be the same default as in matlab/default_option_values.m
-  bool parallel_test = false;
-  bool parallel_use_psexec = true; // Must be the same default as in matlab/default_option_values.m
-  bool nostrict = false;
-  bool stochastic = false;
-  bool check_model_changes = false;
-  bool minimal_workspace = false;
-  bool compute_xrefs = false;
-  bool transform_unary_ops = false;
-  bool gui = false;
-  string exclude_eqs, include_eqs;
-  vector<pair<string, string>> defines;
-  vector<filesystem::path> paths;
-  OutputType output_mode {OutputType::standard};
-  JsonOutputPointType json {JsonOutputPointType::nojson};
-  JsonFileOutputType json_output_mode {JsonFileOutputType::file};
-  bool onlyjson = false;
-  bool jsonderivsimple = false;
-  LanguageOutputType language {LanguageOutputType::matlab};
-  string mexext;
-  filesystem::path matlabroot;
-  bool onlymodel = false;
-  bool use_dll = false;
-  bool use_jax = false;
-  bool use_numba = false;
-
-  for (auto s : options)
-    {
-      if (s == "debug")
-        debug = true;
-      else if (s == "notime")
-        notime = true;
-      else if (s == "noclearall")
-        clear_all = false;
-      else if (s.substr(0, 19) == "params_derivs_order")
-        {
-          if (s.length() > 21 || s.at(19) != '='
-              || !(s.at(20) == '0' || s.at(20) == '1' || s.at(20) == '2'))
-            {
-              cerr << "Incorrect syntax for params_derivs_order option" << '\n';
-              usage();
-            }
-          params_derivs_order = stoi(s.substr(20));
-        }
-      else if (s == "onlyclearglobals")
-        {
-          clear_all = false;
-          clear_global = true;
-        }
-      else if (s == "onlymacro")
-        only_macro = true;
-      else if (s.substr(0, 9) == "savemacro")
-        {
-          save_macro = true;
-          if (s.length() > 9)
-            {
-              if (s.length() == 10 || s.at(9) != '=')
-                {
-                  cerr << "Incorrect syntax for savemacro option" << '\n';
-                  usage();
-                }
-              save_macro_file = s.substr(10);
-            }
-        }
-      else if (s == "linemacro")
-        line_macro = true;
-      else if (s == "notmpterms")
-        no_tmp_terms = true;
-      else if (s == "nolog")
-        {
-          // Do nothing, the option is implemented at the dynare.m level.
-          // We nevertheless accept it, to avoid an “unknown option” error.
-        }
-      else if (s == "nowarn")
-        no_warn = true;
-      else if (s == "warn_uninit")
-        warn_uninit = true;
-      else if (s == "console")
-        console = true;
-      else if (s == "nograph")
-        nograph = true;
-      else if (s == "nointeractive")
-        nointeractive = true;
-      else if (s.substr(0, 8) == "conffile")
-        {
-          if (s.length() <= 9 || s.at(8) != '=')
-            {
-              cerr << "Incorrect syntax for conffile option" << '\n';
-              usage();
-            }
-          conffile = s.substr(9);
-        }
-      else if (s == "parallel_follower_open_mode"
-               || s == "parallel_slave_open_mode") // Kept for backward compatibility, see #86
-        parallel_follower_open_mode = true;
-      else if (s == "parallel_test")
-        parallel_test = true;
-      else if (s.substr(0, 19) == "parallel_use_psexec")
-        {
-          if (s.length() <= 20 || s.at(19) != '=')
-            {
-              cerr << "Incorrect syntax for parallel_use_psexec option" << '\n';
-              usage();
-            }
-
-          s.erase(0, 20);
-
-          if (s == "true")
-            parallel_use_psexec = true;
-          else if (s == "false")
-            parallel_use_psexec = false;
-          else
-            {
-              cerr << "Incorrect syntax for parallel_use_psexec option" << '\n';
-              usage();
-            }
-        }
-      else if (s == "nostrict")
-        nostrict = true;
-      else if (s == "stochastic")
-        stochastic = true;
-      else if (s == "fast")
-        check_model_changes = true;
-      else if (s == "minimal_workspace")
-        minimal_workspace = true;
-      else if (s == "compute_xrefs")
-        compute_xrefs = true;
-      else if (s == "transform_unary_ops")
-        transform_unary_ops = true;
-      else if (s.substr(0, 8) == "parallel")
-        {
-          parallel = true;
-          if (s.length() > 8)
-            {
-              if (s.length() == 9 || s.at(8) != '=')
-                {
-                  cerr << "Incorrect syntax for parallel option" << '\n';
-                  usage();
-                }
-              cluster_name = s.substr(9);
-            }
-        }
-      else if (s.substr(0, 2) == "-D")
-        {
-          if (s.length() == 2)
-            {
-              cerr << "Incorrect syntax for command line define: the defined variable "
-                   << "must not be separated from -D by whitespace." << '\n';
-              usage();
-            }
-
-          if (auto equal_index = s.find('='); equal_index != string::npos)
-            defines.emplace_back(s.substr(2, equal_index - 2), s.substr(equal_index + 1));
-          else
-            defines.emplace_back(s.substr(2), "true");
-        }
-      else if (s.substr(0, 2) == "-I")
-        {
-          if (s.length() == 2)
-            {
-              cerr << "Incorrect syntax for command line define: the defined variable "
-                   << "must not be separated from -I by whitespace." << '\n';
-              usage();
-            }
-          paths.emplace_back(s.substr(2));
-        }
-      else if (s.substr(0, 6) == "output")
-        {
-          if (s.length() <= 7 || s.at(6) != '=')
-            {
-              cerr << "Incorrect syntax for output option" << '\n';
-              usage();
-            }
-
-          s.erase(0, 7);
-
-          if (s == "first")
-            output_mode = OutputType::first;
-          else if (s == "second")
-            output_mode = OutputType::second;
-          else if (s == "third")
-            output_mode = OutputType::third;
-          else
-            {
-              cerr << "Incorrect syntax for output option" << '\n';
-              usage();
-            }
-        }
-      else if (s.substr(0, 8) == "language")
-        {
-          if (s.length() <= 9 || s.at(8) != '=')
-            {
-              cerr << "Incorrect syntax for language option" << '\n';
-              usage();
-            }
-
-          s.erase(0, 9);
-
-          if (s == "matlab")
-            language = LanguageOutputType::matlab;
-          else if (s == "julia")
-            language = LanguageOutputType::julia;
-          else if (s == "python")
-            language = LanguageOutputType::python;
-          else
-            {
-              cerr << "Incorrect syntax for language option" << '\n';
-              usage();
-            }
-        }
-      else if (s == "usejax")
-        use_jax = true;
-      else if (s == "usenumba")
-        use_numba = true;
-      else if (s == "jsonstdout")
-        json_output_mode = JsonFileOutputType::standardout;
-      else if (s == "onlyjson")
-        onlyjson = true;
-      else if (s == "nopreprocessoroutput")
-        cout.rdbuf(nullptr);
-      else if (s == "jsonderivsimple")
-        jsonderivsimple = true;
-      else if (s.substr(0, 4) == "json")
-        {
-          if (s.length() <= 5 || s.at(4) != '=')
-            {
-              cerr << "Incorrect syntax for json option" << '\n';
-              usage();
-            }
-
-          s.erase(0, 5);
-
-          if (s == "parse")
-            json = JsonOutputPointType::parsing;
-          else if (s == "check")
-            json = JsonOutputPointType::checkpass;
-          else if (s == "transform")
-            json = JsonOutputPointType::transformpass;
-          else if (s == "compute")
-            json = JsonOutputPointType::computingpass;
-          else
-            {
-              cerr << "Incorrect syntax for json option" << '\n';
-              usage();
-            }
-        }
-      else if (s.substr(0, 6) == "mexext")
-        {
-          if (s.length() <= 7 || s.at(6) != '=')
-            {
-              cerr << "Incorrect syntax for mexext option" << '\n';
-              usage();
-            }
-          mexext = s.substr(7);
-        }
-      else if (s.substr(0, 11) == "exclude_eqs")
-        {
-          if (s.length() <= 12 || s.at(11) != '=')
-            {
-              cerr << "Incorrect syntax for exclude_eqs option" << '\n';
-              usage();
-            }
-          exclude_eqs = s.substr(12);
-        }
-      else if (s.substr(0, 11) == "include_eqs")
-        {
-          if (s.length() <= 12 || s.at(11) != '=')
-            {
-              cerr << "Incorrect syntax for include_eqs option" << '\n';
-              usage();
-            }
-          include_eqs = s.substr(12);
-        }
-      else if (s.substr(0, 10) == "matlabroot")
-        {
-          if (s.length() <= 11 || s.at(10) != '=')
-            {
-              cerr << "Incorrect syntax for matlabroot option" << '\n';
-              usage();
-            }
-          matlabroot = filesystem::path {s.substr(11)};
-        }
-      else if (s == "onlymodel")
-        onlymodel = true;
-      else if (s == "gui")
-        gui = true;
-      else if (s == "use_dll")
-        use_dll = true;
-      else if (s == "nocommutativity")
-        DataTree::setNoCommutativity();
-      else
-        {
-          cerr << "Unknown option: " << s << '\n';
-          usage();
-        }
-    }
-
-  cout << "Starting preprocessing of the model file ..." << '\n' << flush;
-
-  // Determine root of Dynare installation
-  const filesystem::path argv0 {argv[0]};
-  // Normal case: binary is in preprocessor/dynare-preprocessor(.exe)?
-  filesystem::path dynareroot = argv0.parent_path().parent_path();
-  if (argv0.filename().stem() == "dynare_m")
-    // Special case: backward compatibility location in matlab/preprocessor64/dynare_m(.exe)?
-    dynareroot = dynareroot.parent_path();
-
-  // Construct basename (i.e. remove file extension if there is one)
-  /* Calling string() method on filename.stem(): not necessary on GNU/Linux and macOS because there
-     is an implicit conversion from filesystem:path to string (i.e. basic_string<char>), but needed
-     on Windows because the implicit conversion is only to wstring (i.e. basic_string<wchar_t>). */
-  const string basename {filename.stem().string()};
-
   try
     {
+      const filesystem::path filename {argv[1]};
+      ifstream modfile(filename, ios::binary);
+      if (modfile.fail())
+        throw FileIOException(filename.string(), "reading");
+
+      // Create options list, using first line of mod-file and command line
+      vector<string> options = parse_options_line(modfile);
+      for (int arg = 2; arg < argc; arg++)
+        options.emplace_back(argv[arg]);
+
+      // Parse options
+      bool notime = false;
+      bool clear_all = true;
+      bool clear_global = false;
+      bool save_macro = false;
+      filesystem::path save_macro_file;
+      bool debug = false;
+      bool no_tmp_terms = false;
+      bool only_macro = false;
+      bool line_macro = false;
+      bool no_warn = false;
+      int params_derivs_order = 2;
+      bool warn_uninit = false;
+      bool console = false;
+      bool nograph = false;
+      bool nointeractive = false;
+      filesystem::path conffile;
+      bool parallel = false;
+      string cluster_name;
+      bool parallel_follower_open_mode
+          = false; // Must be the same default as in matlab/default_option_values.m
+      bool parallel_test = false;
+      bool parallel_use_psexec = true; // Must be the same default as in matlab/default_option_values.m
+      bool nostrict = false;
+      bool stochastic = false;
+      bool check_model_changes = false;
+      bool minimal_workspace = false;
+      bool compute_xrefs = false;
+      bool transform_unary_ops = false;
+      bool gui = false;
+      string exclude_eqs, include_eqs;
+      vector<pair<string, string>> defines;
+      vector<filesystem::path> paths;
+      OutputType output_mode {OutputType::standard};
+      JsonOutputPointType json {JsonOutputPointType::nojson};
+      JsonFileOutputType json_output_mode {JsonFileOutputType::file};
+      bool onlyjson = false;
+      bool jsonderivsimple = false;
+      LanguageOutputType language {LanguageOutputType::matlab};
+      string mexext;
+      filesystem::path matlabroot;
+      bool onlymodel = false;
+      bool use_dll = false;
+      bool use_jax = false;
+      bool use_numba = false;
+
+      for (auto s : options)
+        {
+          if (s == "debug")
+            debug = true;
+          else if (s == "notime")
+            notime = true;
+          else if (s == "noclearall")
+            clear_all = false;
+          else if (s.substr(0, 19) == "params_derivs_order")
+            {
+              if (s.length() > 21 || s.at(19) != '='
+                  || !(s.at(20) == '0' || s.at(20) == '1' || s.at(20) == '2'))
+                {
+                  cerr << "Incorrect syntax for params_derivs_order option" << '\n';
+                  usage();
+                }
+              params_derivs_order = stoi(s.substr(20));
+            }
+          else if (s == "onlyclearglobals")
+            {
+              clear_all = false;
+              clear_global = true;
+            }
+          else if (s == "onlymacro")
+            only_macro = true;
+          else if (s.substr(0, 9) == "savemacro")
+            {
+              save_macro = true;
+              if (s.length() > 9)
+                {
+                  if (s.length() == 10 || s.at(9) != '=')
+                    {
+                      cerr << "Incorrect syntax for savemacro option" << '\n';
+                      usage();
+                    }
+                  save_macro_file = s.substr(10);
+                }
+            }
+          else if (s == "linemacro")
+            line_macro = true;
+          else if (s == "notmpterms")
+            no_tmp_terms = true;
+          else if (s == "nolog")
+            {
+              // Do nothing, the option is implemented at the dynare.m level.
+              // We nevertheless accept it, to avoid an “unknown option” error.
+            }
+          else if (s == "nowarn")
+            no_warn = true;
+          else if (s == "warn_uninit")
+            warn_uninit = true;
+          else if (s == "console")
+            console = true;
+          else if (s == "nograph")
+            nograph = true;
+          else if (s == "nointeractive")
+            nointeractive = true;
+          else if (s.substr(0, 8) == "conffile")
+            {
+              if (s.length() <= 9 || s.at(8) != '=')
+                {
+                  cerr << "Incorrect syntax for conffile option" << '\n';
+                  usage();
+                }
+              conffile = s.substr(9);
+            }
+          else if (s == "parallel_follower_open_mode"
+                   || s == "parallel_slave_open_mode") // Kept for backward compatibility, see #86
+            parallel_follower_open_mode = true;
+          else if (s == "parallel_test")
+            parallel_test = true;
+          else if (s.substr(0, 19) == "parallel_use_psexec")
+            {
+              if (s.length() <= 20 || s.at(19) != '=')
+                {
+                  cerr << "Incorrect syntax for parallel_use_psexec option" << '\n';
+                  usage();
+                }
+
+              s.erase(0, 20);
+
+              if (s == "true")
+                parallel_use_psexec = true;
+              else if (s == "false")
+                parallel_use_psexec = false;
+              else
+                {
+                  cerr << "Incorrect syntax for parallel_use_psexec option" << '\n';
+                  usage();
+                }
+            }
+          else if (s == "nostrict")
+            nostrict = true;
+          else if (s == "stochastic")
+            stochastic = true;
+          else if (s == "fast")
+            check_model_changes = true;
+          else if (s == "minimal_workspace")
+            minimal_workspace = true;
+          else if (s == "compute_xrefs")
+            compute_xrefs = true;
+          else if (s == "transform_unary_ops")
+            transform_unary_ops = true;
+          else if (s.substr(0, 8) == "parallel")
+            {
+              parallel = true;
+              if (s.length() > 8)
+                {
+                  if (s.length() == 9 || s.at(8) != '=')
+                    {
+                      cerr << "Incorrect syntax for parallel option" << '\n';
+                      usage();
+                    }
+                  cluster_name = s.substr(9);
+                }
+            }
+          else if (s.substr(0, 2) == "-D")
+            {
+              if (s.length() == 2)
+                {
+                  cerr << "Incorrect syntax for command line define: the defined variable "
+                       << "must not be separated from -D by whitespace." << '\n';
+                  usage();
+                }
+
+              if (auto equal_index = s.find('='); equal_index != string::npos)
+                defines.emplace_back(s.substr(2, equal_index - 2), s.substr(equal_index + 1));
+              else
+                defines.emplace_back(s.substr(2), "true");
+            }
+          else if (s.substr(0, 2) == "-I")
+            {
+              if (s.length() == 2)
+                {
+                  cerr << "Incorrect syntax for command line define: the defined variable "
+                       << "must not be separated from -I by whitespace." << '\n';
+                  usage();
+                }
+              paths.emplace_back(s.substr(2));
+            }
+          else if (s.substr(0, 6) == "output")
+            {
+              if (s.length() <= 7 || s.at(6) != '=')
+                {
+                  cerr << "Incorrect syntax for output option" << '\n';
+                  usage();
+                }
+
+              s.erase(0, 7);
+
+              if (s == "first")
+                output_mode = OutputType::first;
+              else if (s == "second")
+                output_mode = OutputType::second;
+              else if (s == "third")
+                output_mode = OutputType::third;
+              else
+                {
+                  cerr << "Incorrect syntax for output option" << '\n';
+                  usage();
+                }
+            }
+          else if (s.substr(0, 8) == "language")
+            {
+              if (s.length() <= 9 || s.at(8) != '=')
+                {
+                  cerr << "Incorrect syntax for language option" << '\n';
+                  usage();
+                }
+
+              s.erase(0, 9);
+
+              if (s == "matlab")
+                language = LanguageOutputType::matlab;
+              else if (s == "julia")
+                language = LanguageOutputType::julia;
+              else if (s == "python")
+                language = LanguageOutputType::python;
+              else
+                {
+                  cerr << "Incorrect syntax for language option" << '\n';
+                  usage();
+                }
+            }
+          else if (s == "usejax")
+            use_jax = true;
+          else if (s == "usenumba")
+            use_numba = true;
+          else if (s == "jsonstdout")
+            json_output_mode = JsonFileOutputType::standardout;
+          else if (s == "onlyjson")
+            onlyjson = true;
+          else if (s == "nopreprocessoroutput")
+            cout.rdbuf(nullptr);
+          else if (s == "jsonderivsimple")
+            jsonderivsimple = true;
+          else if (s.substr(0, 4) == "json")
+            {
+              if (s.length() <= 5 || s.at(4) != '=')
+                {
+                  cerr << "Incorrect syntax for json option" << '\n';
+                  usage();
+                }
+
+              s.erase(0, 5);
+
+              if (s == "parse")
+                json = JsonOutputPointType::parsing;
+              else if (s == "check")
+                json = JsonOutputPointType::checkpass;
+              else if (s == "transform")
+                json = JsonOutputPointType::transformpass;
+              else if (s == "compute")
+                json = JsonOutputPointType::computingpass;
+              else
+                {
+                  cerr << "Incorrect syntax for json option" << '\n';
+                  usage();
+                }
+            }
+          else if (s.substr(0, 6) == "mexext")
+            {
+              if (s.length() <= 7 || s.at(6) != '=')
+                {
+                  cerr << "Incorrect syntax for mexext option" << '\n';
+                  usage();
+                }
+              mexext = s.substr(7);
+            }
+          else if (s.substr(0, 11) == "exclude_eqs")
+            {
+              if (s.length() <= 12 || s.at(11) != '=')
+                {
+                  cerr << "Incorrect syntax for exclude_eqs option" << '\n';
+                  usage();
+                }
+              exclude_eqs = s.substr(12);
+            }
+          else if (s.substr(0, 11) == "include_eqs")
+            {
+              if (s.length() <= 12 || s.at(11) != '=')
+                {
+                  cerr << "Incorrect syntax for include_eqs option" << '\n';
+                  usage();
+                }
+              include_eqs = s.substr(12);
+            }
+          else if (s.substr(0, 10) == "matlabroot")
+            {
+              if (s.length() <= 11 || s.at(10) != '=')
+                {
+                  cerr << "Incorrect syntax for matlabroot option" << '\n';
+                  usage();
+                }
+              matlabroot = filesystem::path {s.substr(11)};
+            }
+          else if (s == "onlymodel")
+            onlymodel = true;
+          else if (s == "gui")
+            gui = true;
+          else if (s == "use_dll")
+            use_dll = true;
+          else if (s == "nocommutativity")
+            DataTree::setNoCommutativity();
+          else
+            {
+              cerr << "Unknown option: " << s << '\n';
+              usage();
+            }
+        }
+
+      cout << "Starting preprocessing of the model file ..." << '\n' << flush;
+
+      // Determine root of Dynare installation
+      const filesystem::path argv0 {argv[0]};
+      // Normal case: binary is in preprocessor/dynare-preprocessor(.exe)?
+      filesystem::path dynareroot = argv0.parent_path().parent_path();
+      if (argv0.filename().stem() == "dynare_m")
+        // Special case: backward compatibility location in matlab/preprocessor64/dynare_m(.exe)?
+        dynareroot = dynareroot.parent_path();
+
+      // Construct basename (i.e. remove file extension if there is one)
+      /* Calling string() method on filename.stem(): not necessary on GNU/Linux and macOS because there
+         is an implicit conversion from filesystem:path to string (i.e. basic_string<char>), but needed
+         on Windows because the implicit conversion is only to wstring (i.e. basic_string<wchar_t>). */
+      const string basename {filename.stem().string()};
+
       // Forbid some basenames, since they will cause trouble (see preprocessor#62)
       set<string> forbidden_basenames = {"T", "y", "x", "params", "steady_state", "it_", "true"};
       if (forbidden_basenames.contains(basename))

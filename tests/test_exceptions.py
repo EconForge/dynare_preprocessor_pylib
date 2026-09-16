@@ -333,6 +333,18 @@ stoch_simul;
         self.assertEqual(code, 1)
         self.assertIn("cannot contain both one of {perfect_foresight_solver", out)
 
+    def test_nonexistent_file(self):
+        """Test error when input .mod file does not exist."""
+        proc = subprocess.run(
+            [PREPROCESSOR_BIN, "nonexistent_file_xyz123.mod"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(proc.returncode, 1)
+        combined = proc.stdout + proc.stderr
+        self.assertIn("Can't open file nonexistent_file_xyz123.mod for reading", combined)
+
 
 if __name__ == "__main__":
     unittest.main()
+
