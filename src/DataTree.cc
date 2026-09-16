@@ -28,6 +28,7 @@
 #include <string>
 
 #include "DataTree.hh"
+#include "Exceptions.hh"
 
 bool DataTree::no_commutativity = false;
 
@@ -148,10 +149,7 @@ VariableNode*
 DataTree::AddVariable(int symb_id, int lag)
 {
   if (lag != 0 && !is_dynamic)
-    {
-      cerr << "Leads/lags not authorized in this DataTree" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("Leads/lags not authorized in this DataTree");
 
   if (auto it = variable_node_map.find({symb_id, lag}); it != variable_node_map.end())
     return it->second;
@@ -168,11 +166,8 @@ DataTree::getVariable(int symb_id, int lag) const
 {
   auto it = variable_node_map.find({symb_id, lag});
   if (it == variable_node_map.end())
-    {
-      cerr << "DataTree::getVariable: unknown variable node for symb_id=" << symb_id
-           << " and lag=" << lag << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw InternalCompilerException("DataTree::getVariable: unknown variable node for symb_id="
+                                    + to_string(symb_id) + " and lag=" + to_string(lag));
   return it->second;
 }
 
@@ -443,10 +438,7 @@ DataTree::AddLog(expr_t iArg1)
     return Zero;
 
   if (iArg1 == Zero)
-    {
-      cerr << "ERROR: log(0) not defined!" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("log(0) not defined!");
 
   // Simplify log(1/x) in −log(x)
   if (auto barg1 = dynamic_cast<BinaryOpNode*>(iArg1);
@@ -463,10 +455,7 @@ DataTree::AddLog10(expr_t iArg1)
     return Zero;
 
   if (iArg1 == Zero)
-    {
-      cerr << "ERROR: log10(0) not defined!" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("log10(0) not defined!");
 
   // Simplify log₁₀(1/x) in −log₁₀(x)
   if (auto barg1 = dynamic_cast<BinaryOpNode*>(iArg1);

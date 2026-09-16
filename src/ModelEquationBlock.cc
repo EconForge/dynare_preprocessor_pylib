@@ -22,6 +22,7 @@
 #include <ranges>
 #include <sstream>
 
+#include "Exceptions.hh"
 #include "ModelEquationBlock.hh"
 #include "Utils.hh"
 
@@ -193,13 +194,14 @@ SteadyStateModel::checkPass(ModFileStructure& mod_file_struct, WarningConsolidat
           for (int used_symbol : used_symbols)
             if (!so_far_defined.contains(used_symbol))
               {
-                cerr << "ERROR: in the 'steady_state_model' block";
+                ostringstream oss;
+                oss << "in the 'steady_state_model' block";
                 if (lineno)
-                  cerr << ", line " << *lineno;
-                cerr << ", variable '" << symbol_table.getName(used_symbol)
-                     << "' is undefined in the declaration of variable '"
-                     << symbol_table.getName(symb_ids[0]) << "'" << '\n';
-                exit(EXIT_FAILURE);
+                  oss << ", line " << *lineno;
+                oss << ", variable '" << symbol_table.getName(used_symbol)
+                    << "' is undefined in the declaration of variable '"
+                    << symbol_table.getName(symb_ids[0]) << "'";
+                throw ModelSemanticException(oss.str());
               }
         }
 
@@ -229,17 +231,11 @@ SteadyStateModel::writeLatexSteadyStateFile(const string& basename) const
 
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename.string(), "writing");
 
   ofstream content_output {content_filename, ios::out | ios::binary};
   if (!content_output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << content_filename.string() << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(content_filename.string(), "writing");
 
   output << "\\documentclass[10pt,a4paper]{article}" << '\n'
          << "\\usepackage[landscape]{geometry}" << '\n'
@@ -326,10 +322,7 @@ SteadyStateModel::writeSteadyStateFile(const string& basename, bool julia) const
       filesystem::path filename {packageDir(basename) / "steadystate.m"};
       ofstream output_file {filename, ios::out | ios::binary};
       if (!output_file.is_open())
-        {
-          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw FileIOException(filename.string(), "writing");
       output_file << output.str();
       output_file.close();
     }
@@ -430,23 +423,16 @@ Epilogue::checkPass(ModFileStructure& mod_file_struct) const
   if (dynamic_def_table.size() == 0)
     {
       if (mod_file_struct.with_epilogue_option)
-        {
-          cerr << "ERROR: the 'with_epilogue' option cannot be specified when there is no "
-                  "'epilogue' block"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw ModelSemanticException(
+            "the 'with_epilogue' option cannot be specified when there is no 'epilogue' block");
       return;
     }
 
   set<int> so_far_defined;
   for (const auto& [symb_id, expr] : dynamic_def_table)
     if (so_far_defined.contains(symb_id))
-      {
-        cerr << "ERROR: in the 'epilogue' block, variable '" << symbol_table.getName(symb_id)
-             << "' is declared twice" << '\n';
-        exit(EXIT_FAILURE);
-      }
+      throw ModelSemanticException(format("in the 'epilogue' block, variable '{}' is declared twice",
+                                          symbol_table.getName(symb_id)));
     else
       so_far_defined.insert(symb_id);
 }
@@ -498,10 +484,7 @@ Epilogue::writeStaticEpilogueFile(const string& basename) const
   filesystem::path filename {packageDir(basename) / "epilogue_static.m"};
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename.string(), "writing");
 
   output << "function epilogue = epilogue_static(y, x, params)" << '\n'
          << "% function epilogue = epilogue_static(y, x, params)" << '\n'
@@ -531,10 +514,7 @@ Epilogue::writeDynamicEpilogueFile(const string& basename) const
   filesystem::path filename {packageDir(basename) / "epilogue_dynamic.m"};
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename.string(), "writing");
 
   output << "function ds = epilogue_dynamic(params, ds, steady_state, epilogue_steady_state)"
          << '\n'
@@ -618,10 +598,7 @@ SteadyStateModel::writePythonSteadyStateFile(const string& basename, bool use_ja
   string filename = model_dir.string() + "/steadystate.py";
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename, "writing");
 
   output << writePythonHelpersImports(use_jax, use_numba) << '\n'
          << writePythonHelpersImportFromInit() << '\n'

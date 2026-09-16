@@ -24,6 +24,8 @@
 #include <iostream>
 #include <random>
 
+#include "Exceptions.hh"
+
 vector<string>
 strsplit(string_view str, char delim)
 {
@@ -63,10 +65,7 @@ writeToFileIfModified(stringstream& new_contents, const filesystem::path& filena
 
   ofstream new_file {filename, ios::out | ios::binary};
   if (!new_file.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename, "writing");
   ranges::copy(istreambuf_iterator<char> {new_contents}, istreambuf_iterator<char> {},
                ostreambuf_iterator<char> {new_file});
   new_file.close();

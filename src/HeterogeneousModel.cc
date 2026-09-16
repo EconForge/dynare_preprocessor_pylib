@@ -26,6 +26,7 @@
 #include <boost/graph/topological_sort.hpp>
 
 #include "DynamicModel.hh"
+#include "Exceptions.hh"
 #include "HeterogeneousModel.hh"
 
 HeterogeneousModel::HeterogeneousModel(SymbolTable& symbol_table_arg,
@@ -88,8 +89,7 @@ HeterogeneousModel::getUsedAggregateExogenous() const
 void
 HeterogeneousModel::computeChainRuleJacobian()
 {
-  cerr << "Heterogeneous::computeChainRuleJacobian(): unimplemented" << '\n';
-  exit(EXIT_FAILURE);
+  throw InternalCompilerException("HeterogeneousModel::computeChainRuleJacobian(): unimplemented");
 }
 
 int
@@ -97,15 +97,14 @@ HeterogeneousModel::getLegacyBlockJacobianEndoCol([[maybe_unused]] int blk,
                                                   [[maybe_unused]] int var,
                                                   [[maybe_unused]] int lead_lag) const
 {
-  cerr << "Heterogeneous::getLegacyBlockJacobianEndoCol(): unimplemented" << '\n';
-  exit(EXIT_FAILURE);
+  throw InternalCompilerException(
+      "HeterogeneousModel::getLegacyBlockJacobianEndoCol(): unimplemented");
 }
 
 int
 HeterogeneousModel::getMFS() const
 {
-  cerr << "Heterogeneous::getMFS(): unimplemented" << '\n';
-  exit(EXIT_FAILURE);
+  throw InternalCompilerException("HeterogeneousModel::getMFS(): unimplemented");
 }
 
 void
@@ -151,44 +150,37 @@ HeterogeneousModel::checkPass() const
       for (const auto& [symb_id, lead_lag] : het_exo_vars)
         if (symbol_table.getHeterogeneityDimension(symb_id) == heterogeneity_dimension
             && lead_lag < 0)
-          {
-            cerr << "ERROR: In model(heterogeneity=" << dim_name << "), equation " << i + 1 << ": "
-                 << "lagged heterogeneous exogenous variable '" << symbol_table.getName(symb_id)
-                 << "' is not supported." << '\n';
-            exit(EXIT_FAILURE);
-          }
+          throw ModelSemanticException(
+              format("In model(heterogeneity={}), equation {}: lagged heterogeneous exogenous "
+                     "variable '{}' is not supported.",
+                     dim_name, i + 1, symbol_table.getName(symb_id)));
 
       // Check for het exo leads (not supported)
       for (const auto& [symb_id, lead_lag] : het_exo_vars)
         if (symbol_table.getHeterogeneityDimension(symb_id) == heterogeneity_dimension
             && lead_lag > 0)
-          {
-            cerr << "ERROR: In model(heterogeneity=" << dim_name << "), equation " << i + 1 << ": "
-                 << "lead on heterogeneous exogenous variable '" << symbol_table.getName(symb_id)
-                 << "(" << showpos << lead_lag << noshowpos << ")' is not supported." << '\n';
-            exit(EXIT_FAILURE);
-          }
+          throw ModelSemanticException(
+              format("In model(heterogeneity={}), equation {}: lead on heterogeneous exogenous "
+                     "variable '{}({})' is not supported.",
+                     dim_name, i + 1, symbol_table.getName(symb_id),
+                     (lead_lag > 0 ? "+" : "") + to_string(lead_lag)));
 
       for (const auto& [symb_id, lead_lag] : het_endo_vars)
         if (symbol_table.getHeterogeneityDimension(symb_id) == heterogeneity_dimension
             && lead_lag < -1)
-          {
-            cerr << "ERROR: In model(heterogeneity=" << dim_name << "), equation " << i + 1 << ": "
-                 << "heterogeneous endogenous variable '" << symbol_table.getName(symb_id)
-                 << "' with lag " << lead_lag << " is not supported (maximum lag is -1)." << '\n';
-            exit(EXIT_FAILURE);
-          }
+          throw ModelSemanticException(
+              format("In model(heterogeneity={}), equation {}: heterogeneous endogenous variable "
+                     "'{}' with lag {} is not supported (maximum lag is -1).",
+                     dim_name, i + 1, symbol_table.getName(symb_id), lead_lag));
 
       // Check for het endo leads > 1 (not supported)
       for (const auto& [symb_id, lead_lag] : het_endo_vars)
         if (symbol_table.getHeterogeneityDimension(symb_id) == heterogeneity_dimension
             && lead_lag > 1)
-          {
-            cerr << "ERROR: In model(heterogeneity=" << dim_name << "), equation " << i + 1 << ": "
-                 << "heterogeneous endogenous variable '" << symbol_table.getName(symb_id)
-                 << "' with lead " << lead_lag << " is not supported (maximum lead is +1)." << '\n';
-            exit(EXIT_FAILURE);
-          }
+          throw ModelSemanticException(
+              format("In model(heterogeneity={}), equation {}: heterogeneous endogenous variable "
+                     "'{}' with lead {} is not supported (maximum lead is +1).",
+                     dim_name, i + 1, symbol_table.getName(symb_id), lead_lag));
 
       // Check for non-separable het lead/lag expressions: non-separable combinations of leads with
       // lagged states. A non-separable het lead/lag pattern occurs when an expression:
@@ -201,14 +193,13 @@ HeterogeneousModel::checkPass() const
       if (auto subexpr = equations[i]->findNonSeparableHetLeadLagSubexpr(heterogeneity_dimension);
           subexpr)
         {
-          cerr << "ERROR: In model(heterogeneity=" << dim_name << "), equation " << i + 1;
+          ostringstream oss;
+          oss << "In model(heterogeneity=" << dim_name << "), equation " << i + 1;
           if (equations_lineno[i])
-            cerr << " (line " << *equations_lineno[i] << ")";
-          cerr << ":" << '\n'
-               << "  Non-separable expression '" << subexpr->toString() << "'"
-               << "  combines forward-looking variables with lagged states and is not supported."
-               << '\n';
-          exit(EXIT_FAILURE);
+            oss << " (line " << *equations_lineno[i] << ")";
+          oss << ":\n  Non-separable expression '" << subexpr->toString() << "'"
+              << "  combines forward-looking variables with lagged states and is not supported.";
+          throw ModelSemanticException(oss.str());
         }
     }
 }
@@ -414,11 +405,8 @@ HeterogeneousModel::computeHetAuxTopologicalLevels()
 
       // Safety check: if no progress made, there's a cycle
       if (level_vars.empty() && assigned < n)
-        {
-          cerr << "ERROR: Circular dependency detected in heterogeneous auxiliary variables"
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw ModelSemanticException(
+            "Circular dependency detected in heterogeneous auxiliary variables");
     }
 }
 
@@ -481,8 +469,8 @@ HeterogeneousModel::substituteLeadLagInternal(DynamicModel& dynamic_model, AuxVa
           subst = value->substituteExoLag(subst_table, neweqs);
           break;
         default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << '\n';
-          exit(EXIT_FAILURE);
+          throw InternalCompilerException(
+              "DynamicModel::substituteLeadLagInternal: impossible case");
         }
       local_variables_table[used_local_var] = subst;
     }
@@ -510,8 +498,8 @@ HeterogeneousModel::substituteLeadLagInternal(DynamicModel& dynamic_model, AuxVa
           subst = equation->substituteExoLag(subst_table, neweqs);
           break;
         default:
-          cerr << "HeterogeneousModel::substituteLeadLagInternal: impossible case" << '\n';
-          exit(EXIT_FAILURE);
+          throw InternalCompilerException(
+              "HeterogeneousModel::substituteLeadLagInternal: impossible case");
         }
       auto substeq = dynamic_cast<BinaryOpNode*>(subst);
       assert(substeq);
@@ -555,8 +543,8 @@ HeterogeneousModel::substituteLeadLagInternal(DynamicModel& dynamic_model, AuxVa
           cout << "exo lags";
           break;
         default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << '\n';
-          exit(EXIT_FAILURE);
+          throw InternalCompilerException(
+              "DynamicModel::substituteLeadLagInternal: impossible case");
         }
       cout << ": added " << neweqs.size() << " auxiliary variables and equations." << '\n';
     }
@@ -609,10 +597,7 @@ HeterogeneousModel::writeSetHetAuxiliaryVariablesFile(const string& basename) co
           .string()};
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename, "writing");
 
   output << "function yh = dynamic_het" << heterogeneity_dimension + 1
          << "_set_auxiliary_variables(y, x, params, steady_state, yh, xh, paramsh, step)" << '\n'
@@ -705,8 +690,7 @@ HeterogeneousModel::getJacobianColsNbr() const
 int
 HeterogeneousModel::getLegacyJacobianCol([[maybe_unused]] int deriv_id) const
 {
-  cerr << "Heterogeneous::getLegacyJacobianCol(): unimplemented" << '\n';
-  exit(EXIT_FAILURE);
+  throw InternalCompilerException("HeterogeneousModel::getLegacyJacobianCol(): unimplemented");
 }
 
 SymbolType

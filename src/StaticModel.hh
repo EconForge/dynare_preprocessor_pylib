@@ -245,10 +245,7 @@ StaticModel::writeParamsDerivativesFile(const string& basename) const
       filesystem::path filename {packageDir(basename) / "static_params_derivs.m"};
       ofstream paramsDerivsFile {filename, ios::out | ios::binary};
       if (!paramsDerivsFile.is_open())
-        {
-          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw FileIOException(filename, "writing");
       paramsDerivsFile
           << "function [rp, g1p, rpp, g1pp, g2p] = static_params_derivs(y, x, params)" << '\n'
           << "%" << '\n'

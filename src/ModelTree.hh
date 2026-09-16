@@ -37,6 +37,7 @@
 #include "Bytecode.hh"
 #include "DataTree.hh"
 #include "EquationTags.hh"
+#include "Exceptions.hh"
 #include "ExtendedPreprocessorTypes.hh"
 #include "Utils.hh"
 
@@ -2170,10 +2171,7 @@ ModelTree::writeModelMFiles(const string& basename,
   auto open_file = [&output](const filesystem::path& p) {
     output.open(p, ios::out | ios::binary);
     if (!output.is_open())
-      {
-        cerr << "ERROR: Can't open file " << p.string() << " for writing" << '\n';
-        exit(EXIT_FAILURE);
-      }
+      throw FileIOException(p, "writing");
   };
 
   // Residuals (non-block)
@@ -2345,10 +2343,7 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
   auto open_file = [&output](const filesystem::path& p) {
     output.open(p, ios::out | ios::binary);
     if (!output.is_open())
-      {
-        cerr << "ERROR: Can't open file " << p.string() << " for writing" << '\n';
-        exit(EXIT_FAILURE);
-      }
+      throw FileIOException(p, "writing");
   };
 
   size_t ttlen {0};
@@ -2718,10 +2713,7 @@ ModelTree::writeDebugModelMFiles(const string& basename) const
   const filesystem::path resid_filename {m_dir / (prefix + "resid.m")};
   ofstream output {resid_filename, ios::out | ios::binary};
   if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << resid_filename.string() << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(resid_filename, "writing");
 
   output << "function [lhs, rhs] = " << prefix << "resid(y, x, params";
   if (dynamic)
@@ -2813,10 +2805,7 @@ ModelTree::writeSetAuxiliaryVariablesFile(const string& basename, bool julia) co
       filesystem::path filename {packageDir(basename) / (func_name + ".m")};
       ofstream output_file {filename, ios::out | ios::binary};
       if (!output_file.is_open())
-        {
-          cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw FileIOException(filename, "writing");
       output_file << output.str();
       output_file.close();
     }
@@ -2838,10 +2827,7 @@ ModelTree::writeComplementarityConditionsFile(const string& basename,
 
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename, "writing");
 
   output << "function [lb, ub] = " << funcname << "(params)" << '\n'
          << "ub = inf(" << equations.size() << ",1);" << '\n'

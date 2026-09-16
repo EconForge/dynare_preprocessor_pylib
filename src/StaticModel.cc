@@ -107,11 +107,10 @@ StaticModel::StaticModel(const DynamicModel& m) :
       }
     catch (const DataTree::DivisionByZeroException& e)
       {
-        cerr << "...division by zero error encountered when converting equation " << i;
+        string msg = "...division by zero error encountered when converting equation " + to_string(i);
         if (!e.message.empty())
-          cerr << " (" << e.message << ")";
-        cerr << '\n';
-        exit(EXIT_FAILURE);
+          msg += " (" + e.message + ")";
+        throw ModelSemanticException(msg);
       }
 
   // Convert auxiliary equations
@@ -167,10 +166,7 @@ StaticModel::writeStaticBlockBytecode(const string& basename) const
   const filesystem::path bin_filename {basename + "/model/bytecode/block/static.bin"};
   ofstream bin_file {bin_filename, ios::out | ios::binary};
   if (!bin_file.is_open())
-    {
-      cerr << R"(Error : Can't open file ")" << bin_filename.string() << R"(" for writing)" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(bin_filename, "writing");
 
   // Temporary variables declaration
   code_file << Bytecode::FDIMST {static_cast<int>(blocks_temporary_terms_idxs.size())};
@@ -238,12 +234,8 @@ StaticModel::computingPass(int derivsOrder, int paramsDerivsOrder,
 
   computingPassBlock(eval_context, no_tmp_terms);
   if (!block_decomposed && block)
-    {
-      cerr << "ERROR: Block decomposition requested but failed. If your model does not have a "
-              "steady state, you may want to try the 'no_static' option of the 'model' block."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("Block decomposition requested but failed. If your model does not have a "
+                                 "steady state, you may want to try the 'no_static' option of the 'model' block.");
 
   computeMCPEquationsReordering();
 }
@@ -689,10 +681,7 @@ StaticModel::writeRamseyMultipliersDerivativesMFile(const string& basename,
   filesystem::path filename {packageDir(basename) / "ramsey_multipliers_static_g1.m"};
   ofstream output_file {filename, ios::out | ios::binary};
   if (!output_file.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename.string() << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename, "writing");
 
   output_file << "function g1m = ramsey_multipliers_static_g1(y, x, params, sparse_rowval, "
                  "sparse_colval, sparse_colptr)"
@@ -722,10 +711,7 @@ StaticModel::writeRamseyMultipliersDerivativesCFile(const string& basename, cons
   const filesystem::path p {model_src_dir / "ramsey_multipliers_static_g1.c"};
   ofstream output {p, ios::out | ios::binary};
   if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << p.string() << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(p, "writing");
 
   output << "#include <math.h>" << '\n'
          << '\n'
@@ -804,10 +790,7 @@ StaticModel::writePythonStaticFile(const string& basename, bool use_jax, bool us
   string filename = model_dir.string() + "/static.py";
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename, "writing");
 
   output << writePythonHelpersImports(use_jax, use_numba) << '\n'
          << writePythonHelpersImportFromInit() << '\n'
@@ -948,10 +931,7 @@ StaticModel::writePythonStaticParamsDerivatives(const string& basename, bool use
   string filename = model_dir.string() + "/static_params_derivs.py";
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename, "writing");
 
   output << writePythonHelpersImports(use_jax, use_numba) << '\n'
          << writePythonHelpersImportFromInit() << '\n'

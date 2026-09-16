@@ -221,10 +221,7 @@ DynamicModel::writeDynamicBlockBytecode(const string& basename) const
   const filesystem::path bin_filename {basename + "/model/bytecode/block/dynamic.bin"};
   ofstream bin_file {bin_filename, ios::out | ios::binary};
   if (!bin_file.is_open())
-    {
-      cerr << R"(Error : Can't open file ")" << bin_filename.string() << R"(" for writing)" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(bin_filename, "writing");
 
   // Temporary variables declaration
   code_file << Bytecode::FDIMT {static_cast<int>(blocks_temporary_terms_idxs.size())};
@@ -307,10 +304,7 @@ DynamicModel::parseIncludeExcludeEquations(const string& inc_exc_option_value, b
       ifstream exclude_file;
       exclude_file.open(inc_exc_option_value, ifstream::in);
       if (!exclude_file.is_open())
-        {
-          cerr << "ERROR: Could not open " << inc_exc_option_value << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw FileIOException(inc_exc_option_value, "reading");
 
       string line;
       bool tagname_on_first_line = false;
@@ -343,11 +337,8 @@ DynamicModel::parseIncludeExcludeEquations(const string& inc_exc_option_value, b
   removeLeadingTrailingWhitespace(tags);
 
   if (tags.front() == '[' && tags.back() != ']')
-    {
-      cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
-           << ": if the first character is '[' the last must be ']'" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException((exclude_eqs ? "exclude_eqs"s : "include_eqs"s)
+                                 + ": if the first character is '[' the last must be ']'");
 
   if (tags.front() == '[' && tags.back() == ']')
     tags = tags.substr(1, tags.length() - 2);
@@ -375,11 +366,8 @@ DynamicModel::parseIncludeExcludeEquations(const string& inc_exc_option_value, b
   regex r(R"((\s*)" + quote_regex + "|" + non_quote_regex + R"(\s*)(,\s*()" + quote_regex + "|"
           + non_quote_regex + R"()\s*)*)");
   if (!regex_match(tags, r))
-    {
-      cerr << "ERROR: " << (exclude_eqs ? "exclude_eqs" : "include_eqs")
-           << ": argument is of incorrect format." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException((exclude_eqs ? "exclude_eqs"s : "include_eqs"s)
+                                 + ": argument is of incorrect format.");
 
   vector<map<string, string>> eq_tag_set;
   regex s(quote_regex + "|" + non_quote_regex);
@@ -450,11 +438,9 @@ DynamicModel::removeEquationsHelper(
                   excluded_vars.push_back(*result.begin());
                 else
                   {
-                    cerr << "ERROR: Equation " << i + 1
-                         << " has been excluded but it does not have a single variable on its "
-                            "left-hand side or an `endogenous` tag"
-                         << '\n';
-                    exit(EXIT_FAILURE);
+                    throw ModelSemanticException("Equation " + to_string(i + 1)
+                                                 + " has been excluded but it does not have a single variable on its "
+                                                   "left-hand side or an `endogenous` tag");
                   }
               }
           }
@@ -478,13 +464,9 @@ DynamicModel::removeEquationsHelper(
     for (size_t i = 0; i < excluded_vars.size(); i++)
       for (size_t j = i + 1; j < excluded_vars.size(); j++)
         if (excluded_vars[i] == excluded_vars[j])
-          {
-            cerr << "ERROR: Variable " << symbol_table.getName(i) << " was excluded twice"
-                 << " via a model_remove or model_replace statement, or via the include_eqs or "
-                    "exclude_eqs option"
-                 << '\n';
-            exit(EXIT_FAILURE);
-          }
+          throw ModelSemanticException("Variable " + symbol_table.getName(i) + " was excluded twice"
+                                       + " via a model_remove or model_replace statement, or via the include_eqs or "
+                                         "exclude_eqs option");
 
   cout << "Excluded " << n_excl << (static_equations ? " static " : " dynamic ") << "equation"
        << (n_excl > 1 ? "s" : "")
@@ -513,27 +495,26 @@ DynamicModel::removeEquations(const vector<map<string, string>>& listed_eqs_by_t
 
   if (!listed_eqs_by_tag2.empty())
     {
-      cerr
-          << "ERROR: model_remove/model_replace/exclude_eqs/include_eqs: The equations specified by"
-          << '\n';
+      ostringstream msg;
+      msg << "model_remove/model_replace/exclude_eqs/include_eqs: The equations specified by\n";
       for (const auto& m : listed_eqs_by_tag)
         {
-          cerr << " ";
+          msg << " ";
           if (m.size() > 1)
-            cerr << "[ ";
+            msg << "[ ";
           bool first_printed {false};
           for (const auto& [tagname, tagvalue] : m)
             {
               if (exchange(first_printed, true))
-                cerr << ", ";
-              cerr << tagname << "=" << tagvalue;
+                msg << ", ";
+              msg << tagname << "=" << tagvalue;
             }
           if (m.size() > 1)
-            cerr << " ]";
-          cerr << '\n';
+            msg << " ]";
+          msg << '\n';
         }
-      cerr << "were not found." << '\n';
-      exit(EXIT_FAILURE);
+      msg << "were not found.";
+      throw ModelSemanticException(msg.str());
     }
 
   if (excluded_vars_change_type)
@@ -582,12 +563,8 @@ DynamicModel::includeExcludeEquations(const string& inc_exc_option_value, bool e
      ModFile::checkPass(), but the present method is called from
      ModFile::transformPass(), so we must do the check again */
   if (staticOnlyEquationsNbr() != dynamicOnlyEquationsNbr())
-    {
-      cerr << "ERROR: exclude_eqs/include_eqs: You must remove the same number of equations marked "
-              "`static` as equations marked `dynamic`."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("exclude_eqs/include_eqs: You must remove the same number of equations marked "
+                                 "`static` as equations marked `dynamic`.");
 }
 
 void
@@ -924,12 +901,9 @@ DynamicModel::updateVarAndTrendModel() const
                           {
                           }
                       if (ranges::find(trend_lhs, *trend_var_symb_id) == trend_lhs.end())
-                        {
-                          cerr << "ERROR: trend found in trend_component equation #" << eqn << " ("
-                               << symbol_table.getName(*trend_var_symb_id)
-                               << ") does not correspond to a trend equation" << '\n';
-                          exit(EXIT_FAILURE);
-                        }
+                        throw ModelSemanticException("trend found in trend_component equation #" + to_string(eqn) + " ("
+                                                     + symbol_table.getName(*trend_var_symb_id)
+                                                     + ") does not correspond to a trend equation");
                     }
                   trend_var.push_back(trend_var_symb_id);
                 }
@@ -968,30 +942,20 @@ DynamicModel::fillVarModelTable() const
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
           optional<int> eqn {equation_tags.getEqnByTag("name", eqtag)};
           if (!eqn)
-            {
-              cerr << "ERROR: no equation is named '" << eqtag << "'" << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw ModelSemanticException("no equation is named '" + eqtag + "'");
 
           equations[*eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, lhs_set);
           equations[*eqn]->arg1->collectDynamicVariables(SymbolType::exogenous, lhs_tmp_set);
           equations[*eqn]->arg1->collectDynamicVariables(SymbolType::parameter, lhs_tmp_set);
 
           if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
-            {
-              cerr << "ERROR: in Equation " << eqtag
-                   << ". A VAR may only have one endogenous variable on the LHS. " << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw ModelSemanticException("in Equation " + eqtag
+                                         + ". A VAR may only have one endogenous variable on the LHS.");
 
           auto itlhs = lhs_set.begin();
           if (itlhs->second != 0)
-            {
-              cerr << "ERROR: in Equation " << eqtag
-                   << ". The variable on the LHS of a VAR may not appear with a lead or a lag. "
-                   << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw ModelSemanticException("in Equation " + eqtag
+                                         + ". The variable on the LHS of a VAR may not appear with a lead or a lag.");
 
           eqnumber.push_back(*eqn);
           lhs.push_back(itlhs->first);
@@ -1033,31 +997,17 @@ DynamicModel::fillVarModelTableFromOrigModel() const
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_endo_set);
           for (const auto& [symb_id, lag] : rhs_endo_set)
             if (lag > 0)
-              {
-                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
-                     << ". A VAR model may not have leaded endogenous variables on the RHS. "
-                     << '\n';
-                exit(EXIT_FAILURE);
-              }
+              throw ModelSemanticException("in Equation " + eqtag.value_or(to_string(eqn + 1))
+                                           + ". A VAR model may not have leaded endogenous variables on the RHS.");
             else if (!var_model_table.getStructural().at(model_name) && lag == 0)
-              {
-                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
-                     << ". A non-structural VAR model may not have contemporaneous endogenous "
-                        "variables on the RHS. "
-                     << '\n';
-                exit(EXIT_FAILURE);
-              }
+              throw ModelSemanticException("in Equation " + eqtag.value_or(to_string(eqn + 1))
+                                           + ". A non-structural VAR model may not have contemporaneous endogenous variables on the RHS.");
 
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::exogenous, rhs_exo_set);
           for (const auto& [symb_id, lag] : rhs_exo_set)
             if (lag != 0)
-              {
-                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
-                     << ". A VAR model may not have lagged or leaded exogenous variables on the "
-                        "RHS. "
-                     << '\n';
-                exit(EXIT_FAILURE);
-              }
+              throw ModelSemanticException("in Equation " + eqtag.value_or(to_string(eqn + 1))
+                                           + ". A VAR model may not have lagged or leaded exogenous variables on the RHS.");
 
           // save lhs variables
           equations[eqn]->arg1->collectVARLHSVariable(lhs);
@@ -1069,11 +1019,8 @@ DynamicModel::fillVarModelTableFromOrigModel() const
               equations[eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, diff_set);
 
               if (diff_set.size() != 1)
-                {
-                  cerr << "ERROR: problem getting variable for LHS diff operator in equation "
-                       << eqn << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw ModelSemanticException("problem getting variable for LHS diff operator in equation "
+                                             + to_string(eqn));
               orig_diff_var_vec.emplace_back(diff_set.begin()->first);
             }
           else
@@ -1081,10 +1028,7 @@ DynamicModel::fillVarModelTableFromOrigModel() const
         }
 
       if (eqns.size() != lhs.size())
-        {
-          cerr << "ERROR: The LHS variables of the VAR model are not unique" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw ModelSemanticException("The LHS variables of the VAR model are not unique");
 
       set<expr_t> lhs_lag_equiv;
       for (const auto& lh : lhs)
@@ -1180,13 +1124,10 @@ DynamicModel::fillVarModelTableMatrices()
                   if (d != Zero)
                     {
                       if (!d->isConstant())
-                        {
-                          cerr << "ERROR: Equation "
-                               << equation_tags.getTagValueByEqnAndKey(eqns[i], "name")
-                                      .value_or(to_string(eqns[i] + 1))
-                               << " is not linear" << '\n';
-                          exit(EXIT_FAILURE);
-                        }
+                        throw ModelSemanticException("Equation "
+                                                     + equation_tags.getTagValueByEqnAndKey(eqns[i], "name")
+                                                            .value_or(to_string(eqns[i] + 1))
+                                                     + " is not linear");
 
                       AR[model_name][{i, lag, lhs_symb_id}] = AddUMinus(d);
                     }
@@ -1201,13 +1142,10 @@ DynamicModel::fillVarModelTableMatrices()
               if (d != Zero)
                 {
                   if (!d->isConstant())
-                    {
-                      cerr << "ERROR: Equation "
-                           << equation_tags.getTagValueByEqnAndKey(eqns[i], "name")
-                                  .value_or(to_string(eqns[i] + 1))
-                           << " is not linear" << '\n';
-                      exit(EXIT_FAILURE);
-                    }
+                    throw ModelSemanticException("Equation "
+                                                 + equation_tags.getTagValueByEqnAndKey(eqns[i], "name")
+                                                        .value_or(to_string(eqns[i] + 1))
+                                                 + " is not linear");
 
                   A0[model_name][{i, lhs_symb_id}] = d;
                 }
@@ -1268,10 +1206,7 @@ DynamicModel::fillTrendComponentModelTable() const
         {
           optional<int> eqn {equation_tags.getEqnByTag("name", eqtag)};
           if (!eqn)
-            {
-              cerr << "ERROR: no equation is named '" << eqtag << "'" << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw ModelSemanticException("no equation is named '" + eqtag + "'");
           trend_eqnumber.push_back(*eqn);
         }
       trend_eqnums[model_name] = trend_eqnumber;
@@ -1288,32 +1223,20 @@ DynamicModel::fillTrendComponentModelTable() const
           set<pair<int, int>> lhs_set, lhs_tmp_set, rhs_set;
           optional<int> eqn {equation_tags.getEqnByTag("name", eqtag)};
           if (!eqn)
-            {
-              cerr << "ERROR: no equation is named '" << eqtag << "'" << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw ModelSemanticException("no equation is named '" + eqtag + "'");
 
           equations[*eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, lhs_set);
           equations[*eqn]->arg1->collectDynamicVariables(SymbolType::exogenous, lhs_tmp_set);
           equations[*eqn]->arg1->collectDynamicVariables(SymbolType::parameter, lhs_tmp_set);
 
           if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
-            {
-              cerr << "ERROR: in Equation " << eqtag
-                   << ". A trend component model may only have one endogenous variable on the LHS. "
-                   << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw ModelSemanticException("in Equation " + eqtag
+                                         + ". A trend component model may only have one endogenous variable on the LHS.");
 
           auto itlhs = lhs_set.begin();
           if (itlhs->second != 0)
-            {
-              cerr << "ERROR: in Equation " << eqtag
-                   << ". The variable on the LHS of a trend component model may not appear with a "
-                      "lead or a lag. "
-                   << '\n';
-              exit(EXIT_FAILURE);
-            }
+            throw ModelSemanticException("in Equation " + eqtag
+                                         + ". The variable on the LHS of a trend component model may not appear with a lead or a lag.");
 
           eqnumber.push_back(*eqn);
           lhs.push_back(itlhs->first);
@@ -1385,23 +1308,13 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_endo_set);
           for (const auto& [symb_id, lag] : rhs_endo_set)
             if (lag >= 0)
-              {
-                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
-                     << ". A trend component model may not have leaded or contemporaneous "
-                        "endogenous variables on the RHS. "
-                     << '\n';
-                exit(EXIT_FAILURE);
-              }
+              throw ModelSemanticException("in Equation " + eqtag.value_or(to_string(eqn + 1))
+                                           + ". A trend component model may not have leaded or contemporaneous endogenous variables on the RHS.");
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::exogenous, rhs_exo_set);
           for (const auto& [symb_id, lag] : rhs_exo_set)
             if (lag != 0)
-              {
-                cerr << "ERROR: in Equation " << eqtag.value_or(to_string(eqn + 1))
-                     << ". A trend component model may not have lagged or leaded exogenous "
-                        "variables on the RHS. "
-                     << '\n';
-                exit(EXIT_FAILURE);
-              }
+              throw ModelSemanticException("in Equation " + eqtag.value_or(to_string(eqn + 1))
+                                           + ". A trend component model may not have lagged or leaded exogenous variables on the RHS.");
 
           // save lhs variables
           equations[eqn]->arg1->collectVARLHSVariable(lhs);
@@ -1413,11 +1326,8 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
               equations[eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, diff_set);
 
               if (diff_set.size() != 1)
-                {
-                  cerr << "ERROR: problem getting variable for LHS diff operator in equation "
-                       << eqn << '\n';
-                  exit(EXIT_FAILURE);
-                }
+                throw ModelSemanticException("problem getting variable for LHS diff operator in equation "
+                                             + to_string(eqn));
               orig_diff_var_vec.emplace_back(diff_set.begin()->first);
             }
           else
@@ -1425,10 +1335,7 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
         }
 
       if (eqns.size() != lhs.size())
-        {
-          cerr << "ERROR: The LHS variables of the trend component model are not unique" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw ModelSemanticException("The LHS variables of the trend component model are not unique");
 
       set<expr_t> lhs_lag_equiv;
       for (const auto& lh : lhs)
@@ -1474,18 +1381,11 @@ DynamicModel::getUndiffLHSForPac(const string& aux_model_name,
       auto i = ranges::distance(eqnumber.begin(), ranges::find(eqnumber, eqn));
 
       if (eqnumber[i] != eqn)
-        {
-          cerr << "ERROR: equation " << eqn << " not found in VAR" << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw ModelSemanticException("equation " + to_string(eqn) + " not found in VAR");
 
       if (!diff.at(i))
-        {
-          cerr << "ERROR: the variable on the LHS of equation #" << eqn
-               << " does not have the diff operator applied to it yet you are trying to undiff it."
-               << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw ModelSemanticException("the variable on the LHS of equation #" + to_string(eqn)
+                                     + " does not have the diff operator applied to it yet you are trying to undiff it.");
 
       expr_t node = nullptr;
       expr_t aux_var = lhs_expr_t.at(i);
@@ -1497,10 +1397,7 @@ DynamicModel::getUndiffLHSForPac(const string& aux_model_name,
           }
 
       if (!node)
-        {
-          cerr << "Unexpected error encountered." << '\n';
-          exit(EXIT_FAILURE);
-        }
+        throw InternalCompilerException("Unexpected error encountered in DynamicModel::getUndiffLHSForPac.");
 
       node = node->undiff();
 
@@ -1526,20 +1423,12 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
     if (equation->containsPacExpectation(name))
       {
         if (pac_eq_name.contains(name))
-          {
-            cerr << "It is not possible to use 'pac_expectation(" << name
-                 << ")' in several equations." << '\n';
-            exit(EXIT_FAILURE);
-          }
+          throw ModelSemanticException("It is not possible to use 'pac_expectation(" + name
+                                       + ")' in several equations.");
         optional<string> eqn {
             equation_tags.getTagValueByEqnAndKey(&equation - &equations[0], "name")};
         if (!eqn)
-          {
-            cerr << "Every equation with a 'pac_expectation' operator must have been assigned an "
-                    "equation tag name"
-                 << '\n';
-            exit(EXIT_FAILURE);
-          }
+          throw ModelSemanticException("Every equation with a 'pac_expectation' operator must have been assigned an equation tag name");
         pac_eq_name[name] = *eqn;
 
         set<pair<int, int>> lhss;
@@ -1558,10 +1447,7 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
 
         auto arg2 = dynamic_cast<BinaryOpNode*>(equation->arg2);
         if (!arg2)
-          {
-            cerr << "Pac equation in incorrect format" << '\n';
-            exit(EXIT_FAILURE);
-          }
+          throw ModelSemanticException("Pac equation in incorrect format");
         auto [optim_share_index, optim_part, non_optim_part, additive_part]
             = arg2->getPacOptimizingShareAndExprNodes(lhs_orig_symb_id);
 
@@ -1573,10 +1459,7 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
           {
             auto bopn = dynamic_cast<BinaryOpNode*>(equation->arg2);
             if (!bopn)
-              {
-                cerr << "Error in PAC equation" << '\n';
-                exit(EXIT_FAILURE);
-              }
+              throw ModelSemanticException("Error in PAC equation");
             bopn->getPacAREC(lhs_symb_id, lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars,
                              additive_vars_params_and_constants);
           }
@@ -1584,10 +1467,7 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
           {
             auto bopn = dynamic_cast<BinaryOpNode*>(optim_part);
             if (!bopn)
-              {
-                cerr << "Error in PAC equation" << '\n';
-                exit(EXIT_FAILURE);
-              }
+              throw ModelSemanticException("Error in PAC equation");
             bopn->getPacAREC(lhs_symb_id, lhs_orig_symb_id, ec_params_and_vars, ar_params_and_vars,
                              optim_additive_vars_params_and_constants);
             try
@@ -1600,22 +1480,15 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
               }
             catch (ExprNode::MatchFailureException& e)
               {
-                cerr << "Error in parsing non-optimizing agents or additive part of PAC equation: "
-                     << e.message << '\n';
-                exit(EXIT_FAILURE);
+                throw ModelSemanticException("Error in parsing non-optimizing agents or additive part of PAC equation: "
+                                             + e.message);
               }
           }
 
         if (lhs.first == -1)
-          {
-            cerr << "analyzePacEquationStructure: error obtaining LHS variable." << '\n';
-            exit(EXIT_FAILURE);
-          }
+          throw ModelSemanticException("analyzePacEquationStructure: error obtaining LHS variable.");
         if (ec_params_and_vars.second.empty())
-          {
-            cerr << "analyzePacEquationStructure: error obtaining RHS parameters." << '\n';
-            exit(EXIT_FAILURE);
-          }
+          throw ModelSemanticException("analyzePacEquationStructure: error obtaining RHS parameters.");
         pac_equation_info[name] = {lhs,
                                    optim_share_index,
                                    move(ar_params_and_vars),
@@ -1626,11 +1499,7 @@ DynamicModel::analyzePacEquationStructure(const string& name, map<string, string
       }
 
   if (!pac_eq_name.contains(name))
-    {
-      cerr << "ERROR: the model does not contain the 'pac_expectation(" << name << ")' operator."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("the model does not contain the 'pac_expectation(" + name + ")' operator.");
 }
 
 int
@@ -1694,8 +1563,7 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(
     }
   catch (PacTargetNotIdentifiedException& e)
     {
-      cerr << "Can't identify target for PAC model " << name << ": " << e.message;
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException("Can't identify target for PAC model " + name + ": " + e.message);
     }
   int neqs = 0;
 
@@ -1722,10 +1590,9 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(
         }
       catch (SymbolTable::AlreadyDeclaredException& e)
         {
-          cerr << "The variable/parameter '" << param_name
-               << "' conflicts with a parameter that will be generated for the '" << name
-               << "' PAC model. Please rename it." << '\n';
-          exit(EXIT_FAILURE);
+          throw ModelSemanticException("The variable/parameter '" + param_name
+                                       + "' conflicts with a parameter that will be generated for the '" + name
+                                       + "' PAC model. Please rename it.");
         }
     }
 
@@ -1820,10 +1687,9 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
       }
     catch (SymbolTable::AlreadyDeclaredException)
       {
-        cerr << "ERROR: the variable/parameter '" << param_name
-             << "' conflicts with some auxiliary parameter that will be generated for the '" << name
-             << "' PAC model. Please rename that parameter." << '\n';
-        exit(EXIT_FAILURE);
+        throw ModelSemanticException("the variable/parameter '" + param_name
+                                     + "' conflicts with some auxiliary parameter that will be generated for the '" + name
+                                     + "' PAC model. Please rename that parameter.");
       }
   };
   int neqs = 0;
@@ -1848,10 +1714,9 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
         }
       catch (SymbolTable::AlreadyDeclaredException& e)
         {
-          cerr << "The variable/parameter '" << param_name
-               << "' conflicts with a parameter that will be generated for the '" << name
-               << "' PAC model. Please rename it." << '\n';
-          exit(EXIT_FAILURE);
+          throw ModelSemanticException("The variable/parameter '" + param_name
+                                       + "' conflicts with a parameter that will be generated for the '" + name
+                                       + "' PAC model. Please rename it.");
         }
     }
 
@@ -2017,10 +1882,9 @@ DynamicModel::computePacBackwardExpectationSubstitution(
       }
     catch (SymbolTable::AlreadyDeclaredException)
       {
-        cerr << "ERROR: the variable/parameter '" << param_name
-             << "' conflicts with some auxiliary parameter that will be generated for the '" << name
-             << "' PAC model. Please rename that parameter." << '\n';
-        exit(EXIT_FAILURE);
+        throw ModelSemanticException("the variable/parameter '" + param_name
+                                     + "' conflicts with some auxiliary parameter that will be generated for the '" + name
+                                     + "' PAC model. Please rename that parameter.");
       }
   };
 
@@ -2068,10 +1932,9 @@ DynamicModel::computePacBackwardExpectationSubstitutionWithComponents(
       }
     catch (SymbolTable::AlreadyDeclaredException)
       {
-        cerr << "ERROR: the variable/parameter '" << param_name
-             << "' conflicts with some auxiliary parameter that will be generated for the '" << name
-             << "' PAC model. Please rename that parameter." << '\n';
-        exit(EXIT_FAILURE);
+        throw ModelSemanticException("the variable/parameter '" + param_name
+                                     + "' conflicts with some auxiliary parameter that will be generated for the '" + name
+                                     + "' PAC model. Please rename that parameter.");
       }
   };
 
@@ -2209,10 +2072,7 @@ DynamicModel::computingPass(int derivsOrder, int paramsDerivsOrder,
   if (block_decomposed)
     computeLegacyBlockJacobianCols();
   if (!block_decomposed && block)
-    {
-      cerr << "ERROR: Block decomposition requested but failed." << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw ModelSemanticException("Block decomposition requested but failed.");
 
   computeMCPEquationsReordering();
 }
@@ -2695,12 +2555,9 @@ DynamicModel::expandEqTags()
         else if (!equation_tags.exists("name", to_string(eq + 1)))
           equation_tags.add(eq, "name", to_string(eq + 1));
         else
-          {
-            cerr << "Error creating default equation tag: cannot assign default tag to equation "
-                    "number "
-                 << eq + 1 << " because it is already in use" << '\n';
-            exit(EXIT_FAILURE);
-          }
+          throw ModelSemanticException(
+              format("cannot assign default tag to equation number {} because it is already in use",
+                     eq + 1));
       }
 }
 
@@ -2947,19 +2804,19 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t& eval_context
                         eval_context); // eval d F / d Trend d Endog
                     if (fabs(nearZero) > balanced_growth_test_tol)
                       {
-                        cerr << "ERROR: trends not compatible with balanced growth path; the "
-                                "second-order cross partial of equation "
-                             << eq + 1;
+                        ostringstream oss;
+                        oss << "trends not compatible with balanced growth path: cross-derivative of "
+                               "equation "
+                            << eq + 1;
                         if (equations_lineno[eq])
-                          cerr << " (line " << *equations_lineno[eq] << ") ";
-                        cerr << "w.r.t. trend variable " << symbol_table.getName(symb_id1)
-                             << " and endogenous variable " << symbol_table.getName(symb_id2)
-                             << " is not null (abs. value = " << fabs(nearZero)
-                             << "). If you are confident that your trends are correctly specified, "
-                                "you can raise the value of option 'balanced_growth_test_tol' in "
-                                "the 'model' block."
-                             << '\n';
-                        exit(EXIT_FAILURE);
+                          oss << " (line " << *equations_lineno[eq] << ") ";
+                        oss << "w.r.t. trend variable " << symbol_table.getName(symb_id1)
+                            << " and endogenous variable " << symbol_table.getName(symb_id2)
+                            << " is not null (abs. value = " << fabs(nearZero)
+                            << "). If you are confident that your trends are correctly specified, "
+                               "you can raise the value of option 'balanced_growth_test_tol' in "
+                               "the 'model' block.";
+                        throw ModelSemanticException(oss.str());
                       }
                   }
             }
@@ -3038,8 +2895,7 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
           subst = value->differentiateForwardVars(subset, subst_table, neweqs);
           break;
         default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << '\n';
-          exit(EXIT_FAILURE);
+          throw InternalCompilerException("DynamicModel::substituteLeadLagInternal: impossible case");
         }
       local_variables_table[used_local_var] = subst;
     }
@@ -3067,8 +2923,7 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
           subst = equation->differentiateForwardVars(subset, subst_table, neweqs);
           break;
         default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << '\n';
-          exit(EXIT_FAILURE);
+          throw InternalCompilerException("DynamicModel::substituteLeadLagInternal: impossible case");
         }
       auto substeq = dynamic_cast<BinaryOpNode*>(subst);
       assert(substeq);
@@ -3106,8 +2961,7 @@ DynamicModel::substituteLeadLagInternal(AuxVarType type, bool deterministic_mode
           cout << "forward vars";
           break;
         default:
-          cerr << "DynamicModel::substituteLeadLagInternal: impossible case" << '\n';
-          exit(EXIT_FAILURE);
+          throw InternalCompilerException("DynamicModel::substituteLeadLagInternal: impossible case");
         }
       cout << ": added " << neweqs.size() << " auxiliary variables and equations." << '\n';
     }
@@ -3395,12 +3249,12 @@ DynamicModel::checkNoWithLogTransform(const set<int>& eqnumbers)
   ranges::set_intersection(endos, with_log_transform, back_inserter(intersect));
   if (!intersect.empty())
     {
-      cerr << "ERROR: the following variables are declared with var(log) and therefore cannot "
-              "appear in a VAR/TCM/PAC equation: ";
+      ostringstream oss;
+      oss << "the following variables are declared with var(log) and therefore cannot "
+             "appear in a VAR/TCM/PAC equation: ";
       for (int symb_id : intersect)
-        cerr << symbol_table.getName(symb_id) << " ";
-      cerr << '\n';
-      exit(EXIT_FAILURE);
+        oss << symbol_table.getName(symb_id) << " ";
+      throw ModelSemanticException(oss.str());
     }
 }
 
@@ -3845,12 +3699,9 @@ DynamicModel::checkNoRemainingPacExpectation() const
 {
   for (size_t eq = 0; eq < equations.size(); eq++)
     if (equations[eq]->containsPacExpectation())
-      {
-        cerr << "ERROR: in equation "
-             << equation_tags.getTagValueByEqnAndKey(eq, "name").value_or(to_string(eq + 1))
-             << ", the pac_expectation operator references an unknown pac_model" << '\n';
-        exit(EXIT_FAILURE);
-      }
+      throw ModelSemanticException(
+          format("in equation {}, the pac_expectation operator references an unknown pac_model",
+                 equation_tags.getTagValueByEqnAndKey(eq, "name").value_or(to_string(eq + 1))));
 }
 
 void
@@ -3860,20 +3711,21 @@ DynamicModel::simplifyEquations()
   map<VariableNode*, NumConstNode*> subst_table;
 
   auto error_message_helper = [&](const string& msg, const DataTree::DivisionByZeroException& e) {
-    cerr << "ERROR: " << msg;
+    ostringstream oss;
+    oss << msg;
     if (!subst_table.empty())
       {
-        cerr << "; substitutions: ";
+        oss << "; substitutions: ";
         for (bool first {true}; const auto& [var, val] : subst_table)
           {
             if (!exchange(first, false))
-              cerr << ", ";
-            cerr << var->toString() << " -> " << val->toString();
+              oss << ", ";
+            oss << var->toString() << " -> " << val->toString();
           }
       }
     if (!e.message.empty())
-      cerr << "; detail: " << e.message;
-    cerr << '\n';
+      oss << "; detail: " << e.message;
+    return oss.str();
   };
 
   // Equations with a complementarity condition are excluded, see dynare#1697
@@ -3888,11 +3740,11 @@ DynamicModel::simplifyEquations()
           }
         catch (const DataTree::DivisionByZeroException& e)
           {
-            error_message_helper(format("Division by zero when substituting constants into "
-                                        "model-local variable '{}' defined as {}",
-                                        symbol_table.getName(id), definition->toString()),
-                                 e);
-            exit(EXIT_FAILURE);
+            throw ModelSemanticException(
+                error_message_helper(format("Division by zero when substituting constants into "
+                                            "model-local variable '{}' defined as {}",
+                                            symbol_table.getName(id), definition->toString()),
+                                     e));
           }
       for (size_t eq {0}; eq < equations.size(); eq++)
         try
@@ -3906,8 +3758,7 @@ DynamicModel::simplifyEquations()
                 format("Division by zero when substituting constants in equation {}", eq + 1)};
             if (auto name = equation_tags.getTagValueByEqnAndKey(static_cast<int>(eq), "name"))
               msg += format(" ['{}']", *name);
-            error_message_helper(msg, e);
-            exit(EXIT_FAILURE);
+            throw ModelSemanticException(error_message_helper(msg, e));
           }
       for (size_t eq {0}; eq < static_only_equations.size(); eq++)
         try
@@ -3917,11 +3768,10 @@ DynamicModel::simplifyEquations()
           }
         catch (const DataTree::DivisionByZeroException& e)
           {
-            error_message_helper(
+            throw ModelSemanticException(error_message_helper(
                 format("Division by zero when substituting constants in [static] equation {}",
                        eq + 1),
-                e);
-            exit(EXIT_FAILURE);
+                e));
           }
       subst_table.clear();
       findConstantEquationsWithoutComplementarityCondition(subst_table);
@@ -3933,14 +3783,10 @@ DynamicModel::checkNoRemainingPacTargetNonstationary() const
 {
   for (size_t eq = 0; eq < equations.size(); eq++)
     if (equations[eq]->containsPacTargetNonstationary())
-      {
-        cerr << "ERROR: in equation "
-             << equation_tags.getTagValueByEqnAndKey(eq, "name").value_or(to_string(eq + 1))
-             << ", the pac_target_nonstationary operator does not match a corresponding "
-                "'pac_target_info' block"
-             << '\n';
-        exit(EXIT_FAILURE);
-      }
+      throw ModelSemanticException(format(
+          "in equation {}, the pac_target_nonstationary operator does not match a corresponding "
+          "'pac_target_info' block",
+          equation_tags.getTagValueByEqnAndKey(eq, "name").value_or(to_string(eq + 1))));
 }
 
 void
@@ -3948,17 +3794,16 @@ DynamicModel::checkIsLinear() const
 {
   if (!nonzero_hessian_eqs.empty())
     {
-      cerr << "ERROR: If the model is declared linear the second derivatives must be equal to zero."
-           << '\n'
-           << "       The following equations have non-zero second derivatives:" << '\n';
+      ostringstream oss;
+      oss << "If the model is declared linear the second derivatives must be equal to zero.\n"
+          << "       The following equations have non-zero second derivatives:";
       for (auto it : nonzero_hessian_eqs)
         {
-          cerr << "       * Eq # " << it + 1;
+          oss << "\n       * Eq # " << it + 1;
           if (optional<string> eqname {equation_tags.getTagValueByEqnAndKey(it, "name")}; eqname)
-            cerr << " [" << *eqname << "]";
-          cerr << '\n';
+            oss << " [" << *eqname << "]";
         }
-      exit(EXIT_FAILURE);
+      throw ModelSemanticException(oss.str());
     }
 }
 
@@ -3973,31 +3818,32 @@ DynamicModel::checkOccbinRegimes() const
         }
       catch (OccbinRegimeTracker::MissingRegimeException& e)
         {
-          cerr << "ERROR: for equation '" << eq_name << "', the regime corresponding to ";
+          ostringstream oss;
+          oss << "for equation '" << eq_name << "', the regime corresponding to ";
           if (!e.constraints_bind.empty())
             {
-              cerr << "bind='";
+              oss << "bind='";
               for (bool first_printed {false}; const auto& r : e.constraints_bind)
                 {
                   if (exchange(first_printed, true))
-                    cerr << ",";
-                  cerr << r;
+                    oss << ",";
+                  oss << r;
                 }
             }
           if (!e.constraints_bind.empty() && !e.constraints_relax.empty())
-            cerr << "' and ";
+            oss << "' and ";
           if (!e.constraints_relax.empty())
             {
-              cerr << "relax='";
+              oss << "relax='";
               for (bool first_printed {false}; const auto& r : e.constraints_relax)
                 {
                   if (exchange(first_printed, true))
-                    cerr << ",";
-                  cerr << r;
+                    oss << ",";
+                  oss << r;
                 }
             }
-          cerr << "' is not defined" << '\n';
-          exit(EXIT_FAILURE);
+          oss << "' is not defined";
+          throw ModelSemanticException(oss.str());
         }
     }
 }
@@ -4118,10 +3964,7 @@ DynamicModel::writePythonDynamicFile(const string& basename, bool use_jax, bool 
   string filename = model_dir.string() + "/dynamic.py";
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename, "writing");
 
   output << writePythonHelpersImports(use_jax, use_numba) << '\n'
          << writePythonHelpersImportFromInit() << '\n'
@@ -4258,10 +4101,7 @@ DynamicModel::writePythonDynamicParamsDerivatives(const string& basename, bool u
   string filename = model_dir.string() + "/dynamic_params_derivs.py";
   ofstream output {filename, ios::out | ios::binary};
   if (!output.is_open())
-    {
-      cerr << "ERROR: Can't open file " << filename << " for writing" << '\n';
-      exit(EXIT_FAILURE);
-    }
+    throw FileIOException(filename, "writing");
 
   output << writePythonHelpersImports(use_jax, use_numba) << '\n'
          << writePythonHelpersImportFromInit() << '\n'

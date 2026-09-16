@@ -806,10 +806,7 @@ DynamicModel::writeParamsDerivativesFile(const string& basename) const
       auto open_file = [&paramsDerivsFile](const filesystem::path& filepath) {
         paramsDerivsFile.open(filepath, ios::out | ios::binary);
         if (!paramsDerivsFile.is_open())
-          {
-            cerr << "ERROR: Can't open file " << filepath.string() << " for writing" << '\n';
-            exit(EXIT_FAILURE);
-          }
+          throw FileIOException(filepath, "writing");
       };
 
       string function_args {"y, x, params, steady_state, ss_param_deriv, ss_param_2nd_deriv"};
