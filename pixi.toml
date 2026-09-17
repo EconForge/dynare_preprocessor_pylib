@@ -66,13 +66,20 @@ setup = "meson setup build-win --buildtype=release -Dbuild_library=enabled"
 reconfigure = "meson setup build-win --reconfigure --buildtype=release -Dbuild_library=enabled"
 compile = "meson compile -C build-win"
 test = { cmd = "pytest tests", env = { PYTHONPATH = "build-win/src" } }
-clean = "rm -rf build-win"
+test-all = "meson test -C build-win --print-errorlogs"
+preprocessor = "build-win/src/dynare-preprocessor.exe"
+clean = "python -c \"import shutil; [shutil.rmtree(p, ignore_errors=True) for p in ['build-win', 'build-cli-win', 'dist', 'output']]\""
+setup-cli = "meson setup build-cli-win --buildtype=release -Dbuild_cli=enabled -Dbuild_library=disabled"
+reconfigure-cli = "meson setup build-cli-win --reconfigure --buildtype=release -Dbuild_cli=enabled -Dbuild_library=disabled"
+compile-cli = "meson compile -C build-cli-win"
+test-cli = "meson test -C build-cli-win --print-errorlogs"
+preprocessor-cli = "build-cli-win/src/dynare-preprocessor.exe"
 
 [tasks]
 setup = "meson setup build -Dbuild_library=enabled"
 reconfigure = "meson setup build --reconfigure -Dbuild_library=enabled"
 compile = "meson compile -C build"
-test-all = "meson test -C build"
+test-all = "meson test -C build --print-errorlogs"
 preprocessor = "build/src/dynare-preprocessor"
 clean = "rm -rf build build-cli dist output"
 compile-win = "bash scripts/win-run.sh pixi run compile"
@@ -93,7 +100,7 @@ upload-linux = "bash -c 'test -f ~/.env && export $(grep -v \"^#\" ~/.env | xarg
 setup-cli = "meson setup build-cli -Dbuild_cli=enabled -Dbuild_library=disabled"
 reconfigure-cli = "meson setup build-cli --reconfigure -Dbuild_cli=enabled -Dbuild_library=disabled"
 compile-cli = "meson compile -C build-cli"
-test-cli = "meson test -C build-cli"
+test-cli = "meson test -C build-cli --print-errorlogs"
 preprocessor-cli = "build-cli/src/dynare-preprocessor"
 
 [activation.env]

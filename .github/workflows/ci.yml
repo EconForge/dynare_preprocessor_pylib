@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [master, upstream-contrib, main]
+  pull_request:
+    branches: [master, upstream-contrib, main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pixi-build-test:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux-64
+            name: Linux x86_64 (Pixi)
+            artifact-name: wheels-linux
+          - os: windows-latest
+            platform: win-64
+            name: Windows x86_64 (Pixi)
+            artifact-name: wheels-windows
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi@v0.8.3
+        with:
+          pixi-version: v0.41.4
+          cache: true
+          environments: default cli
+
+      - name: Build Python library and CLI
+        run: |
+          pixi run setup
+          pixi run compile
+
+      - name: Run Python test suite (pytest)
+        run: pixi run test
+
+      - name: Run all tests via Meson (CLI exception tests + Python tests)
+        run: pixi run test-all
+
+      - name: Build Python wheel
+        run: pixi run wheel
+
+      - name: Build and test standalone minimal C++ CLI
+        run: |
+          pixi run -e cli setup-cli
+          pixi run -e cli compile-cli
+          pixi run -e cli test-cli
+
+      - name: Upload Python wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+  system-linux:
+    name: Linux x86_64 (System Packages)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y meson ninja-build flex bison libboost-dev python3 python3-pip
+
+      - name: Configure & build minimal CLI
+        run: |
+          meson setup build -Dbuild_cli=enabled -Dbuild_library=disabled -Dbuild_doc=false
+          meson compile -C build -v
+
+      - name: Run CLI exception tests
+        run: meson test -C build --print-errorlogs
