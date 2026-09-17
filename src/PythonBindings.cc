@@ -97,7 +97,7 @@ to_numpy_2d(const std::vector<double>& vec, size_t rows, size_t cols)
 
 } // namespace
 
-NB_MODULE(dynare_preprocessor, m)
+NB_MODULE(_dynare_preprocessor, m)
 {
   m.doc() = "Dynare Preprocessor Model API and Python Wrapper";
 

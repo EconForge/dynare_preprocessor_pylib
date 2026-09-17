@@ -7,22 +7,22 @@ channels = ["conda-forge"]
 platforms = ["linux-64", "osx-arm64", "osx-64", "linux-aarch64", "win-64"]
 
 [dependencies]
-python = "3.12.*"
 cxx-compiler = ">=2.0.0"
 c-compiler = ">=2.0.0"
 meson = ">=1.3.0"
 ninja = ">=1.11.0"
 pkg-config = ">=0.29.2,<0.30"
-nanobind = ">=2.0.0"
 libboost-devel = ">=1.85.0"
 
 [target.linux-64.dependencies]
 bison = ">=3.8.2,<4"
 flex = ">=2.6.4,<3"
+patchelf = "*"
 
 [target.linux-aarch64.dependencies]
 bison = ">=3.8.2,<4"
 flex = ">=2.6.4,<3"
+patchelf = "*"
 
 [target.osx-64.dependencies]
 bison = ">=3.8.2,<4"
@@ -34,6 +34,21 @@ flex = ">=2.6.4,<3"
 
 [target.win-64.dependencies]
 winflexbison = ">=2.5.25"
+
+[feature.python.dependencies]
+python = "3.12.*"
+nanobind = ">=2.0.0"
+meson-python = ">=0.15.0"
+python-build = ">=1.0.0"
+pip = "*"
+
+[feature.python.tasks]
+wheel = "python -m build --wheel --no-isolation --skip-dependency-check"
+install-editable = "pip install --no-build-isolation --no-deps -e ."
+
+[feature.python.target.win-64.tasks]
+wheel = "python -m build --wheel --no-isolation --skip-dependency-check -Ccompile-args=-j1"
+install-editable = "pip install --no-build-isolation --no-deps -e . -Ccompile-args=-j1"
 
 [feature.test.dependencies]
 pytest = ">=8.0.0"
@@ -57,12 +72,18 @@ clean = "rm -rf build-win"
 setup = "meson setup build -Dbuild_library=enabled"
 reconfigure = "meson setup build --reconfigure -Dbuild_library=enabled"
 compile = "meson compile -C build"
-test = { cmd = "pytest tests", env = { PYTHONPATH = "build/src" } }
 test-all = "meson test -C build"
 preprocessor = "build/src/dynare-preprocessor"
-clean = "rm -rf build"
+clean = "rm -rf build build-cli dist"
 compile-win = "bash scripts/win-run.sh pixi run compile"
 test-win = "bash scripts/win-run.sh pixi run test"
+
+# Pure C++ CLI tasks
+setup-cli = "meson setup build-cli -Dbuild_cli=enabled -Dbuild_library=disabled"
+reconfigure-cli = "meson setup build-cli --reconfigure -Dbuild_cli=enabled -Dbuild_library=disabled"
+compile-cli = "meson compile -C build-cli"
+test-cli = "meson test -C build-cli"
+preprocessor-cli = "build-cli/src/dynare-preprocessor"
 
 [activation.env]
 PYTHONPATH = "build/src"
@@ -71,5 +92,5 @@ PYTHONPATH = "build/src"
 PYTHONPATH = "build-win/src"
 
 [environments]
-default = ["test"]
-dev = ["test"]
+default = ["python", "test"]
+cli = []

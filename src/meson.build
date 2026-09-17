@@ -130,7 +130,7 @@ endif
 have_library = false
 build_library = get_option('build_library')
 if not build_library.disabled()
-  py3_inst = import('python').find_installation('python3', required : build_library)
+  py3_inst = import('python').find_installation('python3', required : build_library, pure : false)
   if py3_inst.found()
     nanobind_detect = run_command(py3_inst, '-c',
       'import nanobind, os, sys; from pathlib import Path; ' +
@@ -157,7 +157,7 @@ if not build_library.disabled()
       endif
 
       dynare_pylib = py3_inst.extension_module(
-        'dynare_preprocessor',
+        '_dynare_preprocessor',
         'DynLib.cc',
         'PythonBindings.cc',
         nb_combined_cpp,
@@ -166,8 +166,24 @@ if not build_library.disabled()
         dependencies : pylib_deps,
         link_with : preprocessor_core_lib,
         link_args : preprocessor_link_args,
+        subdir : 'dynare_preprocessor',
         install : true
       )
+
+      # Copy package source files into build directory for uninstalled test runs
+      configure_file(
+        input : meson.project_source_root() / 'python' / 'dynare_preprocessor' / '__init__.py',
+        output : '__init__.py',
+        build_subdir : 'dynare_preprocessor',
+        copy : true
+      )
+      configure_file(
+        input : meson.project_source_root() / 'python' / 'dynare_preprocessor' / 'py.typed',
+        output : 'py.typed',
+        build_subdir : 'dynare_preprocessor',
+        copy : true
+      )
+
       have_library = true
     elif build_library.enabled()
       error('nanobind could not be found via python3')

@@ -25,5 +25,10 @@ if cpp_compiler.get_id() == 'msvc'
 endif
 
 subdir('src')
-subdir('doc')
+if get_option('build_doc')
+  subdir('doc')
+endif
+if have_library
+  subdir('python')
+endif
 subdir('tests')

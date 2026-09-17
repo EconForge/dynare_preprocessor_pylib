@@ -7,11 +7,110 @@
 
 # Dynare Preprocessor
 
-The Dynare Preprocessor defines the Dynare model language. It takes in a `.mod`
-file, computes the derivatives of the model represented therein, and produces
-MATLAB/Octave, Julia, or JSON output.
+The Dynare Preprocessor defines the Dynare model language. It parses `.mod`
+files, performs macroprocessing, constructs the symbolic model representation,
+computes analytical derivatives (Jacobian, Hessian, and higher order), and produces
+simulation/estimation drivers and evaluators for MATLAB/Octave, Julia, Python, or JSON AST dumps.
 
-# License
+It also provides a native Python library (`dynare_preprocessor`) powered by [nanobind](https://github.com/wjakob/nanobind)
+for programmatically loading `.mod` files and evaluating model residuals, Jacobians, and higher-order derivatives directly in Python.
 
-Most of the source files are covered by the GNU General Public Licence version
-3 or later. There are some exceptions, see the respective file headers.
+---
+
+## 1. Quick Start with Pixi
+
+The repository is configured with [Pixi](https://pixi.sh) to provide reproducible cross-platform development environments across Linux, macOS, and Windows.
+
+### Python Library & Full Development (Default)
+
+```bash
+# Install dependencies into default environment
+pixi install
+
+# Compile the preprocessor CLI and Python extension module
+pixi run compile
+
+# Run the full test suite (Pytest)
+pixi run test
+
+# Run all tests via Meson (CLI exception tests + Python tests)
+pixi run test-all
+```
+
+### Standalone C++ CLI Only (`cli` environment)
+
+To build and test the standalone `dynare-preprocessor` CLI binary without any Python or nanobind dependencies:
+
+```bash
+# Setup the minimal C++ build directory
+pixi run -e cli setup-cli
+
+# Compile the CLI executable
+pixi run -e cli compile-cli
+
+# Run CLI tests
+pixi run -e cli test-cli
+```
+
+---
+
+## 2. Python Package & Wheel Installation
+
+The Python package is standard PEP 517 compliant using [meson-python](https://meson-python.readthedocs.io/).
+
+### Editable / Local Installation
+
+Inside your Python or Pixi environment:
+
+```bash
+# Editable install (in-place development)
+pip install --no-build-isolation -e .
+
+# Or using the Pixi task:
+pixi run install-editable
+```
+
+### Building Distributable Wheels (`.whl`)
+
+To build binary wheels for distribution (e.g. for PyPI or local installation):
+
+```bash
+# Using Pixi (handles platform flags automatically):
+pixi run wheel
+
+# Or directly with python -m build:
+python -m build --wheel --no-isolation --skip-dependency-check
+```
+
+The resulting wheel is saved in `dist/` (e.g. `dist/dynare_preprocessor-8.0.0.dev0-cp312-cp312-linux_x86_64.whl`) and can be installed via pip:
+
+```bash
+pip install dist/dynare_preprocessor-*.whl
+```
+
+---
+
+## 3. Standalone Meson Build (Manual)
+
+If you are not using Pixi and have system dependencies installed (C++20 compiler, Boost, Flex, Bison, Meson, Ninja):
+
+### Building the CLI only:
+```bash
+meson setup build -Dbuild_cli=enabled -Dbuild_library=disabled -Dbuild_doc=false
+meson compile -C build
+./build/src/dynare-preprocessor example.mod
+```
+
+### Building both CLI and Python library:
+```bash
+meson setup build -Dbuild_cli=enabled -Dbuild_library=enabled -Dbuild_doc=false
+meson compile -C build
+PYTHONPATH=build/src pytest tests
+```
+
+---
+
+## License
+
+Most of the source files are covered by the GNU General Public License version
+3 or later. There are some exceptions; see the respective file headers.

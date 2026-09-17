@@ -1,0 +1,37 @@
+[build-system]
+requires = ["meson-python>=0.15.0", "nanobind>=2.0.0", "ninja"]
+build-backend = "mesonpy"
+
+[project]
+name = "dynare-preprocessor"
+version = "8.0.0.dev0"
+description = "Dynare Preprocessor Model API and Python bindings"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "GPL-3.0-or-later" }
+authors = [
+    { name = "Dynare Team", email = "dev@dynare.org" },
+    { name = "Pablo Winant", email = "pablo.winant@gmail.com" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = [
+    "numpy>=1.22",
+]
+
+[project.urls]
+Homepage = "https://www.dynare.org"
+Documentation = "https://www.dynare.org/manual/"
+Repository = "https://git.dynare.org/Dynare/preprocessor"
+
+[tool.meson-python.args]
+setup = ["-Dbuild_cli=disabled", "-Dbuild_library=enabled", "-Dbuild_doc=false"]
