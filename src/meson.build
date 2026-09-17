@@ -10,9 +10,22 @@ flex_exe = find_program('flex', 'win_flex')
 # The -Ca flag comes from hitting a hard-coded size limit.
 # Partial explanation: https://www.owlfolio.org/possibly-useful/flex-input-scanner-rules-are-too-complicated
 # There is a Debian bug report about this: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=642040
-flex_gen = generator(flex_exe, output : '@BASENAME@.cc',
-                     arguments : ['-Ca', '-o', '@OUTPUT@', '@INPUT@'])
-flex_src = flex_gen.process('macro/Tokenizer.ll', 'DynareFlex.ll')
+# Serialize Flex scanner generation to prevent win_flex temporary file collisions on Windows
+tokenizer_flex = custom_target(
+  'Tokenizer.cc',
+  input : 'macro/Tokenizer.ll',
+  output : 'Tokenizer.cc',
+  command : [flex_exe, '-Ca', '-o', '@OUTPUT@', '@INPUT@']
+)
+
+dynare_flex = custom_target(
+  'DynareFlex.cc',
+  input : 'DynareFlex.ll',
+  output : 'DynareFlex.cc',
+  command : [flex_exe, '-Ca', '-o', '@OUTPUT@', '@INPUT@'],
+  depends : [tokenizer_flex]
+)
+flex_src = [tokenizer_flex, dynare_flex]
 # If FlexLexer.h is not found by the compiler, copy it to the build directory
 # (adding an include directory could create problems for cross-compilation, because
 # flex is typically provided by the system of the build machine)
