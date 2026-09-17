@@ -1,4 +1,5 @@
 boost_dep = dependency('boost')
+threads_dep = dependency('threads')
 
 ## Flex stuff
 flex_exe = find_program('flex')
@@ -29,38 +30,39 @@ bison_src = bison_gen.process('macro/Parser.yy', 'DynareBison.yy')
 
 preprocessor_incdir = include_directories('.', 'macro')
 
-preprocessor_src = [ 'ComputingTasks.cc',
-	             'EquationTags.cc',
-	             'ModelTree.cc',
-	             'StaticModel.cc',
-	             'DynamicModel.cc',
-	             'NumericalConstants.cc',
-	             'NumericalInitialization.cc',
-	             'Shocks.cc',
-	             'SymbolTable.cc',
-	             'SymbolList.cc',
-	             'ParsingDriver.cc',
-	             'DataTree.cc',
-	             'ModFile.cc',
-	             'Configuration.cc',
-	             'Statement.cc',
-	             'ExprNode.cc',
-	             'VariableDependencyGraph.cc',
-	             'DynareMain.cc',
-	             'MacroExpandModFile.cc',
-	             'Bytecode.cc',
-	             'ExternalFunctionsTable.cc',
-	             'ModelEquationBlock.cc',
-	             'WarningConsolidation.cc',
-	             'SubModel.cc',
-                     'HeterogeneityTable.cc',
-                     'HeterogeneousModel.cc',
-                     'Utils.cc',
-                     'DatabaseTable.cc',
-                     'macro/Driver.cc',
-	             'macro/Environment.cc',
-	             'macro/Expressions.cc',
-	             'macro/Directives.cc' ]
+preprocessor_core_src = [
+  'ComputingTasks.cc',
+  'EquationTags.cc',
+  'ModelTree.cc',
+  'StaticModel.cc',
+  'DynamicModel.cc',
+  'NumericalConstants.cc',
+  'NumericalInitialization.cc',
+  'Shocks.cc',
+  'SymbolTable.cc',
+  'SymbolList.cc',
+  'ParsingDriver.cc',
+  'DataTree.cc',
+  'ModFile.cc',
+  'Configuration.cc',
+  'Statement.cc',
+  'ExprNode.cc',
+  'VariableDependencyGraph.cc',
+  'MacroExpandModFile.cc',
+  'Bytecode.cc',
+  'ExternalFunctionsTable.cc',
+  'ModelEquationBlock.cc',
+  'WarningConsolidation.cc',
+  'SubModel.cc',
+  'HeterogeneityTable.cc',
+  'HeterogeneousModel.cc',
+  'Utils.cc',
+  'DatabaseTable.cc',
+  'macro/Driver.cc',
+  'macro/Environment.cc',
+  'macro/Expressions.cc',
+  'macro/Directives.cc'
+]
 
 if get_option('prefer_static')
   preprocessor_link_args = [ '-static-libgcc', '-static-libstdc++' ]
@@ -73,7 +75,56 @@ else
   preprocessor_link_args = []
 endif
 
-dynare_preprocessor = executable('dynare-preprocessor', preprocessor_src, flex_src, flexlexer_h, bison_src,
-                                 include_directories : preprocessor_incdir, dependencies : boost_dep,
+preprocessor_core_lib = static_library('dynare_core',
+                                       preprocessor_core_src, flex_src, flexlexer_h, bison_src,
+                                       include_directories : preprocessor_incdir,
+                                       dependencies : [boost_dep, threads_dep],
+                                       pic : true)
+
+dynare_preprocessor = executable('dynare-preprocessor', 'DynareMain.cc',
+                                 include_directories : preprocessor_incdir,
+                                 cpp_args : [ '-I' + meson.current_build_dir() / 'libdynare_core.a.p' ],
+                                 dependencies : [boost_dep, threads_dep],
+                                 link_with : preprocessor_core_lib,
                                  link_args : preprocessor_link_args,
                                  install : true)
+
+build_library = get_option('build_library')
+if not build_library.disabled()
+  py3_inst = import('python').find_installation('python3', required : build_library)
+  if py3_inst.found()
+    nanobind_detect = run_command(py3_inst, '-c',
+      'import nanobind, os, sys; from pathlib import Path; ' +
+      'cur_dir = sys.argv[1]; src_root = sys.argv[2]; ' +
+      'inc = nanobind.include_dir(); ' +
+      'robin = os.path.abspath(os.path.join(inc, "..", "ext", "robin_map", "include")); ' +
+      'src_dir = os.path.abspath(os.path.join(inc, "..", "src")); ' +
+      'src_file = os.path.abspath(os.path.join(inc, "..", "src", "nb_combined.cpp")); ' +
+      'to_meson = lambda p: (os.path.relpath(p, cur_dir) if Path(p).resolve().is_relative_to(Path(src_root).resolve()) else p).replace(\'\\\\\', \'/\'); ' +
+      'print(to_meson(inc)); print(to_meson(robin)); print(to_meson(src_dir)); print(to_meson(src_file))',
+      meson.current_source_dir(), meson.project_source_root(),
+      check : false)
+
+    if nanobind_detect.returncode() == 0
+      nb_paths = nanobind_detect.stdout().strip().split('\n')
+      nanobind_inc = include_directories(nb_paths[0], nb_paths[1], nb_paths[2])
+      fs = import('fs')
+      nb_combined_cpp = fs.copyfile(nb_paths[3], 'nb_combined.cpp')
+
+      dynare_pylib = py3_inst.extension_module(
+        'dynare_preprocessor',
+        'DynLib.cc',
+        'PythonBindings.cc',
+        nb_combined_cpp,
+        include_directories : [preprocessor_incdir, nanobind_inc],
+        cpp_args : [ '-I' + meson.current_build_dir() / 'libdynare_core.a.p' ],
+        dependencies : [boost_dep, threads_dep, py3_inst.dependency()],
+        link_with : preprocessor_core_lib,
+        link_args : preprocessor_link_args,
+        install : true
+      )
+    elif build_library.enabled()
+      error('nanobind could not be found via python3')
+    endif
+  endif
+endif

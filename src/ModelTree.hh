@@ -65,11 +65,14 @@ using equation_type_and_normalized_equation_t = vector<pair<EquationType, Binary
 //! Vector describing variables: max_lag in the block, max_lead in the block
 using lag_lead_vector_t = vector<pair<int, int>>;
 
+class DynareModel;
+
 //! Shared code for static and dynamic models
 class ModelTree : public DataTree
 {
   friend class DynamicModel;
   friend class StaticModel;
+  friend class DynareModel;
 
 public:
   // Set via the `compiler` command

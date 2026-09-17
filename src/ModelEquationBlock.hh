@@ -84,8 +84,11 @@ protected:
   }
 };
 
+class DynareModel;
+
 class SteadyStateModel : public DataTree
 {
+  friend class DynareModel;
 private:
   //! Associates a set of symbol IDs (the variable(s) assigned in a given statement) to an
   //! expression (their assigned value)

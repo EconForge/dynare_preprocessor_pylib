@@ -30,10 +30,12 @@
 using namespace std;
 
 class DynamicModel;
+class DynareModel;
 
 //! Stores a static model, as derived from the "model" block when leads and lags have been removed
 class StaticModel : public ModelTree
 {
+  friend class DynareModel;
 private:
   /* First-order derivatives of equations w.r.t. Lagrange multipliers, using
      chain rule derivation for auxiliary variables added after the multipliers

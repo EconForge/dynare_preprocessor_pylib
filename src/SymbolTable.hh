@@ -115,8 +115,11 @@ struct AuxVarInfo
 
   Also manages a TeX name for each symbol, which by default is an empty string.
 */
+class DynareModel;
+
 class SymbolTable
 {
+  friend class DynareModel;
 private:
   HeterogeneityTable& heterogeneity_table;
 

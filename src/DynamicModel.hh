@@ -29,10 +29,13 @@
 
 using namespace std;
 
+class DynareModel;
+
 //! Stores a dynamic model
 class DynamicModel : public ModelTree
 {
   friend class StaticModel; // For reading static_mfs from converting constructor
+  friend class DynareModel;
 
 public:
   //! A reference to the trend component model table
