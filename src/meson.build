@@ -134,7 +134,22 @@ endif
 have_library = false
 build_library = get_option('build_library')
 if not build_library.disabled()
-  py3_inst = import('python').find_installation('python3', required : build_library, pure : false)
+  # In Conda / Pixi on Windows, the Python executable is named 'python.exe', not 'python3.exe'.
+  # Search for the interpreter running meson, 'python', and 'python3', prioritizing the one with nanobind.
+  py_mod = import('python')
+  py3_inst = py_mod.find_installation(required : false, pure : false)
+  if not py3_inst.found() or run_command(py3_inst, '-c', 'import nanobind', check : false).returncode() != 0
+    py3_candidate = py_mod.find_installation('python', required : false, pure : false)
+    if py3_candidate.found() and run_command(py3_candidate, '-c', 'import nanobind', check : false).returncode() == 0
+      py3_inst = py3_candidate
+    else
+      py3_candidate = py_mod.find_installation('python3', required : false, pure : false)
+      if py3_candidate.found() and run_command(py3_candidate, '-c', 'import nanobind', check : false).returncode() == 0
+        py3_inst = py3_candidate
+      endif
+    endif
+  endif
+
   if py3_inst.found()
     nanobind_detect = run_command(py3_inst, '-c',
       'import nanobind, os, sys; from pathlib import Path; ' +
