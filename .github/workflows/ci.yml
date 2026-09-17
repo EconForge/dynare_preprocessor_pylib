@@ -42,17 +42,17 @@ jobs:
 
       - name: Build Python library and CLI
         run: |
-          pixi run setup
-          pixi run compile
+          pixi run -e default setup
+          pixi run -e default compile
 
       - name: Run Python test suite (pytest)
-        run: pixi run test
+        run: pixi run -e default test
 
       - name: Run all tests via Meson (CLI exception tests + Python tests)
-        run: pixi run test-all
+        run: pixi run -e default test-all
 
       - name: Build Python wheel
-        run: pixi run wheel
+        run: pixi run -e default wheel
 
       - name: Build and test standalone minimal C++ CLI
         run: |

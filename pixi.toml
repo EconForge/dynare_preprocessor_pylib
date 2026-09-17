@@ -65,7 +65,6 @@ test = { cmd = "pytest tests", env = { PYTHONPATH = "build-win/src" } }
 setup = "meson setup build-win --buildtype=release -Dbuild_library=enabled"
 reconfigure = "meson setup build-win --reconfigure --buildtype=release -Dbuild_library=enabled"
 compile = "meson compile -C build-win"
-test = { cmd = "pytest tests", env = { PYTHONPATH = "build-win/src" } }
 test-all = "meson test -C build-win --print-errorlogs"
 preprocessor = "build-win/src/dynare-preprocessor.exe"
 clean = "python -c \"import shutil; [shutil.rmtree(p, ignore_errors=True) for p in ['build-win', 'build-cli-win', 'dist', 'output']]\""
