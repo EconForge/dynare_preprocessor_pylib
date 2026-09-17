@@ -21,6 +21,8 @@
 #define FORWARD_DECLARATIONS_AND_ENUMS_HH
 
 #include <memory>
+#include <string>
+#include <iosfwd>
 
 using namespace std;
 

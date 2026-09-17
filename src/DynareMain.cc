@@ -29,7 +29,14 @@
 
 #include <cstdlib>
 
-#include <unistd.h>
+#ifdef _WIN32
+# include <io.h>
+# define STDOUT_FILENO 1
+# define STDERR_FILENO 2
+# define dup2 _dup2
+#else
+# include <unistd.h>
+#endif
 
 #include "Configuration.hh"
 #include "Exceptions.hh"

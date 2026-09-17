@@ -18,14 +18,17 @@ if len(sys.argv) > 1 and os.path.isfile(sys.argv[1]) and os.access(sys.argv[1], 
 elif "DYNARE_PREPROCESSOR" in os.environ:
     PREPROCESSOR_BIN = os.path.abspath(os.environ["DYNARE_PREPROCESSOR"])
 else:
+    exe = ".exe" if sys.platform == "win32" else ""
     candidates = [
-        os.path.join(os.getcwd(), "src", "dynare-preprocessor"),
-        os.path.join(os.getcwd(), "build", "src", "dynare-preprocessor"),
-        os.path.join(os.path.dirname(__file__), "..", "build", "src", "dynare-preprocessor"),
-        os.path.join(os.path.dirname(__file__), "src", "dynare-preprocessor"),
+        os.path.join(os.getcwd(), "src", f"dynare-preprocessor{exe}"),
+        os.path.join(os.getcwd(), "build", "src", f"dynare-preprocessor{exe}"),
+        os.path.join(os.getcwd(), "build-win", "src", f"dynare-preprocessor{exe}"),
+        os.path.join(os.path.dirname(__file__), "..", "build", "src", f"dynare-preprocessor{exe}"),
+        os.path.join(os.path.dirname(__file__), "..", "build-win", "src", f"dynare-preprocessor{exe}"),
+        os.path.join(os.path.dirname(__file__), "src", f"dynare-preprocessor{exe}"),
     ]
     for c in candidates:
-        if os.path.isfile(c) and os.access(c, os.X_OK):
+        if os.path.isfile(c) and (sys.platform == "win32" or os.access(c, os.X_OK)):
             PREPROCESSOR_BIN = os.path.abspath(c)
             break
 
@@ -44,7 +47,7 @@ class PreprocessorExceptionTests(unittest.TestCase):
             args = []
         with tempfile.TemporaryDirectory() as tmpdir:
             modfile = os.path.join(tmpdir, "model.mod")
-            with open(modfile, "w") as f:
+            with open(modfile, "w", encoding="utf-8") as f:
                 f.write(mod_content)
 
             proc = subprocess.run(

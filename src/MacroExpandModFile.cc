@@ -51,7 +51,11 @@ macroExpandModFile(const filesystem::path& filename, const istream& modfile, boo
       if (!line_macro)
         {
           // Remove the @#line directives.
+#if defined(_MSC_VER)
+          str = regex_replace(str, regex(R"((^|\r?\n)@#line.*)"), "");
+#else
           str = regex_replace(str, regex(R"(^@#line.*$)", std::regex::multiline), "");
+#endif
           /* Remove the EOLs at the beginning of the output, the first one
              being a remnant of the first @#line directive. */
           str = regex_replace(str, regex(R"(^(\r?\n)+)"), "");

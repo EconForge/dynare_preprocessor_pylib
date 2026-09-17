@@ -2,7 +2,7 @@ boost_dep = dependency('boost')
 threads_dep = dependency('threads')
 
 ## Flex stuff
-flex_exe = find_program('flex')
+flex_exe = find_program('flex', 'win_flex')
 # The -Ca flag comes from hitting a hard-coded size limit.
 # Partial explanation: https://www.owlfolio.org/possibly-useful/flex-input-scanner-rules-are-too-complicated
 # There is a Debian bug report about this: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=642040
@@ -13,15 +13,33 @@ flex_src = flex_gen.process('macro/Tokenizer.ll', 'DynareFlex.ll')
 # (adding an include directory could create problems for cross-compilation, because
 # flex is typically provided by the system of the build machine)
 if not cpp_compiler.has_header('FlexLexer.h')
-  message('FlexLexer.h cannot be found by the compiler, it will be manually copied to the build directory')
   fs = import('fs')
-  flexlexer_h = fs.copyfile(fs.parent(fs.parent(flex_exe.full_path())) / 'include' / 'FlexLexer.h', 'FlexLexer.h')
+  flex_candidate1 = fs.parent(fs.parent(flex_exe.full_path())) / 'include' / 'FlexLexer.h'
+  flex_candidate2 = fs.parent(flex_exe.full_path()) / 'include' / 'FlexLexer.h'
+  flex_candidate3 = fs.parent(flex_exe.full_path()) / 'FlexLexer.h'
+  flex_candidate4 = fs.parent(fs.parent(flex_exe.full_path())) / 'share' / 'winflexbison' / 'FlexLexer.h'
+  if fs.exists(flex_candidate1)
+    message('FlexLexer.h copied from ' + flex_candidate1)
+    flexlexer_h = fs.copyfile(flex_candidate1, 'FlexLexer.h')
+  elif fs.exists(flex_candidate2)
+    message('FlexLexer.h copied from ' + flex_candidate2)
+    flexlexer_h = fs.copyfile(flex_candidate2, 'FlexLexer.h')
+  elif fs.exists(flex_candidate3)
+    message('FlexLexer.h copied from ' + flex_candidate3)
+    flexlexer_h = fs.copyfile(flex_candidate3, 'FlexLexer.h')
+  elif fs.exists(flex_candidate4)
+    message('FlexLexer.h copied from ' + flex_candidate4)
+    flexlexer_h = fs.copyfile(flex_candidate4, 'FlexLexer.h')
+  else
+    message('FlexLexer.h not found near flex executable')
+    flexlexer_h = []
+  endif
 else
   flexlexer_h = []
 endif
 
 ## Bison stuff
-bison_exe = find_program('bison')
+bison_exe = find_program('bison', 'win_bison')
 # By convention, all our Bison source files define the api.location.file variable
 # so that the generated location file follows the @BASENAME@Location.hh pattern
 bison_gen = generator(bison_exe, output : ['@BASENAME@.cc', '@BASENAME@.hh', '@BASENAME@Location.hh'],
@@ -65,11 +83,15 @@ preprocessor_core_src = [
 ]
 
 if get_option('prefer_static')
-  preprocessor_link_args = [ '-static-libgcc', '-static-libstdc++' ]
-  if host_machine.system() == 'windows'
-    # See comment in rules for MEX files
-    preprocessor_link_args += [ '-Wl,-Bstatic', '-lssp', '-Wl,-Bdynamic',
-                                '-Wl,-Bstatic,--whole-archive', '-lwinpthread', '-Wl,-Bdynamic,--no-whole-archive' ]
+  if cpp_compiler.get_id() == 'gcc' or cpp_compiler.get_id() == 'clang'
+    preprocessor_link_args = [ '-static-libgcc', '-static-libstdc++' ]
+    if host_machine.system() == 'windows'
+      # See comment in rules for MEX files
+      preprocessor_link_args += [ '-Wl,-Bstatic', '-lssp', '-Wl,-Bdynamic',
+                                  '-Wl,-Bstatic,--whole-archive', '-lwinpthread', '-Wl,-Bdynamic,--no-whole-archive' ]
+    endif
+  else
+    preprocessor_link_args = []
   endif
 else
   preprocessor_link_args = []

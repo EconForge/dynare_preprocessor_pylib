@@ -22,6 +22,8 @@
 
 #include <string>
 
+#include "Portability.hh"
+
 using namespace std;
 
 //! Enumeration of possible symbol types
