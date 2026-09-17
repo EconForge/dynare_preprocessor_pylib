@@ -1,0 +1,75 @@
+[workspace]
+name = "dynare_preprocessor"
+version = "0.1.0"
+description = "Dynare Preprocessor and Python nanobind bindings"
+authors = ["Pablo Winant <pablo.winant@gmail.com>"]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-arm64", "osx-64", "linux-aarch64", "win-64"]
+
+[dependencies]
+python = "3.12.*"
+cxx-compiler = ">=2.0.0"
+c-compiler = ">=2.0.0"
+meson = ">=1.3.0"
+ninja = ">=1.11.0"
+pkg-config = ">=0.29.2,<0.30"
+nanobind = ">=2.0.0"
+libboost-devel = ">=1.85.0"
+
+[target.linux-64.dependencies]
+bison = ">=3.8.2,<4"
+flex = ">=2.6.4,<3"
+
+[target.linux-aarch64.dependencies]
+bison = ">=3.8.2,<4"
+flex = ">=2.6.4,<3"
+
+[target.osx-64.dependencies]
+bison = ">=3.8.2,<4"
+flex = ">=2.6.4,<3"
+
+[target.osx-arm64.dependencies]
+bison = ">=3.8.2,<4"
+flex = ">=2.6.4,<3"
+
+[target.win-64.dependencies]
+winflexbison = ">=2.5.25"
+
+[feature.test.dependencies]
+pytest = ">=8.0.0"
+numpy = ">=2.0.0"
+ipykernel = ">=6.29.0"
+
+[feature.test.tasks]
+test = { cmd = "pytest tests", env = { PYTHONPATH = "build/src" } }
+
+[feature.test.target.win-64.tasks]
+test = { cmd = "pytest tests", env = { PYTHONPATH = "build-win/src" } }
+
+[target.win-64.tasks]
+setup = "meson setup build-win --buildtype=release -Dbuild_library=enabled"
+reconfigure = "meson setup build-win --reconfigure --buildtype=release -Dbuild_library=enabled"
+compile = "meson compile -C build-win"
+test = { cmd = "pytest tests", env = { PYTHONPATH = "build-win/src" } }
+clean = "rm -rf build-win"
+
+[tasks]
+setup = "meson setup build -Dbuild_library=enabled"
+reconfigure = "meson setup build --reconfigure -Dbuild_library=enabled"
+compile = "meson compile -C build"
+test = { cmd = "pytest tests", env = { PYTHONPATH = "build/src" } }
+test-all = "meson test -C build"
+preprocessor = "build/src/dynare-preprocessor"
+clean = "rm -rf build"
+compile-win = "bash scripts/win-run.sh pixi run compile"
+test-win = "bash scripts/win-run.sh pixi run test"
+
+[activation.env]
+PYTHONPATH = "build/src"
+
+[target.win-64.activation.env]
+PYTHONPATH = "build-win/src"
+
+[environments]
+default = ["test"]
+dev = ["test"]
