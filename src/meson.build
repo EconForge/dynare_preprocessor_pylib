@@ -1,5 +1,5 @@
 boost_dep = dependency('boost')
-threads_dep = dependency('threads')
+threads_dep = dependency('threads', required : false)
 
 ## Flex stuff
 flex_exe = find_program('flex', 'win_flex')
@@ -103,14 +103,31 @@ preprocessor_core_lib = static_library('dynare_core',
                                        dependencies : [boost_dep, threads_dep],
                                        pic : true)
 
-dynare_preprocessor = executable('dynare-preprocessor', 'DynareMain.cc',
-                                 include_directories : preprocessor_incdir,
-                                 cpp_args : [ '-I' + meson.current_build_dir() / 'libdynare_core.a.p' ],
-                                 dependencies : [boost_dep, threads_dep],
-                                 link_with : preprocessor_core_lib,
-                                 link_args : preprocessor_link_args,
-                                 install : true)
+build_cli = get_option('build_cli')
+build_cli_target = false
+if build_cli.enabled()
+  build_cli_target = true
+elif build_cli.auto()
+  # In auto mode, build CLI on standard targets. If cross-compiling for emscripten
+  # with build_library enabled (e.g. emscripten-forge WASM side module), skip the CLI.
+  if host_machine.system() != 'emscripten' or not get_option('build_library').enabled()
+    build_cli_target = true
+  endif
+endif
 
+have_cli = false
+if build_cli_target
+  dynare_preprocessor = executable('dynare-preprocessor', 'DynareMain.cc',
+                                   include_directories : preprocessor_incdir,
+                                   cpp_args : [ '-I' + meson.current_build_dir() / 'libdynare_core.a.p' ],
+                                   dependencies : [boost_dep, threads_dep],
+                                   link_with : preprocessor_core_lib,
+                                   link_args : preprocessor_link_args,
+                                   install : true)
+  have_cli = true
+endif
+
+have_library = false
 build_library = get_option('build_library')
 if not build_library.disabled()
   py3_inst = import('python').find_installation('python3', required : build_library)
@@ -133,6 +150,12 @@ if not build_library.disabled()
       fs = import('fs')
       nb_combined_cpp = fs.copyfile(nb_paths[3], 'nb_combined.cpp')
 
+      py3_dep = py3_inst.dependency(required : false)
+      pylib_deps = [boost_dep, threads_dep]
+      if py3_dep.found()
+        pylib_deps += [py3_dep]
+      endif
+
       dynare_pylib = py3_inst.extension_module(
         'dynare_preprocessor',
         'DynLib.cc',
@@ -140,11 +163,12 @@ if not build_library.disabled()
         nb_combined_cpp,
         include_directories : [preprocessor_incdir, nanobind_inc],
         cpp_args : [ '-I' + meson.current_build_dir() / 'libdynare_core.a.p' ],
-        dependencies : [boost_dep, threads_dep, py3_inst.dependency()],
+        dependencies : pylib_deps,
         link_with : preprocessor_core_lib,
         link_args : preprocessor_link_args,
         install : true
       )
+      have_library = true
     elif build_library.enabled()
       error('nanobind could not be found via python3')
     endif

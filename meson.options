@@ -1,2 +1,3 @@
 option('build_library', type: 'feature', value: 'auto', description: 'Build Python extension module')
+option('build_cli', type: 'feature', value: 'auto', description: 'Build standalone CLI executable')
 
