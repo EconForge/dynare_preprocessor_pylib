@@ -1,5 +1,9 @@
 boost_dep = dependency('boost')
-threads_dep = dependency('threads', required : false)
+if host_machine.system() == 'emscripten'
+  threads_dep = dependency('', required : false)
+else
+  threads_dep = dependency('threads', required : false)
+endif
 
 ## Flex stuff
 flex_exe = find_program('flex', 'win_flex')

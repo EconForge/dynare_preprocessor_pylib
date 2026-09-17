@@ -1,0 +1,66 @@
+#!/bin/bash
+set -e
+
+if [[ "${target_platform}" == "emscripten-wasm32" ]]; then
+    # Generate Meson cross-file for emscripten
+    cat << 'EOF' > emscripten.meson.cross
+[properties]
+needs_exe_wrapper = true
+skip_sanity_check = true
+
+[host_machine]
+system = 'emscripten'
+cpu_family = 'wasm32'
+cpu = 'wasm32'
+endian = 'little'
+
+[binaries]
+c = 'emcc'
+cpp = 'em++'
+ar = 'emar'
+ranlib = 'emranlib'
+pkgconfig = 'pkg-config'
+python = '$PYTHON'
+EOF
+
+    sed -i "s|'\$PYTHON'|'${PYTHON}'|g" emscripten.meson.cross
+
+    export CFLAGS="$CFLAGS -sWASM_BIGINT -sSIDE_MODULE=1 -fexceptions"
+    export CXXFLAGS="$CXXFLAGS -sWASM_BIGINT -sSIDE_MODULE=1 -fexceptions"
+    export LDFLAGS="$LDFLAGS -sWASM_BIGINT -sSIDE_MODULE=1 -fexceptions"
+
+    meson setup build_wasm \
+        --prefix=$PREFIX \
+        --libdir=$PREFIX/lib \
+        --includedir=$PREFIX/include \
+        --bindir=$PREFIX/bin \
+        --buildtype=release \
+        -Dbuild_cli=disabled \
+        -Dbuild_library=enabled \
+        -Dbuild_doc=false \
+        -Dcpp_args="-fexceptions -sSIDE_MODULE=1 -sWASM_BIGINT" \
+        -Dcpp_link_args="-fexceptions -sSIDE_MODULE=1 -sWASM_BIGINT" \
+        --cross-file=$(pwd)/emscripten.meson.cross
+
+    meson compile -C build_wasm -v
+    meson install -C build_wasm
+else
+    export BOOST_ROOT="$PREFIX"
+    export BOOSTROOT="$PREFIX"
+
+    meson setup build_linux \
+        --prefix=$PREFIX \
+        --libdir=$PREFIX/lib \
+        --includedir=$PREFIX/include \
+        --bindir=$PREFIX/bin \
+        --buildtype=release \
+        -Dbuild_cli=enabled \
+        -Dbuild_library=enabled \
+        -Dbuild_doc=false \
+        -Dcpp_args="-I$PREFIX/include" \
+        -Dcpp_link_args="-L$PREFIX/lib"
+
+    meson compile -C build_linux -v
+    meson install -C build_linux
+fi
+

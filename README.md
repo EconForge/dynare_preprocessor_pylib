@@ -82,7 +82,7 @@ pixi run wheel
 python -m build --wheel --no-isolation --skip-dependency-check
 ```
 
-The resulting wheel is saved in `dist/` (e.g. `dist/dynare_preprocessor-8.0.0.dev0-cp312-cp312-linux_x86_64.whl`) and can be installed via pip:
+The resulting wheel is saved in `dist/` (e.g. `dist/dynare_preprocessor-0.0.1.dev0-cp312-cp312-linux_x86_64.whl`) and can be installed via pip:
 
 ```bash
 pip install dist/dynare_preprocessor-*.whl
@@ -106,6 +106,64 @@ meson compile -C build
 meson setup build -Dbuild_cli=enabled -Dbuild_library=enabled -Dbuild_doc=false
 meson compile -C build
 PYTHONPATH=build/src pytest tests
+```
+
+---
+
+## 4. WebAssembly / Emscripten Build & Testing
+
+### WebAssembly Packaging (`emscripten-wasm32`)
+
+```bash
+# Build the emscripten-wasm32 package locally (~1 min)
+pixi run build-wasm
+
+# Run the test suite inside a headless browser (Chromium via pytester)
+pixi run test-wasm
+
+# Upload the package to the econforge channel on prefix.dev
+pixi run upload-wasm
+```
+
+The resulting package will be generated under `output/emscripten-wasm32/dynare-preprocessor-pylib-*.conda`.
+
+### Linux Packaging (`linux-64`)
+
+```bash
+# Build packages for Python 3.11, 3.12, 3.13 variants
+pixi run build-linux
+
+# Upload Linux packages to the econforge channel on prefix.dev
+pixi run upload-linux
+```
+
+The resulting packages will be generated under `output/linux-64/dynare-preprocessor-pylib-*.conda`.
+
+### Consuming the Package (JupyterLite / Pyodide / Pixi)
+
+To install the WebAssembly package from `econforge`, include the `emscripten-forge-4x` channel for WebAssembly runtime dependencies (`emscripten-abi`, `python`, `numpy`):
+
+```toml
+[workspace]
+channels = [
+    "https://repo.prefix.dev/econforge",
+    "https://repo.prefix.dev/emscripten-forge-4x",
+    "conda-forge"
+]
+platforms = ["emscripten-wasm32"]
+
+[dependencies]
+dynare-preprocessor-pylib = ">=0.0.1.dev0"
+```
+
+Or via `micromamba`:
+```bash
+micromamba create -n wasm-env \
+    --platform=emscripten-wasm32 \
+    -c https://repo.prefix.dev/econforge \
+    -c https://repo.prefix.dev/emscripten-forge-4x \
+    -c conda-forge \
+    dynare-preprocessor-pylib
 ```
 
 ---

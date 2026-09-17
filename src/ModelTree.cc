@@ -43,12 +43,14 @@
    related to MEX compilation, so that when the preprocessor exits, the workers
    are destroyed *before* those variables (since the former rely on the latter
    for their functioning). */
+#ifndef __EMSCRIPTEN__
 condition_variable_any ModelTree::mex_compilation_cv;
 mutex ModelTree::mex_compilation_mut;
 vector<tuple<filesystem::path, set<filesystem::path>, string>> ModelTree::mex_compilation_queue;
 set<filesystem::path> ModelTree::mex_compilation_ongoing, ModelTree::mex_compilation_done,
     ModelTree::mex_compilation_failed;
 vector<jthread> ModelTree::mex_compilation_workers;
+#endif
 
 void
 ModelTree::copyHelper(const ModelTree& m)
@@ -1671,6 +1673,9 @@ ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_b
                       const string& mexext, const vector<filesystem::path>& input_files,
                       const filesystem::path& matlabroot, bool link) const
 {
+#ifdef __EMSCRIPTEN__
+  throw ModelSemanticException("MEX compilation is not supported under WebAssembly");
+#else
   assert(!mex_compilation_workers.empty());
 
   const string gcc_opt_flags {
@@ -1786,6 +1791,7 @@ ModelTree::compileMEX(const filesystem::path& output_dir, const string& output_b
   mex_compilation_cv.notify_one();
 
   return output_filename;
+#endif
 }
 
 void
@@ -1912,9 +1918,13 @@ ModelTree::getRHSFromLHS(expr_t lhs) const
 }
 
 void
-ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::path& dynareroot,
-                                           const string& mexext)
+ModelTree::initializeMEXCompilationWorkers([[maybe_unused]] int numworkers,
+                                           [[maybe_unused]] const filesystem::path& dynareroot,
+                                           [[maybe_unused]] const string& mexext)
 {
+#ifdef __EMSCRIPTEN__
+  throw ModelSemanticException("MEX compilation workers are not supported under WebAssembly");
+#else
   assert(numworkers > 0);
   assert(mex_compilation_workers.empty());
 
@@ -1987,8 +1997,8 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
   else if (mexext == "mex")
     {
       /* On macOS, with Octave, enforce our compiler. In particular this is
-         necessary if we’ve selected GCC; otherwise Clang will be used, and
-         it does not accept the same optimization flags (see dynare#1797) */
+       necessary if we’ve selected GCC; otherwise Clang will be used, and
+       it does not accept the same optimization flags (see dynare#1797) */
       auto [compiler_path, is_clang] {findCompilerOnMacos(mexext)};
       if (setenv("CC", compiler_path.c_str(), 1) != 0)
         throw InternalCompilerException("Can't set CC environment variable");
@@ -1997,11 +2007,13 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
         throw InternalCompilerException("Can't set CXX environment variable");
     }
 #endif
+#endif
 }
 
 void
 ModelTree::waitForMEXCompilationWorkers()
 {
+#ifndef __EMSCRIPTEN__
   unique_lock<mutex> lk {mex_compilation_mut};
   mex_compilation_cv.wait(lk, [] {
     return (mex_compilation_queue.empty() && mex_compilation_ongoing.empty())
@@ -2016,6 +2028,7 @@ ModelTree::waitForMEXCompilationWorkers()
       lk.unlock(); // So that threads can process their stoken
       throw ModelSemanticException(msg.str());
     }
+#endif
 }
 
 void

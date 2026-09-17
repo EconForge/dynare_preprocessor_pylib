@@ -3,9 +3,9 @@ requires = ["meson-python>=0.15.0", "nanobind>=2.0.0", "ninja"]
 build-backend = "mesonpy"
 
 [project]
-name = "dynare-preprocessor"
-version = "8.0.0.dev0"
-description = "Dynare Preprocessor Model API and Python bindings"
+name = "dynare_preprocessor"
+version = "0.0.1.dev0"
+description = "Dynare preprocessor with Python bindings"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "GPL-3.0-or-later" }

@@ -23,11 +23,12 @@
 #include <iostream>
 #include <regex>
 #include <sstream>
-#include <string>
-#include <thread>
-#include <vector>
-
 #include <cstdlib>
+#include <string>
+#ifndef __EMSCRIPTEN__
+#include <thread>
+#endif
+#include <vector>
 
 #ifdef _WIN32
 # include <io.h>
@@ -520,8 +521,14 @@ main(int argc, char** argv)
         throw DynareException("ERROR: `use_dll` option is not compatible with Python");
 
       if (mod_file->use_dll)
-        ModelTree::initializeMEXCompilationWorkers(max(jthread::hardware_concurrency(), 1U), dynareroot,
-                                                   mexext);
+        {
+#ifndef __EMSCRIPTEN__
+          ModelTree::initializeMEXCompilationWorkers(max(jthread::hardware_concurrency(), 1U), dynareroot,
+                                                     mexext);
+#else
+          throw DynareException("ERROR: `use_dll` option is not supported under WebAssembly");
+#endif
+        }
 
       if (json == JsonOutputPointType::parsing)
         mod_file->writeJsonOutput(basename, json, json_output_mode, onlyjson);
@@ -560,7 +567,11 @@ main(int argc, char** argv)
          Also ensures that the preprocessor final message is printed after the end of
          compilation (and is not printed in case of compilation failure). */
       if (mod_file->use_dll)
-        ModelTree::waitForMEXCompilationWorkers();
+        {
+#ifndef __EMSCRIPTEN__
+          ModelTree::waitForMEXCompilationWorkers();
+#endif
+        }
 
       cout << "Preprocessing completed." << '\n';
       return EXIT_SUCCESS;

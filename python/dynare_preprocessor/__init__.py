@@ -46,7 +46,7 @@ except ModuleNotFoundError:
         UnsupportedFeatureException,
     )
 
-__version__ = "8.0.0.dev0"
+__version__ = "0.0.1.dev0"
 
 __all__ = [
     "DynareModel",

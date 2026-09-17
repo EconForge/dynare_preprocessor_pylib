@@ -31,7 +31,9 @@
 #include <optional>
 #include <ostream>
 #include <string>
+#ifndef __EMSCRIPTEN__
 #include <thread>
+#endif
 #include <vector>
 
 #include "Bytecode.hh"
@@ -448,6 +450,7 @@ private:
   /*! Maps endogenous type specific IDs to equation numbers */
   vector<int> endo2eq;
 
+#ifndef __EMSCRIPTEN__
   // Stores workers used for compiling MEX files in parallel
   static vector<jthread> mex_compilation_workers;
 
@@ -465,6 +468,7 @@ private:
   static set<filesystem::path> mex_compilation_done;
   // Object/MEX files whose compilation failed
   static set<filesystem::path> mex_compilation_failed;
+#endif
 
   /* Compute a pseudo-Jacobian whose all elements are either zero or one,
      depending on whether the variable symbolically appears in the equation. If
