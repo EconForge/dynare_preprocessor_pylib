@@ -10,13 +10,17 @@ source:
   path: ..
 
 build:
-  number: 1
+  number: 2
 
 requirements:
   build:
     - ${{ compiler("cxx") }}
-    - bison
-    - flex
+    - if: target_platform == "win-64"
+      then:
+        - winflexbison
+      else:
+        - bison
+        - flex
     - meson
     - ninja
     - pkg-config
@@ -37,6 +41,7 @@ requirements:
       else:
         - python
         - libboost-devel
+        - nanobind
   run:
     - python
     - numpy
@@ -53,9 +58,18 @@ tests:
       files:
         recipe:
           - test_preproc.py
-    else:
+  - if: target_platform == "linux-64"
+    then:
       script:
         - test -f $PREFIX/bin/dynare-preprocessor
+        - python test_preproc.py
+      files:
+        recipe:
+          - test_preproc.py
+  - if: target_platform == "win-64"
+    then:
+      script:
+        - if not exist "%PREFIX%\Library\bin\dynare-preprocessor.exe" if not exist "%PREFIX%\bin\dynare-preprocessor.exe" exit 1
         - python test_preproc.py
       files:
         recipe:
@@ -72,4 +86,3 @@ extra:
   recipe-maintainers:
     - albop
     - svillemot
-

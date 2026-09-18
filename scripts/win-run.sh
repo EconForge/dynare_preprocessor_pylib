@@ -16,7 +16,7 @@ SSH_OPTS=(
   -o ConnectTimeout=5
 )
 
-SYNC_CMD='robocopy \\host.lan\Data C:\preprocessor /MIR /XD .git .pixi build build-win win32 test_llvm dist /NFL /NDL /NJH /NJS /nc /ns /np /R:1 /W:1'
+SYNC_CMD='robocopy \\host.lan\Data C:\preprocessor /MIR /XD .git .pixi build build-win win32 test_llvm dist output /NFL /NDL /NJH /NJS /nc /ns /np /R:1 /W:1'
 
 # If win-dev container is running, execute via the container's internal network to reach 172.30.0.2
 if docker ps --filter "name=^/win-dev$" --format '{{.Names}}' | grep -q "^win-dev$"; then
