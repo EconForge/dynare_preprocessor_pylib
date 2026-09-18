@@ -30,10 +30,6 @@ jobs:
             platform: osx-arm64
             name: macOS Apple Silicon (Pixi)
             artifact-name: wheels-macos-arm64
-          - os: macos-13
-            platform: osx-64
-            name: macOS Intel (Pixi)
-            artifact-name: wheels-macos-x86_64
 
     runs-on: ${{ matrix.os }}
 
