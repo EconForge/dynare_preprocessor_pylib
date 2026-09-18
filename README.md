@@ -11,6 +11,12 @@ The **Dynare Preprocessor** defines and parses the Dynare model specification la
 
 In addition to the standalone CLI binary, it provides a high-performance native Python library (`dynare_preprocessor`) powered by [nanobind](https://github.com/wjakob/nanobind). The Python library allows you to parse `.mod` files (from disk or in-memory strings), introspect model equations and symbols, and evaluate residuals, Jacobians, and higher-order derivatives directly via NumPy arrays without intermediate code generation.
 
+> [!NOTE]
+> **Project Status & Upstream Integration**
+> This repository is **not** an independent fork of the Dynare Preprocessor. It is developed with the blessing and active collaboration of the Dynare team, and all enhancements and packaging features will be integrated directly into the official [Dynare project](https://git.dynare.org/Dynare/preprocessor).
+>
+> Please note that this is an **early preview**: the codebase is in active development, and the Python library API is subject to change as upstream integration proceeds.
+
 ---
 
 ## Table of Contents
