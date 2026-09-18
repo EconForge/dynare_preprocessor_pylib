@@ -104,6 +104,7 @@ preprocessor-cli = "build-cli/src/dynare-preprocessor"
 
 [activation.env]
 PYTHONPATH = "build/src"
+BOOST_ROOT = "$CONDA_PREFIX"
 
 [target.win-64.activation.env]
 PYTHONPATH = "build-win/src"

@@ -1,4 +1,39 @@
-boost_dep = dependency('boost')
+boost_dep = dependency('boost', required : false)
+if not boost_dep.found()
+  # Meson's builtin boost dependency finder requires finding compiled libraries
+  # even for header-only Boost usage. On macOS/Clang, compiler library search dirs
+  # may not match the prefix. Fall back to finding Boost headers directly.
+  fs = import('fs')
+  boost_found = false
+  if cpp_compiler.has_header('boost/version.hpp')
+    boost_dep = declare_dependency()
+    boost_found = true
+  else
+    py_candidate = find_program('python', 'python3', required : false)
+    search_prefixes = []
+    if py_candidate.found()
+      env_paths = run_command(py_candidate, '-c',
+        'import os; print(os.environ.get("BOOST_ROOT", "") + "\\n" + os.environ.get("CONDA_PREFIX", ""))',
+        check : false).stdout().strip().split('\n')
+      foreach p : env_paths
+        if p != ''
+          search_prefixes += [p]
+        endif
+      endforeach
+    endif
+    search_prefixes += ['/opt/homebrew', '/usr/local', '/usr']
+    foreach p : search_prefixes
+      if fs.is_dir(p / 'include' / 'boost')
+        boost_dep = declare_dependency(include_directories : include_directories(p / 'include'))
+        boost_found = true
+        break
+      endif
+    endforeach
+  endif
+  if not boost_found
+    error('Boost headers not found. Please install Boost or set BOOST_ROOT.')
+  endif
+endif
 if host_machine.system() == 'emscripten'
   threads_dep = dependency('', required : false)
 else
