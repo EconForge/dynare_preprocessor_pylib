@@ -444,21 +444,21 @@ ExprNode::fillErrorCorrectionRow(int eqn, const vector<int>& nontarget_lhs,
             if (orig_lag != -1)
               throw ModelSemanticException(
                   "in trend component model: variables in the error correction term should appear "
-                  "with a lag of -1");
+                  "with a lag of -1", eqn + 1);
             // This an LHS variable, so fill A0
             if (constant != 1)
               throw ModelSemanticException(
                   "in trend component model: LHS variable should not appear with a multiplicative "
-                  "constant in error correction term");
+                  "constant in error correction term", eqn + 1);
             if (param_id)
               throw ModelSemanticException(
-                  "in trend component model: spurious parameter in error correction term");
+                  "in trend component model: spurious parameter in error correction term", eqn + 1);
             int colidx = static_cast<int>(
                 ranges::distance(nontarget_lhs.begin(), ranges::find(nontarget_lhs, orig_vid)));
             if (A0.contains({eqn, colidx}))
               throw ModelSemanticException(
                   "ExprNode::fillErrorCorrection: Error filling A0 matrix: symb_id encountered "
-                  "more than once in equation");
+                  "more than once in equation", eqn + 1);
             A0[{eqn, colidx}] = datatree.AddVariable(speed_of_adjustment_param);
           }
         else

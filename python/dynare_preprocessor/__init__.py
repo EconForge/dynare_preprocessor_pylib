@@ -21,6 +21,7 @@ try:
         ParserException,
         PreprocessorException,
         SourceFileException,
+        SourceLocation,
         StatementException,
         SymbolType,
         UnsupportedFeatureException,
@@ -41,6 +42,7 @@ except ModuleNotFoundError:
         ParserException,
         PreprocessorException,
         SourceFileException,
+        SourceLocation,
         StatementException,
         SymbolType,
         UnsupportedFeatureException,
@@ -51,6 +53,7 @@ __version__ = "0.0.1.dev0"
 __all__ = [
     "DynareModel",
     "JacobianBlocks",
+    "SourceLocation",
     "SymbolType",
     "DynareException",
     "SourceFileException",

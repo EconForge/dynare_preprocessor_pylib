@@ -147,6 +147,13 @@ private:
 public:
   using SourceFileException::SourceFileException;
 
+  ParserException(SourceLocation loc, vector<pair<string, string>> undeclared_vars, string formatted_msg)
+    : SourceFileException {move(formatted_msg)},
+      undeclared_variables {move(undeclared_vars)}
+  {
+    location = move(loc);
+  }
+
   ParserException(vector<pair<string, string>> undeclared_vars, string formatted_msg)
     : SourceFileException {move(formatted_msg)},
       undeclared_variables {move(undeclared_vars)}
@@ -193,15 +200,19 @@ protected:
   optional<int> equation_lineno;
   optional<string> equation_tag;
   optional<string> symbol_name;
+  optional<SourceLocation> location;
   string message;
 
   static string
-  formatMessage(const string& msg,
+  formatMessage(string msg,
                 const optional<int>& eq_num,
                 const optional<int>& eq_line,
                 const optional<string>& eq_tag,
                 const optional<string>& sym_name)
   {
+    if (msg.starts_with("ERROR: "))
+      msg = msg.substr(7);
+
     ostringstream stream;
     stream << "ERROR: ";
     if (eq_num)
@@ -228,14 +239,18 @@ public:
                                  optional<int> eq_num = nullopt,
                                  optional<int> eq_line = nullopt,
                                  optional<string> eq_tag = nullopt,
-                                 optional<string> sym_name = nullopt)
+                                 optional<string> sym_name = nullopt,
+                                 optional<SourceLocation> loc = nullopt)
     : DynareException {formatMessage(msg, eq_num, eq_line, eq_tag, sym_name)},
       equation_number {eq_num},
       equation_lineno {eq_line},
       equation_tag {move(eq_tag)},
       symbol_name {move(sym_name)},
+      location {move(loc)},
       message {move(msg)}
   {
+    if (!location && equation_lineno)
+      location = SourceLocation("", *equation_lineno, 1, *equation_lineno, 1);
   }
 
   [[nodiscard]] const optional<int>&
@@ -248,6 +263,12 @@ public:
   getEquationLineno() const noexcept
   {
     return equation_lineno;
+  }
+
+  [[nodiscard]] const optional<SourceLocation>&
+  getLocation() const noexcept
+  {
+    return location;
   }
 
   [[nodiscard]] const optional<string>&

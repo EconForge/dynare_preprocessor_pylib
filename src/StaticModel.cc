@@ -107,10 +107,11 @@ StaticModel::StaticModel(const DynamicModel& m) :
       }
     catch (const DataTree::DivisionByZeroException& e)
       {
-        string msg = "...division by zero error encountered when converting equation " + to_string(i);
+        string msg = "division by zero error encountered when converting equation to static";
         if (!e.message.empty())
           msg += " (" + e.message + ")";
-        throw ModelSemanticException(msg);
+        throw ModelSemanticException(msg, static_cast<int>(i) + 1, m.equations_lineno[i],
+                                     m.equation_tags.getTagValueByEqnAndKey(i, "name"));
       }
 
   // Convert auxiliary equations

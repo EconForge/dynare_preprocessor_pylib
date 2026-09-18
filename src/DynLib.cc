@@ -57,9 +57,10 @@ expression_type(expr_t expression)
 
 DynareModel::DynareModel(const std::string& modfile_content_or_path,
                          int derivs_order,
-                         int params_derivs_order)
+                         int params_derivs_order,
+                         bool strict)
 {
-  set_mod_file(modfile_content_or_path, derivs_order, params_derivs_order);
+  set_mod_file(modfile_content_or_path, derivs_order, params_derivs_order, strict);
   set_json_string();
   set_symbols();
   set_equations();
@@ -72,7 +73,8 @@ DynareModel::DynareModel(const std::string& modfile_content_or_path,
 void
 DynareModel::set_mod_file(const std::string& modfile_content_or_path,
                           int derivs_order,
-                          int params_derivs_order)
+                          int params_derivs_order,
+                          bool strict)
 {
   filesystem::path filepath;
   string content;
@@ -103,7 +105,7 @@ DynareModel::set_mod_file(const std::string& modfile_content_or_path,
       = macroExpandModFile(filepath, modfile_stream, false, false, "", false, {}, move(paths));
 
   // 2. Parse into AST
-  const bool nostrict = true;
+  const bool nostrict = !strict;
   const bool nowarn = true;
   warnings = make_unique<WarningConsolidation>(nowarn);
   driver = make_unique<ParsingDriver>(*warnings, nostrict);

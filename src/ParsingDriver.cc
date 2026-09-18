@@ -124,7 +124,7 @@ ParsingDriver::undeclared_model_variable_error(const string& m, const string& va
   stream << m;
   if (nostrict)
     stream << " automatically declared exogenous.";
-  undeclared_model_variable_errors.emplace_back(var, stream.str());
+  undeclared_model_variable_errors.push_back({var, SourceLocation {location}, stream.str()});
 }
 
 void
@@ -378,7 +378,7 @@ ParsingDriver::declare_or_change_type(SymbolType new_type, const string& name)
 
       // remove error messages
       undeclared_model_vars.erase(name);
-      erase_if(undeclared_model_variable_errors, [&name](auto& v) { return v.first == name; });
+      erase_if(undeclared_model_variable_errors, [&name](const auto& v) { return v.var == name; });
     }
   catch (SymbolTable::UnknownSymbolNameException& e)
     {
@@ -1095,20 +1095,25 @@ ParsingDriver::end_model()
 {
   bool exit_after_write = false;
   ostringstream errs;
+  optional<SourceLocation> first_loc;
+  vector<pair<string, string>> undeclared_saved;
 
-  if (undeclared_model_variable_errors.size() > 0)
-    for (auto& it : undeclared_model_variable_errors)
-      {
-        if (nostrict)
-          warning(it.second);
-        else
-          {
-            exit_after_write = true;
-            errs << it.second << '\n';
-          }
-      }
+  if (!undeclared_model_variable_errors.empty())
+    {
+      first_loc = undeclared_model_variable_errors.front().location;
+      for (auto& it : undeclared_model_variable_errors)
+        {
+          if (nostrict)
+            warning(it.message);
+          else
+            {
+              exit_after_write = true;
+              errs << it.message << '\n';
+            }
+          undeclared_saved.emplace_back(move(it.var), move(it.message));
+        }
+    }
 
-  auto undeclared_saved = move(undeclared_model_variable_errors);
   undeclared_model_variable_errors.clear();
 
   if (exit_after_write)
@@ -1117,7 +1122,10 @@ ParsingDriver::end_model()
       string msg = errs.str();
       if (!msg.empty() && msg.back() == '\n')
         msg.pop_back();
-      throw ParserException(move(undeclared_saved), msg);
+      if (first_loc)
+        throw ParserException(*first_loc, move(undeclared_saved), msg);
+      else
+        throw ParserException(move(undeclared_saved), msg);
     }
 
   reset_data_tree();
@@ -2660,26 +2668,37 @@ ParsingDriver::end_planner_objective(expr_t expr)
   // Handle undeclared variables (see #81)
   bool exit_after_write = false;
   ostringstream errs;
-  if (undeclared_model_variable_errors.size() > 0)
-    for (auto& it : undeclared_model_variable_errors)
-      {
-        if (nostrict)
-          warning(it.second);
-        else
-          {
-            exit_after_write = true;
-            errs << it.second << '\n';
-          }
-      }
-  auto undeclared_saved = move(undeclared_model_variable_errors);
+  optional<SourceLocation> first_loc;
+  vector<pair<string, string>> undeclared_saved;
+
+  if (!undeclared_model_variable_errors.empty())
+    {
+      first_loc = undeclared_model_variable_errors.front().location;
+      for (auto& it : undeclared_model_variable_errors)
+        {
+          if (nostrict)
+            warning(it.message);
+          else
+            {
+              exit_after_write = true;
+              errs << it.message << '\n';
+            }
+          undeclared_saved.emplace_back(move(it.var), move(it.message));
+        }
+    }
+
   undeclared_model_variable_errors.clear();
+
   if (exit_after_write)
     {
       reset_data_tree();
       string msg = errs.str();
       if (!msg.empty() && msg.back() == '\n')
         msg.pop_back();
-      throw ParserException(move(undeclared_saved), msg);
+      if (first_loc)
+        throw ParserException(*first_loc, move(undeclared_saved), msg);
+      else
+        throw ParserException(move(undeclared_saved), msg);
     }
 
   reset_data_tree();

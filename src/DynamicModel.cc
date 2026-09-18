@@ -437,11 +437,9 @@ DynamicModel::removeEquationsHelper(
                 if (result.size() == 1)
                   excluded_vars.push_back(*result.begin());
                 else
-                  {
-                    throw ModelSemanticException("Equation " + to_string(i + 1)
-                                                 + " has been excluded but it does not have a single variable on its "
-                                                   "left-hand side or an `endogenous` tag");
-                  }
+                    throw ModelSemanticException("has been excluded but it does not have a single variable on its left-hand side or an `endogenous` tag",
+                                                 static_cast<int>(i) + 1, all_equations_lineno[i],
+                                                 all_equation_tags.getTagValueByEqnAndKey(i, "name"));
               }
           }
       }
@@ -901,9 +899,10 @@ DynamicModel::updateVarAndTrendModel() const
                           {
                           }
                       if (ranges::find(trend_lhs, *trend_var_symb_id) == trend_lhs.end())
-                        throw ModelSemanticException("trend found in trend_component equation #" + to_string(eqn) + " ("
+                        throw ModelSemanticException("trend found in trend_component ("
                                                      + symbol_table.getName(*trend_var_symb_id)
-                                                     + ") does not correspond to a trend equation");
+                                                     + ") does not correspond to a trend equation",
+                                                     eqn + 1, equations_lineno[eqn]);
                     }
                   trend_var.push_back(trend_var_symb_id);
                 }
@@ -949,13 +948,13 @@ DynamicModel::fillVarModelTable() const
           equations[*eqn]->arg1->collectDynamicVariables(SymbolType::parameter, lhs_tmp_set);
 
           if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
-            throw ModelSemanticException("in Equation " + eqtag
-                                         + ". A VAR may only have one endogenous variable on the LHS.");
+            throw ModelSemanticException("A VAR may only have one endogenous variable on the LHS.",
+                                         *eqn + 1, equations_lineno[*eqn], eqtag);
 
           auto itlhs = lhs_set.begin();
           if (itlhs->second != 0)
-            throw ModelSemanticException("in Equation " + eqtag
-                                         + ". The variable on the LHS of a VAR may not appear with a lead or a lag.");
+            throw ModelSemanticException("The variable on the LHS of a VAR may not appear with a lead or a lag.",
+                                         *eqn + 1, equations_lineno[*eqn], eqtag);
 
           eqnumber.push_back(*eqn);
           lhs.push_back(itlhs->first);
@@ -997,17 +996,17 @@ DynamicModel::fillVarModelTableFromOrigModel() const
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_endo_set);
           for (const auto& [symb_id, lag] : rhs_endo_set)
             if (lag > 0)
-              throw ModelSemanticException("in Equation " + eqtag.value_or(to_string(eqn + 1))
-                                           + ". A VAR model may not have leaded endogenous variables on the RHS.");
+              throw ModelSemanticException("A VAR model may not have leaded endogenous variables on the RHS.",
+                                           eqn + 1, equations_lineno[eqn], eqtag);
             else if (!var_model_table.getStructural().at(model_name) && lag == 0)
-              throw ModelSemanticException("in Equation " + eqtag.value_or(to_string(eqn + 1))
-                                           + ". A non-structural VAR model may not have contemporaneous endogenous variables on the RHS.");
+              throw ModelSemanticException("A non-structural VAR model may not have contemporaneous endogenous variables on the RHS.",
+                                           eqn + 1, equations_lineno[eqn], eqtag);
 
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::exogenous, rhs_exo_set);
           for (const auto& [symb_id, lag] : rhs_exo_set)
             if (lag != 0)
-              throw ModelSemanticException("in Equation " + eqtag.value_or(to_string(eqn + 1))
-                                           + ". A VAR model may not have lagged or leaded exogenous variables on the RHS.");
+              throw ModelSemanticException("A VAR model may not have lagged or leaded exogenous variables on the RHS.",
+                                           eqn + 1, equations_lineno[eqn], eqtag);
 
           // save lhs variables
           equations[eqn]->arg1->collectVARLHSVariable(lhs);
@@ -1019,8 +1018,8 @@ DynamicModel::fillVarModelTableFromOrigModel() const
               equations[eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, diff_set);
 
               if (diff_set.size() != 1)
-                throw ModelSemanticException("problem getting variable for LHS diff operator in equation "
-                                             + to_string(eqn));
+                throw ModelSemanticException("problem getting variable for LHS diff operator",
+                                             eqn + 1, equations_lineno[eqn], eqtag);
               orig_diff_var_vec.emplace_back(diff_set.begin()->first);
             }
           else
@@ -1124,10 +1123,9 @@ DynamicModel::fillVarModelTableMatrices()
                   if (d != Zero)
                     {
                       if (!d->isConstant())
-                        throw ModelSemanticException("Equation "
-                                                     + equation_tags.getTagValueByEqnAndKey(eqns[i], "name")
-                                                            .value_or(to_string(eqns[i] + 1))
-                                                     + " is not linear");
+                        throw ModelSemanticException("is not linear", eqns[i] + 1,
+                                                     equations_lineno[eqns[i]],
+                                                     equation_tags.getTagValueByEqnAndKey(eqns[i], "name"));
 
                       AR[model_name][{i, lag, lhs_symb_id}] = AddUMinus(d);
                     }
@@ -1142,10 +1140,9 @@ DynamicModel::fillVarModelTableMatrices()
               if (d != Zero)
                 {
                   if (!d->isConstant())
-                    throw ModelSemanticException("Equation "
-                                                 + equation_tags.getTagValueByEqnAndKey(eqns[i], "name")
-                                                        .value_or(to_string(eqns[i] + 1))
-                                                 + " is not linear");
+                    throw ModelSemanticException("is not linear", eqns[i] + 1,
+                                                 equations_lineno[eqns[i]],
+                                                 equation_tags.getTagValueByEqnAndKey(eqns[i], "name"));
 
                   A0[model_name][{i, lhs_symb_id}] = d;
                 }
@@ -1230,13 +1227,13 @@ DynamicModel::fillTrendComponentModelTable() const
           equations[*eqn]->arg1->collectDynamicVariables(SymbolType::parameter, lhs_tmp_set);
 
           if (lhs_set.size() != 1 || !lhs_tmp_set.empty())
-            throw ModelSemanticException("in Equation " + eqtag
-                                         + ". A trend component model may only have one endogenous variable on the LHS.");
+            throw ModelSemanticException("A trend component model may only have one endogenous variable on the LHS.",
+                                         *eqn + 1, equations_lineno[*eqn], eqtag);
 
           auto itlhs = lhs_set.begin();
           if (itlhs->second != 0)
-            throw ModelSemanticException("in Equation " + eqtag
-                                         + ". The variable on the LHS of a trend component model may not appear with a lead or a lag.");
+            throw ModelSemanticException("The variable on the LHS of a trend component model may not appear with a lead or a lag.",
+                                         *eqn + 1, equations_lineno[*eqn], eqtag);
 
           eqnumber.push_back(*eqn);
           lhs.push_back(itlhs->first);
@@ -1308,13 +1305,13 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::endogenous, rhs_endo_set);
           for (const auto& [symb_id, lag] : rhs_endo_set)
             if (lag >= 0)
-              throw ModelSemanticException("in Equation " + eqtag.value_or(to_string(eqn + 1))
-                                           + ". A trend component model may not have leaded or contemporaneous endogenous variables on the RHS.");
+              throw ModelSemanticException("A trend component model may not have leaded or contemporaneous endogenous variables on the RHS.",
+                                           eqn + 1, equations_lineno[eqn], eqtag);
           equations[eqn]->arg2->collectDynamicVariables(SymbolType::exogenous, rhs_exo_set);
           for (const auto& [symb_id, lag] : rhs_exo_set)
             if (lag != 0)
-              throw ModelSemanticException("in Equation " + eqtag.value_or(to_string(eqn + 1))
-                                           + ". A trend component model may not have lagged or leaded exogenous variables on the RHS.");
+              throw ModelSemanticException("A trend component model may not have lagged or leaded exogenous variables on the RHS.",
+                                           eqn + 1, equations_lineno[eqn], eqtag);
 
           // save lhs variables
           equations[eqn]->arg1->collectVARLHSVariable(lhs);
@@ -1326,8 +1323,8 @@ DynamicModel::fillTrendComponentModelTableFromOrigModel() const
               equations[eqn]->arg1->collectDynamicVariables(SymbolType::endogenous, diff_set);
 
               if (diff_set.size() != 1)
-                throw ModelSemanticException("problem getting variable for LHS diff operator in equation "
-                                             + to_string(eqn));
+                throw ModelSemanticException("problem getting variable for LHS diff operator",
+                                             eqn + 1, equations_lineno[eqn], eqtag);
               orig_diff_var_vec.emplace_back(diff_set.begin()->first);
             }
           else
@@ -1381,11 +1378,11 @@ DynamicModel::getUndiffLHSForPac(const string& aux_model_name,
       auto i = ranges::distance(eqnumber.begin(), ranges::find(eqnumber, eqn));
 
       if (eqnumber[i] != eqn)
-        throw ModelSemanticException("equation " + to_string(eqn) + " not found in VAR");
+        throw ModelSemanticException("not found in VAR", eqn + 1, equations_lineno[eqn]);
 
       if (!diff.at(i))
-        throw ModelSemanticException("the variable on the LHS of equation #" + to_string(eqn)
-                                     + " does not have the diff operator applied to it yet you are trying to undiff it.");
+        throw ModelSemanticException("the variable on the LHS does not have the diff operator applied to it yet you are trying to undiff it.",
+                                     eqn + 1, equations_lineno[eqn]);
 
       expr_t node = nullptr;
       expr_t aux_var = lhs_expr_t.at(i);
@@ -2555,9 +2552,8 @@ DynamicModel::expandEqTags()
         else if (!equation_tags.exists("name", to_string(eq + 1)))
           equation_tags.add(eq, "name", to_string(eq + 1));
         else
-          throw ModelSemanticException(
-              format("cannot assign default tag to equation number {} because it is already in use",
-                     eq + 1));
+          throw ModelSemanticException("cannot assign default tag to equation number because it is already in use",
+                                       static_cast<int>(eq) + 1, equations_lineno[eq]);
       }
 }
 
@@ -2805,18 +2801,14 @@ DynamicModel::testTrendDerivativesEqualToZero(const eval_context_t& eval_context
                     if (fabs(nearZero) > balanced_growth_test_tol)
                       {
                         ostringstream oss;
-                        oss << "trends not compatible with balanced growth path: cross-derivative of "
-                               "equation "
-                            << eq + 1;
-                        if (equations_lineno[eq])
-                          oss << " (line " << *equations_lineno[eq] << ") ";
-                        oss << "w.r.t. trend variable " << symbol_table.getName(symb_id1)
+                        oss << "trends not compatible with balanced growth path: cross-derivative"
+                            << " w.r.t. trend variable " << symbol_table.getName(symb_id1)
                             << " and endogenous variable " << symbol_table.getName(symb_id2)
                             << " is not null (abs. value = " << fabs(nearZero)
                             << "). If you are confident that your trends are correctly specified, "
                                "you can raise the value of option 'balanced_growth_test_tol' in "
                                "the 'model' block.";
-                        throw ModelSemanticException(oss.str());
+                        throw ModelSemanticException(oss.str(), static_cast<int>(eq) + 1, equations_lineno[eq]);
                       }
                   }
             }
@@ -3699,9 +3691,9 @@ DynamicModel::checkNoRemainingPacExpectation() const
 {
   for (size_t eq = 0; eq < equations.size(); eq++)
     if (equations[eq]->containsPacExpectation())
-      throw ModelSemanticException(
-          format("in equation {}, the pac_expectation operator references an unknown pac_model",
-                 equation_tags.getTagValueByEqnAndKey(eq, "name").value_or(to_string(eq + 1))));
+      throw ModelSemanticException("the pac_expectation operator references an unknown pac_model",
+                                   static_cast<int>(eq) + 1, equations_lineno[eq],
+                                   equation_tags.getTagValueByEqnAndKey(eq, "name"));
 }
 
 void
@@ -3754,11 +3746,10 @@ DynamicModel::simplifyEquations()
           }
         catch (const DataTree::DivisionByZeroException& e)
           {
-            string msg {
-                format("Division by zero when substituting constants in equation {}", eq + 1)};
-            if (auto name = equation_tags.getTagValueByEqnAndKey(static_cast<int>(eq), "name"))
-              msg += format(" ['{}']", *name);
-            throw ModelSemanticException(error_message_helper(msg, e));
+            throw ModelSemanticException(
+                error_message_helper("Division by zero when substituting constants", e),
+                static_cast<int>(eq) + 1, equations_lineno[eq],
+                equation_tags.getTagValueByEqnAndKey(static_cast<int>(eq), "name"));
           }
       for (size_t eq {0}; eq < static_only_equations.size(); eq++)
         try
@@ -3768,10 +3759,9 @@ DynamicModel::simplifyEquations()
           }
         catch (const DataTree::DivisionByZeroException& e)
           {
-            throw ModelSemanticException(error_message_helper(
-                format("Division by zero when substituting constants in [static] equation {}",
-                       eq + 1),
-                e));
+            throw ModelSemanticException(
+                error_message_helper("Division by zero when substituting constants in [static] equation", e),
+                static_cast<int>(eq) + 1, static_only_equations_lineno[eq]);
           }
       subst_table.clear();
       findConstantEquationsWithoutComplementarityCondition(subst_table);

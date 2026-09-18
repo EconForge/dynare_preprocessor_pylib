@@ -280,7 +280,14 @@ private:
 
   bool nostrict;
 
-  vector<pair<string, string>> undeclared_model_variable_errors;
+  struct UndeclaredVariable
+  {
+    string var;
+    SourceLocation location;
+    string message;
+  };
+
+  vector<UndeclaredVariable> undeclared_model_variable_errors;
 
   //! True if a ramsey_model statement has already been seen
   bool ramsey_model_seen {false};

@@ -194,12 +194,10 @@ HeterogeneousModel::checkPass() const
           subexpr)
         {
           ostringstream oss;
-          oss << "In model(heterogeneity=" << dim_name << "), equation " << i + 1;
-          if (equations_lineno[i])
-            oss << " (line " << *equations_lineno[i] << ")";
-          oss << ":\n  Non-separable expression '" << subexpr->toString() << "'"
+          oss << "In model(heterogeneity=" << dim_name << "):\n"
+              << "  Non-separable expression '" << subexpr->toString() << "'"
               << "  combines forward-looking variables with lagged states and is not supported.";
-          throw ModelSemanticException(oss.str());
+          throw ModelSemanticException(oss.str(), static_cast<int>(i) + 1, equations_lineno[i]);
         }
     }
 }

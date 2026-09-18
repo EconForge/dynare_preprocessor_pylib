@@ -228,20 +228,94 @@ def test_higher_order_derivatives():
             assert isinstance(val, float)
 
 
+def test_source_location_class():
+    """Test SourceLocation properties, equality, and formatting."""
+    loc = dp.SourceLocation("test.mod", 3, 5, 3, 10)
+    assert loc.filename == "test.mod"
+    assert loc.begin_line == 3
+    assert loc.begin_column == 5
+    assert loc.end_line == 3
+    assert loc.end_column == 10
+    assert loc.line == 3
+    assert loc.column == 5
+    assert loc.col == 5
+    assert "test.mod: line 3, cols 5-9" in str(loc)
+    assert repr(loc) == "<SourceLocation test.mod: line 3, cols 5-9>"
+
+    loc2 = dp.SourceLocation("test.mod", 3, 5, 3, 10)
+    assert loc == loc2
+    assert loc != "not_a_loc"
+    assert loc != None
+
+
 def test_exceptions():
-    """Test structured exception throwing and Python hierarchy."""
-    # Syntax error -> ParserException
+    """Test structured exception throwing, Python hierarchy, and location info."""
+    # Syntax error -> ParserException with location
     with pytest.raises(dp.ParserException) as exc_info:
         dp.DynareModel("var x; model; x = ; end;")
-    assert "syntax error" in str(exc_info.value).lower()
+    exc = exc_info.value
+    assert "syntax error" in str(exc).lower()
     assert issubclass(dp.ParserException, dp.DynareException)
     assert issubclass(dp.ParserException, dp.SourceFileException)
+
+    # Check location metadata on exception
+    assert exc.location is not None
+    assert isinstance(exc.location, dp.SourceLocation)
+    assert exc.line == 1
+    assert exc.column == 19 or exc.column == 20
+    assert exc.filename == "in_memory.mod"
+    assert "syntax error" in exc.message.lower()
+
+    # Macro error -> MacroException with location
+    with pytest.raises(dp.MacroException) as exc_info:
+        dp.DynareModel("@#error \"explicit macro failure\"\nvar y;\nmodel;\ny=0;\nend;")
+    m_exc = exc_info.value
+    assert issubclass(dp.MacroException, dp.SourceFileException)
+    assert issubclass(dp.MacroException, dp.DynareException)
+    assert m_exc.location is not None
+    assert m_exc.line == 1
+    assert "explicit macro failure" in m_exc.message
+    assert len(m_exc.backtrace) > 0
 
     # Equation count mismatch -> ModelSemanticException
     with pytest.raises(dp.ModelSemanticException) as exc_info:
         dp.DynareModel("var x; model; x = 1; x = 2; end;")
-    assert "2 equations but 1 endogenous" in str(exc_info.value)
+    sem_exc = exc_info.value
+    assert "2 equations but 1 endogenous" in str(sem_exc)
     assert issubclass(dp.ModelSemanticException, dp.DynareException)
+    assert issubclass(dp.EquationException, dp.ModelSemanticException)
+    assert sem_exc.message is not None
+
+    # Undeclared variable -> ParserException with location and undeclared_variables
+    with pytest.raises(dp.ParserException) as exc_info:
+        dp.DynareModel("var x;\nmodel;\nx = undefined_var;\nend;", strict=True)
+    undec_exc = exc_info.value
+    assert issubclass(dp.ParserException, dp.SourceFileException)
+    assert undec_exc.location is not None
+    assert undec_exc.line == 3
+    assert undec_exc.column == 5
+    assert len(undec_exc.undeclared_variables) == 1
+    assert undec_exc.undeclared_variables[0][0] == "undefined_var"
+
+    # Semantic equation error with equation number, line, and tag -> ModelSemanticException
+    with pytest.raises(dp.ModelSemanticException) as exc_info:
+        dp.DynareModel("""
+        var y;
+        varexo e;
+        model;
+        [name='eq_var']
+        y = y(+1) + e;
+        end;
+        var_model(model_name=my_var, eqtags=['eq_var']);
+        """)
+    var_exc = exc_info.value
+    assert var_exc.equation_number == 1
+    assert var_exc.equation_tag == "eq_var"
+    assert var_exc.equation_lineno == 5
+    assert var_exc.line == 5
+    assert var_exc.location is not None
+    assert var_exc.location.line == 5
+    assert "leaded endogenous variables on the RHS" in var_exc.message
 
     # Mixed stochastic and perfect foresight -> StatementException
     with pytest.raises(dp.StatementException) as exc_info:
@@ -255,5 +329,8 @@ def test_exceptions():
         perfect_foresight_solver;
         stoch_simul;
         """)
-    assert "cannot mix perfect foresight" in str(exc_info.value)
+    stmt_exc = exc_info.value
+    assert "cannot mix perfect foresight" in str(stmt_exc)
     assert issubclass(dp.StatementException, dp.DynareException)
+    assert stmt_exc.statement_name == "model"
+

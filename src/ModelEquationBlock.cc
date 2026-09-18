@@ -195,13 +195,11 @@ SteadyStateModel::checkPass(ModFileStructure& mod_file_struct, WarningConsolidat
             if (!so_far_defined.contains(used_symbol))
               {
                 ostringstream oss;
-                oss << "in the 'steady_state_model' block";
-                if (lineno)
-                  oss << ", line " << *lineno;
-                oss << ", variable '" << symbol_table.getName(used_symbol)
+                oss << "in the 'steady_state_model' block, variable '"
+                    << symbol_table.getName(used_symbol)
                     << "' is undefined in the declaration of variable '"
                     << symbol_table.getName(symb_ids[0]) << "'";
-                throw ModelSemanticException(oss.str());
+                throw ModelSemanticException(oss.str(), nullopt, lineno);
               }
         }
 
