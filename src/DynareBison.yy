@@ -112,15 +112,15 @@ str_tolower(string s)
 %token SET_TIME OSR_PARAMS_BOUNDS
 %token <string> FALSE FLOAT_NUMBER DATE
 %token DEFAULT FIXED_POINT FLIP OPT_ALGO COMPILATION_SETUP COMPILER ADD_FLAGS SUBSTITUTE_FLAGS ADD_LIBS SUBSTITUTE_LIBS
-%token FORECAST K_ORDER_SOLVER INSTRUMENTS SHIFT MEAN STDEV VARIANCE MODE INTERVAL SHAPE DOMAINN
-%token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK STD
+%token FORECAST K_ORDER_SOLVER INSTRUMENTS
+%token GAMMA_PDF GRAPH GRAPH_FORMAT CONDITIONAL_VARIANCE_DECOMPOSITION NOCHECK
 %token HISTVAL HISTVAL_FILE HOMOTOPY_SETUP HOMOTOPY_MODE HOMOTOPY_STEPS HOMOTOPY_FORCE_CONTINUE HP_FILTER FILTERED_THEORETICAL_MOMENTS_GRID HYBRID USE_FIRST_ORDER_SOLUTION ONE_SIDED_HP_FILTER
 %token INTEGRATION TENSOR_GAUSSIAN_QUADRATURE STROUD NUMBER_OF_QUADRATURE_NODES TREE SPARSE PERFECT
-%token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE BOUNDS JSCALE INIT INVARS
+%token IDENTIFICATION INF_CONSTANT INITVAL INITVAL_FILE INVARS
 %token <string> INT_NUMBER
 %token CONDITIONAL_LIKELIHOOD
 %token INV_GAMMA_PDF INV_GAMMA1_PDF INV_GAMMA2_PDF IRF IRF_SHOCKS IRF_PLOT_THRESHOLD IRF_CALIBRATION
-%token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SCHUR_VEC_TOL SUBSAMPLES OPTIONS TOLF TOLX PLOT_INIT_DATE PLOT_END_DATE
+%token FAST_KALMAN_FILTER KALMAN_ALGO KALMAN_TOL DIFFUSE_KALMAN_TOL SCHUR_VEC_TOL TOLF TOLX PLOT_INIT_DATE PLOT_END_DATE
 %token SKEWED_KALMAN_PRUNE_TOL SKEWED_KALMAN_RANK_DEFICIENCY_TRANSFORM SKEWED_KALMAN_MVNLOGCDF
 %token LAPLACE LIK_INIT LINEAR LOAD_IDENT_FILES LOAD_MH_FILE LOAD_RESULTS_AFTER_LOAD_MH LOAD_PARAMS_AND_STEADY_STATE LOGLINEAR LOGDATA LYAPUNOV LINEAR_APPROXIMATION
 %token LYAPUNOV_COMPLEX_THRESHOLD LYAPUNOV_FIXED_POINT_TOL LYAPUNOV_DOUBLING_TOL LOG_DEFLATOR LOG_TREND_VAR LOG_GROWTH_FACTOR
@@ -143,7 +143,7 @@ str_tolower(string s)
 %token PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SETUP PERFECT_FORESIGHT_WITH_EXPECTATION_ERRORS_SOLVER
 %token PRINT PRIOR_MC PRIOR_TRUNC PRIOR_MODE PRIOR_MEAN POSTERIOR_MODE POSTERIOR_MEAN POSTERIOR_MEDIAN MLE_MODE PRUNING PARTICLE_FILTER_OPTIONS
 %token <string> QUOTED_STRING
-%token QZ_CRITERIUM QZ_ZERO_THRESHOLD DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT TRUNCATE PIPE_E PIPE_X PIPE_P
+%token QZ_CRITERIUM QZ_ZERO_THRESHOLD DSGE_VAR DSGE_VARLAG DSGE_PRIOR_WEIGHT PIPE_E PIPE_X PIPE_P
 %token RELATIVE_IRF REPLIC SIMUL_REPLIC RPLOT SAVE_PARAMS_AND_STEADY_STATE PARAMETER_UNCERTAINTY TARGETS
 %token SHOCKS HETEROSKEDASTIC_SHOCKS SHOCK_DECOMPOSITION SHOCK_GROUPS USE_SHOCK_GROUPS SIMUL ENDOGENOUS_TERMINAL_PERIOD
 %token SMOOTHER SMOOTHER2HISTVAL SQUARE_ROOT_SOLVER STACK_SOLVE_ALGO STEADY_STATE_MODEL SOLVE_ALGO SOLVER_PERIODS ROBUST_LIN_SOLVE ALLOW_NONFINITE_VALUES
@@ -186,9 +186,9 @@ str_tolower(string s)
 %token VLISTLOG VLISTPER SPECTRAL_DENSITY INIT2SHOCKS
 %token RESTRICTION RESTRICTION_FNAME CROSS_RESTRICTIONS NLAGS CONTEMP_REDUCED_FORM REAL_PSEUDO_FORECAST
 %token DUMMY_OBS NSTATES INDXSCALESSTATES NO_BAYESIAN_PRIOR SPECIFICATION SIMS_ZHA
-%token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR DIRICHLET MFS RESIDUAL
+%token <string> ALPHA BETA ABAND NINV CMS NCMS CNUM GAMMA INV_GAMMA INV_GAMMA1 INV_GAMMA2 NORMAL UNIFORM EPS PDF FIG DR NONE PRIOR MFS RESIDUAL
 %token PRIOR_VARIANCE HESSIAN IDENTITY_MATRIX
-%token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL WEIBULL_PDF
+%token GSIG2_LMDM Q_DIAG FLAT_PRIOR NCSK NSTD WEIBULL_PDF
 %token INDXPARR INDXOVR INDXAP APBAND INDXIMF INDXFORE FOREBAND INDXGFOREHAT INDXGIMFHAT
 %token INDXESTIMA INDXGDLS EQ_MS FILTER_COVARIANCE UPDATED_COVARIANCE FILTER_DECOMPOSITION SMOOTHED_STATE_UNCERTAINTY SMOOTHED_SHOCK_VARIANCE SMOOTHER_REDUX
 %token EQ_CMS TLINDX TLNUMBER RESTRICTIONS POSTERIOR_SAMPLER_OPTIONS
@@ -245,8 +245,6 @@ CHECK_JACOBIAN_SINGULARITY
 %token CALIBRATION_TOLF CALIBRATION_MAX_ITER CALIBRATION_VERBOSITY CALIBRATION_TARGET_EQUATIONS FILTER_TUNES
 %token SOLVE_FROM_EQUATION
 
-%token <vector<string>> SYMBOL_VEC
-
 %type <expr_t> expression expression_or_empty
 %type <expr_t> model_equation model_expression
 %type <vector<expr_t>> expression_list model_expression_list
@@ -264,13 +262,12 @@ CHECK_JACOBIAN_SINGULARITY
 %type <vector<string>> symbol_list symbol_list_or_wildcard
 %type <vector<string>> string_or_int_list
 %type <vector<int>> vec_int_elem vec_int_1 vec_int vec_int_number
-%type <PriorDistributions> prior_pdf prior_distribution
+%type <PriorDistributions> prior_pdf
 %type <pair<expr_t, expr_t>> calibration_range
-%type <pair<string, string>> partition_elem subsamples_eq_opt integer_range_w_inf tag_pair matched_irfs_elem_var_varexo
+%type <pair<string, string>> partition_elem integer_range_w_inf tag_pair matched_irfs_elem_var_varexo
 %type <vector<pair<string, string>>> partition partition_1 symbol_list_with_tex
 %type <vector<map<string, string>>> tag_pair_list_for_selection
 %type <map<string, string>> tag_pair_list
-%type <tuple<string, string, string, string>> prior_eq_opt options_eq_opt
 %type <AbstractShocksStatement::period_range_t> period_range
 %type <vector<AbstractShocksStatement::period_range_t>> period_list
 %type <vector<expr_t>> value_list
@@ -337,12 +334,6 @@ statement : parameters
           | var_model
           | pac_model
           | trend_component_model
-          | prior
-          | prior_eq
-          | subsamples
-          | subsamples_eq
-          | options
-          | options_eq
           | varobs
           | deterministic_trends
           | observation_trends
@@ -2335,26 +2326,6 @@ osr_bounds_elem : symbol COMMA expression COMMA expression ';'
                   }
                 ;
 
-prior_distribution : BETA
-                     { $$ = PriorDistributions::beta; }
-                   | GAMMA
-                     { $$ = PriorDistributions::gamma; }
-                   | NORMAL
-                     { $$ = PriorDistributions::normal; }
-                   | INV_GAMMA
-                     { $$ = PriorDistributions::invGamma; }
-                   | INV_GAMMA1
-                     { $$ = PriorDistributions::invGamma1; }
-                   | UNIFORM
-                     { $$ = PriorDistributions::uniform; }
-                   | INV_GAMMA2
-                     { $$ = PriorDistributions::invGamma2; }
-                   | DIRICHLET
-                     { $$ = PriorDistributions::dirichlet; }
-                   | WEIBULL
-                     { $$ = PriorDistributions::weibull; }
-                   ;
-
 prior_pdf : BETA_PDF
             { $$ = PriorDistributions::beta; }
           | GAMMA_PDF
@@ -2399,135 +2370,6 @@ data_options : FILE EQUAL filename { driver.option_str("datafile", $3); }; // NB
              | o_xls_sheet
              | o_xls_range
              ;
-
-subsamples : subsamples_eq_opt '(' subsamples_name_list ')' ';'
-             { driver.set_subsamples($1.first, $1.second); }
-           ;
-
-subsamples_eq : subsamples_eq_opt EQUAL subsamples_eq_opt ';'
-                { driver.copy_subsamples($1.first, $1.second, $3.first, $3.second); }
-              ;
-
-subsamples_eq_opt : symbol '.' SUBSAMPLES
-                    { $$ = {$1, ""}; }
-                  | STD '(' symbol ')' '.' SUBSAMPLES
-                    { $$ = {$3, ""}; }
-                  | CORR '(' symbol COMMA symbol ')' '.' SUBSAMPLES
-                    { $$ = {$3, $5}; }
-                  ;
-
-subsamples_name_list : subsamples_name_list COMMA o_subsample_name
-                     | o_subsample_name
-                     ;
-
-prior : symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
-        { driver.set_prior($1, ""); }
-      | symbol '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
-        { driver.set_prior($1, $3); }
-      | SYMBOL_VEC '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; }  '(' joint_prior_options_list ')' ';'
-        { driver.set_joint_prior($1); }
-      | STD '(' symbol ')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
-        { driver.set_std_prior($3, ""); }
-      | STD '(' symbol ')' '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
-        { driver.set_std_prior($3, $6); }
-      | CORR '(' symbol COMMA symbol ')' '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
-        { driver.set_corr_prior($3, $5, ""); }
-      | CORR '(' symbol COMMA symbol ')' '.' symbol '.' PRIOR { driver.set_prior_variance(); driver.prior_shape = PriorDistributions::noShape; } '(' prior_options_list ')' ';'
-        { driver.set_corr_prior($3, $5, $8); }
-      ;
-
-prior_options_list : prior_options_list COMMA prior_options
-                   | prior_options
-                   ;
-
-prior_options : o_shift
-              | o_mean
-              | o_median
-              | o_stdev
-              | o_truncate
-              | o_variance
-              | o_mode
-              | o_interval
-              | o_shape
-              | o_domain
-              ;
-
-joint_prior_options_list : joint_prior_options_list COMMA joint_prior_options
-                         | joint_prior_options
-                         ;
-
-joint_prior_options : o_shift
-                    | o_mean_vec
-                    | o_median
-                    | o_stdev
-                    | o_truncate
-                    | o_variance_mat
-                    | o_mode
-                    | o_interval
-                    | o_shape
-                    | o_domain
-                    ;
-
-prior_eq : prior_eq_opt EQUAL prior_eq_opt ';'
-           { driver.copy_prior(get<0>($1), get<1>($1), get<2>($1), get<3>($1),
-                               get<0>($3), get<1>($3), get<2>($3), get<3>($3)); }
-         ;
-
-prior_eq_opt : symbol '.' PRIOR
-               { $$ = {"par", $1, "", ""}; }
-             | symbol '.' symbol '.' PRIOR
-               { $$ = {"par", $1, "", $3}; }
-             | STD '(' symbol ')' '.'  PRIOR
-               { $$ = {"std", $3, "", ""}; }
-             | STD '(' symbol ')' '.' symbol '.' PRIOR
-               { $$ = {"std", $3, "", $6}; }
-             | CORR '(' symbol COMMA symbol ')' '.'  PRIOR
-               { $$ = {"corr", $3, $5, ""}; }
-             | CORR '(' symbol COMMA symbol ')' '.' symbol '.' PRIOR
-               { $$ = {"corr", $3, $5, $8}; }
-             ;
-
-options : symbol '.' OPTIONS '(' options_options_list ')' ';'
-          { driver.set_options($1, ""); }
-        | symbol '.' symbol '.' OPTIONS '(' options_options_list ')' ';'
-          { driver.set_options($1, $3); }
-        | STD '(' symbol ')' '.' OPTIONS '(' options_options_list ')' ';'
-          { driver.set_std_options($3, ""); }
-        | STD '(' symbol ')' '.' symbol '.' OPTIONS '(' options_options_list ')' ';'
-          { driver.set_std_options($3, $6); }
-        | CORR '(' symbol COMMA symbol ')' '.' OPTIONS '(' options_options_list ')' ';'
-          { driver.set_corr_options($3, $5, ""); }
-        | CORR '(' symbol COMMA symbol ')' '.' symbol '.' OPTIONS '(' options_options_list ')' ';'
-          { driver.set_corr_options($3, $5, $8); }
-        ;
-
-options_options_list : options_options_list COMMA options_options
-                     | options_options
-                     ;
-
-options_options : o_jscale
-                | o_init
-                | o_bounds
-                ;
-
-options_eq : options_eq_opt EQUAL options_eq_opt ';'
-             { driver.copy_options(get<0>($1), get<1>($1), get<2>($1), get<3>($1),
-                                   get<0>($3), get<1>($3), get<2>($3), get<3>($3)); }
-           ;
-
-options_eq_opt : symbol '.' OPTIONS
-                 { $$ = {"par", $1, "", ""}; }
-               | symbol '.' symbol '.' OPTIONS
-                 { $$ = {"par", $1, "", $3}; }
-               | STD '(' symbol ')' '.'  OPTIONS
-                 { $$ = {"std", $3, "", ""}; }
-               | STD '(' symbol ')' '.' symbol '.' OPTIONS
-                 { $$ = {"std", $3, "", $6}; }
-               | CORR '(' symbol COMMA symbol ')' '.'  OPTIONS
-                 { $$ = {"corr", $3, $5, ""}; }
-               | CORR '(' symbol COMMA symbol ')' '.' symbol '.' OPTIONS
-                 { $$ = {"corr", $3, $5, $8}; }
-               ;
 
 kalman_filter_primary_options : o_kalman_algo
                                 | o_kalman_tol
@@ -4285,20 +4127,6 @@ o_pf_first_simulation_period : FIRST_SIMULATION_PERIOD EQUAL date_expr { driver.
 o_pf_last_simulation_period : LAST_SIMULATION_PERIOD EQUAL date_expr { driver.option_date("simul.last_simulation_period", $3); };
 o_last_obs : LAST_OBS EQUAL INT_NUMBER { driver.option_num("last_obs", $3); }
            | LAST_OBS EQUAL date_expr { driver.option_date("last_obs", $3); } ;
-o_shift : SHIFT EQUAL signed_number { driver.option_num("shift", $3); };
-o_shape : SHAPE EQUAL prior_distribution { driver.prior_shape = $3; };
-o_mode : MODE EQUAL signed_number { driver.option_num("mode", $3); };
-o_mean : MEAN EQUAL signed_number { driver.option_num("mean", $3); };
-o_mean_vec : MEAN EQUAL vec_value { driver.option_vec_value("mean", $3); };
-o_truncate : TRUNCATE EQUAL vec_value { driver.option_vec_value("truncate", $3); };
-o_stdev : STDEV EQUAL non_negative_number { driver.option_num("stdev", $3); };
-o_jscale : JSCALE EQUAL non_negative_number { driver.option_num("jscale", $3); };
-o_init : INIT EQUAL signed_number { driver.option_num("init", $3); };
-o_bounds : BOUNDS EQUAL vec_value_w_inf { driver.option_vec_value("bounds", $3); };
-o_domain : DOMAINN EQUAL vec_value { driver.option_vec_value("domain", $3); };
-o_interval : INTERVAL EQUAL vec_value { driver.option_vec_value("interval", $3); };
-o_variance : VARIANCE EQUAL expression { driver.set_prior_variance($3); }
-o_variance_mat : VARIANCE EQUAL vec_of_vec_value { driver.option_vec_of_vec_value("variance", $3); }
 o_prefilter : PREFILTER EQUAL INT_NUMBER { driver.option_num("prefilter", $3); };
 o_presample : PRESAMPLE EQUAL INT_NUMBER { driver.option_num("presample", $3); };
 o_lik_init : LIK_INIT EQUAL INT_NUMBER { driver.option_num("lik_init", $3); };
@@ -4365,9 +4193,6 @@ list_allowed_graph_formats : allowed_graph_formats
                            | list_allowed_graph_formats COMMA allowed_graph_formats
                            ;
 
-o_subsample_name : symbol EQUAL date_expr ':' date_expr
-                   { driver.set_subsample_name_equal_to_date_range($1, $3, $5); }
-                 ;
 o_bvar_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("bvar.conf_sig", $3); };
 o_forecasts_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("forecasts.conf_sig", $3); };
 o_conditional_forecast_conf_sig : CONF_SIG EQUAL non_negative_number { driver.option_num("conf_sig", $3); };

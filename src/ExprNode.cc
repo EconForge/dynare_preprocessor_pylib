@@ -1032,7 +1032,6 @@ VariableNode::prepareForDerivation()
       break;
     case SymbolType::heterogeneousParameter:
     case SymbolType::modFileLocalVariable:
-    case SymbolType::statementDeclaredVariable:
     case SymbolType::unusedEndogenous:
       // Such a variable is never derived
       break;
@@ -1078,7 +1077,6 @@ VariableNode::prepareForChainRuleDerivation(
     case SymbolType::trend:
     case SymbolType::logTrend:
     case SymbolType::modFileLocalVariable:
-    case SymbolType::statementDeclaredVariable:
     case SymbolType::unusedEndogenous:
     case SymbolType::heterogeneousEndogenous:
     case SymbolType::heterogeneousExogenous:
@@ -1131,9 +1129,6 @@ VariableNode::computeDerivative(int deriv_id)
       return datatree.getLocalVariable(symb_id, lag)->getDerivative(deriv_id);
     case SymbolType::modFileLocalVariable:
       cerr << "modFileLocalVariable is not derivable" << '\n';
-      exit(EXIT_FAILURE);
-    case SymbolType::statementDeclaredVariable:
-      cerr << "statementDeclaredVariable is not derivable" << '\n';
       exit(EXIT_FAILURE);
     case SymbolType::unusedEndogenous:
       cerr << "unusedEndogenous is not derivable" << '\n';
@@ -1467,7 +1462,6 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case SymbolType::externalFunction:
     case SymbolType::trend:
     case SymbolType::logTrend:
-    case SymbolType::statementDeclaredVariable:
     case SymbolType::excludedVariable:
     case SymbolType::databaseVariable:
       cerr << "VariableNode::writeOutput: Impossible case" << '\n';
@@ -1679,9 +1673,6 @@ VariableNode::computeChainRuleDerivative(
     case SymbolType::modFileLocalVariable:
       cerr << "modFileLocalVariable is not derivable" << '\n';
       exit(EXIT_FAILURE);
-    case SymbolType::statementDeclaredVariable:
-      cerr << "statementDeclaredVariable is not derivable" << '\n';
-      exit(EXIT_FAILURE);
     case SymbolType::unusedEndogenous:
       cerr << "unusedEndogenous is not derivable" << '\n';
       exit(EXIT_FAILURE);
@@ -1724,7 +1715,6 @@ VariableNode::computeXrefs(EquationInfo& ei) const
     case SymbolType::trend:
     case SymbolType::logTrend:
     case SymbolType::modFileLocalVariable:
-    case SymbolType::statementDeclaredVariable:
     case SymbolType::unusedEndogenous:
     case SymbolType::externalFunction:
     case SymbolType::epilogue:

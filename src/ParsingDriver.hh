@@ -91,9 +91,6 @@ private:
   //! isn't
   void check_symbol_is_parameter(const string& name);
 
-  //! Checks that a given symbol was assigned within a Statement
-  void check_symbol_is_statement_variable(const string& name);
-
   //! Checks that a given symbol exists and is a endogenous or exogenous, and stops with an error
   //! message if it isn't
   void check_symbol_is_endogenous_or_exogenous(const string& name, bool allow_exo_det);
@@ -238,16 +235,6 @@ private:
   vector<string> generate_irf_names;
   vector<map<string, double>> generate_irf_elements;
   map<string, double> generate_irf_exos;
-  //! Temporary storage for parameters in joint prior statement
-  vector<string> joint_parameters;
-  //! Temporary storage for a variance declared in the prior statement
-  expr_t prior_variance;
-  SubsamplesStatement::subsample_declaration_map_t subsample_declaration_map;
-  //! Temporary storage for subsample statement: map<pair<var_name1, var_name2>>,
-  //! subsample_declaration_map >
-  using subsample_declarations_t
-      = map<pair<string, string>, SubsamplesStatement::subsample_declaration_map_t>;
-  subsample_declarations_t subsample_declarations;
   //! Temporary storage for shock_groups
   vector<string> shock_group;
   vector<ShockGroupsStatement::Group> shock_groups;
@@ -339,9 +326,6 @@ public:
   //! OSR parameters
   OsrParams osr_params;
 
-  //! Temporary storage for the prior shape
-  PriorDistributions prior_shape;
-
   //! Temporary storage for "expression" option of VAR_EXPECTATION_MODEL
   expr_t var_expectation_model_expression {nullptr};
   //! Temporary storage for discount option of VAR_EXPECTATION_MODEL
@@ -432,18 +416,6 @@ public:
                   const optional<string>& heterogeneity_dimension);
   // Handles a “model_local_variable” statement
   void model_local_variable(const vector<pair<string, string>>& symbol_list);
-  //! Declares a statement local variable
-  void declare_statement_local_variable(const string& name);
-  //! Completes a subsample statement
-  void set_subsamples(string name1, string name2);
-  //! Declares a subsample, assigning the value to name
-  void set_subsample_name_equal_to_date_range(string name, string date1, string date2);
-  //! Checks that a subsample statement (and given name) were provided for the pair name1 & name2
-  void check_subsample_declaration_exists(const string& name1, const string& subsample_name);
-  void check_subsample_declaration_exists(const string& name1, const string& name2,
-                                          const string& subsample_name);
-  //! Copies the set of subsamples from_name to_name
-  void copy_subsamples(string to_name1, string to_name2, string from_name1, string from_name2);
   //! Sets the value of the planner_discount option of ramsey_{model,policy}, discretionary_policy
   void set_planner_discount(expr_t value);
   //! Handles a “predetermined_variables” statement
@@ -639,32 +611,6 @@ public:
   void set_time(string period);
   // Add a data statement
   void data();
-  //! Sets the prior for a parameter
-  void set_prior(string name, string subsample_name);
-  //! Sets the joint prior for a set of parameters
-  void set_joint_prior(const vector<string>& symbol_vec);
-  //! Adds a parameters to the list of joint parameters
-  void add_joint_parameter(string name);
-  //! Adds the variance option to its temporary holding place
-  void set_prior_variance(expr_t variance = nullptr);
-  //! Copies the prior from_name to_name
-  void copy_prior(string to_declaration_type, string to_name1, string to_name2,
-                  string to_subsample_name, string from_declaration_type, string from_name1,
-                  string from_name2, string from_subsample_name);
-  //! Sets the options for a parameter
-  void set_options(string name, string subsample_name);
-  //! Copies the options from_name to_name
-  void copy_options(string to_declaration_type, string to_name1, string to_name2,
-                    string to_subsample_name, string from_declaration_type, string from_name1,
-                    string from_name2, string from_subsample_name);
-  //! Sets the prior for estimated std dev
-  void set_std_prior(string name, string subsample_name);
-  //! Sets the options for estimated std dev
-  void set_std_options(string name, string subsample_name);
-  //! Sets the prior for estimated correlation
-  void set_corr_prior(string name1, string name2, string subsample_name);
-  //! Sets the options for estimated correlation
-  void set_corr_options(string name1, string name2, string subsample_name);
   //! Runs estimation process
   void run_estimation(vector<string> symbol_list);
   //! Runs sensitivity
