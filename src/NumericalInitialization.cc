@@ -33,16 +33,6 @@ InitParamStatement::InitParamStatement(int symb_id_arg, const expr_t param_value
 }
 
 void
-InitParamStatement::checkPass(ModFileStructure& mod_file_struct,
-                              [[maybe_unused]] WarningConsolidation& warnings)
-{
-  // Needed for the workaround discussed in dynare#1173
-  if (symbol_table.getName(symb_id) == "optimal_policy_discount_factor")
-    param_value->collectVariables(SymbolType::parameter,
-                                  mod_file_struct.parameters_in_planner_discount);
-}
-
-void
 InitParamStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                 bool minimal_workspace) const
 {

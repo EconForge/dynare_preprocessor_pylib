@@ -500,6 +500,18 @@ public:
   */
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const = 0;
 
+  /*! Collects the IDs of all symbols referenced by the expression.
+
+    Unlike collectVariables(), this method also collects symbols represented by specialized
+    expression nodes, such as external functions. Model local variables and the symbols in their
+    definitions are both collected. This unfiltered traversal lets callers enforce an allowlist
+    without enumerating every current SymbolType, and therefore also handles newly introduced
+    symbol types by default.
+
+    Symbols are added to the set given in argument.
+  */
+  virtual void collectSymbols(set<int>& result) const = 0;
+
   //! Find the maximum lag in a VAR: handles case where LHS is diff
   [[nodiscard]] virtual int VarMaxLag(const set<expr_t>& lhs_lag_equiv) const = 0;
 
@@ -1062,6 +1074,7 @@ public:
   [[nodiscard]] bool containsExternalFunction() const override;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
   void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
@@ -1178,6 +1191,7 @@ public:
   [[nodiscard]] bool containsExternalFunction() const override;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
   void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
@@ -1330,6 +1344,7 @@ public:
                                            deriv_node_temp_terms_t& tef_terms) const override;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   static double eval_opcode(UnaryOpcode op_code, double v) noexcept(false);
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
@@ -1487,6 +1502,7 @@ public:
                                            deriv_node_temp_terms_t& tef_terms) const override;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2,
                             int derivOrder) noexcept(false);
@@ -1697,6 +1713,7 @@ public:
                                            deriv_node_temp_terms_t& tef_terms) const override;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) noexcept(false);
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
@@ -1879,6 +1896,7 @@ public:
       = 0;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
   void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
@@ -2152,6 +2170,7 @@ public:
                            const deriv_node_temp_terms_t& tef_terms) const override;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   [[nodiscard]] bool isNumConstNodeEqualTo(double value) const override;
   [[nodiscard]] bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id,

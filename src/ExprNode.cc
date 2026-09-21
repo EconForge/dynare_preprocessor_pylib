@@ -630,6 +630,11 @@ NumConstNode::collectDynamicVariables([[maybe_unused]] SymbolType type_arg,
 }
 
 void
+NumConstNode::collectSymbols([[maybe_unused]] set<int>& result) const
+{
+}
+
+void
 NumConstNode::collectSelfVariables([[maybe_unused]] set<pair<int, int>>& result) const
 {
 }
@@ -1596,6 +1601,14 @@ VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& 
     result.emplace(symb_id, lag);
   if (get_type() == SymbolType::modelLocalVariable)
     datatree.getLocalVariable(symb_id, lag)->collectDynamicVariables(type_arg, result);
+}
+
+void
+VariableNode::collectSymbols(set<int>& result) const
+{
+  result.insert(symb_id);
+  if (get_type() == SymbolType::modelLocalVariable)
+    datatree.getLocalVariable(symb_id, lag)->collectSymbols(result);
 }
 
 void
@@ -3552,6 +3565,12 @@ UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& r
 }
 
 void
+UnaryOpNode::collectSymbols(set<int>& result) const
+{
+  arg->collectSymbols(result);
+}
+
+void
 UnaryOpNode::collectSelfVariables(set<pair<int, int>>& result) const
 {
   arg->collectSelfVariables(result);
@@ -5396,6 +5415,13 @@ BinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& 
 }
 
 void
+BinaryOpNode::collectSymbols(set<int>& result) const
+{
+  arg1->collectSymbols(result);
+  arg2->collectSymbols(result);
+}
+
+void
 BinaryOpNode::collectSelfVariables(set<pair<int, int>>& result) const
 {
   arg1->collectSelfVariables(result);
@@ -6989,6 +7015,14 @@ TrinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>&
 }
 
 void
+TrinaryOpNode::collectSymbols(set<int>& result) const
+{
+  arg1->collectSymbols(result);
+  arg2->collectSymbols(result);
+  arg3->collectSymbols(result);
+}
+
+void
 TrinaryOpNode::collectSelfVariables(set<pair<int, int>>& result) const
 {
   arg1->collectSelfVariables(result);
@@ -7518,6 +7552,14 @@ AbstractExternalFunctionNode::collectDynamicVariables(SymbolType type_arg,
 {
   for (auto argument : arguments)
     argument->collectDynamicVariables(type_arg, result);
+}
+
+void
+AbstractExternalFunctionNode::collectSymbols(set<int>& result) const
+{
+  result.insert(symb_id);
+  for (auto argument : arguments)
+    argument->collectSymbols(result);
 }
 
 void
@@ -9290,6 +9332,11 @@ SubModelNode::collectVARLHSVariable([[maybe_unused]] set<expr_t>& result) const
 void
 SubModelNode::collectDynamicVariables([[maybe_unused]] SymbolType type_arg,
                                       [[maybe_unused]] set<pair<int, int>>& result) const
+{
+}
+
+void
+SubModelNode::collectSymbols([[maybe_unused]] set<int>& result) const
 {
 }
 

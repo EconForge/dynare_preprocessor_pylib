@@ -974,22 +974,6 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
         }
     }
 
-  /* Check that we are not trying to estimate a parameter appearing in the
-     planner discount factor (see dynare#1173) */
-  vector<int> estimated_params_in_planner_discount;
-  ranges::set_intersection(mod_file_struct.estimated_parameters,
-                           mod_file_struct.parameters_in_planner_discount,
-                           back_inserter(estimated_params_in_planner_discount));
-  if (!estimated_params_in_planner_discount.empty())
-    {
-      cerr << "ERROR: It is not possible to estimate a parameter ("
-           << symbol_table.getName(estimated_params_in_planner_discount[0])
-           << ") that appears in the discount factor of the planner (i.e. in the "
-              "'planner_discount' option)."
-           << '\n';
-      exit(EXIT_FAILURE);
-    }
-
   try
     {
       symbol_list.checkPass(warnings, {SymbolType::endogenous}, symbol_table);

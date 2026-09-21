@@ -193,6 +193,14 @@ ModFile::checkPass(bool nostrict, bool stochastic)
       exit(EXIT_FAILURE);
     }
 
+  if (mod_file_struct.planner_objective_present && !planner_discount)
+    {
+      cerr << "ERROR: A 'planner_discount' option (or an 'optimal_policy_discount_factor' "
+              "parameter) must be specified since a planner_objective statement is present."
+           << '\n';
+      exit(EXIT_FAILURE);
+    }
+
   if (!ramsey_constraints.empty() && !mod_file_struct.ramsey_model_present)
     {
       cerr << "ERROR: A ramsey_constraints block requires the presence of a ramsey_model or "
@@ -720,9 +728,10 @@ ModFile::transformPass(bool nostrict, bool stochastic, bool compute_xrefs,
       for (const auto& [symb_id, bounds] : ramsey_constraints)
         cloned_ramsey_constraints.try_emplace(symb_id, clone_if_not_null(bounds.first),
                                               clone_if_not_null(bounds.second));
+      expr_t cloned_planner_discount = planner_discount->clone(ramsey_FOC_equations_dynamic_model);
       mod_file_struct.ramsey_orig_endo_nbr
-          = ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(planner_objective,
-                                                                       cloned_ramsey_constraints);
+          = ramsey_FOC_equations_dynamic_model.computeRamseyPolicyFOCs(
+              planner_objective, cloned_ramsey_constraints, cloned_planner_discount);
       ramsey_FOC_equations_dynamic_model.replaceMyEquations(dynamic_model);
 
       // Ensure that all Lagrange mutipliers are present in the FOC (see #102)
@@ -1487,6 +1496,8 @@ ModFile::writeMOutput(const string& basename, bool clear_all, bool clear_global,
 
       for (const auto& hm : heterogeneous_models)
         hm.writeModelFiles(basename, false);
+
+      writePlannerDiscountFile(basename);
     }
 }
 
@@ -1908,6 +1919,38 @@ ModFile::writeJsonFileHelper(const filesystem::path& fname, ostringstream& outpu
     }
   jsonOutput << output.str();
   jsonOutput.close();
+}
+
+void
+ModFile::setPlannerDiscount(expr_t planner_discount_arg)
+{
+  assert(planner_discount_arg);
+  if (planner_discount)
+    {
+      if (planner_discount != planner_discount_arg)
+        throw PlannerDiscountModificationAttemptException {planner_discount};
+    }
+  else
+    planner_discount = planner_discount_arg;
+}
+
+void
+ModFile::writePlannerDiscountFile(const string& basename) const
+{
+  if (!planner_discount)
+    return;
+
+  filesystem::path filename {packageDir(basename) / "get_optimal_policy_discount_factor.m"};
+  stringstream output;
+  output << "function discount_factor = get_optimal_policy_discount_factor(params)" << '\n'
+         << "% function discount_factor = get_optimal_policy_discount_factor(params)" << '\n'
+         << "% Returns the planner discount factor for the current parameter vector" << '\n';
+
+  output << "discount_factor = ";
+  planner_discount->writeOutput(output, ExprNodeOutputType::matlabStaticModel);
+  output << ";" << endl << "end" << endl;
+
+  writeToFileIfModified(output, filename);
 }
 
 void
