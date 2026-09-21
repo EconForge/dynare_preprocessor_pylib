@@ -2135,9 +2135,9 @@ ParsingDriver::set_time(string period)
 }
 
 void
-ParsingDriver::estimation_data()
+ParsingDriver::data()
 {
-  mod_file->addStatement(make_unique<EstimationDataStatement>(move(options_list)));
+  mod_file->addStatement(make_unique<DataStatement>(move(options_list)));
   options_list.clear();
 }
 

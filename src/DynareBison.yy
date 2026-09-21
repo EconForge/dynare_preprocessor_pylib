@@ -2384,7 +2384,7 @@ set_time : SET_TIME '(' date_expr ')' ';'
          ;
 
 data : DATA '(' data_options_list ')'';'
-       { driver.estimation_data(); }
+       { driver.data(); }
      ;
 
 data_options_list : data_options_list COMMA data_options

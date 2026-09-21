@@ -3888,14 +3888,13 @@ SetTimeStatement::writeJsonOutput(ostream& output) const
   output << R"({"statementName": "set_time", "period": ")" << period << R"("})";
 }
 
-EstimationDataStatement::EstimationDataStatement(OptionsList options_list_arg) :
-    options_list {move(options_list_arg)}
+DataStatement::DataStatement(OptionsList options_list_arg) : options_list {move(options_list_arg)}
 {
 }
 
 void
-EstimationDataStatement::checkPass(ModFileStructure& mod_file_struct,
-                                   [[maybe_unused]] WarningConsolidation& warnings)
+DataStatement::checkPass(ModFileStructure& mod_file_struct,
+                         [[maybe_unused]] WarningConsolidation& warnings)
 {
   mod_file_struct.estimation_data_statement_present = true;
 
@@ -3916,16 +3915,16 @@ EstimationDataStatement::checkPass(ModFileStructure& mod_file_struct,
 }
 
 void
-EstimationDataStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
-                                     [[maybe_unused]] bool minimal_workspace) const
+DataStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
+                           [[maybe_unused]] bool minimal_workspace) const
 {
   options_list.writeOutput(output);
 }
 
 void
-EstimationDataStatement::writeJsonOutput(ostream& output) const
+DataStatement::writeJsonOutput(ostream& output) const
 {
-  output << R"({"statementName": "estimation_data")";
+  output << R"({"statementName": "data")";
   if (!options_list.empty())
     {
       output << ", ";

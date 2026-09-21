@@ -637,8 +637,8 @@ public:
   void add_osr_params_element();
   // Sets the initial period for estimation
   void set_time(string period);
-  //! Estimation Data
-  void estimation_data();
+  // Add a data statement
+  void data();
   //! Sets the prior for a parameter
   void set_prior(string name, string subsample_name);
   //! Sets the joint prior for a set of parameters
