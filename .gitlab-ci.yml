@@ -17,15 +17,6 @@ build_linux_x86_64:
     paths:
       - build/src/dynare-preprocessor
 
-build_linux_arm64:
-  stage: build
-  script:
-    - meson setup --buildtype=release -Db_lto=true --cross-file scripts/linux-arm64-cross.ini build
-    - meson compile -C build -v
-  artifacts:
-    paths:
-      - build/src/dynare-preprocessor
-
 build_windows_x86_64:
   stage: build
   script:
