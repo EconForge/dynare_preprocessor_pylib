@@ -4,6 +4,9 @@ variables:
   WGET_OPTIONS: '--no-verbose --no-use-server-timestamps --retry-connrefused --retry-on-host-error'
   # To ensure that "false && true" fails, see https://gitlab.com/gitlab-org/gitlab-runner/-/issues/25394#note_412609647
   FF_ENABLE_BASH_EXIT_CODE_CHECK: 'true'
+  # To enforce sane behaviour with respect to ownership and permissions
+  # (otherwise git refuses to commit, clang-format-check is confused…)
+  FF_DISABLE_UMASK_FOR_DOCKER_EXECUTOR: 'true'
 
 build_linux_x86_64:
   stage: build
