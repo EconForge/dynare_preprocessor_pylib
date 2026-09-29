@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import numpy as np
@@ -333,4 +334,46 @@ def test_exceptions():
     assert "cannot mix perfect foresight" in str(stmt_exc)
     assert issubclass(dp.StatementException, dp.DynareException)
     assert stmt_exc.statement_name == "model"
+
+
+def test_matched_irfs_json_serialization():
+    """Test JSON serialization of matched_irfs and matched_irfs_weights statements."""
+    mod_text = """
+    var ghat;
+    varexo eps_g;
+    parameters a;
+    a = 0.5;
+    model;
+    ghat = a * ghat(-1) + eps_g;
+    end;
+    matched_irfs;
+    var ghat; varexo eps_g; periods 2:5; values 1.0; weights 1.0;
+    end;
+    matched_irfs_weights;
+    ghat(2), eps_g, ghat(2), eps_g, 1;
+    end;
+    """
+    model = dp.DynareModel(mod_text)
+    data = json.loads(model.json_string)
+    assert isinstance(data, dict)
+    assert "transformed_modfile" in data
+    statements = data["transformed_modfile"]["statements"]
+    stmt_names = [stmt.get("statementName") for stmt in statements if isinstance(stmt, dict)]
+    assert "matched_irfs" in stmt_names
+    assert "matched_irfs_weights" in stmt_names
+
+    matched_irfs_stmt = next(s for s in statements if s.get("statementName") == "matched_irfs")
+    assert matched_irfs_stmt["contents"][0]["var"] == "ghat"
+    assert matched_irfs_stmt["contents"][0]["varexo"] == "eps_g"
+    pvw = matched_irfs_stmt["contents"][0]["periods_values_weights"][0]
+    assert pvw["period1"] == 2
+    assert pvw["period2"] == 5
+
+    matched_irfs_weights_stmt = next(s for s in statements if s.get("statementName") == "matched_irfs_weights")
+    item = matched_irfs_weights_stmt["contents"][0]
+    assert item["endo1"] == "ghat"
+    assert item["exo1"] == "eps_g"
+    assert item["endo2"] == "ghat"
+    assert item["exo2"] == "eps_g"
+
 

@@ -5352,7 +5352,7 @@ MatchedIrfsStatement::writeJsonOutput(ostream& output) const
           if (exchange(printed_something2, true))
             output << ", ";
           output << R"({"period1": )" << p1 << ", "
-                 << R"("period2": })" << p2 << ", "
+                 << R"("period2": )" << p2 << ", "
                  << R"("value": ")";
           value->writeJsonOutput(output, {}, {});
           output << R"(", "weight": ")";
@@ -5398,9 +5398,9 @@ MatchedIrfsWeightsStatement::writeJsonOutput(ostream& output) const
       const auto& [endo1, periods1, exo1, endo2, periods2, exo2] = key;
       if (exchange(printed_something, true))
         output << ", ";
-      output << R"({"endo1": ")" << endo1 << R"(", "periods1": ")" << periods1 << R"(", "exo1": )"
+      output << R"({"endo1": ")" << endo1 << R"(", "periods1": ")" << periods1 << R"(", "exo1": ")"
              << exo1 << R"(", "endo2": ")" << endo2 << R"(", "periods2": ")" << periods2
-             << R"(", "exo2": )" << exo2 << R"(", "weight": ")";
+             << R"(", "exo2": ")" << exo2 << R"(", "weight": ")";
       val->writeJsonOutput(output, {}, {});
       output << R"("})";
     }
