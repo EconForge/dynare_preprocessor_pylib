@@ -804,14 +804,15 @@ DynamicModel::writeParamsDerivativesFile(const string& basename) const
          #123). */
       filesystem::path output_dir {packageDir(basename)};
       ofstream paramsDerivsFile;
-      auto open_file = [&paramsDerivsFile](const filesystem::path& filepath) {
-        paramsDerivsFile.open(filepath, ios::out | ios::binary);
-        if (!paramsDerivsFile.is_open())
-          {
-            cerr << "ERROR: Can't open file " << filepath.string() << " for writing" << '\n';
-            exit(EXIT_FAILURE);
-          }
-      };
+      auto open_file = [&paramsDerivsFile](const filesystem::path& filepath)
+        {
+          paramsDerivsFile.open(filepath, ios::out | ios::binary);
+          if (!paramsDerivsFile.is_open())
+            {
+              cerr << "ERROR: Can't open file " << filepath.string() << " for writing" << '\n';
+              exit(EXIT_FAILURE);
+            }
+        };
 
       string function_args {"y, x, params, steady_state, ss_param_deriv, ss_param_2nd_deriv"};
       string function_args_with_T {function_args + ", T"};

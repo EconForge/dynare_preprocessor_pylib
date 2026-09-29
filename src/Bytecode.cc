@@ -43,9 +43,8 @@ operator<<(Writer& code_file, const FCALL& instr)
 {
   code_file.instructions_positions.push_back(code_file.tellp());
 
-  auto write_member = [&code_file](const auto& member) {
-    code_file.write(reinterpret_cast<const char*>(&member), sizeof member);
-  };
+  auto write_member = [&code_file](const auto& member)
+    { code_file.write(reinterpret_cast<const char*>(&member), sizeof member); };
 
   write_member(instr.tag);
   write_member(instr.nb_output_arguments);
@@ -73,9 +72,8 @@ operator<<(Writer& code_file, const FBEGINBLOCK& instr)
 {
   code_file.instructions_positions.push_back(code_file.tellp());
 
-  auto write_member = [&code_file](const auto& member) {
-    code_file.write(reinterpret_cast<const char*>(&member), sizeof member);
-  };
+  auto write_member = [&code_file](const auto& member)
+    { code_file.write(reinterpret_cast<const char*>(&member), sizeof member); };
 
   write_member(instr.tag);
   write_member(instr.size);

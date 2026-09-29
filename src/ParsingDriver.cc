@@ -171,20 +171,22 @@ ParsingDriver::var(const vector<tuple<string, string, vector<pair<string, string
 {
   for (auto& [name, tex_name, partition] : symbol_list)
     {
-      int symb_id {[&] {
-        if (heterogeneity_dimension)
-          try
-            {
-              return declare_symbol(name, SymbolType::heterogeneousEndogenous, tex_name, partition,
-                                    mod_file->heterogeneity_table.getID(*heterogeneity_dimension));
-            }
-          catch (HeterogeneityTable::UnknownDimensionNameException&)
-            {
-              error("Unknown heterogeneity dimension: {}", *heterogeneity_dimension);
-            }
-        else
-          return declare_endogenous(name, tex_name, partition);
-      }()};
+      int symb_id {[&]
+                     {
+                       if (heterogeneity_dimension)
+                         try
+                           {
+                             return declare_symbol(
+                                 name, SymbolType::heterogeneousEndogenous, tex_name, partition,
+                                 mod_file->heterogeneity_table.getID(*heterogeneity_dimension));
+                           }
+                         catch (HeterogeneityTable::UnknownDimensionNameException&)
+                           {
+                             error("Unknown heterogeneity dimension: {}", *heterogeneity_dimension);
+                           }
+                       else
+                         return declare_endogenous(name, tex_name, partition);
+                     }()};
 
       if (log_option)
         mod_file->symbol_table.markWithLogTransform(symb_id);
@@ -299,11 +301,9 @@ ParsingDriver::set_planner_discount(expr_t value)
   // Check that the expression only contains parameters
   set<int> referenced_symbols;
   value->collectSymbols(referenced_symbols);
-  if (auto offending_symbol = ranges::find_if(referenced_symbols,
-                                              [&](int symb_id) {
-                                                return mod_file->symbol_table.getType(symb_id)
-                                                       != SymbolType::parameter;
-                                              });
+  if (auto offending_symbol = ranges::find_if(
+          referenced_symbols, [&](int symb_id)
+            { return mod_file->symbol_table.getType(symb_id) != SymbolType::parameter; });
       offending_symbol != referenced_symbols.end())
     error("planner_discount: '{}' is not a parameter.",
           mod_file->symbol_table.getName(*offending_symbol));
@@ -646,28 +646,32 @@ ParsingDriver::add_database_variable(const string& database_name, const string& 
     error("The syntax {}.{} is not accepted in an 'endogenize' stanza of a 'shock_paths' block",
           database_name, symbol_name);
 
-  int symb_id {[&] {
-    try
-      {
-        return mod_file->symbol_table.getID(symbol_name);
-      }
-    catch (SymbolTable::UnknownSymbolNameException&)
-      {
-        return mod_file->symbol_table.addSymbol(symbol_name, SymbolType::databaseVariable);
-      }
-  }()};
+  int symb_id {[&]
+                 {
+                   try
+                     {
+                       return mod_file->symbol_table.getID(symbol_name);
+                     }
+                   catch (SymbolTable::UnknownSymbolNameException&)
+                     {
+                       return mod_file->symbol_table.addSymbol(symbol_name,
+                                                               SymbolType::databaseVariable);
+                     }
+                 }()};
 
-  int database_id {[&] {
-    try
-      {
-        return mod_file->database_table.getID(database_name);
-      }
-    catch (DatabaseTable::UnknownDatabaseNameException&)
-      {
-        error("Unknown database: {}. You may want to declare it via the 'database' command.",
-              database_name);
-      }
-  }()};
+  int database_id {
+      [&]
+        {
+          try
+            {
+              return mod_file->database_table.getID(database_name);
+            }
+          catch (DatabaseTable::UnknownDatabaseNameException&)
+            {
+              error("Unknown database: {}. You may want to declare it via the 'database' command.",
+                    database_name);
+            }
+        }()};
 
   if (!lag)
     return data_tree->AddNamespaceQualifiedVariable(
@@ -1113,16 +1117,17 @@ ParsingDriver::begin_model()
 void
 ParsingDriver::begin_heterogeneous_model(const string& heterogeneity_dimension)
 {
-  int het_dim_id {[&] {
-    try
-      {
-        return mod_file->heterogeneity_table.getID(heterogeneity_dimension);
-      }
-    catch (HeterogeneityTable::UnknownDimensionNameException&)
-      {
-        error("Unknown heterogeneity dimension: {}", heterogeneity_dimension);
-      }
-  }()};
+  int het_dim_id {[&]
+                    {
+                      try
+                        {
+                          return mod_file->heterogeneity_table.getID(heterogeneity_dimension);
+                        }
+                      catch (HeterogeneityTable::UnknownDimensionNameException&)
+                        {
+                          error("Unknown heterogeneity dimension: {}", heterogeneity_dimension);
+                        }
+                    }()};
   set_current_data_tree(&mod_file->heterogeneous_models.at(het_dim_id));
 }
 
@@ -1172,16 +1177,17 @@ ParsingDriver::end_shocks(bool overwrite)
 void
 ParsingDriver::end_heterogeneous_shocks(const string& heterogeneity_dimension, bool overwrite)
 {
-  int het_dim_id {[&] {
-    try
-      {
-        return mod_file->heterogeneity_table.getID(heterogeneity_dimension);
-      }
-    catch (HeterogeneityTable::UnknownDimensionNameException&)
-      {
-        error("Unknown heterogeneity dimension: {}", heterogeneity_dimension);
-      }
-  }()};
+  int het_dim_id {[&]
+                    {
+                      try
+                        {
+                          return mod_file->heterogeneity_table.getID(heterogeneity_dimension);
+                        }
+                      catch (HeterogeneityTable::UnknownDimensionNameException&)
+                        {
+                          error("Unknown heterogeneity dimension: {}", heterogeneity_dimension);
+                        }
+                    }()};
   mod_file->addStatement(make_unique<HeterogeneousShocksStatement>(
       het_dim_id, overwrite, move(var_shocks), move(std_shocks), move(covar_shocks),
       move(corr_shocks), mod_file->symbol_table, mod_file->heterogeneity_table));
@@ -1206,10 +1212,12 @@ ParsingDriver::end_mshocks(bool overwrite, bool relative_to_initval)
 void
 ParsingDriver::end_shocks_surprise(bool overwrite)
 {
-  if (ranges::any_of(views::values(det_shocks), [](auto& v) {
-        return ranges::any_of(views::keys(v),
-                              [](auto& p) { return !holds_alternative<pair<int, int>>(p); });
-      }))
+  if (ranges::any_of(views::values(det_shocks),
+                     [](auto& v)
+                       {
+                         return ranges::any_of(views::keys(v), [](auto& p)
+                                                 { return !holds_alternative<pair<int, int>>(p); });
+                       }))
     error("shocks(surprise): dates are not allowed in the 'periods' keyword");
   mod_file->addStatement(
       make_unique<ShocksSurpriseStatement>(overwrite, move(det_shocks), mod_file->symbol_table));
@@ -2764,12 +2772,13 @@ ParsingDriver::conditional_forecast_paths(
   for (const auto& [exogenize, periods, values, endogenize] : paths)
     {
       int exogenize_id = mod_file->symbol_table.getID(exogenize);
-      optional<int> endogenize_id {[&]() -> optional<int> {
-        if (endogenize.empty())
-          return nullopt;
-        else
-          return mod_file->symbol_table.getID(endogenize);
-      }()};
+      optional<int> endogenize_id {[&]() -> optional<int>
+                                     {
+                                       if (endogenize.empty())
+                                         return nullopt;
+                                       else
+                                         return mod_file->symbol_table.getID(endogenize);
+                                     }()};
 
       vector<pair<AbstractShocksStatement::period_range_t, expr_t>> v;
 
@@ -2820,15 +2829,17 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
         warning("Specifying complementarity conditions with the 'mcp' tag is obsolete. Please "
                 "consider switching to the new syntax using the perpendicular symbol.");
 
-      auto [var_name, is_lower_bound, constant] {[&]() -> tuple<string, bool, string> {
-        auto tagval = eq_tags.at("mcp");
-        if (auto less_pos = tagval.find('<'); less_pos != string::npos)
-          return {tagval.substr(0, less_pos), false, tagval.substr(less_pos + 1)};
-        else if (auto greater_pos = tagval.find('>'); greater_pos != string::npos)
-          return {tagval.substr(0, greater_pos), true, tagval.substr(greater_pos + 1)};
-        else
-          error("'mcp' tag does not contain an inequality");
-      }()};
+      auto [var_name, is_lower_bound, constant] {
+          [&]() -> tuple<string, bool, string>
+            {
+              auto tagval = eq_tags.at("mcp");
+              if (auto less_pos = tagval.find('<'); less_pos != string::npos)
+                return {tagval.substr(0, less_pos), false, tagval.substr(less_pos + 1)};
+              else if (auto greater_pos = tagval.find('>'); greater_pos != string::npos)
+                return {tagval.substr(0, greater_pos), true, tagval.substr(greater_pos + 1)};
+              else
+                error("'mcp' tag does not contain an inequality");
+            }()};
 
       // Trim whitespace
       var_name.erase(var_name.find_last_not_of(" \n\t") + 1);
@@ -2836,16 +2847,17 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
       constant.erase(constant.find_last_not_of(" \n\t") + 1);
       constant.erase(0, constant.find_first_not_of(" \n\t"));
 
-      int symb_id {[&] {
-        try
-          {
-            return mod_file->symbol_table.getID(var_name);
-          }
-        catch (SymbolTable::UnknownSymbolNameException&)
-          {
-            error("Left-hand side of expression in 'mcp' tag is not a variable");
-          }
-      }()};
+      int symb_id {[&]
+                     {
+                       try
+                         {
+                           return mod_file->symbol_table.getID(var_name);
+                         }
+                       catch (SymbolTable::UnknownSymbolNameException&)
+                         {
+                           error("Left-hand side of expression in 'mcp' tag is not a variable");
+                         }
+                     }()};
 
       if (heterogeneous_model)
         error("'mcp' tags are not allowed in heterogeneous model blocks");
@@ -2853,13 +2865,15 @@ ParsingDriver::add_model_equal(expr_t arg1, expr_t arg2, map<string, string> eq_
       if (mod_file->symbol_table.getType(symb_id) != SymbolType::endogenous)
         error("Left-hand side of expression in 'mcp' tag is not an endogenous variable");
 
-      expr_t matched_constant {[&] {
-        char* str_end;
-        double d = strtod(constant.c_str(), &str_end);
-        if (str_end == constant.c_str())
-          error("Right-hand side of expression in 'mcp' tag should be a constant");
-        return data_tree->AddPossiblyNegativeConstant(d);
-      }()};
+      expr_t matched_constant {
+          [&]
+            {
+              char* str_end;
+              double d = strtod(constant.c_str(), &str_end);
+              if (str_end == constant.c_str())
+                error("Right-hand side of expression in 'mcp' tag should be a constant");
+              return data_tree->AddPossiblyNegativeConstant(d);
+            }()};
 
       matched_complementarity_condition = {symb_id, is_lower_bound ? matched_constant : nullptr,
                                            is_lower_bound ? nullptr : matched_constant};
@@ -3020,16 +3034,17 @@ ParsingDriver::change_type(SymbolType new_type, const vector<string>& symbol_lis
 {
   for (auto& it : symbol_list)
     {
-      int id {[&] {
-        try
-          {
-            return mod_file->symbol_table.getID(it);
-          }
-        catch (SymbolTable::UnknownSymbolNameException& e)
-          {
-            error("Unknown variable {}", it);
-          }
-      }()};
+      int id {[&]
+                {
+                  try
+                    {
+                      return mod_file->symbol_table.getID(it);
+                    }
+                  catch (SymbolTable::UnknownSymbolNameException& e)
+                    {
+                      error("Unknown variable {}", it);
+                    }
+                }()};
 
       // Check if symbol already used in a VariableNode
       if (mod_file->expressions_tree.isSymbolUsed(id) || mod_file->dynamic_model.isSymbolUsed(id))
@@ -3626,17 +3641,19 @@ ParsingDriver::begin_steady_state_model()
 void
 ParsingDriver::add_steady_state_model_equal(const string& varname, expr_t expr)
 {
-  int id {[&] {
-    try
-      {
-        return mod_file->symbol_table.getID(varname);
-      }
-    catch (SymbolTable::UnknownSymbolNameException& e)
-      {
-        // Unknown symbol, declare it as a ModFileLocalVariable
-        return mod_file->symbol_table.addSymbol(varname, SymbolType::modFileLocalVariable);
-      }
-  }()};
+  int id {[&]
+            {
+              try
+                {
+                  return mod_file->symbol_table.getID(varname);
+                }
+              catch (SymbolTable::UnknownSymbolNameException& e)
+                {
+                  // Unknown symbol, declare it as a ModFileLocalVariable
+                  return mod_file->symbol_table.addSymbol(varname,
+                                                          SymbolType::modFileLocalVariable);
+                }
+            }()};
 
   if (SymbolType type = mod_file->symbol_table.getType(id);
       type != SymbolType::endogenous && type != SymbolType::modFileLocalVariable
@@ -3653,17 +3670,19 @@ ParsingDriver::add_steady_state_model_equal_multiple(const vector<string>& symbo
 
   for (const auto& symb : symbol_list)
     {
-      int id {[&] {
-        try
-          {
-            return mod_file->symbol_table.getID(symb);
-          }
-        catch (SymbolTable::UnknownSymbolNameException& e)
-          {
-            // Unknown symbol, declare it as a ModFileLocalVariable
-            return mod_file->symbol_table.addSymbol(symb, SymbolType::modFileLocalVariable);
-          }
-      }()};
+      int id {[&]
+                {
+                  try
+                    {
+                      return mod_file->symbol_table.getID(symb);
+                    }
+                  catch (SymbolTable::UnknownSymbolNameException& e)
+                    {
+                      // Unknown symbol, declare it as a ModFileLocalVariable
+                      return mod_file->symbol_table.addSymbol(symb,
+                                                              SymbolType::modFileLocalVariable);
+                    }
+                }()};
 
       if (SymbolType type = mod_file->symbol_table.getType(id);
           type != SymbolType::endogenous && type != SymbolType::modFileLocalVariable
@@ -3679,16 +3698,17 @@ void
 ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
                                                           const string& eqname)
 {
-  int symb_id {[&] {
-    try
-      {
-        return mod_file->symbol_table.getID(symbol);
-      }
-    catch (SymbolTable::UnknownSymbolNameException& e)
-      {
-        error("Unknown symbol: {}", symbol);
-      }
-  }()};
+  int symb_id {[&]
+                 {
+                   try
+                     {
+                       return mod_file->symbol_table.getID(symbol);
+                     }
+                   catch (SymbolTable::UnknownSymbolNameException& e)
+                     {
+                       error("Unknown symbol: {}", symbol);
+                     }
+                 }()};
 
   // NB: model-local variables cannot be defined in this way (we substitute them out below)
   if (SymbolType type = mod_file->symbol_table.getType(symb_id);
@@ -3702,31 +3722,33 @@ ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
 
   /* Retrieve the equation corresponding to the given name.
      static-only equations have priority over dynamic ones. */
-  BinaryOpNode* eq_dynamic {[&] {
-    try
-      {
-        // First try static-only equations
-        auto eqns = mod_file->dynamic_model.getStaticOnlyEquationNumbersFromNames({eqname});
-        if (eqns.size() > 1)
-          error("There are several equations named '{}' and marked [static]", eqname);
-        return mod_file->dynamic_model.getStaticOnlyEquation(*eqns.begin());
-      }
-    catch (ModelTree::UnknownEquationNameException&)
-      {
-        // If no static-only equation found, search among dynamic one
-        try
-          {
-            auto eqns = mod_file->dynamic_model.getEquationNumbersFromNames({eqname});
-            if (eqns.size() > 1)
-              error("There are several equations named '{}'", eqname);
-            return mod_file->dynamic_model.getEquation(*eqns.begin());
-          }
-        catch (ModelTree::UnknownEquationNameException&)
-          {
-            error("There is no equation named '{}'", eqname);
-          }
-      }
-  }()};
+  BinaryOpNode* eq_dynamic {
+      [&]
+        {
+          try
+            {
+              // First try static-only equations
+              auto eqns = mod_file->dynamic_model.getStaticOnlyEquationNumbersFromNames({eqname});
+              if (eqns.size() > 1)
+                error("There are several equations named '{}' and marked [static]", eqname);
+              return mod_file->dynamic_model.getStaticOnlyEquation(*eqns.begin());
+            }
+          catch (ModelTree::UnknownEquationNameException&)
+            {
+              // If no static-only equation found, search among dynamic one
+              try
+                {
+                  auto eqns = mod_file->dynamic_model.getEquationNumbersFromNames({eqname});
+                  if (eqns.size() > 1)
+                    error("There are several equations named '{}'", eqname);
+                  return mod_file->dynamic_model.getEquation(*eqns.begin());
+                }
+              catch (ModelTree::UnknownEquationNameException&)
+                {
+                  error("There is no equation named '{}'", eqname);
+                }
+            }
+        }()};
 
   // Substitute out model-local variables
   try
@@ -3740,31 +3762,36 @@ ParsingDriver::add_steady_state_model_solve_from_equation(const string& symbol,
     }
 
   // Convert the equation to a static form
-  BinaryOpNode* eq_static {[&] {
-    try
-      {
-        return dynamic_cast<BinaryOpNode*>(eq_dynamic->toStatic(mod_file->steady_state_model));
-      }
-    catch (ExprNode::StaticConversionException& e)
-      {
-        error("The equation named '{}' cannot be converted to a static expression: {}", eqname,
-              e.message);
-      }
-  }()};
+  BinaryOpNode* eq_static {
+      [&]
+        {
+          try
+            {
+              return dynamic_cast<BinaryOpNode*>(
+                  eq_dynamic->toStatic(mod_file->steady_state_model));
+            }
+          catch (ExprNode::StaticConversionException& e)
+            {
+              error("The equation named '{}' cannot be converted to a static expression: {}",
+                    eqname, e.message);
+            }
+        }()};
 
   // Solve for the symbol definition by normalizing the equation
-  expr_t value {[&] {
-    try
-      {
-        BinaryOpNode* normalized_eq = eq_static->normalizeEquation(symb_id, 0);
-        return normalized_eq->arg2;
-      }
-    catch (ExprNode::NormalizationFailed&)
-      {
-        error("The equation named '{}' could not be rearranged to implicitly define symbol '{}'",
-              eqname, symbol);
-      }
-  }()};
+  expr_t value {[&]
+                  {
+                    try
+                      {
+                        BinaryOpNode* normalized_eq = eq_static->normalizeEquation(symb_id, 0);
+                        return normalized_eq->arg2;
+                      }
+                    catch (ExprNode::NormalizationFailed&)
+                      {
+                        error("The equation named '{}' could not be rearranged to implicitly "
+                              "define symbol '{}'",
+                              eqname, symbol);
+                      }
+                  }()};
 
   mod_file->steady_state_model.addDefinition(symb_id, value, location.begin.line);
 }
@@ -4236,10 +4263,11 @@ ParsingDriver::isSymbolIdentifier(const string& str)
 {
   if (str.empty())
     return false;
-  auto myisalpha = [](char ch) {
-    // We cannot use std::isalpha(), because it is locale-dependent
-    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
-  };
+  auto myisalpha = [](char ch)
+    {
+      // We cannot use std::isalpha(), because it is locale-dependent
+      return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
+    };
   if (!(myisalpha(str[0]) || str[0] == '_'))
     return false;
   for (size_t i = 1; i < str.size(); i++)
@@ -4297,16 +4325,17 @@ ParsingDriver::heterogeneity_dimension(const vector<string>& dims)
 {
   for (const auto& dim : dims)
     {
-      int het_dim_id {[&] {
-        try
-          {
-            return mod_file->heterogeneity_table.addDimension(dim);
-          }
-        catch (HeterogeneityTable::AlreadyDeclaredDimensionException&)
-          {
-            error("Heterogeneity dimension '{}' already declared", dim);
-          }
-      }()};
+      int het_dim_id {[&]
+                        {
+                          try
+                            {
+                              return mod_file->heterogeneity_table.addDimension(dim);
+                            }
+                          catch (HeterogeneityTable::AlreadyDeclaredDimensionException&)
+                            {
+                              error("Heterogeneity dimension '{}' already declared", dim);
+                            }
+                        }()};
 
       assert(static_cast<int>(mod_file->heterogeneous_models.size()) == het_dim_id);
       mod_file->heterogeneous_models.emplace_back(

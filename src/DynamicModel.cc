@@ -191,10 +191,9 @@ DynamicModel::writeDynamicBytecode(const string& basename) const
   auto eq_idx = views::iota(0, static_cast<int>(equations.size()));
   auto endo_idx = views::iota(0, symbol_table.endo_nbr());
 
-  int jacobian_ncols_endo {
-      static_cast<int>(ranges::count_if(legacy_jacobian_cols_table, [this](const auto& v) {
-        return getTypeByDerivID(v.first) == SymbolType::endogenous;
-      }))};
+  int jacobian_ncols_endo {static_cast<int>(
+      ranges::count_if(legacy_jacobian_cols_table, [this](const auto& v)
+                         { return getTypeByDerivID(v.first) == SymbolType::endogenous; }))};
 
   code_file << Bytecode::FBEGINBLOCK {symbol_table.endo_nbr(),
                                       simulation_type,
@@ -296,10 +295,11 @@ DynamicModel::printNonZeroHessianEquations(ostream& output) const
 vector<map<string, string>>
 DynamicModel::parseIncludeExcludeEquations(const string& inc_exc_option_value, bool exclude_eqs)
 {
-  auto removeLeadingTrailingWhitespace = [](string& str) {
-    str.erase(0, str.find_first_not_of("\t\n\v\f\r "));
-    str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);
-  };
+  auto removeLeadingTrailingWhitespace = [](string& str)
+    {
+      str.erase(0, str.find_first_not_of("\t\n\v\f\r "));
+      str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);
+    };
 
   string tags;
   if (filesystem::exists(inc_exc_option_value))
@@ -1731,13 +1731,14 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(
 
   // Add diff nodes and eqs for pac_target_symb_id
   const VariableNode* target_base_diff_node;
-  auto create_target_lag = [&](int lag) {
-    if (symbol_table.isAuxiliaryVariable(pac_target_symb_id))
-      // We know it is a log, see ExprNode::matchParamTimesTargetMinusVariable()
-      return AddLog(AddVariable(symbol_table.getOrigSymbIdForAuxVar(pac_target_symb_id), lag));
-    else
-      return dynamic_cast<ExprNode*>(AddVariable(pac_target_symb_id, lag));
-  };
+  auto create_target_lag = [&](int lag)
+    {
+      if (symbol_table.isAuxiliaryVariable(pac_target_symb_id))
+        // We know it is a log, see ExprNode::matchParamTimesTargetMinusVariable()
+        return AddLog(AddVariable(symbol_table.getOrigSymbIdForAuxVar(pac_target_symb_id), lag));
+      else
+        return dynamic_cast<ExprNode*>(AddVariable(pac_target_symb_id, lag));
+    };
 
   expr_t diff_node_to_search = AddDiff(create_target_lag(0));
   if (auto sit = diff_subst_table.find(diff_node_to_search); sit != diff_subst_table.end())
@@ -1813,19 +1814,20 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
     vector<PacModelTable::target_component_t>& pac_target_components,
     map<string, expr_t>& pac_expectation_substitution)
 {
-  auto create_aux_param = [&](const string& param_name) {
-    try
-      {
-        return symbol_table.addSymbol(param_name, SymbolType::parameter);
-      }
-    catch (SymbolTable::AlreadyDeclaredException)
-      {
-        cerr << "ERROR: the variable/parameter '" << param_name
-             << "' conflicts with some auxiliary parameter that will be generated for the '" << name
-             << "' PAC model. Please rename that parameter." << '\n';
-        exit(EXIT_FAILURE);
-      }
-  };
+  auto create_aux_param = [&](const string& param_name)
+    {
+      try
+        {
+          return symbol_table.addSymbol(param_name, SymbolType::parameter);
+        }
+      catch (SymbolTable::AlreadyDeclaredException)
+        {
+          cerr << "ERROR: the variable/parameter '" << param_name
+               << "' conflicts with some auxiliary parameter that will be generated for the '"
+               << name << "' PAC model. Please rename that parameter." << '\n';
+          exit(EXIT_FAILURE);
+        }
+    };
   int neqs = 0;
 
   // At the end of this loop:
@@ -1855,12 +1857,13 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
         }
     }
 
-  auto create_target_lag = [&](int variable, int lag) {
-    if (symbol_table.isAuxiliaryVariable(variable))
-      return AddVariable(symbol_table.getOrigSymbIdForAuxVar(variable), lag);
-    else
-      return AddVariable(variable, lag);
-  };
+  auto create_target_lag = [&](int variable, int lag)
+    {
+      if (symbol_table.isAuxiliaryVariable(variable))
+        return AddVariable(symbol_table.getOrigSymbIdForAuxVar(variable), lag);
+      else
+        return AddVariable(variable, lag);
+    };
 
   expr_t substexpr = Zero;
   for (int component_idx {1};
@@ -2010,19 +2013,20 @@ DynamicModel::computePacBackwardExpectationSubstitution(
     map<string, vector<int>>& pac_aux_param_symb_ids,
     map<string, expr_t>& pac_expectation_substitution)
 {
-  auto create_aux_param = [&](const string& param_name) {
-    try
-      {
-        return symbol_table.addSymbol(param_name, SymbolType::parameter);
-      }
-    catch (SymbolTable::AlreadyDeclaredException)
-      {
-        cerr << "ERROR: the variable/parameter '" << param_name
-             << "' conflicts with some auxiliary parameter that will be generated for the '" << name
-             << "' PAC model. Please rename that parameter." << '\n';
-        exit(EXIT_FAILURE);
-      }
-  };
+  auto create_aux_param = [&](const string& param_name)
+    {
+      try
+        {
+          return symbol_table.addSymbol(param_name, SymbolType::parameter);
+        }
+      catch (SymbolTable::AlreadyDeclaredException)
+        {
+          cerr << "ERROR: the variable/parameter '" << param_name
+               << "' conflicts with some auxiliary parameter that will be generated for the '"
+               << name << "' PAC model. Please rename that parameter." << '\n';
+          exit(EXIT_FAILURE);
+        }
+    };
 
   expr_t subExpr = Zero;
   if (aux_model_type == "var")
@@ -2061,19 +2065,20 @@ DynamicModel::computePacBackwardExpectationSubstitutionWithComponents(
     vector<PacModelTable::target_component_t>& pac_target_components,
     map<string, expr_t>& pac_expectation_substitution)
 {
-  auto create_aux_param = [&](const string& param_name) {
-    try
-      {
-        return symbol_table.addSymbol(param_name, SymbolType::parameter);
-      }
-    catch (SymbolTable::AlreadyDeclaredException)
-      {
-        cerr << "ERROR: the variable/parameter '" << param_name
-             << "' conflicts with some auxiliary parameter that will be generated for the '" << name
-             << "' PAC model. Please rename that parameter." << '\n';
-        exit(EXIT_FAILURE);
-      }
-  };
+  auto create_aux_param = [&](const string& param_name)
+    {
+      try
+        {
+          return symbol_table.addSymbol(param_name, SymbolType::parameter);
+        }
+      catch (SymbolTable::AlreadyDeclaredException)
+        {
+          cerr << "ERROR: the variable/parameter '" << param_name
+               << "' conflicts with some auxiliary parameter that will be generated for the '"
+               << name << "' PAC model. Please rename that parameter." << '\n';
+          exit(EXIT_FAILURE);
+        }
+    };
 
   expr_t substexpr = Zero;
 
@@ -2730,10 +2735,11 @@ set<int>
 DynamicModel::findUnusedParameters()
 {
   set<int> usedParams, unusedParams;
-  auto collect_params = [&](BinaryOpNode* equation) {
-    equation->collectVariables(SymbolType::parameter, usedParams);
-    equation->collectVariables(SymbolType::heterogeneousParameter, usedParams);
-  };
+  auto collect_params = [&](BinaryOpNode* equation)
+    {
+      equation->collectVariables(SymbolType::parameter, usedParams);
+      equation->collectVariables(SymbolType::heterogeneousParameter, usedParams);
+    };
 
   for (auto& equation : equations)
     collect_params(equation);
@@ -3855,22 +3861,23 @@ DynamicModel::simplifyEquations()
   size_t last_subst_table_size = 0;
   map<VariableNode*, NumConstNode*> subst_table;
 
-  auto error_message_helper = [&](const string& msg, const DataTree::DivisionByZeroException& e) {
-    cerr << "ERROR: " << msg;
-    if (!subst_table.empty())
-      {
-        cerr << "; substitutions: ";
-        for (bool first {true}; const auto& [var, val] : subst_table)
-          {
-            if (!exchange(first, false))
-              cerr << ", ";
-            cerr << var->toString() << " -> " << val->toString();
-          }
-      }
-    if (!e.message.empty())
-      cerr << "; detail: " << e.message;
-    cerr << '\n';
-  };
+  auto error_message_helper = [&](const string& msg, const DataTree::DivisionByZeroException& e)
+    {
+      cerr << "ERROR: " << msg;
+      if (!subst_table.empty())
+        {
+          cerr << "; substitutions: ";
+          for (bool first {true}; const auto& [var, val] : subst_table)
+            {
+              if (!exchange(first, false))
+                cerr << ", ";
+              cerr << var->toString() << " -> " << val->toString();
+            }
+        }
+      if (!e.message.empty())
+        cerr << "; detail: " << e.message;
+      cerr << '\n';
+    };
 
   // Equations with a complementarity condition are excluded, see dynare#1697
   findConstantEquationsWithoutComplementarityCondition(subst_table);
@@ -4360,15 +4367,16 @@ DynamicModel::writePythonDynamicParamsDerivatives(const string& basename, bool u
   output << '\n';
 
   // Write derivatives with proper indentation
-  auto write_python_derivs = [&output](ostringstream& deriv_output) {
-    if (!deriv_output.str().empty())
-      {
-        istringstream deriv_stream(deriv_output.str());
-        string line;
-        while (getline(deriv_stream, line))
-          output << "    " << line << '\n';
-      }
-  };
+  auto write_python_derivs = [&output](ostringstream& deriv_output)
+    {
+      if (!deriv_output.str().empty())
+        {
+          istringstream deriv_stream(deriv_output.str());
+          string line;
+          while (getline(deriv_stream, line))
+            output << "    " << line << '\n';
+        }
+    };
 
   write_python_derivs(rp_output);
   write_python_derivs(g1p_output);

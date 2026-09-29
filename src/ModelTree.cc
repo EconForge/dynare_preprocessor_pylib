@@ -69,12 +69,13 @@ ModelTree::copyHelper(const ModelTree& m)
     else
       complementarity_conditions.emplace_back(nullopt);
 
-  auto convert_deriv_map = [f](const map<vector<int>, expr_t>& dm) {
-    map<vector<int>, expr_t> dm2;
-    for (const auto& it : dm)
-      dm2.emplace(it.first, f(it.second));
-    return dm2;
-  };
+  auto convert_deriv_map = [f](const map<vector<int>, expr_t>& dm)
+    {
+      map<vector<int>, expr_t> dm2;
+      for (const auto& it : dm)
+        dm2.emplace(it.first, f(it.second));
+      return dm2;
+    };
 
   // Derivatives
   for (const auto& it : m.derivatives)
@@ -84,12 +85,13 @@ ModelTree::copyHelper(const ModelTree& m)
   for (const auto& it : m.jacobian_sparse_column_major_order)
     jacobian_sparse_column_major_order.emplace(it.first, f(it.second));
 
-  auto convert_temporary_terms_t = [f](const temporary_terms_t& tt) {
-    temporary_terms_t tt2;
-    for (const auto& it : tt)
-      tt2.insert(f(it));
-    return tt2;
-  };
+  auto convert_temporary_terms_t = [f](const temporary_terms_t& tt)
+    {
+      temporary_terms_t tt2;
+      for (const auto& it : tt)
+        tt2.insert(f(it));
+      return tt2;
+    };
 
   // Temporary terms
   for (const auto& it : m.temporary_terms_derivatives)
@@ -119,17 +121,18 @@ ModelTree::copyHelper(const ModelTree& m)
       blocks_derivatives.push_back(v);
     }
 
-  auto convert_vector_tt = [f](const vector<temporary_terms_t>& vtt) {
-    vector<temporary_terms_t> vtt2;
-    for (const auto& tt : vtt)
-      {
-        temporary_terms_t tt2;
-        for (const auto& it : tt)
-          tt2.insert(f(it));
-        vtt2.push_back(tt2);
-      }
-    return vtt2;
-  };
+  auto convert_vector_tt = [f](const vector<temporary_terms_t>& vtt)
+    {
+      vector<temporary_terms_t> vtt2;
+      for (const auto& tt : vtt)
+        {
+          temporary_terms_t tt2;
+          for (const auto& it : tt)
+            tt2.insert(f(it));
+          vtt2.push_back(tt2);
+        }
+      return vtt2;
+    };
   for (const auto& it : m.blocks_temporary_terms)
     blocks_temporary_terms.push_back(convert_vector_tt(it));
   for (const auto& it : m.blocks_temporary_terms_idxs)
@@ -404,18 +407,20 @@ ModelTree::evaluateAndReduceJacobian(const eval_context_t& eval_context) const
           int eq = indices[0];
           int var {getTypeSpecificIDByDerivID(deriv_id)};
           int lag = getLagByDerivID(deriv_id);
-          double val {[&] {
-            try
-              {
-                return d1->eval(eval_context); // NOLINT(clang-analyzer-core.NullDereference)
-              }
-            catch (ExprNode::EvalExternalFunctionException& e)
-              {
-                return 1.0;
-              }
-            /* Other types of EvalException should not happen (all symbols should
-               have a value; we don’t evaluate an equal sign) */
-          }()};
+          double val {
+              [&]
+                {
+                  try
+                    {
+                      return d1->eval(eval_context); // NOLINT(clang-analyzer-core.NullDereference)
+                    }
+                  catch (ExprNode::EvalExternalFunctionException& e)
+                    {
+                      return 1.0;
+                    }
+                  /* Other types of EvalException should not happen (all symbols should
+                     have a value; we don’t evaluate an equal sign) */
+                }()};
 
           if ((isnan(val) || fabs(val) >= cutoff) && lag == 0)
             contemporaneous_jacobian[{eq, var}] = val;
@@ -949,12 +954,14 @@ ModelTree::computeTemporaryTerms(bool is_matlab, bool no_tmp_terms)
 {
   /* Ensure that we don’t have any model-local variable in the model at this
      point (we used to treat them as temporary terms) */
-  assert([&] {
-    set<int> used_local_vars;
-    for (auto& equation : equations)
-      equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
-    return used_local_vars.empty();
-  }());
+  assert(
+      [&]
+        {
+          set<int> used_local_vars;
+          for (auto& equation : equations)
+            equation->collectVariables(SymbolType::modelLocalVariable, used_local_vars);
+          return used_local_vars.empty();
+        }());
 
   // Compute the temporary terms in equations and derivatives
   map<pair<int, int>, unordered_set<expr_t>> temp_terms_map;
@@ -1962,46 +1969,50 @@ ModelTree::initializeMEXCompilationWorkers(int numworkers, const filesystem::pat
        issue. See:
        https://stackoverflow.com/questions/72990607/const-stdstop-token-or-just-stdstop-token-as-parameter-for-thread-funct
      */
-    mex_compilation_workers.emplace_back([](const stop_token& stoken) {
-      unique_lock lk {mex_compilation_mut};
-      filesystem::path output;
-      string cmd;
-
-      /* Look for an object to compile, whose prerequisites are already
-         compiled. If found, remove it from the queue, save the output path and
-         the compilation command, and return true. Must be run under the lock. */
-      auto pick_job = [&cmd, &output] {
-        for (auto it {mex_compilation_queue.begin()}; it != mex_compilation_queue.end(); ++it)
-          if (const auto& prerequisites {get<1>(*it)}; // Will become dangling after erase
-              ranges::includes(mex_compilation_done, prerequisites))
-            {
-              output = get<0>(*it);
-              cmd = get<2>(*it);
-              mex_compilation_queue.erase(it);
-              mex_compilation_ongoing.insert(output);
-              return true;
-            }
-        return false;
-      };
-
-      while (!stoken.stop_requested())
-        if (mex_compilation_cv.wait(lk, stoken, pick_job))
+    mex_compilation_workers.emplace_back(
+        [](const stop_token& stoken)
           {
-            lk.unlock();
-            int r {system(cmd.c_str())};
-            lk.lock();
-            mex_compilation_ongoing.erase(output);
-            if (r)
-              mex_compilation_failed.insert(output);
-            else
-              mex_compilation_done.insert(output);
-            /* The object just compiled may be a prerequisite for several
-               other objects, so notify all waiting workers. Also needed to
-               notify the main thread when in
-               ModelTree::waitForMEXCompilationWorkers().*/
-            mex_compilation_cv.notify_all();
-          }
-    });
+            unique_lock lk {mex_compilation_mut};
+            filesystem::path output;
+            string cmd;
+
+            /* Look for an object to compile, whose prerequisites are already
+               compiled. If found, remove it from the queue, save the output path and
+               the compilation command, and return true. Must be run under the lock. */
+            auto pick_job = [&cmd, &output]
+              {
+                for (auto it {mex_compilation_queue.begin()}; it != mex_compilation_queue.end();
+                     ++it)
+                  if (const auto& prerequisites {get<1>(*it)}; // Will become dangling after erase
+                      ranges::includes(mex_compilation_done, prerequisites))
+                    {
+                      output = get<0>(*it);
+                      cmd = get<2>(*it);
+                      mex_compilation_queue.erase(it);
+                      mex_compilation_ongoing.insert(output);
+                      return true;
+                    }
+                return false;
+              };
+
+            while (!stoken.stop_requested())
+              if (mex_compilation_cv.wait(lk, stoken, pick_job))
+                {
+                  lk.unlock();
+                  int r {system(cmd.c_str())};
+                  lk.lock();
+                  mex_compilation_ongoing.erase(output);
+                  if (r)
+                    mex_compilation_failed.insert(output);
+                  else
+                    mex_compilation_done.insert(output);
+                  /* The object just compiled may be a prerequisite for several
+                     other objects, so notify all waiting workers. Also needed to
+                     notify the main thread when in
+                     ModelTree::waitForMEXCompilationWorkers().*/
+                  mex_compilation_cv.notify_all();
+                }
+          });
 
   /* Set some environment variables needed for compilation on Windows/MATLAB
      and macOS/Octave.
@@ -2047,10 +2058,13 @@ void
 ModelTree::waitForMEXCompilationWorkers()
 {
   unique_lock<mutex> lk {mex_compilation_mut};
-  mex_compilation_cv.wait(lk, [] {
-    return (mex_compilation_queue.empty() && mex_compilation_ongoing.empty())
-           || !mex_compilation_failed.empty();
-  });
+  mex_compilation_cv.wait(lk,
+                          []
+                            {
+                              return (mex_compilation_queue.empty()
+                                      && mex_compilation_ongoing.empty())
+                                     || !mex_compilation_failed.empty();
+                            });
   if (!mex_compilation_failed.empty())
     {
       cerr << "Compilation failed for: ";

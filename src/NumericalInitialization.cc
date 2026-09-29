@@ -339,14 +339,15 @@ EndValLearntInStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "endval", "learnt_in": )";
   visit(
-      [&]<class T>(const T& p) {
-        if constexpr (is_same_v<T, int>)
-          output << p;
-        else if constexpr (is_same_v<T, string>)
-          output << '"' << p << '"';
-        else
-          static_assert(always_false_v<T>, "Non-exhaustive visitor!");
-      },
+      [&]<class T>(const T& p)
+        {
+          if constexpr (is_same_v<T, int>)
+            output << p;
+          else if constexpr (is_same_v<T, string>)
+            output << '"' << p << '"';
+          else
+            static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+        },
       learnt_in_period);
   output << R"(, "vals": [)";
   for (bool printed_something {false}; auto& [type, symb_id, value] : learnt_end_values)

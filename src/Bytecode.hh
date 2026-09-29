@@ -457,10 +457,11 @@ public:
   {
     code += sizeof(tag);
 
-    auto read_member = [&code](auto& member) {
-      member = *reinterpret_cast<add_pointer_t<decltype(member)>>(code);
-      code += sizeof member;
-    };
+    auto read_member = [&code](auto& member)
+      {
+        member = *reinterpret_cast<add_pointer_t<decltype(member)>>(code);
+        code += sizeof member;
+      };
 
     read_member(nb_output_arguments);
     read_member(nb_input_arguments);
@@ -669,10 +670,11 @@ public:
   {
     code += sizeof(tag);
 
-    auto read_member = [&code](auto& member) {
-      member = *reinterpret_cast<add_pointer_t<decltype(member)>>(code);
-      code += sizeof member;
-    };
+    auto read_member = [&code](auto& member)
+      {
+        member = *reinterpret_cast<add_pointer_t<decltype(member)>>(code);
+        code += sizeof member;
+      };
 
     read_member(size);
     read_member(type);

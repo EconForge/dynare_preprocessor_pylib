@@ -32,14 +32,15 @@ static void
 print_matlab_period_range(ostream& output, const AbstractShocksStatement::period_range_t& v)
 {
   visit(
-      [&]<class T>(const T& arg) {
-        if constexpr (is_same_v<T, pair<int, int>>)
-          output << arg.first << ":" << arg.second;
-        else if constexpr (is_same_v<T, pair<string, string>>)
-          output << "(" << arg.first << "):(" << arg.second << ")";
-        else
-          static_assert(always_false_v<T>, "Non-exhaustive visitor!");
-      },
+      [&]<class T>(const T& arg)
+        {
+          if constexpr (is_same_v<T, pair<int, int>>)
+            output << arg.first << ":" << arg.second;
+          else if constexpr (is_same_v<T, pair<string, string>>)
+            output << "(" << arg.first << "):(" << arg.second << ")";
+          else
+            static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+        },
       v);
 }
 
@@ -47,16 +48,17 @@ static void
 print_json_period_range(ostream& output, const AbstractShocksStatement::period_range_t& v)
 {
   visit(
-      [&]<class T>(const T& arg) {
-        if constexpr (is_same_v<T, pair<int, int>>)
-          output << R"("period1": )" << arg.first << ", "
-                 << R"("period2": )" << arg.second;
-        else if constexpr (is_same_v<T, pair<string, string>>)
-          output << R"("period1": ")" << arg.first << R"(", )"
-                 << R"("period2": ")" << arg.second << '"';
-        else
-          static_assert(always_false_v<T>, "Non-exhaustive visitor!");
-      },
+      [&]<class T>(const T& arg)
+        {
+          if constexpr (is_same_v<T, pair<int, int>>)
+            output << R"("period1": )" << arg.first << ", "
+                   << R"("period2": )" << arg.second;
+          else if constexpr (is_same_v<T, pair<string, string>>)
+            output << R"("period1": ")" << arg.first << R"(", )"
+                   << R"("period2": ")" << arg.second << '"';
+          else
+            static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+        },
       v);
 }
 
@@ -1443,28 +1445,43 @@ ShockPathsStatement::writeOutput(ostream& output, const string& basename,
   bool contains_date {
       holds_alternative<string>(learnt_in_period)
       || ranges::any_of(exo_paths,
-                        [](const auto& symb_vec) {
-                          return ranges::any_of(symb_vec.second, [](const auto& period_value) {
-                            auto& [period, value] = period_value;
-                            return holds_alternative<string>(period.get_first())
-                                   || holds_alternative<string>(period.get_last())
-                                   || value->containsDate();
-                          });
-                        })
-      || ranges::any_of(controlled_paths, [](const auto& it) {
-           return ranges::any_of(get<1>(it), [](const auto& period_value) {
-             auto& [period_range, value] = period_value;
-             return holds_alternative<pair<string, string>>(period_range) || value->containsDate();
-           });
-         })};
+                        [](const auto& symb_vec)
+                          {
+                            return ranges::any_of(
+                                symb_vec.second,
+                                [](const auto& period_value)
+                                  {
+                                    auto& [period, value] = period_value;
+                                    return holds_alternative<string>(period.get_first())
+                                           || holds_alternative<string>(period.get_last())
+                                           || value->containsDate();
+                                  });
+                          })
+      || ranges::any_of(controlled_paths,
+                        [](const auto& it)
+                          {
+                            return ranges::any_of(
+                                get<1>(it),
+                                [](const auto& period_value)
+                                  {
+                                    auto& [period_range, value] = period_value;
+                                    return holds_alternative<pair<string, string>>(period_range)
+                                           || value->containsDate();
+                                  });
+                          })};
 
   // Whether this block has an “end” period (and thus triggers a permanent shock)
-  bool contains_endval {ranges::any_of(exo_paths, [](const auto& symb_vec) {
-    return ranges::any_of(symb_vec.second, [](const auto& period_value) {
-      auto& [period, value] = period_value;
-      return holds_alternative<monostate>(period.get_last());
-    });
-  })};
+  bool contains_endval {ranges::any_of(
+      exo_paths,
+      [](const auto& symb_vec)
+        {
+          return ranges::any_of(symb_vec.second,
+                                [](const auto& period_value)
+                                  {
+                                    auto& [period, value] = period_value;
+                                    return holds_alternative<monostate>(period.get_last());
+                                  });
+        })};
 
   output << "M_.shock_paths = [M_.shock_paths; struct('learnt_in', ";
   print_matlab_period(output, learnt_in_period);
@@ -1517,14 +1534,15 @@ ShockPathsStatement::writeOutput(ostream& output, const string& basename,
 void
 ShockPathsStatement::writeJsonOutput(ostream& output) const
 {
-  auto print_json_period_t = [&output](const auto& arg) {
-    if (holds_alternative<int>(arg))
-      output << get<int>(arg);
-    else if (holds_alternative<string>(arg))
-      output << '"' << get<string>(arg) << '"';
-    else // monostate
-      output << R"("end")";
-  };
+  auto print_json_period_t = [&output](const auto& arg)
+    {
+      if (holds_alternative<int>(arg))
+        output << get<int>(arg);
+      else if (holds_alternative<string>(arg))
+        output << '"' << get<string>(arg) << '"';
+      else // monostate
+        output << R"("end")";
+    };
 
   output << R"({"statementName": "shock_paths")"
          << R"(, "learnt_in": )";
@@ -1594,14 +1612,15 @@ ShockPathsStatement::writeEvaluationFunctionFile(const string& basename) const
     output << get<string>(learnt_in_period) << "-first_simulation_period+1";
   output << ";" << '\n';
 
-  auto print_matlab_period_shock_paths = [&output](const auto& p) {
-    if (holds_alternative<int>(p))
-      output << get<int>(p);
-    else if (holds_alternative<string>(p))
-      output << get<string>(p) << "-first_simulation_period+1";
-    else // monostate
-      output << "periods+1";
-  };
+  auto print_matlab_period_shock_paths = [&output](const auto& p)
+    {
+      if (holds_alternative<int>(p))
+        output << get<int>(p);
+      else if (holds_alternative<string>(p))
+        output << get<string>(p) << "-first_simulation_period+1";
+      else // monostate
+        output << "periods+1";
+    };
 
   for (const auto& [symb_id, shock_vec] : exo_paths)
     for (const auto& [period_range, value] : shock_vec)

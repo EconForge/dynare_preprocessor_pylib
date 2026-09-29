@@ -890,12 +890,14 @@ EstimationStatement::checkPass(ModFileStructure& mod_file_struct, WarningConsoli
     mod_file_struct.estimation_analytic_derivation = true;
 
   if (options_list.contains("dsge_var"))
-    options_list.visit("dsge_var", [&]<class T>(const T& v) {
-      if constexpr (is_same_v<T, OptionsList::StringVal>)
-        mod_file_struct.dsge_var_estimated = true;
-      else if constexpr (is_same_v<T, OptionsList::NumVal>)
-        mod_file_struct.dsge_var_calibrated = v;
-    });
+    options_list.visit("dsge_var",
+                       [&]<class T>(const T& v)
+                         {
+                           if constexpr (is_same_v<T, OptionsList::StringVal>)
+                             mod_file_struct.dsge_var_estimated = true;
+                           else if constexpr (is_same_v<T, OptionsList::NumVal>)
+                             mod_file_struct.dsge_var_calibrated = v;
+                         });
 
   // Fill in mod_file_struct.bayesian_irf_present
   if (auto opt = options_list.get_if<OptionsList::NumVal>("bayesian_irf"); opt && *opt == "true")
@@ -3731,32 +3733,36 @@ MarkovSwitchingStatement::writeOutput(ostream& output, [[maybe_unused]] const st
   assert(options_list.contains("ms.duration"));
 
   output << "options_.ms.duration = ";
-  bool isDurationAVec {options_list.visit("ms.duration", [&]<class T>(const T& v) -> bool {
-    if constexpr (is_same_v<T, OptionsList::VecValueVal>)
-      {
-        output << "[";
-        for (bool printed_something {false}; const auto& it : v)
-          {
-            if (exchange(printed_something, true))
-              output << ", ";
-            output << it;
-          }
-        output << "]";
-        return true;
-      }
-    else if constexpr (is_same_v<T, OptionsList::NumVal>)
-      {
-        output << v;
-        return false;
-      }
-    else
-      {
-        cerr << "MarkovSwitchingStatement::writeOutput: incorrect value type for 'ms.duration' "
-                "option"
-             << '\n';
-        exit(EXIT_FAILURE);
-      }
-  })};
+  bool isDurationAVec {options_list.visit("ms.duration",
+                                          [&]<class T>(const T& v) -> bool
+                                            {
+                                              if constexpr (is_same_v<T, OptionsList::VecValueVal>)
+                                                {
+                                                  output << "[";
+                                                  for (bool printed_something {false};
+                                                       const auto& it : v)
+                                                    {
+                                                      if (exchange(printed_something, true))
+                                                        output << ", ";
+                                                      output << it;
+                                                    }
+                                                  output << "]";
+                                                  return true;
+                                                }
+                                              else if constexpr (is_same_v<T, OptionsList::NumVal>)
+                                                {
+                                                  output << v;
+                                                  return false;
+                                                }
+                                              else
+                                                {
+                                                  cerr << "MarkovSwitchingStatement::writeOutput: "
+                                                          "incorrect value type for 'ms.duration' "
+                                                          "option"
+                                                       << '\n';
+                                                  exit(EXIT_FAILURE);
+                                                }
+                                            })};
   output << ";" << '\n';
 
   int NOR {stoi(options_list.get<OptionsList::NumVal>("ms.number_of_regimes"))};
