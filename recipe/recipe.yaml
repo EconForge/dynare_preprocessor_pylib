@@ -1,6 +1,6 @@
 context:
   name: dynare-preprocessor-pylib
-  version: 0.0.1.dev0
+  version: 0.0.1
 
 package:
   name: ${{ name }}
@@ -29,6 +29,9 @@ requirements:
         - cross-python_emscripten-wasm32
         - python 3.13.*
       else:
+        - if: build_platform != target_platform
+          then:
+            - cross-python_${{ target_platform }}
         - python
     - pip
     - nanobind
@@ -58,7 +61,7 @@ tests:
       files:
         recipe:
           - test_preproc.py
-  - if: target_platform == "linux-64"
+  - if: unix and target_platform != "emscripten-wasm32"
     then:
       script:
         - test -f $PREFIX/bin/dynare-preprocessor
@@ -66,7 +69,7 @@ tests:
       files:
         recipe:
           - test_preproc.py
-  - if: target_platform == "win-64"
+  - if: win
     then:
       script:
         - if not exist "%PREFIX%\Library\bin\dynare-preprocessor.exe" if not exist "%PREFIX%\bin\dynare-preprocessor.exe" exit 1

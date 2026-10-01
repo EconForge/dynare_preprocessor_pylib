@@ -1,6 +1,6 @@
 [workspace]
 name = "dynare_preprocessor"
-version = "0.1.0"
+version = "0.0.1"
 description = "Dynare Preprocessor and Python nanobind bindings"
 authors = ["Pablo Winant <pablo.winant@gmail.com>"]
 channels = ["conda-forge"]
@@ -92,6 +92,13 @@ upload-wasm = "bash -c 'test -f ~/.env && export $(grep -v \"^#\" ~/.env | xargs
 # Linux conda packaging tasks
 build-linux = "rattler-build build --recipe recipe --target-platform linux-64 -m recipe/variants.yaml -c conda-forge"
 upload-linux = "bash -c 'test -f ~/.env && export $(grep -v \"^#\" ~/.env | xargs); for f in output/linux-64/dynare-preprocessor-pylib-*.conda; do rattler-build upload prefix -c econforge --skip-existing \"$f\"; done'"
+
+build-linux-aarch64 = "rattler-build build --recipe recipe --target-platform linux-aarch64 -m recipe/variants.yaml -c conda-forge --test skip"
+upload-linux-aarch64 = "bash -c 'test -f ~/.env && export $(grep -v \"^#\" ~/.env | xargs); for f in output/linux-aarch64/dynare-preprocessor-pylib-*.conda; do rattler-build upload prefix -c econforge --skip-existing \"$f\"; done'"
+
+# macOS Apple Silicon packaging tasks
+build-osx-arm64 = "rattler-build build --recipe recipe --target-platform osx-arm64 -m recipe/variants.yaml -c conda-forge --test skip"
+upload-osx-arm64 = "bash -c 'test -f ~/.env && export $(grep -v \"^#\" ~/.env | xargs); for f in output/osx-arm64/dynare-preprocessor-pylib-*.conda; do rattler-build upload prefix -c econforge --skip-existing \"$f\"; done'"
 
 
 

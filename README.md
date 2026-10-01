@@ -329,7 +329,7 @@ channels = [
 platforms = ["emscripten-wasm32"]
 
 [dependencies]
-dynare-preprocessor-pylib = ">=0.0.1.dev0"
+dynare-preprocessor-pylib = ">=0.0.1"
 ```
 
 Or create an environment using standard Conda:
