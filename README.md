@@ -149,7 +149,8 @@ model = dp.DynareModel(
     modfile_content_or_path: str,
     derivs_order: int = 1,
     params_derivs_order: int = 0,
-    strict: bool = False
+    strict: bool = False,
+    stochastic: bool | None = None
 )
 ```
 
@@ -157,6 +158,7 @@ model = dp.DynareModel(
 - `derivs_order`: Maximum derivation order with respect to variables (default `1`).
 - `params_derivs_order`: Maximum derivation order with respect to parameters (default `0`).
 - `strict`: If `True`, treat undeclared variables as immediate fatal parsing errors (default `False`).
+- `stochastic`: Force stochastic (`True`) or deterministic (`False`) model context during checking and transformation passes. If `None` (default), the context is inferred from the statements in the `.mod` file (defaulting to deterministic if no stochastic commands are declared, matching the Dynare CLI).
 
 #### Attributes
 

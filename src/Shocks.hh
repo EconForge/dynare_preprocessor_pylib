@@ -32,10 +32,11 @@
 #include "Statement.hh"
 #include "SymbolTable.hh"
 
-using namespace std;
+class DynareModel;
 
 class AbstractShocksStatement : public Statement
 {
+  friend class DynareModel;
 public:
   // A period range is either two indices (1-based), or two dates (from dseries)
   using period_range_t = variant<pair<int, int>, pair<string, string>>;
@@ -63,8 +64,6 @@ protected:
   AbstractShocksStatement(bool overwrite_arg, ShockType type_arg, det_shocks_t det_shocks_arg,
                           const SymbolTable& symbol_table_arg);
 };
-
-class DynareModel;
 
 class ShocksStatement : public AbstractShocksStatement
 {

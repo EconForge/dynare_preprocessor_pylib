@@ -58,9 +58,10 @@ expression_type(expr_t expression)
 DynareModel::DynareModel(const std::string& modfile_content_or_path,
                          int derivs_order,
                          int params_derivs_order,
-                         bool strict)
+                         bool strict,
+                         std::optional<bool> stochastic)
 {
-  set_mod_file(modfile_content_or_path, derivs_order, params_derivs_order, strict);
+  set_mod_file(modfile_content_or_path, derivs_order, params_derivs_order, strict, stochastic);
   set_json_string();
   set_symbols();
   set_equations();
@@ -74,7 +75,8 @@ void
 DynareModel::set_mod_file(const std::string& modfile_content_or_path,
                           int derivs_order,
                           int params_derivs_order,
-                          bool strict)
+                          bool strict,
+                          std::optional<bool> stochastic)
 {
   filesystem::path filepath;
   string content;
@@ -113,15 +115,15 @@ DynareModel::set_mod_file(const std::string& modfile_content_or_path,
   mod_file = driver->parse(macro_output, debug);
 
   // 3. Checking pass
-  const bool stochastic = true;
-  mod_file->checkPass(nostrict, stochastic);
+  const bool stochastic_val = stochastic.value_or(false);
+  mod_file->checkPass(nostrict, stochastic_val);
 
   // 4. Transformation pass
   const bool compute_xrefs = false;
   const bool transform_unary_ops = false;
   string exclude_eqs = "";
   string include_eqs = "";
-  mod_file->transformPass(nostrict, stochastic, compute_xrefs,
+  mod_file->transformPass(nostrict, stochastic_val, compute_xrefs,
                           transform_unary_ops, exclude_eqs, include_eqs);
 
   // 5. Evaluate parameters initialization, initval, and steady states
@@ -259,14 +261,33 @@ DynareModel::set_exogenous()
   covariances.clear();
   trajectories.clear();
 
+  auto process_det_shocks = [&](const AbstractShocksStatement::det_shocks_t& det_shocks) {
+    for (const auto& [id, shock_vec] : det_shocks)
+      {
+        string s = table.getName(id);
+        auto& traj = trajectories[s];
+        for (const auto& [period_range, expr] : shock_vec)
+          {
+            if (holds_alternative<pair<int, int>>(period_range))
+              {
+                auto [p1, p2] = get<pair<int, int>>(period_range);
+                traj.emplace_back(p1, p2, expr->eval(eval_ctx));
+              }
+          }
+      }
+  };
+
   try
     {
       for (const auto& statement : mod_file->statements)
         {
-          const auto& type = typeid(*statement);
-          if (type == typeid(ShocksStatement))
+          if (auto* shock = dynamic_cast<ShocksStatement*>(statement.get()))
             {
-              auto* shock = static_cast<ShocksStatement*>(statement.get());
+              if (shock->overwrite)
+                {
+                  covariances.clear();
+                  trajectories.clear();
+                }
               for (const auto& [id, expr] : shock->var_shocks)
                 {
                   string s = table.getName(id);
@@ -295,26 +316,19 @@ DynareModel::set_exogenous()
                   double std_2 = std::sqrt(covariances[{s2, s2}]);
                   covariances[{s1, s2}] = corr * std_1 * std_2;
                 }
+              process_det_shocks(shock->det_shocks);
             }
-          else if (type == typeid(ShocksSurpriseStatement))
+          else if (auto* shock = dynamic_cast<MShocksStatement*>(statement.get()))
             {
-              auto* shock = static_cast<ShocksSurpriseStatement*>(statement.get());
               if (shock->overwrite)
-                covariances.clear();
-              for (const auto& [id, trajectory] : shock->surprise_shocks)
-                {
-                  string s = table.getName(id);
-                  vector<tuple<int, int, double>> traj;
-                  for (const auto& [period_range, expr] : trajectory)
-                    {
-                      if (holds_alternative<pair<int, int>>(period_range))
-                        {
-                          auto [p1, p2] = get<pair<int, int>>(period_range);
-                          traj.emplace_back(p1, p2, expr->eval(eval_ctx));
-                        }
-                    }
-                  trajectories[s] = traj;
-                }
+                trajectories.clear();
+              process_det_shocks(shock->det_shocks);
+            }
+          else if (auto* shock = dynamic_cast<ShocksSurpriseStatement*>(statement.get()))
+            {
+              if (shock->overwrite)
+                trajectories.clear();
+              process_det_shocks(shock->surprise_shocks);
             }
         }
     }

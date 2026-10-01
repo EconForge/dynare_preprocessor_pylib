@@ -42,7 +42,6 @@ expected_exceptions = {
     "example1.mod": EvaluationException,  # Shock block evaluation error
     "example1_reporting.mod": EvaluationException,  # Shock block evaluation error
     "example3.mod": ModelSemanticException,  # External function in steady state
-    "ramst.mod": StatementException,  # Conflict: perfect foresight and stochastic
 }
 
 
