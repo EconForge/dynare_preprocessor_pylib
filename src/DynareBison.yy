@@ -4721,7 +4721,8 @@ o_homotopy_marginal_linearization_fallback : HOMOTOPY_MARGINAL_LINEARIZATION_FAL
 o_homotopy_exclude_varexo : HOMOTOPY_EXCLUDE_VAREXO EQUAL '(' symbol_list ')' { driver.option_symbol_list("simul.homotopy_exclude_varexo", $4); };
 
 o_invars : INVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("invars", $4); };
-o_period : PERIOD EQUAL INT_NUMBER { driver.option_num("period", $3); };
+o_period : PERIOD EQUAL INT_NUMBER { driver.option_num("period", $3); }
+         | PERIOD EQUAL date_expr { driver.option_date("period", $3); };
 o_outfile : OUTFILE EQUAL filename { driver.option_str("outfile", $3); };
 o_outvars : OUTVARS EQUAL '(' symbol_list ')' { driver.option_symbol_list("outvars", $4); };
 o_lmmcp : LMMCP { driver.option_num("lmmcp.status", "true"); };
