@@ -377,3 +377,95 @@ def test_matched_irfs_json_serialization():
     assert item["exo2"] == "eps_g"
 
 
+def test_perfect_foresight_models():
+    """Test loading deterministic models with perfect_foresight_setup, perfect_foresight_solver, and simul."""
+    base_txt = """
+    var c;
+    varexo x;
+    parameters a;
+    a = 0.5;
+    model;
+    c = a * c(-1) + x;
+    end;
+    initval;
+    c = 0;
+    x = 0;
+    end;
+    """
+    m1 = dp.DynareModel(base_txt + "perfect_foresight_setup(periods=10);")
+    assert len(m1.equations) == 1
+
+    m2 = dp.DynareModel(base_txt + "perfect_foresight_setup(periods=10); perfect_foresight_solver;")
+    assert len(m2.equations) == 1
+
+    m3 = dp.DynareModel(base_txt + "simul(periods=10);")
+    assert len(m3.equations) == 1
+
+
+def test_deterministic_shocks_trajectories():
+    """Test that deterministic shocks in shocks blocks populate model.trajectories."""
+    mod_text = """
+    var c;
+    varexo x;
+    parameters a;
+    a = 0.5;
+    model;
+    c = a * c(-1) + x;
+    end;
+    initval;
+    c = 0;
+    x = 0;
+    end;
+    shocks;
+    var x;
+    periods 1, 3:5;
+    values 1.2, 2.5;
+    end;
+    """
+    model = dp.DynareModel(mod_text)
+    assert "x" in model.trajectories
+    assert model.trajectories["x"] == [(1, 1, 1.2), (3, 5, 2.5)]
+
+
+def test_ramst_deterministic_model():
+    """Test loading ramst.mod (deterministic setup with shocks and solver)."""
+    modfile = os.path.join(os.path.dirname(__file__), "modfiles", "ramst.mod")
+    model = dp.DynareModel(modfile)
+    assert "c" in model.endogenous
+    assert "k" in model.endogenous
+    assert "x" in model.exogenous
+    assert "x" in model.trajectories
+    assert model.trajectories["x"] == [(1, 1, 1.2)]
+
+
+def test_stochastic_parameter_override():
+    """Test explicit stochastic constructor parameter."""
+    txt = """
+    var c;
+    varexo x;
+    parameters a;
+    a = 0.5;
+    model;
+    c = a * c(-1) + x;
+    end;
+    initval;
+    c = 0;
+    x = 0;
+    end;
+    perfect_foresight_setup(periods=10);
+    perfect_foresight_solver;
+    """
+    # Auto-detected as deterministic
+    m = dp.DynareModel(txt)
+    assert len(m.equations) == 1
+
+    # Explicit stochastic=False succeeds
+    m_det = dp.DynareModel(txt, stochastic=False)
+    assert len(m_det.equations) == 1
+
+    # Explicit stochastic=True fails with StatementException because mixing stochastic context with solver
+    with pytest.raises(dp.StatementException):
+        dp.DynareModel(txt, stochastic=True)
+
+
+

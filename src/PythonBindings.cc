@@ -20,6 +20,7 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/stl/map.h>
+#include <nanobind/stl/optional.h>
 #include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/tuple.h>
@@ -452,11 +453,12 @@ NB_MODULE(_dynare_preprocessor, m)
 
   // DynareModel class
   nb::class_<DynareModel>(m, "DynareModel")
-      .def(nb::init<const std::string&, int, int, bool>(),
+      .def(nb::init<const std::string&, int, int, bool, std::optional<bool>>(),
            nb::arg("modfile_content_or_path"),
            nb::arg("derivs_order") = 1,
            nb::arg("params_derivs_order") = 0,
-           nb::arg("strict") = false)
+           nb::arg("strict") = false,
+           nb::arg("stochastic") = nb::none())
       .def_ro("endogenous", &DynareModel::endogenous)
       .def_ro("exogenous", &DynareModel::exogenous)
       .def_ro("exogenous_det", &DynareModel::exogenous_det)

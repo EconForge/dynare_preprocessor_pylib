@@ -90,7 +90,8 @@ public:
   DynareModel(const std::string& modfile_content_or_path,
               int derivs_order = 1,
               int params_derivs_order = 0,
-              bool strict = false);
+              bool strict = false,
+              std::optional<bool> stochastic = std::nullopt);
 
   // Introspection / symbols
   std::vector<std::string> endogenous;
@@ -168,7 +169,12 @@ private:
   std::unique_ptr<ParsingDriver> driver;
   std::unique_ptr<ModFile> mod_file;
 
-  void set_mod_file(const std::string& modfile_content_or_path, int derivs_order, int params_derivs_order, bool strict = false);
+  void set_mod_file(
+      const std::string& modfile_content_or_path,
+      int derivs_order,
+      int params_derivs_order,
+      bool strict = false,
+      std::optional<bool> stochastic = std::nullopt);
   void set_json_string();
   void set_symbols();
   void set_equations();
