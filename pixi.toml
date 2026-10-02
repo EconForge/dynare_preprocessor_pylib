@@ -97,8 +97,15 @@ build-linux-aarch64 = "rattler-build build --recipe recipe --target-platform lin
 upload-linux-aarch64 = "bash -c 'test -f ~/.env && export $(grep -v \"^#\" ~/.env | xargs); for f in output/linux-aarch64/dynare-preprocessor-pylib-*.conda; do rattler-build upload prefix -c econforge --skip-existing \"$f\"; done'"
 
 # macOS Apple Silicon packaging tasks
-build-osx-arm64 = "rattler-build build --recipe recipe --target-platform osx-arm64 -m recipe/variants.yaml -c conda-forge --test skip"
+build-osx-arm64 = "RATTLER_BUILD_BUILTIN_CODESIGN=1 CONDA_OVERRIDE_OSX=11.0 rattler-build build --recipe recipe --target-platform osx-arm64 -m recipe/variants.yaml -c conda-forge --test skip"
 upload-osx-arm64 = "bash -c 'test -f ~/.env && export $(grep -v \"^#\" ~/.env | xargs); for f in output/osx-arm64/dynare-preprocessor-pylib-*.conda; do rattler-build upload prefix -c econforge --skip-existing \"$f\"; done'"
+
+# macOS Intel packaging tasks
+build-osx-64 = "RATTLER_BUILD_BUILTIN_CODESIGN=1 CONDA_OVERRIDE_OSX=11.0 rattler-build build --recipe recipe --target-platform osx-64 -m recipe/variants.yaml -c conda-forge --test skip"
+upload-osx-64 = "bash -c 'test -f ~/.env && export $(grep -v \"^#\" ~/.env | xargs); for f in output/osx-64/dynare-preprocessor-pylib-*.conda; do rattler-build upload prefix -c econforge --skip-existing \"$f\"; done'"
+
+# Upload all built packages across all platforms
+upload-all = "bash -c 'test -f ~/.env && export $(grep -v \"^#\" ~/.env | xargs); for f in output/*/dynare-preprocessor-pylib-0.0.1-*.conda; do rattler-build upload prefix -c econforge --skip-existing \"$f\"; done'"
 
 
 

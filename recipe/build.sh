@@ -48,19 +48,21 @@ else
     export BOOST_ROOT="$PREFIX"
     export BOOSTROOT="$PREFIX"
 
-    meson setup build_linux \
-        --prefix=$PREFIX \
-        --libdir=$PREFIX/lib \
-        --includedir=$PREFIX/include \
-        --bindir=$PREFIX/bin \
-        --buildtype=release \
+    if [[ "${target_platform}" == osx-* ]]; then
+        export CXXFLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_AVAILABILITY"
+        EXTRA_CPP_ARGS="-D_LIBCPP_DISABLE_AVAILABILITY"
+    else
+        EXTRA_CPP_ARGS=""
+    fi
+
+    meson setup ${MESON_ARGS} build_dir \
         -Dbuild_cli=enabled \
         -Dbuild_library=enabled \
         -Dbuild_doc=false \
-        -Dcpp_args="-I$PREFIX/include" \
+        -Dcpp_args="-I$PREFIX/include ${EXTRA_CPP_ARGS}" \
         -Dcpp_link_args="-L$PREFIX/lib"
 
-    meson compile -C build_linux -v
-    meson install -C build_linux
+    meson compile -C build_dir -v
+    meson install -C build_dir
 fi
 
