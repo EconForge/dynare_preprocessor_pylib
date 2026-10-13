@@ -24,6 +24,7 @@ try:
         SourceLocation,
         StatementException,
         SymbolType,
+        TaylorPerturbation,
         UnsupportedFeatureException,
     )
 except ModuleNotFoundError:
@@ -45,6 +46,7 @@ except ModuleNotFoundError:
         SourceLocation,
         StatementException,
         SymbolType,
+        TaylorPerturbation,
         UnsupportedFeatureException,
     )
 
@@ -55,6 +57,7 @@ __all__ = [
     "JacobianBlocks",
     "SourceLocation",
     "SymbolType",
+    "TaylorPerturbation",
     "DynareException",
     "SourceFileException",
     "ParserException",

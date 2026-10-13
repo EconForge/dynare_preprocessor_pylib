@@ -164,6 +164,18 @@ public:
       std::span<const double> exo_det,
       std::span<const double> params) const;
 
+  [[nodiscard]] const ModFile&
+  get_mod_file() const
+  {
+    return *mod_file;
+  }
+
+  [[nodiscard]] const std::vector<BinaryOpNode*>&
+  dynamic_equations() const
+  {
+    return mod_file->dynamic_model.equations;
+  }
+
 private:
   std::unique_ptr<WarningConsolidation> warnings;
   std::unique_ptr<ParsingDriver> driver;

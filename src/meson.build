@@ -218,7 +218,9 @@ if not build_library.disabled()
       nb_combined_cpp = fs.copyfile(nb_paths[3], 'nb_combined.cpp')
 
       py3_dep = py3_inst.dependency(required : false)
-      pylib_deps = [boost_dep, threads_dep]
+      # Eigen (header-only) is used by the perturbation solver
+      eigen_dep = dependency('eigen3')
+      pylib_deps = [boost_dep, threads_dep, eigen_dep]
       if py3_dep.found()
         pylib_deps += [py3_dep]
       endif
@@ -226,6 +228,7 @@ if not build_library.disabled()
       dynare_pylib = py3_inst.extension_module(
         '_dynare_preprocessor',
         'DynLib.cc',
+        'Perturbation.cc',
         'PythonBindings.cc',
         nb_combined_cpp,
         include_directories : [preprocessor_incdir, nanobind_inc],

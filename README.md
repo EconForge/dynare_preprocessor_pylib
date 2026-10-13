@@ -26,6 +26,7 @@ In addition to the standalone CLI binary, it provides a high-performance native 
    - [Basic Example](#basic-example)
    - [DynareModel Class](#dynaremodel-class)
    - [JacobianBlocks & Derivatives](#jacobianblocks--derivatives)
+   - [Higher-Order Perturbation (experimental)](#higher-order-perturbation-experimental)
    - [Exception Handling & Source Locations](#exception-handling--source-locations)
 3. [Installation & Packaging](#3-installation--packaging)
    - [Conda / Prefix.dev](#conda--prefixdev)
@@ -200,6 +201,29 @@ All evaluator methods accept inputs as either contiguous 1D NumPy arrays (`np.nd
   Evaluates static (steady-state) Jacobian $\partial F / \partial y$ as a 2D NumPy array of shape `(n_eq, n_endo)`.
 - `derivatives(endo_future, endo_present, endo_past, exo, exo_det, params) -> list[list[tuple[list[int], float]]]`
   Evaluates higher-order analytical derivatives in sparse coordinate (COO) format. The $k$-th element contains the list of non-zero entries for the $k$-th order tensor: `([eq, var_1, ..., var_k], value)`.
+
+### Higher-Order Perturbation (experimental)
+
+`TaylorPerturbation` computes a perturbation solution of arbitrary order with truncated power series (a C++ port of `dyno.experimental.tpsa`). The model equations are never differentiated symbolically: their expression trees are evaluated on truncated multivariate polynomials, and each order is obtained from a (block-triangular) generalized Sylvester equation. The decision rule is
+
+$$y_t = \bar y + g(w), \qquad w = (\hat x_{t-1}, u_t, \sigma)$$
+
+where $\hat x$ are the deviations of the state variables (endogenous variables appearing with a lag), $u_t$ the shocks and $\sigma$ the scale of future shocks.
+
+```python
+model = dp.DynareModel("RBC.mod", stochastic=True)
+tp = dp.TaylorPerturbation(model, order=3).solve()
+
+tp.states            # indices of the state variables
+tp.exponents         # (n_monomials, n_w) exponents of the monomials in w
+tp.coefficients      # (n_endo, n_monomials) coefficients of g
+tp.coef(x=[0], u=[0])  # coefficient vector of xhat_0 * u_0
+tp.coef(s=2)         # risk correction (sigma^2 term)
+tp.g(w)              # decision rule (levels) at w, shape (n_w,) or (N, n_w)
+tp.max_residual      # max |degree-k residual| after each order (check=True)
+```
+
+Constructor options: `ybar` (expansion point, default: values from the model context, refined by Newton steps unless `polish=False`), `params`, `Sigma` (default: from the `shocks` block), `states_only`, and `sylvester` (`"block"` or `"schur"`). Requirements: leads and lags in $\{-1, 0, 1\}$, exogenous variables at date $t$ only, and no external functions. The first-order solution uses a reordered complex Schur decomposition; eigenvalues with modulus below $1 + 10^{-6}$ count as stable, as in Dynare.
 
 ### Exception Handling & Source Locations
 

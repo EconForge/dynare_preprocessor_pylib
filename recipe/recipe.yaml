@@ -40,10 +40,12 @@ requirements:
       then:
         - python 3.13.*
         - boost-cpp
+        - eigen
         - libpython
       else:
         - python
         - libboost-devel
+        - eigen
         - nanobind
   run:
     - python

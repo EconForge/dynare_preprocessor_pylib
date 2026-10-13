@@ -32,6 +32,7 @@
 
 #include "DynLib.hh"
 #include "Exceptions.hh"
+#include "Perturbation.hh"
 
 namespace nb = nanobind;
 
@@ -94,6 +95,26 @@ to_numpy_2d(const std::vector<double>& vec, size_t rows, size_t cols)
   nb::capsule owner(ptr, [](void* p) noexcept { delete[] static_cast<double*>(p); });
   size_t shape[2] = {rows, cols};
   return nb::ndarray<nb::numpy, double, nb::ndim<2>>(ptr, 2, shape, owner).cast();
+}
+
+nb::object
+to_numpy_matrix(const Eigen::Ref<const perturbation::RowMatrix>& mat)
+{
+  return to_numpy_2d(std::vector<double>(mat.data(), mat.data() + mat.size()),
+                     static_cast<size_t>(mat.rows()), static_cast<size_t>(mat.cols()));
+}
+
+// Contiguous float64 2D array from any array-like
+perturbation::RowMatrix
+from_array_like_2d(nb::handle h, const char* name)
+{
+  nb::object arr = nb::module_::import_("numpy").attr("ascontiguousarray")(h, "float64");
+  if (nb::cast<int>(arr.attr("ndim")) != 2)
+    throw nb::value_error((std::string(name) + " must be a 2D array").c_str());
+  auto a = nb::cast<nb::ndarray<const double, nb::ndim<2>, nb::c_contig, nb::device::cpu>>(arr);
+  perturbation::RowMatrix out(a.shape(0), a.shape(1));
+  std::copy(a.data(), a.data() + a.size(), out.data());
+  return out;
 }
 
 struct ExceptionTypes
@@ -609,5 +630,145 @@ NB_MODULE(_dynare_preprocessor, m)
            nb::arg("endo_future"), nb::arg("endo_present"), nb::arg("endo_past"),
            nb::arg("exo"), nb::arg("exo_det"), nb::arg("params"),
            "Evaluate higher-order derivatives in COO format");
+  // TaylorPerturbation class
+  using perturbation::TaylorPerturbation;
+  nb::class_<TaylorPerturbation>(
+      m, "TaylorPerturbation",
+      "Perturbation solution of arbitrary order, computed with truncated power series.\n\n"
+      "The decision rule is y_t = ybar + g(w), w = (xhat_{t-1}, u_t, sigma), where xhat are\n"
+      "the deviations of the state variables (endogenous variables appearing with a lag),\n"
+      "u_t the shocks and sigma the scale of future shocks.")
+      .def(
+          "__init__",
+          [](TaylorPerturbation* self, const DynareModel& model, int order, nb::handle ybar,
+             nb::handle params, nb::handle Sigma, bool polish, bool states_only,
+             const std::string& sylvester) {
+            std::optional<std::vector<double>> ybar_v, params_v;
+            if (!ybar.is_none())
+              {
+                InputSpan s(ybar);
+                ybar_v.emplace(s.data, s.data + s.size);
+              }
+            if (!params.is_none())
+              {
+                InputSpan s(params);
+                params_v.emplace(s.data, s.data + s.size);
+              }
+            std::optional<perturbation::Matrix> Sigma_m;
+            if (!Sigma.is_none())
+              Sigma_m = from_array_like_2d(Sigma, "Sigma");
+            new (self) TaylorPerturbation(model, order, std::move(ybar_v), std::move(params_v),
+                                          std::move(Sigma_m), polish, states_only, sylvester);
+          },
+          nb::arg("model"), nb::arg("order"), nb::arg("ybar") = nb::none(),
+          nb::arg("params") = nb::none(), nb::arg("Sigma") = nb::none(),
+          nb::arg("polish") = true, nb::arg("states_only") = true,
+          nb::arg("sylvester") = "block",
+          "Set up the problem. ybar: expansion point (default: values from the model context);\n"
+          "params: parameter values (default: from the context); Sigma: shock covariance\n"
+          "(default: from the shocks block); polish: Newton steps on ybar first;\n"
+          "states_only: g depends only on the endogenous variables that appear with a lag;\n"
+          "sylvester: 'block' (block-triangular solve) or 'schur' (full Schur solve).")
+      .def(
+          "solve",
+          [](nb::handle self, bool check) {
+            nb::cast<TaylorPerturbation&>(self).solve(check);
+            return nb::borrow(self);
+          },
+          nb::arg("check") = true,
+          "Solve order by order and return self. With check, the degree-k residual is\n"
+          "recomputed after each order and its maximum stored in max_residual.")
+      .def_ro("order", &TaylorPerturbation::K)
+      .def_ro("n", &TaylorPerturbation::n)
+      .def_ro("m", &TaylorPerturbation::m)
+      .def_ro("nx", &TaylorPerturbation::nx)
+      .def_ro("n_w", &TaylorPerturbation::Nw)
+      .def_ro("states", &TaylorPerturbation::states, "Indices of the state variables")
+      .def_ro("max_residual", &TaylorPerturbation::max_residual)
+      .def_ro("timings", &TaylorPerturbation::timings)
+      .def_ro("unknowns", &TaylorPerturbation::unknowns)
+      .def_ro("solved", &TaylorPerturbation::solved)
+      .def_prop_ro("ybar", [](const TaylorPerturbation& tp) { return to_numpy_1d(tp.ybar); })
+      .def_prop_ro("Sigma", [](const TaylorPerturbation& tp) { return to_numpy_matrix(tp.Sigma); })
+      .def_prop_ro("f_p", [](const TaylorPerturbation& tp) { return to_numpy_matrix(tp.f_p); })
+      .def_prop_ro("f_0", [](const TaylorPerturbation& tp) { return to_numpy_matrix(tp.f_0); })
+      .def_prop_ro("f_m", [](const TaylorPerturbation& tp) { return to_numpy_matrix(tp.f_m); })
+      .def_prop_ro("f_e", [](const TaylorPerturbation& tp) { return to_numpy_matrix(tp.f_e); })
+      .def_prop_ro(
+          "exponents",
+          [](const TaylorPerturbation& tp) {
+            const auto idx = tp.w_monomials(tp.K);
+            auto* ptr = new int64_t[idx.size() * tp.Nw];
+            for (size_t r = 0; r < idx.size(); r++)
+              for (int v = 0; v < tp.Nw; v++)
+                ptr[r * tp.Nw + v] = tp.basis->exponents(idx[r])[v];
+            nb::capsule owner(ptr, [](void* p) noexcept { delete[] static_cast<int64_t*>(p); });
+            size_t shape[2] = {idx.size(), static_cast<size_t>(tp.Nw)};
+            return nb::ndarray<nb::numpy, int64_t, nb::ndim<2>>(ptr, 2, shape, owner).cast();
+          },
+          "Exponents (n_monomials, n_w) of the monomials of g in w = (xhat, u, sigma)")
+      .def_prop_ro(
+          "coefficients",
+          [](const TaylorPerturbation& tp) {
+            const auto idx = tp.w_monomials(tp.K);
+            perturbation::RowMatrix out(tp.n, idx.size());
+            for (size_t r = 0; r < idx.size(); r++)
+              out.col(r) = tp.C.col(idx[r]);
+            return to_numpy_matrix(out);
+          },
+          "Coefficients (n, n_monomials) of g on the monomials listed in `exponents`")
+      .def(
+          "coef",
+          [](const TaylorPerturbation& tp, const std::vector<int>& x, const std::vector<int>& u,
+             int s) {
+            std::vector<int> e(tp.basis->nvars, 0);
+            for (int i : x)
+              {
+                if (i < 0 || i >= tp.nx)
+                  throw nb::index_error("state index out of range");
+                e[i]++;
+              }
+            for (int i : u)
+              {
+                if (i < 0 || i >= tp.m)
+                  throw nb::index_error("shock index out of range");
+                e[tp.nx + i]++;
+              }
+            e[tp.i_sigma] += s;
+            int deg = s + static_cast<int>(x.size() + u.size());
+            if (deg > tp.K)
+              throw nb::value_error("monomial degree exceeds the order of the solution");
+            const int j = tp.basis->index(e);
+            std::vector<double> c(tp.n);
+            for (int i = 0; i < tp.n; i++)
+              c[i] = tp.C(i, j);
+            return to_numpy_1d(c);
+          },
+          nb::arg("x") = std::vector<int>(), nb::arg("u") = std::vector<int>(), nb::arg("s") = 0,
+          "Coefficient vector (n,) of a w-monomial, e.g. coef(x=[0, 0], u=[1]) for\n"
+          "xhat_0^2 u_1; indices are repeated for powers, s is the power of sigma.")
+      .def(
+          "g",
+          [](const TaylorPerturbation& tp, nb::handle w, std::optional<int> order) -> nb::object {
+            nb::object arr = nb::module_::import_("numpy").attr("asarray")(w, "float64");
+            const int ndim = nb::cast<int>(arr.attr("ndim"));
+            if (ndim == 1)
+              {
+                auto out = tp.g(from_array_like_2d(arr.attr("reshape")(1, -1), "w"), order);
+                return to_numpy_1d(std::vector<double>(out.data(), out.data() + out.size()));
+              }
+            return to_numpy_matrix(tp.g(from_array_like_2d(arr, "w"), order));
+          },
+          nb::arg("w"), nb::arg("order") = nb::none(),
+          "Decision rule (levels) at w = (xhat, u, sigma), shape (n_w,) or (N, n_w),\n"
+          "optionally truncated at a lower order.")
+      .def(
+          "residual",
+          [](const TaylorPerturbation& tp, int k) {
+            if (k < 0 || k > tp.K)
+              throw nb::value_error("invalid order");
+            return to_numpy_matrix(tp.residual(k));
+          },
+          nb::arg("k"),
+          "Coefficients (n, M_k) of E f(...) on the basis truncated at order k");
 }
-
