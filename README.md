@@ -40,13 +40,58 @@ In addition to the standalone CLI binary, it provides a high-performance native 
 
 The repository uses [Pixi](https://pixi.sh) to manage reproducible cross-platform development environments across Linux, macOS (Apple Silicon and Intel), and Windows.
 
+### 🚀 From Zero to the Python Demo
+
+Starting from a bare machine — no compilers, no Python, no Dynare toolchain — the only
+thing you need to install yourself is **Pixi**. It provisions every other dependency
+(C++ compilers, Boost, Python, NumPy, …) on demand.
+
+1. **Install Pixi** (once per machine):
+
+   ```bash
+   curl -fsSL https://pixi.sh/install.sh | bash
+   ```
+
+   On Windows: `winget install prefix-dev.pixi`. See [pixi.sh](https://pixi.sh) for all installation options.
+
+2. **Get the code**:
+
+   ```bash
+   git clone https://github.com/EconForge/dynare_preprocessor_pylib.git
+   cd dynare_preprocessor_pylib
+   ```
+
+3. **Build the Python extension** (first time only; takes a few minutes):
+
+   ```bash
+   pixi install      # create the development environment (`pixi run` does this automatically too)
+   pixi run setup    # configure the build directory with meson
+   pixi run compile  # compile the nanobind extension (and the C++ CLI)
+   ```
+
+4. **Run the demo**:
+
+   ```bash
+   pixi run python_demo
+   ```
+
+   The demo parses a small RBC model written in Dynare syntax, checks that the residuals
+   vanish at the steady state, and validates every analytic Jacobian block (`lead`, `curr`,
+   `lag`, `exo`, `params`) against finite differences — all green. The source is
+   `scripts/python_demo.py` if you want to read or tweak it.
+
+   The steps above work as-is on Linux and macOS. On Windows the build lands in
+   `build-win`, so run the demo from the Pixi environment with
+   `PYTHONPATH=build-win/src python scripts/python_demo.py` instead.
+
 ### Full Development Environment (CLI + Python Library)
 
 ```bash
 # Install dependencies into the default development environment
 pixi install
 
-# Compile the preprocessor CLI and nanobind Python extension
+# Configure and compile the preprocessor CLI and nanobind Python extension
+pixi run setup
 pixi run compile
 
 # Run Python pytest test suite
