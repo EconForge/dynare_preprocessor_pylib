@@ -55,9 +55,11 @@ install-editable = "pip install --no-build-isolation --no-deps -e . -Ccompile-ar
 pytest = ">=8.0.0"
 numpy = ">=2.0.0"
 ipykernel = ">=6.29.0"
+rich = ">=13"
 
 [feature.test.tasks]
 test = { cmd = "pytest tests", env = { PYTHONPATH = "build/src" } }
+python_demo = { cmd = "python scripts/python_demo.py", env = { PYTHONPATH = "build/src" } }
 
 [feature.test.target.win-64.tasks]
 test = { cmd = "pytest tests", env = { PYTHONPATH = "build-win/src" } }

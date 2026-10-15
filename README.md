@@ -55,6 +55,11 @@ pixi run test
 
 # Run all test suites via Meson (C++ CLI tests + Python tests)
 pixi run test-all
+
+# Solve a small RBC model with TaylorPerturbation at orders 1..6 and print timings
+pixi run python_demo
+# ...or up to a given order
+pixi run python_demo 10
 ```
 
 ### Standalone C++ CLI Only (`cli` environment)
@@ -224,6 +229,8 @@ tp.max_residual      # max |degree-k residual| after each order (check=True)
 ```
 
 Constructor options: `ybar` (expansion point, default: values from the model context, refined by Newton steps unless `polish=False`), `params`, `Sigma` (default: from the `shocks` block), `states_only`, and `sylvester` (`"block"` or `"schur"`). Requirements: leads and lags in $\{-1, 0, 1\}$, exogenous variables at date $t$ only, and no external functions. The first-order solution uses a reordered complex Schur decomposition; eigenvalues with modulus below $1 + 10^{-6}$ count as stable, as in Dynare.
+
+For a quick timing check, `pixi run python_demo [max_order]` runs `scripts/python_demo.py`. The script has an RBC model built in, solves it at orders 1 to `max_order` (default 6), and prints a table. For each order, the table shows the number of monomials, the time to solve, and the largest residual. It uses the extension in `build/src`, so run `pixi run compile` first.
 
 ### Exception Handling & Source Locations
 
