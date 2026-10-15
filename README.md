@@ -52,6 +52,9 @@ pixi run compile
 # Run Python pytest test suite
 pixi run test
 
+# Run an interactive demo (parse RBC model, residuals, Jacobian validation)
+pixi run python_demo
+
 # Run all test suites via Meson (C++ CLI tests + Python tests)
 pixi run test-all
 ```
