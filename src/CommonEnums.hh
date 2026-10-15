@@ -42,9 +42,7 @@ enum class SymbolType
   modFileLocalVariable = 11,   // Local variable whose scope is mod file (model excluded)
   externalFunction = 12,       // External (user-defined) function
   trend = 13,                  // Trend variable
-  statementDeclaredVariable
-  = 14, //!< Local variable assigned within a Statement (see subsample statement for example)
-  logTrend = 15, //!< Log-trend variable
+  logTrend = 15,               //!< Log-trend variable
   unusedEndogenous
   = 16, //!< Type to mark unused endogenous variables when `nostrict` option is passed
   databaseVariable = 17, // Variable inside a database namespace
@@ -81,8 +79,6 @@ to_string(SymbolType type)
       return "externalFunction";
     case trend:
       return "trend";
-    case statementDeclaredVariable:
-      return "statementDeclaredVariable";
     case logTrend:
       return "logTrend";
     case unusedEndogenous:
@@ -175,7 +171,7 @@ enum class PriorDistributions
   invGamma1 = 4,
   uniform = 5,
   invGamma2 = 6,
-  dirichlet = 7,
+  dirichlet = 7, // Currently unused, but handled in matlab/estimation/print_table_prior.m
   weibull = 8
 };
 

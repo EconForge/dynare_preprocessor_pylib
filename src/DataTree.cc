@@ -414,10 +414,10 @@ DataTree::AddPowerDeriv(expr_t iArg1, expr_t iArg2, int powerDerivOrder)
 }
 
 expr_t
-DataTree::AddDiff(expr_t iArg1)
+DataTree::AddDiff(expr_t iArg1, bool expand)
 {
-  if (iArg1->maxLead() > 0)
-    // Issue preprocessor#21: always expand diffs with leads
+  // Issue preprocessor#21: always expand diffs with leads
+  if (expand || iArg1->maxLead() > 0)
     return AddMinus(iArg1, iArg1->decreaseLeadsLags(1));
   return AddUnaryOp(UnaryOpcode::diff, iArg1);
 }

@@ -161,13 +161,14 @@ void
 print_json_period(ostream& output, const variant<int, string>& v)
 {
   visit(
-      [&]<class T>(const T& p) {
-        if constexpr (is_same_v<T, int>)
-          output << p;
-        else if constexpr (is_same_v<T, string>)
-          output << '"' << p << '"';
-        else
-          static_assert(always_false_v<T>, "Non-exhaustive visitor!");
-      },
+      [&]<class T>(const T& p)
+        {
+          if constexpr (is_same_v<T, int>)
+            output << p;
+          else if constexpr (is_same_v<T, string>)
+            output << '"' << p << '"';
+          else
+            static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+        },
       v);
 }

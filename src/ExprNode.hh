@@ -106,7 +106,9 @@ enum class ExprNodeOutputType
   steadyStateFile,                  // MATLAB/Octave code, in the generated steadystate file
   juliaSteadyStateFile,             // Julia code, in the generated steadystate file
   matlabDseries,                    // MATLAB/Octave code for dseries
-  matlabDseriesInsideFrom,          // MATLAB/Octave code for dseries, inside a “from” syntax
+  epilogueDynamicFile,              // MATLAB/Octave code, in the generated epilogue_dynamic
+                                    // file (variables are local column vectors indexed by t,
+                                    // operators are elementwise)
   juliaTimeDataFrame,               // Julia code for TimeDataFrame objects
   occbinDifferenceFile,             // MATLAB/Octave code, in the generated occbin_difference file
   pythonStaticModel,                // Python code, static model
@@ -134,7 +136,7 @@ isMatlabOutput(ExprNodeOutputType output_type)
          || output_type == ExprNodeOutputType::matlabDynamicSteadyStateOperator
          || output_type == ExprNodeOutputType::steadyStateFile
          || output_type == ExprNodeOutputType::matlabDseries
-         || output_type == ExprNodeOutputType::matlabDseriesInsideFrom
+         || output_type == ExprNodeOutputType::epilogueDynamicFile
          || output_type == ExprNodeOutputType::occbinDifferenceFile;
 }
 
@@ -250,8 +252,7 @@ private:
   virtual expr_t
   computeChainRuleDerivative(int deriv_id, const map<int, BinaryOpNode*>& recursive_variables,
                              unordered_map<expr_t, set<int>>& non_null_chain_rule_derivatives,
-                             unordered_map<expr_t, map<int, expr_t>>& cache)
-      = 0;
+                             unordered_map<expr_t, map<int, expr_t>>& cache) = 0;
 
 protected:
   //! Reference to the enclosing DataTree
@@ -288,8 +289,7 @@ protected:
      used in a chain rule context) */
   virtual void prepareForChainRuleDerivation(
       const map<int, BinaryOpNode*>& recursive_variables,
-      unordered_map<expr_t, set<int>>& non_null_chain_rule_derivatives) const
-      = 0;
+      unordered_map<expr_t, set<int>>& non_null_chain_rule_derivatives) const = 0;
 
   //! Cost of computing current node
   /*! Nodes included in temporary_terms are considered having a null cost */
@@ -335,8 +335,7 @@ protected:
        contains the variable;
      - the method will be called recursively on expr-expr(-1)  */
   virtual void computeSubExprContainingVariable(int symb_id, int lag,
-                                                set<expr_t>& contain_var) const
-      = 0;
+                                                set<expr_t>& contain_var) const = 0;
 
   // Internal helper for maxLagWithDiffsExpandedPerVariable()
   virtual void maxLagWithDiffsExpandedPerVariableHelper(map<int, int>& result, int diff_level) const
@@ -439,8 +438,7 @@ public:
   virtual void writeOutput(ostream& output, ExprNodeOutputType output_type,
                            const temporary_terms_t& temporary_terms,
                            const temporary_terms_idxs_t& temporary_terms_idxs,
-                           const deriv_node_temp_terms_t& tef_terms) const
-      = 0;
+                           const deriv_node_temp_terms_t& tef_terms) const = 0;
 
   //! returns true if the expr node contains an external function
   [[nodiscard]] virtual bool containsExternalFunction() const = 0;
@@ -459,8 +457,7 @@ public:
   //! Writes output of node in JSON syntax
   virtual void writeJsonOutput(ostream& output, const temporary_terms_t& temporary_terms,
                                const deriv_node_temp_terms_t& tef_terms,
-                               bool isdynamic = true) const
-      = 0;
+                               bool isdynamic = true) const = 0;
 
   // Returns a string representation of the expression, used by the GDB pretty printer
   [[nodiscard]] string toString() const;
@@ -499,6 +496,18 @@ public:
     Note that namespace-qualified variables are included in the result.
   */
   virtual void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const = 0;
+
+  /*! Collects the IDs of all symbols referenced by the expression.
+
+    Unlike collectVariables(), this method also collects symbols represented by specialized
+    expression nodes, such as external functions. Model local variables and the symbols in their
+    definitions are both collected. This unfiltered traversal lets callers enforce an allowlist
+    without enumerating every current SymbolType, and therefore also handles newly introduced
+    symbol types by default.
+
+    Symbols are added to the set given in argument.
+  */
+  virtual void collectSymbols(set<int>& result) const = 0;
 
   //! Find the maximum lag in a VAR: handles case where LHS is diff
   [[nodiscard]] virtual int VarMaxLag(const set<expr_t>& lhs_lag_equiv) const = 0;
@@ -546,8 +555,7 @@ public:
                                    ExprNodeBytecodeOutputType output_type,
                                    const temporary_terms_t& temporary_terms,
                                    const temporary_terms_idxs_t& temporary_terms_idxs,
-                                   const deriv_node_temp_terms_t& tef_terms) const
-      = 0;
+                                   const deriv_node_temp_terms_t& tef_terms) const = 0;
 
   /* Creates a static version of this node
 
@@ -689,8 +697,7 @@ public:
   */
   virtual expr_t substituteEndoLeadGreaterThanTwo(subst_table_t& subst_table,
                                                   vector<BinaryOpNode*>& neweqs,
-                                                  bool deterministic_model) const
-      = 0;
+                                                  bool deterministic_model) const = 0;
 
   //! Constructs a new expression where endo variables with max endo lag >= 2 have been replaced by
   //! auxiliary variables
@@ -701,8 +708,7 @@ public:
     auxiliary variables.
   */
   virtual expr_t substituteEndoLagGreaterThanTwo(subst_table_t& subst_table,
-                                                 vector<BinaryOpNode*>& neweqs) const
-      = 0;
+                                                 vector<BinaryOpNode*>& neweqs) const = 0;
 
   //! Constructs a new expression where exogenous variables with a lead have been replaced by
   //! auxiliary variables
@@ -713,8 +719,7 @@ public:
     auxiliary variables.
   */
   virtual expr_t substituteExoLead(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
-                                   bool deterministic_model) const
-      = 0;
+                                   bool deterministic_model) const = 0;
   //! Constructs a new expression where exogenous variables with a lag have been replaced by
   //! auxiliary variables
   /*!
@@ -731,8 +736,7 @@ public:
       - Individual variables with lead >= 2 are substituted
       - Non-separable expressions with lead >= 1 are substituted */
   virtual expr_t substituteHetEndoNonLinearLead(int het_dim, subst_table_t& subst_table,
-                                                vector<BinaryOpNode*>& neweqs) const
-      = 0;
+                                                vector<BinaryOpNode*>& neweqs) const = 0;
 
   //! Returns the maximum lead of heterogeneous endogenous variables in the given dimension
   [[nodiscard]] virtual int maxHetEndoLead(int het_dim) const = 0;
@@ -761,8 +765,7 @@ public:
     information model?
   */
   virtual expr_t substituteExpectation(subst_table_t& subst_table, vector<BinaryOpNode*>& neweqs,
-                                       bool partial_information_model) const
-      = 0;
+                                       bool partial_information_model) const = 0;
 
   [[nodiscard]] virtual expr_t decreaseLeadsLagsPredeterminedVariables() const = 0;
 
@@ -777,8 +780,7 @@ public:
     variables.
   */
   virtual expr_t differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
-                                          vector<BinaryOpNode*>& neweqs) const
-      = 0;
+                                          vector<BinaryOpNode*>& neweqs) const = 0;
 
   //! Return true if the nodeID is a numerical constant equal to value and false otherwise
   /*!
@@ -797,8 +799,7 @@ public:
     \param[out] the boolean equal to true if NodeId is the variable
   */
   [[nodiscard]] virtual bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id,
-                                                   int lag_arg) const
-      = 0;
+                                                   int lag_arg) const = 0;
 
   //! Replaces the Trend var with datatree.One
   [[nodiscard]] virtual expr_t replaceTrendVar() const = 0;
@@ -817,8 +818,7 @@ public:
 
   //! Substitute VarExpectation nodes
   [[nodiscard]] virtual expr_t
-  substituteVarExpectation(const map<string, expr_t>& subst_table) const
-      = 0;
+  substituteVarExpectation(const map<string, expr_t>& subst_table) const = 0;
 
   //! Mark diff nodes to be substituted
   /*! The various nodes that are equivalent up to a shift of leads/lags are
@@ -827,8 +827,7 @@ public:
   virtual void findDiffNodes(lag_equivalence_table_t& nodes) const = 0;
   //! Substitute diff operator
   virtual expr_t substituteDiff(const lag_equivalence_table_t& nodes, subst_table_t& subst_table,
-                                vector<BinaryOpNode*>& neweqs) const
-      = 0;
+                                vector<BinaryOpNode*>& neweqs) const = 0;
 
   //! Mark unary ops nodes to be substituted
   /*! The various nodes that are equivalent up to a shift of leads/lags are
@@ -838,8 +837,7 @@ public:
   //! Substitute unary ops nodes
   virtual expr_t substituteUnaryOpNodes(const lag_equivalence_table_t& nodes,
                                         subst_table_t& subst_table,
-                                        vector<BinaryOpNode*>& neweqs) const
-      = 0;
+                                        vector<BinaryOpNode*>& neweqs) const = 0;
 
   //! Substitute pac_expectation operator
   virtual expr_t substitutePacExpectation(const string& name, expr_t subexpr) = 0;
@@ -1062,6 +1060,7 @@ public:
   [[nodiscard]] bool containsExternalFunction() const override;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
   void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
@@ -1178,6 +1177,7 @@ public:
   [[nodiscard]] bool containsExternalFunction() const override;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
   void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
@@ -1330,6 +1330,7 @@ public:
                                            deriv_node_temp_terms_t& tef_terms) const override;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   static double eval_opcode(UnaryOpcode op_code, double v) noexcept(false);
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
@@ -1487,6 +1488,7 @@ public:
                                            deriv_node_temp_terms_t& tef_terms) const override;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   static double eval_opcode(double v1, BinaryOpcode op_code, double v2,
                             int derivOrder) noexcept(false);
@@ -1697,6 +1699,7 @@ public:
                                            deriv_node_temp_terms_t& tef_terms) const override;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   static double eval_opcode(double v1, TrinaryOpcode op_code, double v2, double v3) noexcept(false);
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
@@ -1853,39 +1856,34 @@ public:
   void writeOutput(ostream& output, ExprNodeOutputType output_type,
                    const temporary_terms_t& temporary_terms,
                    const temporary_terms_idxs_t& temporary_terms_idxs,
-                   const deriv_node_temp_terms_t& tef_terms) const override
-      = 0;
+                   const deriv_node_temp_terms_t& tef_terms) const override = 0;
   void writeJsonAST(ostream& output) const override = 0;
   void writeJsonOutput(ostream& output, const temporary_terms_t& temporary_terms,
                        const deriv_node_temp_terms_t& tef_terms,
-                       bool isdynamic = true) const override
-      = 0;
+                       bool isdynamic = true) const override = 0;
   [[nodiscard]] bool containsExternalFunction() const override;
   void writeExternalFunctionOutput(ostream& output, ExprNodeOutputType output_type,
                                    const temporary_terms_t& temporary_terms,
                                    const temporary_terms_idxs_t& temporary_terms_idxs,
-                                   deriv_node_temp_terms_t& tef_terms) const override
-      = 0;
+                                   deriv_node_temp_terms_t& tef_terms) const override = 0;
   void writeJsonExternalFunctionOutput(vector<string>& efout,
                                        const temporary_terms_t& temporary_terms,
                                        deriv_node_temp_terms_t& tef_terms,
-                                       bool isdynamic = true) const override
-      = 0;
+                                       bool isdynamic = true) const override = 0;
   void writeBytecodeExternalFunctionOutput(Bytecode::Writer& code_file,
                                            ExprNodeBytecodeOutputType output_type,
                                            const temporary_terms_t& temporary_terms,
                                            const temporary_terms_idxs_t& temporary_terms_idxs,
-                                           deriv_node_temp_terms_t& tef_terms) const override
-      = 0;
+                                           deriv_node_temp_terms_t& tef_terms) const override = 0;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   [[nodiscard]] double eval(const eval_context_t& eval_context) const noexcept(false) override;
   void writeBytecodeOutput(Bytecode::Writer& code_file, ExprNodeBytecodeOutputType output_type,
                            const temporary_terms_t& temporary_terms,
                            const temporary_terms_idxs_t& temporary_terms_idxs,
-                           const deriv_node_temp_terms_t& tef_terms) const override
-      = 0;
+                           const deriv_node_temp_terms_t& tef_terms) const override = 0;
   expr_t toStatic(DataTree& static_datatree) const override;
   void computeXrefs(EquationInfo& ei) const override = 0;
   BinaryOpNode* normalizeEquationHelper(const set<expr_t>& contain_var, expr_t rhs) const override;
@@ -1929,8 +1927,7 @@ public:
   expr_t substitutePacExpectation(const string& name, expr_t subexpr) override;
   expr_t substitutePacTargetNonstationary(const string& name, expr_t subexpr) override;
   virtual expr_t buildSimilarExternalFunctionNode(vector<expr_t>& alt_args,
-                                                  DataTree& alt_datatree) const
-      = 0;
+                                                  DataTree& alt_datatree) const = 0;
   [[nodiscard]] expr_t decreaseLeadsLagsPredeterminedVariables() const override;
   expr_t differentiateForwardVars(const vector<int>& subset, subst_table_t& subst_table,
                                   vector<BinaryOpNode*>& neweqs) const override;
@@ -2152,6 +2149,7 @@ public:
                            const deriv_node_temp_terms_t& tef_terms) const override;
   void collectVARLHSVariable(set<expr_t>& result) const override;
   void collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const override;
+  void collectSymbols(set<int>& result) const override;
   void collectSelfVariables(set<pair<int, int>>& result) const override;
   [[nodiscard]] bool isNumConstNodeEqualTo(double value) const override;
   [[nodiscard]] bool isVariableNodeEqualTo(SymbolType type_arg, int variable_id,

@@ -494,23 +494,25 @@ SymbolTable::writeOutput(ostream& output) const noexcept(false)
 
   // Heterogeneous symbols
   // FIXME: the following helper could be used to simplify non-heterogeneous variables
-  auto print_symb_names = [this, &output](const string& field, const auto& symb_ids) {
-    auto helper = [this, &output, &symb_ids](auto nameMethod) {
-      for (bool first_printed {false}; int symb_id : symb_ids)
+  auto print_symb_names = [this, &output](const string& field, const auto& symb_ids)
+    {
+      auto helper = [this, &output, &symb_ids](auto nameMethod)
         {
-          if (exchange(first_printed, true))
-            output << "; ";
-          output << "'" << (this->*nameMethod)(symb_id) << "'";
-        }
+          for (bool first_printed {false}; int symb_id : symb_ids)
+            {
+              if (exchange(first_printed, true))
+                output << "; ";
+              output << "'" << (this->*nameMethod)(symb_id) << "'";
+            }
+        };
+      output << field << " = {";
+      helper(&SymbolTable::getName);
+      output << "};" << '\n' << field << "_tex = {";
+      helper(&SymbolTable::getTeXName);
+      output << "};" << '\n' << field << "_long = {";
+      helper(&SymbolTable::getLongName);
+      output << "};" << '\n';
     };
-    output << field << " = {";
-    helper(&SymbolTable::getName);
-    output << "};" << '\n' << field << "_tex = {";
-    helper(&SymbolTable::getTeXName);
-    output << "};" << '\n' << field << "_long = {";
-    helper(&SymbolTable::getLongName);
-    output << "};" << '\n';
-  };
   for (int het_dim {0}; het_dim < heterogeneity_table.size(); het_dim++)
     {
       const string basefield {format("M_.heterogeneity({}).", het_dim + 1)};
@@ -1067,11 +1069,13 @@ SymbolTable::isAuxiliaryVariable(int symb_id) const
 bool
 SymbolTable::isDiffAuxiliaryVariable(int symb_id) const
 {
-  return ranges::any_of(aux_vars, [=](const auto& av) {
-    return av.symb_id == symb_id
-           && (av.type == AuxVarType::diff || av.type == AuxVarType::diffLag
-               || av.type == AuxVarType::diffLead);
-  });
+  return ranges::any_of(aux_vars,
+                        [=](const auto& av)
+                          {
+                            return av.symb_id == symb_id
+                                   && (av.type == AuxVarType::diff || av.type == AuxVarType::diffLag
+                                       || av.type == AuxVarType::diffLead);
+                          });
 }
 
 set<int>

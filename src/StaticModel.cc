@@ -1018,15 +1018,16 @@ StaticModel::writePythonStaticParamsDerivatives(const string& basename, bool use
   output << '\n';
 
   // Write derivatives with proper indentation
-  auto write_python_derivs = [&output](ostringstream& deriv_output) {
-    if (!deriv_output.str().empty())
-      {
-        istringstream deriv_stream(deriv_output.str());
-        string line;
-        while (getline(deriv_stream, line))
-          output << "    " << line << '\n';
-      }
-  };
+  auto write_python_derivs = [&output](ostringstream& deriv_output)
+    {
+      if (!deriv_output.str().empty())
+        {
+          istringstream deriv_stream(deriv_output.str());
+          string line;
+          while (getline(deriv_stream, line))
+            output << "    " << line << '\n';
+        }
+    };
 
   write_python_derivs(rp_output);
   write_python_derivs(g1p_output);

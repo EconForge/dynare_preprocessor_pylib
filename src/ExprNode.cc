@@ -617,6 +617,11 @@ NumConstNode::collectDynamicVariables([[maybe_unused]] SymbolType type_arg,
 }
 
 void
+NumConstNode::collectSymbols([[maybe_unused]] set<int>& result) const
+{
+}
+
+void
 NumConstNode::collectSelfVariables([[maybe_unused]] set<pair<int, int>>& result) const
 {
 }
@@ -1013,7 +1018,6 @@ VariableNode::prepareForDerivation()
       break;
     case SymbolType::heterogeneousParameter:
     case SymbolType::modFileLocalVariable:
-    case SymbolType::statementDeclaredVariable:
     case SymbolType::unusedEndogenous:
       // Such a variable is never derived
       break;
@@ -1058,7 +1062,6 @@ VariableNode::prepareForChainRuleDerivation(
     case SymbolType::trend:
     case SymbolType::logTrend:
     case SymbolType::modFileLocalVariable:
-    case SymbolType::statementDeclaredVariable:
     case SymbolType::unusedEndogenous:
     case SymbolType::heterogeneousEndogenous:
     case SymbolType::heterogeneousExogenous:
@@ -1111,8 +1114,6 @@ VariableNode::computeDerivative(int deriv_id)
       return datatree.getLocalVariable(symb_id, lag)->getDerivative(deriv_id);
     case SymbolType::modFileLocalVariable:
       throw InternalCompilerException("modFileLocalVariable is not derivable");
-    case SymbolType::statementDeclaredVariable:
-      throw InternalCompilerException("statementDeclaredVariable is not derivable");
     case SymbolType::unusedEndogenous:
       throw InternalCompilerException("unusedEndogenous is not derivable");
     case SymbolType::externalFunction:
@@ -1194,17 +1195,27 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
       return;
     }
 
-  auto juliaTimeDataFrameHelper = [&] {
-    if (lag != 0)
-      output << "lag(";
-    output << "ds." << getName();
-    if (lag != 0)
-      {
-        if (lag != -1)
-          output << "," << -lag;
-        output << ")";
-      }
-  };
+  auto juliaTimeDataFrameHelper = [&]
+    {
+      if (lag != 0)
+        output << "lag(";
+      output << "ds." << getName();
+      if (lag != 0)
+        {
+          if (lag != -1)
+            output << "," << -lag;
+          output << ")";
+        }
+    };
+
+  auto epilogueDynamicHelper = [&]
+    {
+      assert(lag <= 0); // Leads are rejected by the parser in the epilogue block
+      output << Epilogue::epilogueLocalName(getName()) << "(t";
+      if (lag < 0)
+        output << lag;
+      output << ")";
+    };
 
   int i;
   switch (type)
@@ -1288,12 +1299,8 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::juliaTimeDataFrame:
           juliaTimeDataFrameHelper();
           break;
-        case ExprNodeOutputType::matlabDseriesInsideFrom:
-          output << "ds." << getName();
-          output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
-          if (lag != 0)
-            output << lag;
-          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+        case ExprNodeOutputType::epilogueDynamicFile:
+          epilogueDynamicHelper();
           break;
         case ExprNodeOutputType::occbinDifferenceFile:
           output << "zdatalinear(:," << tsid + 1 << ")";
@@ -1344,12 +1351,8 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::juliaTimeDataFrame:
           juliaTimeDataFrameHelper();
           break;
-        case ExprNodeOutputType::matlabDseriesInsideFrom:
-          output << "ds." << getName();
-          output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
-          if (lag != 0)
-            output << lag;
-          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+        case ExprNodeOutputType::epilogueDynamicFile:
+          epilogueDynamicHelper();
           break;
         default:
           throw InternalCompilerException("VariableNode::writeOutput: should not reach this point");
@@ -1398,26 +1401,16 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
         case ExprNodeOutputType::juliaTimeDataFrame:
           juliaTimeDataFrameHelper();
           break;
-        case ExprNodeOutputType::matlabDseriesInsideFrom:
-          output << "ds." << getName();
-          output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
-          if (lag != 0)
-            output << lag;
-          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
+        case ExprNodeOutputType::epilogueDynamicFile:
+          epilogueDynamicHelper();
           break;
         default:
           throw InternalCompilerException("VariableNode::writeOutput: should not reach this point");
         }
       break;
     case SymbolType::epilogue:
-      if (output_type == ExprNodeOutputType::matlabDseriesInsideFrom)
-        {
-          output << "ds." << getName();
-          output << LEFT_ARRAY_SUBSCRIPT(output_type) << "t";
-          if (lag != 0)
-            output << lag;
-          output << RIGHT_ARRAY_SUBSCRIPT(output_type);
-        }
+      if (output_type == ExprNodeOutputType::epilogueDynamicFile)
+        epilogueDynamicHelper();
       else if (output_type == ExprNodeOutputType::matlabStaticModel)
         output << "epilogue" << LEFT_ARRAY_SUBSCRIPT(output_type)
                << getTypeSpecificID() + ARRAY_SUBSCRIPT_OFFSET(output_type)
@@ -1435,7 +1428,6 @@ VariableNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case SymbolType::externalFunction:
     case SymbolType::trend:
     case SymbolType::logTrend:
-    case SymbolType::statementDeclaredVariable:
     case SymbolType::excludedVariable:
     case SymbolType::databaseVariable:
       throw InternalCompilerException("VariableNode::writeOutput: Impossible case");
@@ -1565,6 +1557,14 @@ VariableNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& 
 }
 
 void
+VariableNode::collectSymbols(set<int>& result) const
+{
+  result.insert(symb_id);
+  if (get_type() == SymbolType::modelLocalVariable)
+    datatree.getLocalVariable(symb_id, lag)->collectSymbols(result);
+}
+
+void
 VariableNode::collectSelfVariables(set<pair<int, int>>& result) const
 {
   if (get_type() == SymbolType::modelLocalVariable)
@@ -1631,8 +1631,6 @@ VariableNode::computeChainRuleDerivative(
                                    cache);
     case SymbolType::modFileLocalVariable:
       throw InternalCompilerException("modFileLocalVariable is not derivable");
-    case SymbolType::statementDeclaredVariable:
-      throw InternalCompilerException("statementDeclaredVariable is not derivable");
     case SymbolType::unusedEndogenous:
       throw InternalCompilerException("unusedEndogenous is not derivable");
     case SymbolType::externalFunction:
@@ -1673,7 +1671,6 @@ VariableNode::computeXrefs(EquationInfo& ei) const
     case SymbolType::trend:
     case SymbolType::logTrend:
     case SymbolType::modFileLocalVariable:
-    case SymbolType::statementDeclaredVariable:
     case SymbolType::unusedEndogenous:
     case SymbolType::externalFunction:
     case SymbolType::epilogue:
@@ -3225,7 +3222,7 @@ UnaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
 
         case ExprNodeOutputType::matlabDynamicModel:
         case ExprNodeOutputType::occbinDifferenceFile:
-        case ExprNodeOutputType::matlabDseriesInsideFrom:
+        case ExprNodeOutputType::epilogueDynamicFile:
           new_output_type = ExprNodeOutputType::matlabDynamicSteadyStateOperator;
           break;
         case ExprNodeOutputType::latexDynamicModel:
@@ -3496,6 +3493,12 @@ void
 UnaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& result) const
 {
   arg->collectDynamicVariables(type_arg, result);
+}
+
+void
+UnaryOpNode::collectSymbols(set<int>& result) const
+{
+  arg->collectSymbols(result);
 }
 
 void
@@ -5160,8 +5163,10 @@ BinaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case BinaryOpcode::times:
       if (isLatexOutput(output_type))
         output << R"(\, )";
-      else if (output_type == ExprNodeOutputType::occbinDifferenceFile // This file operates on
-                                                                       // vectors, see dynare#1826
+      else if (output_type == ExprNodeOutputType::occbinDifferenceFile   // This file operates on
+                                                                         // vectors, see dynare#1826
+               || output_type == ExprNodeOutputType::epilogueDynamicFile // Epilogue equations are
+                                                                         // written elementwise
                || output_type == ExprNodeOutputType::juliaTimeDataFrame)
         output << " .*";
       else
@@ -5170,8 +5175,10 @@ BinaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case BinaryOpcode::divide:
       if (!isLatexOutput(output_type))
         {
-          if (output_type == ExprNodeOutputType::occbinDifferenceFile // This file operates on
-                                                                      // vectors, see dynare#1826
+          if (output_type == ExprNodeOutputType::occbinDifferenceFile   // This file operates on
+                                                                        // vectors, see dynare#1826
+              || output_type == ExprNodeOutputType::epilogueDynamicFile // Epilogue equations are
+                                                                        // written elementwise
               || output_type == ExprNodeOutputType::juliaTimeDataFrame)
             output << " ./";
           else
@@ -5181,6 +5188,8 @@ BinaryOpNode::writeOutput(ostream& output, ExprNodeOutputType output_type,
     case BinaryOpcode::power:
       if (output_type == ExprNodeOutputType::occbinDifferenceFile // This file operates on vectors,
                                                                   // see dynare#1826
+          || output_type == ExprNodeOutputType::epilogueDynamicFile // Epilogue equations are
+                                                                    // written elementwise
           || output_type == ExprNodeOutputType::juliaTimeDataFrame)
         output << " .^";
       else if (isPythonOutput(output_type))
@@ -5331,6 +5340,13 @@ BinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>& 
 {
   arg1->collectDynamicVariables(type_arg, result);
   arg2->collectDynamicVariables(type_arg, result);
+}
+
+void
+BinaryOpNode::collectSymbols(set<int>& result) const
+{
+  arg1->collectSymbols(result);
+  arg2->collectSymbols(result);
 }
 
 void
@@ -6909,6 +6925,14 @@ TrinaryOpNode::collectDynamicVariables(SymbolType type_arg, set<pair<int, int>>&
 }
 
 void
+TrinaryOpNode::collectSymbols(set<int>& result) const
+{
+  arg1->collectSymbols(result);
+  arg2->collectSymbols(result);
+  arg3->collectSymbols(result);
+}
+
+void
 TrinaryOpNode::collectSelfVariables(set<pair<int, int>>& result) const
 {
   arg1->collectSelfVariables(result);
@@ -7440,6 +7464,14 @@ AbstractExternalFunctionNode::collectDynamicVariables(SymbolType type_arg,
 }
 
 void
+AbstractExternalFunctionNode::collectSymbols(set<int>& result) const
+{
+  result.insert(symb_id);
+  for (auto argument : arguments)
+    argument->collectSymbols(result);
+}
+
+void
 AbstractExternalFunctionNode::collectSelfVariables(set<pair<int, int>>& result) const
 {
   for (auto argument : arguments)
@@ -7807,8 +7839,8 @@ AbstractExternalFunctionNode::containsPacExpectation(const string& pac_model_nam
 bool
 AbstractExternalFunctionNode::containsPacTargetNonstationary(const string& pac_model_name) const
 {
-  return ranges::any_of(
-      arguments, [&](expr_t e) { return e->containsPacTargetNonstationary(pac_model_name); });
+  return ranges::any_of(arguments, [&](expr_t e)
+                          { return e->containsPacTargetNonstationary(pac_model_name); });
 }
 
 bool
@@ -8103,7 +8135,7 @@ ExternalFunctionNode::writeOutput(ostream& output, ExprNodeOutputType output_typ
   if (output_type == ExprNodeOutputType::matlabOutsideModel
       || output_type == ExprNodeOutputType::steadyStateFile
       || output_type == ExprNodeOutputType::juliaSteadyStateFile
-      || output_type == ExprNodeOutputType::matlabDseriesInsideFrom
+      || output_type == ExprNodeOutputType::epilogueDynamicFile
       || output_type == ExprNodeOutputType::occbinDifferenceFile || isLatexOutput(output_type))
     {
       string name
@@ -8248,10 +8280,11 @@ ExternalFunctionNode::buildSimilarExternalFunctionNode(vector<expr_t>& alt_args,
 function<bool(expr_t)>
 ExternalFunctionNode::sameTefTermPredicate() const
 {
-  return [this](expr_t e) {
-    auto e2 = dynamic_cast<ExternalFunctionNode*>(e);
-    return e2 != nullptr && e2->symb_id == symb_id && e2->arguments == arguments;
-  };
+  return [this](expr_t e)
+    {
+      auto e2 = dynamic_cast<ExternalFunctionNode*>(e);
+      return e2 != nullptr && e2->symb_id == symb_id && e2->arguments == arguments;
+    };
 }
 
 FirstDerivExternalFunctionNode::FirstDerivExternalFunctionNode(DataTree& datatree_arg, int idx_arg,
@@ -8303,13 +8336,14 @@ FirstDerivExternalFunctionNode::writeJsonOutput(ostream& output,
   try
     {
       // Compute the TEF index first, so that nothing is written to output if an exception is thrown
-      int tef_idx {[&] {
-        if (first_deriv_symb_id == symb_id
-            || first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
-          return getIndxInTefTerms(symb_id, tef_terms);
-        else
-          return getIndxInTefTerms(first_deriv_symb_id, tef_terms);
-      }()};
+      int tef_idx {[&]
+                     {
+                       if (first_deriv_symb_id == symb_id
+                           || first_deriv_symb_id == ExternalFunctionsTable::IDNotSet)
+                         return getIndxInTefTerms(symb_id, tef_terms);
+                       else
+                         return getIndxInTefTerms(first_deriv_symb_id, tef_terms);
+                     }()};
 
       if (first_deriv_symb_id == symb_id)
         output << "TEFD_" << tef_idx << "[" << inputIndex - 1 << "]";
@@ -8596,15 +8630,17 @@ FirstDerivExternalFunctionNode::sameTefTermPredicate() const
 {
   int first_deriv_symb_id = datatree.external_functions_table.getFirstDerivSymbID(symb_id);
   if (first_deriv_symb_id == symb_id)
-    return [this](expr_t e) {
-      auto e2 = dynamic_cast<ExternalFunctionNode*>(e);
-      return e2 && e2->symb_id == symb_id && e2->arguments == arguments;
-    };
+    return [this](expr_t e)
+      {
+        auto e2 = dynamic_cast<ExternalFunctionNode*>(e);
+        return e2 && e2->symb_id == symb_id && e2->arguments == arguments;
+      };
   else
-    return [this](expr_t e) {
-      auto e2 = dynamic_cast<FirstDerivExternalFunctionNode*>(e);
-      return e2 && e2->symb_id == symb_id && e2->arguments == arguments;
-    };
+    return [this](expr_t e)
+      {
+        auto e2 = dynamic_cast<FirstDerivExternalFunctionNode*>(e);
+        return e2 && e2->symb_id == symb_id && e2->arguments == arguments;
+      };
 }
 
 SecondDerivExternalFunctionNode::SecondDerivExternalFunctionNode(
@@ -8942,15 +8978,17 @@ SecondDerivExternalFunctionNode::sameTefTermPredicate() const
 {
   int second_deriv_symb_id = datatree.external_functions_table.getSecondDerivSymbID(symb_id);
   if (second_deriv_symb_id == symb_id)
-    return [this](expr_t e) {
-      auto e2 = dynamic_cast<ExternalFunctionNode*>(e);
-      return e2 && e2->symb_id == symb_id && e2->arguments == arguments;
-    };
+    return [this](expr_t e)
+      {
+        auto e2 = dynamic_cast<ExternalFunctionNode*>(e);
+        return e2 && e2->symb_id == symb_id && e2->arguments == arguments;
+      };
   else
-    return [this](expr_t e) {
-      auto e2 = dynamic_cast<SecondDerivExternalFunctionNode*>(e);
-      return e2 && e2->symb_id == symb_id && e2->arguments == arguments;
-    };
+    return [this](expr_t e)
+      {
+        auto e2 = dynamic_cast<SecondDerivExternalFunctionNode*>(e);
+        return e2 && e2->symb_id == symb_id && e2->arguments == arguments;
+      };
 }
 
 SubModelNode::SubModelNode(DataTree& datatree_arg, int idx_arg, string model_name_arg) :
@@ -9161,6 +9199,11 @@ SubModelNode::collectVARLHSVariable([[maybe_unused]] set<expr_t>& result) const
 void
 SubModelNode::collectDynamicVariables([[maybe_unused]] SymbolType type_arg,
                                       [[maybe_unused]] set<pair<int, int>>& result) const
+{
+}
+
+void
+SubModelNode::collectSymbols([[maybe_unused]] set<int>& result) const
 {
 }
 
@@ -9793,10 +9836,11 @@ ExprNode::matchParamTimesLinearCombinationOfVariables() const
 
   expr_t param = bopn->arg1, lincomb = bopn->arg2;
 
-  auto is_param = [](expr_t e) {
-    auto vn = dynamic_cast<VariableNode*>(e);
-    return vn && vn->get_type() == SymbolType::parameter;
-  };
+  auto is_param = [](expr_t e)
+    {
+      auto vn = dynamic_cast<VariableNode*>(e);
+      return vn && vn->get_type() == SymbolType::parameter;
+    };
 
   if (!is_param(param))
     {
@@ -9818,10 +9862,11 @@ ExprNode::matchParamTimesTargetMinusVariable(int symb_id) const
 
   expr_t param = bopn->arg1, minus = bopn->arg2;
 
-  auto is_param = [](expr_t e) {
-    auto vn = dynamic_cast<VariableNode*>(e);
-    return vn && vn->get_type() == SymbolType::parameter;
-  };
+  auto is_param = [](expr_t e)
+    {
+      auto vn = dynamic_cast<VariableNode*>(e);
+      return vn && vn->get_type() == SymbolType::parameter;
+    };
 
   if (!is_param(param))
     {
@@ -9837,21 +9882,23 @@ ExprNode::matchParamTimesTargetMinusVariable(int symb_id) const
   auto lhs_level = dynamic_cast<const VariableNode*>(bminus->arg2);
   auto target = dynamic_cast<const VariableNode*>(bminus->arg1);
 
-  auto check_target = [&] {
-    if (target->get_type() != SymbolType::endogenous && target->get_type() != SymbolType::exogenous)
-      return false;
-    if (datatree.symbol_table.isAuxiliaryVariable(target->symb_id))
-      {
-        auto& avi = datatree.symbol_table.getAuxVarInfo(target->symb_id);
-        if (avi.type == AuxVarType::pacTargetNonstationary && target->lag == -1)
-          return true;
-        return avi.type == AuxVarType::unaryOp && avi.unary_op == "log" && avi.orig_symb_id
-               && !datatree.symbol_table.isAuxiliaryVariable(*avi.orig_symb_id)
-               && target->lag + avi.orig_lead_lag.value() == -1;
-      }
-    else
-      return target->lag == -1;
-  };
+  auto check_target = [&]
+    {
+      if (target->get_type() != SymbolType::endogenous
+          && target->get_type() != SymbolType::exogenous)
+        return false;
+      if (datatree.symbol_table.isAuxiliaryVariable(target->symb_id))
+        {
+          auto& avi = datatree.symbol_table.getAuxVarInfo(target->symb_id);
+          if (avi.type == AuxVarType::pacTargetNonstationary && target->lag == -1)
+            return true;
+          return avi.type == AuxVarType::unaryOp && avi.unary_op == "log" && avi.orig_symb_id
+                 && !datatree.symbol_table.isAuxiliaryVariable(*avi.orig_symb_id)
+                 && target->lag + avi.orig_lead_lag.value() == -1;
+        }
+      else
+        return target->lag == -1;
+    };
 
   if (lhs_level && lhs_level->symb_id == symb_id && target && check_target())
     return {dynamic_cast<VariableNode*>(param)->symb_id, target->symb_id};
@@ -9935,38 +9982,43 @@ ExprNode::matchComplementarityCondition(
 tuple<int, expr_t, expr_t>
 BinaryOpNode::matchComplementarityCondition(const optional<int>& heterogeneity_dimension) const
 {
-  bool is_greater {[&] {
-    switch (op_code)
-      {
-      case BinaryOpcode::less:
-      case BinaryOpcode::lessEqual:
-        return false;
-      case BinaryOpcode::greater:
-      case BinaryOpcode::greaterEqual:
-        return true;
-      default:
-        throw MatchFailureException {"This expression is not an inequality"};
-      }
-  }()};
+  bool is_greater {[&]
+                     {
+                       switch (op_code)
+                         {
+                         case BinaryOpcode::less:
+                         case BinaryOpcode::lessEqual:
+                           return false;
+                         case BinaryOpcode::greater:
+                         case BinaryOpcode::greaterEqual:
+                           return true;
+                         default:
+                           throw MatchFailureException {"This expression is not an inequality"};
+                         }
+                     }()};
 
-  auto match_contemporaneous_endogenous = [&](expr_t e) -> optional<int> {
-    auto* ve = dynamic_cast<VariableNode*>(e);
-    if (ve && ve->lag == 0
-        && ((!heterogeneity_dimension
-             && datatree.symbol_table.getType(ve->symb_id) == SymbolType::endogenous)
-            || (heterogeneity_dimension
-                && datatree.symbol_table.getType(ve->symb_id) == SymbolType::heterogeneousEndogenous
-                && datatree.symbol_table.getHeterogeneityDimension(ve->symb_id)
-                       == *heterogeneity_dimension)))
-      return ve->symb_id;
-    else
-      return nullopt;
-  };
+  auto match_contemporaneous_endogenous = [&](expr_t e) -> optional<int>
+    {
+      auto* ve = dynamic_cast<VariableNode*>(e);
+      if (ve && ve->lag == 0
+          && ((!heterogeneity_dimension
+               && datatree.symbol_table.getType(ve->symb_id) == SymbolType::endogenous)
+              || (heterogeneity_dimension
+                  && datatree.symbol_table.getType(ve->symb_id)
+                         == SymbolType::heterogeneousEndogenous
+                  && datatree.symbol_table.getHeterogeneityDimension(ve->symb_id)
+                         == *heterogeneity_dimension)))
+        return ve->symb_id;
+      else
+        return nullopt;
+    };
 
-  auto check_bound_constant = [](expr_t e) {
-    if (!e->isConstant())
-      throw MatchFailureException {"Bounds must not contain any endogenous or exogenous variable"};
-  };
+  auto check_bound_constant = [](expr_t e)
+    {
+      if (!e->isConstant())
+        throw MatchFailureException {
+            "Bounds must not contain any endogenous or exogenous variable"};
+    };
 
   // Match “endogenous ≶ bound”
   if (auto id = match_contemporaneous_endogenous(arg1); id)

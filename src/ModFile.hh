@@ -159,16 +159,32 @@ private:
      checksum */
   int params_derivs_order;
 
+  /* Planner discount, either corresponding to the value of the “planner_discount” option, or to the
+    “optimal_policy_discount_factor” parameter if the latter is explicitly declared; possibly
+    nullptr if there is no optimal policy command */
+  expr_t planner_discount {nullptr};
   //! Functions used in writing of JSON outut. See writeJsonOutput
   void writeJsonOutputParsingCheck(const string& basename, JsonFileOutputType json_output_mode,
                                    bool transformpass, bool computingpass) const;
   void writeJsonComputingPassOutput(const string& basename, JsonFileOutputType json_output_mode,
                                     bool jsonderivsimple) const;
   void writeJsonFileHelper(const filesystem::path& fname, ostringstream& output) const;
+  //! Writes the MATLAB/Octave function that evaluates the planner discount for a parameter vector
+  void writePlannerDiscountFile(const string& basename) const;
+
   size_t computeModelChecksum(const string& mexext, const filesystem::path& matlabroot) const;
   bool isChecksumMatching(const string& basename, size_t checksum) const;
 
 public:
+  /* Sets the planner discount. Throws PlannerDiscountModificationAttemptException if planner
+     discount is already set and an attempt is made to set it to a different value. */
+  void setPlannerDiscount(expr_t planner_discount_arg);
+
+  struct PlannerDiscountModificationAttemptException
+  {
+    const expr_t planner_discount_old;
+  };
+
   //! Add a statement
   void addStatement(unique_ptr<Statement> st);
   //! Add a statement at the front of the statements vector

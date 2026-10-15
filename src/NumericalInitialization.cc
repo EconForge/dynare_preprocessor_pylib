@@ -34,16 +34,6 @@ InitParamStatement::InitParamStatement(int symb_id_arg, const expr_t param_value
 }
 
 void
-InitParamStatement::checkPass(ModFileStructure& mod_file_struct,
-                              [[maybe_unused]] WarningConsolidation& warnings)
-{
-  // Needed for the workaround discussed in dynare#1173
-  if (symbol_table.getName(symb_id) == "optimal_policy_discount_factor")
-    param_value->collectVariables(SymbolType::parameter,
-                                  mod_file_struct.parameters_in_planner_discount);
-}
-
-void
 InitParamStatement::writeOutput(ostream& output, [[maybe_unused]] const string& basename,
                                 bool minimal_workspace) const
 {
@@ -344,14 +334,15 @@ EndValLearntInStatement::writeJsonOutput(ostream& output) const
 {
   output << R"({"statementName": "endval", "learnt_in": )";
   visit(
-      [&]<class T>(const T& p) {
-        if constexpr (is_same_v<T, int>)
-          output << p;
-        else if constexpr (is_same_v<T, string>)
-          output << '"' << p << '"';
-        else
-          static_assert(always_false_v<T>, "Non-exhaustive visitor!");
-      },
+      [&]<class T>(const T& p)
+        {
+          if constexpr (is_same_v<T, int>)
+            output << p;
+          else if constexpr (is_same_v<T, string>)
+            output << '"' << p << '"';
+          else
+            static_assert(always_false_v<T>, "Non-exhaustive visitor!");
+        },
       learnt_in_period);
   output << R"(, "vals": [)";
   for (bool printed_something {false}; auto& [type, symb_id, value] : learnt_end_values)

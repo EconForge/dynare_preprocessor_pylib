@@ -106,18 +106,19 @@ EquationTags::writeLatexOutput(ostream& output, int eqn) const
   if (!eqn_tags.contains(eqn))
     return;
 
-  auto escape_special_latex_symbols = [](string str) {
-    const regex special_latex_chars(R"([&%$#_{}])");
-    const regex backslash(R"(\\)");
-    const regex tilde(R"(~)");
-    const regex carrot(R"(\^)");
-    const regex textbackslash(R"(\\textbackslash)");
-    str = regex_replace(str, backslash, R"(\textbackslash)");
-    str = regex_replace(str, special_latex_chars, R"(\$&)");
-    str = regex_replace(str, carrot, R"(\^{})");
-    str = regex_replace(str, tilde, R"(\textasciitilde{})");
-    return regex_replace(str, textbackslash, R"(\textbackslash{})");
-  };
+  auto escape_special_latex_symbols = [](string str)
+    {
+      const regex special_latex_chars(R"([&%$#_{}])");
+      const regex backslash(R"(\\)");
+      const regex tilde(R"(~)");
+      const regex carrot(R"(\^)");
+      const regex textbackslash(R"(\\textbackslash)");
+      str = regex_replace(str, backslash, R"(\textbackslash)");
+      str = regex_replace(str, special_latex_chars, R"(\$&)");
+      str = regex_replace(str, carrot, R"(\^{})");
+      str = regex_replace(str, tilde, R"(\textasciitilde{})");
+      return regex_replace(str, textbackslash, R"(\textbackslash{})");
+    };
 
   output << R"(\noindent[)";
   for (bool wrote_eq_tag {false}; const auto& [key, value] : eqn_tags.at(eqn))

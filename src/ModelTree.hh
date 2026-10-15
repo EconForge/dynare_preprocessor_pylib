@@ -944,23 +944,24 @@ ModelTree::writePerBlockHelper(int blk, ostream& output, temporary_terms_t& temp
   // The equations
   deriv_node_temp_terms_t tef_terms;
 
-  auto write_eq_tt = [&](int eq) {
-    for (auto it : blocks_temporary_terms[blk][eq])
-      {
-        if (dynamic_cast<AbstractExternalFunctionNode*>(it))
-          it->writeExternalFunctionOutput(output, output_type, temporary_terms,
-                                          blocks_temporary_terms_idxs, tef_terms);
+  auto write_eq_tt = [&](int eq)
+    {
+      for (auto it : blocks_temporary_terms[blk][eq])
+        {
+          if (dynamic_cast<AbstractExternalFunctionNode*>(it))
+            it->writeExternalFunctionOutput(output, output_type, temporary_terms,
+                                            blocks_temporary_terms_idxs, tef_terms);
 
-        output << "  ";
-        it->writeOutput(output, output_type, blocks_temporary_terms[blk][eq],
-                        blocks_temporary_terms_idxs, tef_terms);
-        output << '=';
-        it->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs,
-                        tef_terms);
-        temporary_terms.insert(it);
-        output << ';' << '\n';
-      }
-  };
+          output << "  ";
+          it->writeOutput(output, output_type, blocks_temporary_terms[blk][eq],
+                          blocks_temporary_terms_idxs, tef_terms);
+          output << '=';
+          it->writeOutput(output, output_type, temporary_terms, blocks_temporary_terms_idxs,
+                          tef_terms);
+          temporary_terms.insert(it);
+          output << ';' << '\n';
+        }
+    };
 
   for (int eq {0}; eq < blocks[blk].size; eq++)
     {
@@ -1422,24 +1423,25 @@ ModelTree::writeBlockBytecodeHelper(Bytecode::Writer& code_file, int block,
 
   deriv_node_temp_terms_t tef_terms;
 
-  auto write_eq_tt = [&](int eq) {
-    for (auto it : blocks_temporary_terms[block][eq])
-      {
-        if (dynamic_cast<AbstractExternalFunctionNode*>(it))
-          it->writeBytecodeExternalFunctionOutput(code_file, output_type, temporary_terms_union,
-                                                  blocks_temporary_terms_idxs, tef_terms);
+  auto write_eq_tt = [&](int eq)
+    {
+      for (auto it : blocks_temporary_terms[block][eq])
+        {
+          if (dynamic_cast<AbstractExternalFunctionNode*>(it))
+            it->writeBytecodeExternalFunctionOutput(code_file, output_type, temporary_terms_union,
+                                                    blocks_temporary_terms_idxs, tef_terms);
 
-        code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::TemporaryTerm,
-                                         blocks_temporary_terms_idxs.at(it)};
-        it->writeBytecodeOutput(code_file, output_type, temporary_terms_union,
-                                blocks_temporary_terms_idxs, tef_terms);
-        if constexpr (dynamic)
-          code_file << Bytecode::FSTPT {blocks_temporary_terms_idxs.at(it)};
-        else
-          code_file << Bytecode::FSTPST {blocks_temporary_terms_idxs.at(it)};
-        temporary_terms_union.insert(it);
-      }
-  };
+          code_file << Bytecode::FNUMEXPR {Bytecode::ExpressionType::TemporaryTerm,
+                                           blocks_temporary_terms_idxs.at(it)};
+          it->writeBytecodeOutput(code_file, output_type, temporary_terms_union,
+                                  blocks_temporary_terms_idxs, tef_terms);
+          if constexpr (dynamic)
+            code_file << Bytecode::FSTPT {blocks_temporary_terms_idxs.at(it)};
+          else
+            code_file << Bytecode::FSTPST {blocks_temporary_terms_idxs.at(it)};
+          temporary_terms_union.insert(it);
+        }
+    };
 
   // The equations
   for (int i {0}; i < block_size; i++)
@@ -2356,74 +2358,77 @@ ModelTree::writeModelCFiles(const string& basename, const string& mexext,
   size_t ttlen {0};
 
   // Helper for dealing with y, x, params, steady_state and yagg inputs (shared with block case)
-  auto y_x_params_ss_yagg_inputs = [&](bool assign_y) {
-    output << "  if (!(mxIsDouble(prhs[0]) && !mxIsComplex(prhs[0]) && !mxIsSparse(prhs[0]) && "
-              "mxGetNumberOfElements(prhs[0]) == "
-           << ylen << "))" << '\n'
-           << R"(    mexErrMsgTxt("y must be a real dense numeric array with )" << ylen
-           << R"( elements");)" << '\n';
-    if (assign_y)
-      output << "  const double *restrict y = mxGetDoubles(prhs[0]);" << '\n';
-    output << "  if (!(mxIsDouble(prhs[1]) && !mxIsComplex(prhs[1]) && !mxIsSparse(prhs[1]) && "
-              "mxGetNumberOfElements(prhs[1]) == "
-           << xlen << "))" << '\n'
-           << R"(    mexErrMsgTxt("x must be a real dense numeric array with )" << xlen
-           << R"( elements");)" << '\n'
-           << "  const double *restrict x = mxGetDoubles(prhs[1]);" << '\n'
-           << "  if (!(mxIsDouble(prhs[2]) && !mxIsComplex(prhs[2]) && !mxIsSparse(prhs[2]) && "
-              "mxGetNumberOfElements(prhs[2]) == "
-           << symbol_table.param_nbr() << "))" << '\n'
-           << R"(    mexErrMsgTxt("params must be a real dense numeric array with )"
-           << symbol_table.param_nbr() << R"( elements");)" << '\n'
-           << "  const double *restrict params = mxGetDoubles(prhs[2]);" << '\n';
-    if constexpr (dynamic)
-      output << "  if (!(mxIsDouble(prhs[3]) && !mxIsComplex(prhs[3]) && !mxIsSparse(prhs[3]) && "
-                "mxGetNumberOfElements(prhs[3]) == "
-             << symbol_table.endo_nbr() << "))" << '\n'
-             << R"(    mexErrMsgTxt("steady_state must be a real dense numeric array with )"
-             << symbol_table.endo_nbr() << R"( elements");)" << '\n'
-             << "  const double *restrict steady_state = mxGetDoubles(prhs[3]);" << '\n';
-    if (!heterogeneity_table.empty())
-      {
-        const int idx {3 + static_cast<int>(dynamic)};
-        output << "  if (!(mxIsDouble(prhs[" << idx << "]) && !mxIsComplex(prhs[" << idx
-               << "]) && !mxIsSparse(prhs[" << idx << "]) && mxGetNumberOfElements(prhs[" << idx
-               << "]) == " << heterogeneity_table.aggregateEndoSize() << "))" << '\n'
-               << R"(    mexErrMsgTxt("yagg must be a real dense numeric array with )"
-               << heterogeneity_table.aggregateEndoSize() << R"( elements");)" << '\n'
-               << "  const double *restrict yagg = mxGetDoubles(prhs[" << idx << "]);" << '\n';
-      }
-  };
+  auto y_x_params_ss_yagg_inputs = [&](bool assign_y)
+    {
+      output << "  if (!(mxIsDouble(prhs[0]) && !mxIsComplex(prhs[0]) && !mxIsSparse(prhs[0]) && "
+                "mxGetNumberOfElements(prhs[0]) == "
+             << ylen << "))" << '\n'
+             << R"(    mexErrMsgTxt("y must be a real dense numeric array with )" << ylen
+             << R"( elements");)" << '\n';
+      if (assign_y)
+        output << "  const double *restrict y = mxGetDoubles(prhs[0]);" << '\n';
+      output << "  if (!(mxIsDouble(prhs[1]) && !mxIsComplex(prhs[1]) && !mxIsSparse(prhs[1]) && "
+                "mxGetNumberOfElements(prhs[1]) == "
+             << xlen << "))" << '\n'
+             << R"(    mexErrMsgTxt("x must be a real dense numeric array with )" << xlen
+             << R"( elements");)" << '\n'
+             << "  const double *restrict x = mxGetDoubles(prhs[1]);" << '\n'
+             << "  if (!(mxIsDouble(prhs[2]) && !mxIsComplex(prhs[2]) && !mxIsSparse(prhs[2]) && "
+                "mxGetNumberOfElements(prhs[2]) == "
+             << symbol_table.param_nbr() << "))" << '\n'
+             << R"(    mexErrMsgTxt("params must be a real dense numeric array with )"
+             << symbol_table.param_nbr() << R"( elements");)" << '\n'
+             << "  const double *restrict params = mxGetDoubles(prhs[2]);" << '\n';
+      if constexpr (dynamic)
+        output << "  if (!(mxIsDouble(prhs[3]) && !mxIsComplex(prhs[3]) && !mxIsSparse(prhs[3]) && "
+                  "mxGetNumberOfElements(prhs[3]) == "
+               << symbol_table.endo_nbr() << "))" << '\n'
+               << R"(    mexErrMsgTxt("steady_state must be a real dense numeric array with )"
+               << symbol_table.endo_nbr() << R"( elements");)" << '\n'
+               << "  const double *restrict steady_state = mxGetDoubles(prhs[3]);" << '\n';
+      if (!heterogeneity_table.empty())
+        {
+          const int idx {3 + static_cast<int>(dynamic)};
+          output << "  if (!(mxIsDouble(prhs[" << idx << "]) && !mxIsComplex(prhs[" << idx
+                 << "]) && !mxIsSparse(prhs[" << idx << "]) && mxGetNumberOfElements(prhs[" << idx
+                 << "]) == " << heterogeneity_table.aggregateEndoSize() << "))" << '\n'
+                 << R"(    mexErrMsgTxt("yagg must be a real dense numeric array with )"
+                 << heterogeneity_table.aggregateEndoSize() << R"( elements");)" << '\n'
+                 << "  const double *restrict yagg = mxGetDoubles(prhs[" << idx << "]);" << '\n';
+        }
+    };
 
   // Helper for dealing with sparse_rowval and sparse_colptr inputs (shared with block case)
-  auto sparse_indices_inputs = [&](int ncols, int nzval) {
-    // We use sparse_rowval and sparse_colptr (sparse_colval is unused)
-    const int row_idx {3 + nextra_args}, col_idx {row_idx + 2};
-    output << "  if (!(mxIsInt32(prhs[" << row_idx << "]) && mxGetNumberOfElements(prhs[" << row_idx
-           << "]) == " << nzval << "))" << '\n'
-           << R"(    mexErrMsgTxt("sparse_rowval must be an int32 array with )" << nzval
-           << R"( elements");)" << '\n'
-           << "  if (!(mxIsInt32(prhs[" << col_idx << "]) && mxGetNumberOfElements(prhs[" << col_idx
-           << "]) == " << ncols + 1 << "))" << '\n'
-           << R"(    mexErrMsgTxt("sparse_colptr must be an int32 array with )" << ncols + 1
-           << R"( elements");)" << '\n'
-           << "  const int32_T *restrict sparse_rowval = mxGetInt32s(prhs[" << row_idx << "]);"
-           << '\n'
-           << "  const int32_T *restrict sparse_colptr = mxGetInt32s(prhs[" << col_idx << "]);"
-           << '\n';
-  };
+  auto sparse_indices_inputs = [&](int ncols, int nzval)
+    {
+      // We use sparse_rowval and sparse_colptr (sparse_colval is unused)
+      const int row_idx {3 + nextra_args}, col_idx {row_idx + 2};
+      output << "  if (!(mxIsInt32(prhs[" << row_idx << "]) && mxGetNumberOfElements(prhs["
+             << row_idx << "]) == " << nzval << "))" << '\n'
+             << R"(    mexErrMsgTxt("sparse_rowval must be an int32 array with )" << nzval
+             << R"( elements");)" << '\n'
+             << "  if (!(mxIsInt32(prhs[" << col_idx << "]) && mxGetNumberOfElements(prhs["
+             << col_idx << "]) == " << ncols + 1 << "))" << '\n'
+             << R"(    mexErrMsgTxt("sparse_colptr must be an int32 array with )" << ncols + 1
+             << R"( elements");)" << '\n'
+             << "  const int32_T *restrict sparse_rowval = mxGetInt32s(prhs[" << row_idx << "]);"
+             << '\n'
+             << "  const int32_T *restrict sparse_colptr = mxGetInt32s(prhs[" << col_idx << "]);"
+             << '\n';
+    };
 
   // Helper for creating sparse Jacobian (shared with block case)
-  auto sparse_jacobian_create = [&](int argidx, int nrows, int ncols, int nzval) {
-    output << "  plhs[" << argidx << "] = mxCreateSparse(" << nrows << ", " << ncols << ", "
-           << nzval << ", mxREAL);" << '\n'
-           << "  mwIndex *restrict ir = mxGetIr(plhs[" << argidx
-           << "]), *restrict jc = mxGetJc(plhs[" << argidx << "]);" << '\n'
-           << "  for (mwSize i = 0; i < " << nzval << "; i++)" << '\n'
-           << "    *ir++ = *sparse_rowval++ - 1;" << '\n'
-           << "  for (mwSize i = 0; i < " << ncols + 1 << "; i++)" << '\n'
-           << "    *jc++ = *sparse_colptr++ - 1;" << '\n';
-  };
+  auto sparse_jacobian_create = [&](int argidx, int nrows, int ncols, int nzval)
+    {
+      output << "  plhs[" << argidx << "] = mxCreateSparse(" << nrows << ", " << ncols << ", "
+             << nzval << ", mxREAL);" << '\n'
+             << "  mwIndex *restrict ir = mxGetIr(plhs[" << argidx
+             << "]), *restrict jc = mxGetJc(plhs[" << argidx << "]);" << '\n'
+             << "  for (mwSize i = 0; i < " << nzval << "; i++)" << '\n'
+             << "    *ir++ = *sparse_rowval++ - 1;" << '\n'
+             << "  for (mwSize i = 0; i < " << ncols + 1 << "; i++)" << '\n'
+             << "    *jc++ = *sparse_colptr++ - 1;" << '\n';
+    };
 
   for (int i {0}; i <= computed_derivs_order; i++)
     {

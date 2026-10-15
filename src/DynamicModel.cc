@@ -191,10 +191,9 @@ DynamicModel::writeDynamicBytecode(const string& basename) const
   auto eq_idx = views::iota(0, static_cast<int>(equations.size()));
   auto endo_idx = views::iota(0, symbol_table.endo_nbr());
 
-  int jacobian_ncols_endo {
-      static_cast<int>(ranges::count_if(legacy_jacobian_cols_table, [this](const auto& v) {
-        return getTypeByDerivID(v.first) == SymbolType::endogenous;
-      }))};
+  int jacobian_ncols_endo {static_cast<int>(
+      ranges::count_if(legacy_jacobian_cols_table, [this](const auto& v)
+                         { return getTypeByDerivID(v.first) == SymbolType::endogenous; }))};
 
   code_file << Bytecode::FBEGINBLOCK {symbol_table.endo_nbr(),
                                       simulation_type,
@@ -293,10 +292,11 @@ DynamicModel::printNonZeroHessianEquations(ostream& output) const
 vector<map<string, string>>
 DynamicModel::parseIncludeExcludeEquations(const string& inc_exc_option_value, bool exclude_eqs)
 {
-  auto removeLeadingTrailingWhitespace = [](string& str) {
-    str.erase(0, str.find_first_not_of("\t\n\v\f\r "));
-    str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);
-  };
+  auto removeLeadingTrailingWhitespace = [](string& str)
+    {
+      str.erase(0, str.find_first_not_of("\t\n\v\f\r "));
+      str.erase(str.find_last_not_of("\t\n\v\f\r ") + 1);
+    };
 
   string tags;
   if (filesystem::exists(inc_exc_option_value))
@@ -1595,13 +1595,14 @@ DynamicModel::computePacModelConsistentExpectationSubstitution(
 
   // Add diff nodes and eqs for pac_target_symb_id
   const VariableNode* target_base_diff_node;
-  auto create_target_lag = [&](int lag) {
-    if (symbol_table.isAuxiliaryVariable(pac_target_symb_id))
-      // We know it is a log, see ExprNode::matchParamTimesTargetMinusVariable()
-      return AddLog(AddVariable(symbol_table.getOrigSymbIdForAuxVar(pac_target_symb_id), lag));
-    else
-      return dynamic_cast<ExprNode*>(AddVariable(pac_target_symb_id, lag));
-  };
+  auto create_target_lag = [&](int lag)
+    {
+      if (symbol_table.isAuxiliaryVariable(pac_target_symb_id))
+        // We know it is a log, see ExprNode::matchParamTimesTargetMinusVariable()
+        return AddLog(AddVariable(symbol_table.getOrigSymbIdForAuxVar(pac_target_symb_id), lag));
+      else
+        return dynamic_cast<ExprNode*>(AddVariable(pac_target_symb_id, lag));
+    };
 
   expr_t diff_node_to_search = AddDiff(create_target_lag(0));
   if (auto sit = diff_subst_table.find(diff_node_to_search); sit != diff_subst_table.end())
@@ -1717,12 +1718,13 @@ DynamicModel::computePacModelConsistentExpectationSubstitutionWithComponents(
         }
     }
 
-  auto create_target_lag = [&](int variable, int lag) {
-    if (symbol_table.isAuxiliaryVariable(variable))
-      return AddVariable(symbol_table.getOrigSymbIdForAuxVar(variable), lag);
-    else
-      return AddVariable(variable, lag);
-  };
+  auto create_target_lag = [&](int variable, int lag)
+    {
+      if (symbol_table.isAuxiliaryVariable(variable))
+        return AddVariable(symbol_table.getOrigSymbIdForAuxVar(variable), lag);
+      else
+        return AddVariable(variable, lag);
+    };
 
   expr_t substexpr = Zero;
   for (int component_idx {1};
@@ -2406,8 +2408,10 @@ DynamicModel::replaceMyEquations(DynamicModel& dynamic_model) const
 
 int
 DynamicModel::computeRamseyPolicyFOCs(const StaticModel& planner_objective,
-                                      map<int, pair<expr_t, expr_t>> cloned_ramsey_constraints)
+                                      map<int, pair<expr_t, expr_t>> cloned_ramsey_constraints,
+                                      expr_t planner_discount)
 {
+  assert(planner_discount);
   cout << "Ramsey Problem: added " << equations.size() << " multipliers." << '\n';
 
   // Add aux LM to constraints in equations
@@ -2436,12 +2440,6 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel& planner_objective,
       max_eq_lag = max(-lag, max_eq_lag);
     }
 
-  // Get Discount Factor
-  assert(symbol_table.exists("optimal_policy_discount_factor"));
-  int symb_id = symbol_table.getID("optimal_policy_discount_factor");
-  assert(symbol_table.getType(symb_id) == SymbolType::parameter);
-  expr_t discount_factor_node = AddVariable(symb_id, 0);
-
   // Create (modified) Lagrangian (so that we can take the derivative once at time t)
   expr_t lagrangian = Zero;
   for (int i {0}; i < static_cast<int>(equations.size()); i++)
@@ -2458,7 +2456,7 @@ DynamicModel::computeRamseyPolicyFOCs(const StaticModel& planner_objective,
           dfpower = AddMinus(Zero, AddNonNegativeConstant(lagstream.str()));
 
         lagrangian
-            = AddPlus(AddTimes(AddPower(discount_factor_node, dfpower),
+            = AddPlus(AddTimes(AddPower(planner_discount, dfpower),
                                equations[i]->getNonZeroPartofEquation()->decreaseLeadsLags(lag)),
                       lagrangian);
       }
@@ -2587,10 +2585,11 @@ set<int>
 DynamicModel::findUnusedParameters()
 {
   set<int> usedParams, unusedParams;
-  auto collect_params = [&](BinaryOpNode* equation) {
-    equation->collectVariables(SymbolType::parameter, usedParams);
-    equation->collectVariables(SymbolType::heterogeneousParameter, usedParams);
-  };
+  auto collect_params = [&](BinaryOpNode* equation)
+    {
+      equation->collectVariables(SymbolType::parameter, usedParams);
+      equation->collectVariables(SymbolType::heterogeneousParameter, usedParams);
+    };
 
   for (auto& equation : equations)
     collect_params(equation);
@@ -4194,15 +4193,16 @@ DynamicModel::writePythonDynamicParamsDerivatives(const string& basename, bool u
   output << '\n';
 
   // Write derivatives with proper indentation
-  auto write_python_derivs = [&output](ostringstream& deriv_output) {
-    if (!deriv_output.str().empty())
-      {
-        istringstream deriv_stream(deriv_output.str());
-        string line;
-        while (getline(deriv_stream, line))
-          output << "    " << line << '\n';
-      }
-  };
+  auto write_python_derivs = [&output](ostringstream& deriv_output)
+    {
+      if (!deriv_output.str().empty())
+        {
+          istringstream deriv_stream(deriv_output.str());
+          string line;
+          while (getline(deriv_stream, line))
+            output << "    " << line << '\n';
+        }
+    };
 
   write_python_derivs(rp_output);
   write_python_derivs(g1p_output);

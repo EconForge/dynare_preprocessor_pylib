@@ -160,15 +160,25 @@ public:
   void detrend(const map<int, expr_t>& trend_symbols_map,
                const ModelTree::nonstationary_symbols_map_t& nonstationary_symbols_map);
 
-  //! Write the steady state file
+  //! Write the epilogue files (epilogue_static.m and epilogue_dynamic.m)
   void writeEpilogueFile(const string& basename) const;
 
   //! Write Output
   void writeOutput(ostream& output) const;
 
+  /* Name of the local variable holding the column of a variable in the generated
+     epilogue_dynamic file (see ExprNodeOutputType::epilogueDynamicFile). The prefix avoids
+     clashes with the other locals of that file and with MATLAB/Octave functions. */
+  static string
+  epilogueLocalName(const string& name)
+  {
+    return "e_" + name;
+  }
+
 private:
-  //! Helper for public writeEpilogueFile
+  //! Helpers for public writeEpilogueFile
   void writeStaticEpilogueFile(const string& basename) const;
+  //! Writes epilogue_dynamic.m (the equations, operating on a structure of columns)
   void writeDynamicEpilogueFile(const string& basename) const;
 };
 

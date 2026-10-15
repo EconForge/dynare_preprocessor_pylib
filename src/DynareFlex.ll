@@ -269,14 +269,10 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
                           return token::END;
                         }
 
-<DYNARE_STATEMENT>subsamples {return token::SUBSAMPLES;}
-<DYNARE_STATEMENT>options {return token::OPTIONS;}
 <DYNARE_STATEMENT>prior {
   yylval->emplace<string>(yytext);
   return token::PRIOR;
 }
-<INITIAL>std {BEGIN DYNARE_STATEMENT; return token::STD;}
-<INITIAL>corr {BEGIN DYNARE_STATEMENT; return token::CORR;}
 <DYNARE_STATEMENT>function {return token::FUNCTION;}
 <DYNARE_STATEMENT>sampling_draws {return token::SAMPLING_DRAWS;}
 <INITIAL>prior_function {BEGIN DYNARE_STATEMENT; return token::PRIOR_FUNCTION;}
@@ -294,18 +290,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>nobs 			{return token::NOBS;}
 <DYNARE_STATEMENT>last_obs 		{return token::LAST_OBS;}
 <DYNARE_STATEMENT>first_obs 		{return token::FIRST_OBS;}
-<DYNARE_STATEMENT>mean                  {return token::MEAN;}
-<DYNARE_STATEMENT>stdev                 {return token::STDEV;}
-<DYNARE_STATEMENT>truncate              {return token::TRUNCATE;}
-<DYNARE_STATEMENT>domain                {return token::DOMAINN;} // Use altered token name to avoid identifier collision on Windows and macOS
-<DYNARE_STATEMENT>variance              {return token::VARIANCE;}
-<DYNARE_STATEMENT>mode                  {return token::MODE;}
-<DYNARE_STATEMENT>interval              {return token::INTERVAL;}
-<DYNARE_STATEMENT>shape                 {return token::SHAPE;}
-<DYNARE_STATEMENT>shift                 {return token::SHIFT;}
-<DYNARE_STATEMENT>bounds                {return token::BOUNDS;}
-<DYNARE_STATEMENT>init                  {return token::INIT;}
-<DYNARE_STATEMENT>jscale                {return token::JSCALE;}
 <DYNARE_STATEMENT>prefilter 		{return token::PREFILTER;}
 <DYNARE_STATEMENT>presample 		{return token::PRESAMPLE;}
 <DYNARE_STATEMENT>lik_init  		{return token::LIK_INIT;}
@@ -389,7 +373,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
 <DYNARE_STATEMENT>tex		{return token::TEX;}
 <DYNARE_STATEMENT>nomoments	{return token::NOMOMENTS;}
 <DYNARE_STATEMENT>nomodelsummary {return token::NOMODELSUMMARY;}
-<DYNARE_STATEMENT>std		{return token::STD;}
 <DYNARE_STATEMENT>corr		{return token::CORR;}
 <DYNARE_STATEMENT>nocorr	{return token::NOCORR;}
 <DYNARE_STATEMENT>optim		{return token::OPTIM;}
@@ -525,11 +508,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
   yylval->emplace<string>(yytext);
   return token::INV_GAMMA2;
 }
-<DYNARE_STATEMENT>dirichlet {
-  yylval->emplace<string>(yytext);
-  return token::DIRICHLET;
-}
-<DYNARE_STATEMENT>weibull {return token::WEIBULL;}
 <DYNARE_STATEMENT>normal {
   yylval->emplace<string>(yytext);
   return token::NORMAL;
@@ -1211,45 +1189,6 @@ DATE -?[0-9]+([ya]|m([1-9]|1[0-2])|q[1-4]|[sh][12])
       /* Enter a native block */
       BEGIN NATIVE;
       yyless(0);
-    }
-}
-
- /*
-    For joint prior statement, match [symbol, symbol, ...]
-    If no match, begin native and push everything back on stack
-
-    We produce SYMBOL_VEC in Flex (instead of matching `'[' symbol_list ']'`
-    in Bison because the pattern also matches potential native statements
-    (e.g. function returns from a MATLAB/Octave function). Hence, we need to
-    be able to back out of the statement if we realize it's a native statement
-    and move to the NATIVE context
- */
-<INITIAL>\[([[:space:]]*{IDENTIFIER}[[:space:]]*,{1}[[:space:]]*)*([[:space:]]*{IDENTIFIER}[[:space:]]*){1}\] {
-  string yytextcpy{yytext};
-  yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), '['), yytextcpy.end());
-  yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), ']'), yytextcpy.end());
-  yytextcpy.erase(remove(yytextcpy.begin(), yytextcpy.end(), ' '), yytextcpy.end());
-  istringstream ss(yytextcpy);
-  string token;
-  vector<string> val;
-
-  bool dynare_statement = true;
-
-  while (getline(ss, token, ','))
-    if (driver.symbol_exists_and_is_not_modfile_local_or_external_function(token))
-      val.push_back(token);
-    else
-      {
-        BEGIN NATIVE;
-        yyless(0);
-        dynare_statement = false;
-        break;
-      }
-  if (dynare_statement)
-    {
-      BEGIN DYNARE_STATEMENT;
-      yylval->emplace<vector<string>>(val);
-      return token::SYMBOL_VEC;
     }
 }
 
